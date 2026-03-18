@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Premier Jet — Roguelite Auto-Battler 2D</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Courier New', monospace; background: #fff; color: #222; padding: 40px; max-width: 1100px; margin: 0 auto; line-height: 1.6; }
+        h1 { font-size: 26px; border-bottom: 3px solid #222; padding-bottom: 10px; margin-bottom: 30px; }
+        h2 { font-size: 20px; margin: 40px 0 15px; border-bottom: 1px dashed #999; padding-bottom: 5px; }
+        h3 { font-size: 16px; margin: 20px 0 10px; }
+        p, li { font-size: 14px; }
+        ul { margin-left: 25px; margin-bottom: 15px; }
+        li { margin-bottom: 4px; }
+        table { border-collapse: collapse; width: 100%; margin: 15px 0; }
+        th, td { border: 1px solid #222; padding: 8px 12px; text-align: left; font-size: 13px; }
+        th { background: #eee; }
+        .section { margin-bottom: 50px; }
+        .page-break { page-break-after: always; }
+        .note { font-size: 12px; color: #555; background: #f5f5f5; border-left: 3px solid #222; padding: 8px 12px; margin: 10px 0; }
+        .version-tag { display: inline-block; border: 2px solid #222; padding: 2px 8px; font-size: 11px; font-weight: bold; margin-right: 5px; }
+        .vf { background: #222; color: #fff; }
+
+        .wireframe { border: 2px solid #222; margin: 25px 0; background: #fafafa; position: relative; }
+        .wireframe-title { position: absolute; top: -12px; left: 15px; background: #fff; padding: 0 8px; font-size: 12px; font-weight: bold; color: #555; }
+        .wf-box { border: 1px solid #222; padding: 8px; margin: 4px; text-align: center; font-size: 11px; display: flex; align-items: center; justify-content: center; }
+        .wf-box-dashed { border: 1px dashed #999; padding: 8px; margin: 4px; text-align: center; font-size: 10px; color: #777; display: flex; align-items: center; justify-content: center; }
+        .wf-btn { border: 2px solid #222; padding: 6px 14px; font-size: 11px; font-family: inherit; background: #fff; display: inline-block; margin: 3px; }
+        .wf-btn-primary { background: #222; color: #fff; }
+        .wf-stat-row { display: flex; justify-content: space-between; font-size: 11px; padding: 2px 0; border-bottom: 1px dotted #ccc; }
+
+        .archi-layer { border: 1px solid #222; padding: 12px; margin: 8px 0; position: relative; }
+        .archi-layer-name { position: absolute; top: -10px; left: 10px; background: #fff; padding: 0 6px; font-size: 11px; font-weight: bold; }
+        .arrow-down { text-align: center; font-size: 20px; color: #222; margin: 2px 0; }
+
+        .phone { border: 3px solid #222; width: 320px; margin: 20px auto; border-radius: 8px; overflow: hidden; background: #fafafa; }
+        .phone-notch { text-align: center; font-size: 9px; color: #999; border-bottom: 1px solid #ddd; padding: 3px; }
+        .phone-nav { display: flex; gap: 0; border-top: 2px solid #222; }
+        .phone-nav div { flex: 1; text-align: center; padding: 7px 2px; font-size: 9px; border-right: 1px solid #222; }
+        .phone-nav div:last-child { border-right: none; }
+        .phone-nav .active { background: #222; color: #fff; }
+        .phone-nav .combat-btn { flex: 1.4; font-size: 11px; font-weight: bold; background: #222; color: #fff; }
+
+        .epic { border-left: 4px solid #222; padding: 8px 12px; margin: 8px 0; background: #f9f9f9; }
+        .epic-title { font-size: 14px; font-weight: bold; }
+        .story { font-size: 12px; padding: 4px 0 4px 15px; border-bottom: 1px dotted #ddd; }
+    </style>
+</head>
+<body>
+
+<h1>PREMIER JET — [ Nom a Determiner ] — Roguelite Auto-Battler 2D</h1>
+<p class="note">Jeu mobile + PC, 2D, inspire de Forge Master / idle RPG roguelite. Solo dev.</p>
+
+<!-- ============================================================ -->
+<!-- 1. CONCEPT                                                   -->
+<!-- ============================================================ -->
+
+<div class="section">
+    <h2>1. Concept du Jeu</h2>
+
+    <h3>Pitch</h3>
+    <p>Roguelite auto-battler 2D. Le joueur gere une equipe d'aventuriers qui combat des vagues d'ennemis par paliers. Chaque dimanche minuit la run reset : on perd aventuriers, loot et paliers, mais on garde les ameliorations permanentes (batiments, arbre de competences, benedictions). Le jeu farm meme offline.</p>
+
+    <h3>Boucle de jeu</h3>
+    <p>Recruter (village) &rarr; equiper &rarr; combat auto + skills manuels &rarr; loot &rarr; ameliorer batiments &rarr; reset dimanche &rarr; recommencer plus fort.</p>
+
+    <h3>Farm offline</h3>
+    <p>Quand le joueur quitte, le serveur simule les combats au retour (basé sur le temps ecoule depuis la derniere connexion). Le loot et la progression sont calcules côte serveur.</p>
+
+    <h3>Mecanique cle : le reset progressif</h3>
+    <p>Les ameliorations de batiments faites pendant une run ne sont qu'a 50% d'effet. Au reset dimanche, elles passent a 100%.</p>
+    <p class="note">Exemple : ameliorer le batiment de recrutement passe de 100% rang F a 95%F / 5%E. Mais pendant la run c'est ~97%F / 3%E (50%). Apres reset &rarr; 90%F / 10%E complet.</p>
+
+    <h3>Business Model</h3>
+    <table>
+        <tr><th>Source</th><th>Detail</th></tr>
+        <tr><td>Monnaie premium (gems)</td><td>Achetable. Sert a : upgrade batiments, accelerer constructions. Tout le contenu est accessible sans payer.</td></tr>
+        <tr><td>Pubs rewarded</td><td>Regarder pub = bonus gratuit (acceleration, monnaie). Optionnel.</td></tr>
+        <tr><td>Pass anti-pub</td><td>Achat unique, bonus auto sans pub.</td></tr>
+        <tr><td>Cosmetiques + stats</td><td>Skins avec stats reelles. Pas de loot exclusif payant — tout est farmable.</td></tr>
+    </table>
+</div>
+
+<!-- ============================================================ -->
+<!-- 2. STACK                                                     -->
+<!-- ============================================================ -->
+
+<div class="section">
+    <h2>2. Stack Technique</h2>
+    <table>
+        <tr><th>Couche</th><th>Techno</th><th>Details</th></tr>
+        <tr><td>Moteur</td><td>Unity 2D (C#)</td><td>Rendu 2D, UI, inputs mobile + PC</td></tr>
+        <tr><td>Back-end API</td><td>ASP.NET Core Web API</td><td>Auth, combat validation, progression, loot, offline simulation</td></tr>
+        <tr><td>BDD</td><td>PostgreSQL</td><td>Comptes, progression permanente, runs, leaderboard</td></tr>
+        <tr><td>Anti-triche</td><td>Serveur autoritaire</td><td>Validation server-side de tout (combat, loot, upgrades, offline farm)</td></tr>
+        <tr><td>CI/CD</td><td>GitHub Actions</td><td>Build Unity + API, tests, deploy</td></tr>
+        <tr><td>Repo / Board</td><td>GitHub</td><td>Git (GitHub flow) + GitHub Projects v2</td></tr>
+        <tr><td>Deploy serveur</td><td>Docker &rarr; VPS</td><td>API + PostgreSQL conteneurises</td></tr>
+        <tr><td>Deploy client</td><td>Steam + stores mobiles</td><td>Builds via pipeline</td></tr>
+        <tr><td>Tests</td><td>xUnit + Unity Test Framework</td><td>Tests d'integration</td></tr>
+        <tr><td>Assets</td><td>Free + IA</td><td>Sprites 2D, UI — pas de graphiste</td></tr>
+    </table>
+
+    <h3>Version Desktop — Mode Overlay</h3>
+    <p>La version PC sera idealement en mode <strong>borderless overlay / always-on-top</strong> : fenetre sans bordure, toujours au premier plan, meme par-dessus un jeu en plein ecran. Cela permet de farm pendant qu'on joue a autre chose. Si techniquement impossible (selon l'OS/drivers), fallback sur un simple mode <strong>borderless window</strong> classique (sans bords, mais pas overlay).</p>
+    <p class="note">A investiguer : Unity supporte le borderless natif. Pour l'overlay always-on-top par-dessus les jeux fullscreen, il faudra potentiellement un plugin natif Windows (SetWindowPos / TOPMOST) ou un wrapper. A tester en V1.</p>
+</div>
+<div class="section">
+    <h2>3. Architecture</h2>
+    <div style="max-width: 550px; margin: 20px auto;">
+        <div class="archi-layer">
+            <span class="archi-layer-name">UNITY CLIENT</span>
+            Scenes, UI, GameManager, auto-battle, skills, inputs
+        </div>
+        <div class="arrow-down">&darr; REST &darr;</div>
+        <div class="archi-layer">
+            <span class="archi-layer-name">API (ASP.NET Core)</span>
+            Auth, Combat, Loot, Buildings, Recruitment, Offline Sim, Leaderboard, IAP
+        </div>
+        <div class="arrow-down">&darr;</div>
+        <div class="archi-layer">
+            <span class="archi-layer-name">SERVICES</span>
+            CombatResolver, LootGenerator, OfflineSimulator, RecruitmentService, BuildingService, BlessingService
+        </div>
+        <div class="arrow-down">&darr;</div>
+        <div class="archi-layer">
+            <span class="archi-layer-name">DOMAIN</span>
+            Adventurer, Monster, Building, Equipment, Skill, Trait, Blessing, Run, Account
+        </div>
+        <div class="arrow-down">&darr;</div>
+        <div class="archi-layer">
+            <span class="archi-layer-name">INFRASTRUCTURE</span>
+            EF Core &rarr; PostgreSQL
+        </div>
+    </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- 4. NAVIGATION                                                -->
+<!-- ============================================================ -->
+
+<div class="section">
+    <h2>4. Navigation (5 onglets)</h2>
+    <p>Barre de navigation fixe en bas de l'ecran. Le bouton Combat est central et plus gros.</p>
+    <div style="max-width:400px; margin:15px auto;">
+        <div class="phone-nav" style="border:2px solid #222;">
+            <div>&#127968;<br>Village</div>
+            <div>&#127795;<br>Arbre</div>
+            <div class="combat-btn">&#9876;<br>COMBAT</div>
+            <div>&#128101;<br>Guilde</div>
+            <div>&#128176;<br>Shop</div>
+        </div>
+    </div>
+    <table>
+        <tr><th>Onglet</th><th>Contenu</th></tr>
+        <tr><td><strong>Village</strong></td><td>Tous les batiments : Recrutement, Entrepot/Loot, Temple des Benedictions, Caserne, Forge, Centre d'Entrainement</td></tr>
+        <tr><td><strong>Arbre</strong></td><td>Arbre de competences permanent (luck, XP, slots, classes...)</td></tr>
+        <tr><td><strong>COMBAT</strong></td><td>Champ de bataille (haut) + HUD equipe/stats/inventaire loot (bas)</td></tr>
+        <tr><td><strong>Guilde</strong></td><td>Clan, classements, interactions sociales</td></tr>
+        <tr><td><strong>Shop</strong></td><td>Achat gems, pass anti-pub, cosmetiques</td></tr>
+    </table>
+</div>
+
+<!-- ============================================================ -->
+<!-- 5. BATIMENTS DETAILLES                                       -->
+<!-- ============================================================ -->
+
+<div class="section page-break">
+    <h2>5. Batiments du Village — Detail</h2>
+    <p class="note">Chaque batiment est upgradeable. Effet a 50% pendant la run, 100% apres reset. Accelerable avec gems.</p>
+
+    <h3>5.1 Centre de Recrutement</h3>
+    <table>
+        <tr><th>Aspect</th><th>Detail</th></tr>
+        <tr><td>Fonction</td><td>Propose des aventuriers periodiquement</td></tr>
+        <tr><td>File d'attente</td><td>3 aventuriers max proposes. Refus manuel pour relancer la recherche.</td></tr>
+        <tr><td>Upgrades</td><td>Vitesse de recrutement, qualite (probas de rangs superieurs F&rarr;S), nombre max en file</td></tr>
+    </table>
+
+    <h3>5.2 Caserne</h3>
+    <table>
+        <tr><th>Aspect</th><th>Detail</th></tr>
+        <tr><td>Fonction</td><td>Determine la taille max de l'equipe (defaut 1)</td></tr>
+        <tr><td>Upgrades</td><td>+1 slot par niveau</td></tr>
+    </table>
+
+    <h3>5.3 Entrepot (Batiment Loot / Inventaire)</h3>
+    <p>Batiment central pour la gestion du loot. Plusieurs niveaux d'upgrade qui debloquent des fonctionnalites.</p>
+    <table>
+        <tr><th>Feature</th><th>Detail</th></tr>
+        <tr><td>Taille inventaire</td><td>Nombre de slots de loot. Upgradeable. Important pour le farm offline.</td></tr>
+        <tr><td>Auto-vente basique</td><td>Si inventaire plein et nouveau loot : compare l'item level, vend automatiquement le plus faible.</td></tr>
+        <tr><td>Auto-vente intelligente</td><td>Upgrade : vendre auto les items en dessous d'une rarete minimum (ex: vend tout en dessous de 5 etoiles).</td></tr>
+        <tr><td>Filtre par stats</td><td>Upgrade : vendre auto les items qui n'ont pas certaines stats souhaitees.</td></tr>
+        <tr><td>Filtre par item level</td><td>Upgrade : seuil minimum d'item level, en dessous = vente auto.</td></tr>
+    </table>
+
+    <h3>5.4 Forge (Batiment Amelioration Items)</h3>
+    <p>Batiment dedie a l'amelioration des stats des items eux-memes.</p>
+    <table>
+        <tr><th>Feature</th><th>Detail</th></tr>
+        <tr><td>Augmenter stats max</td><td>Augmente le plafond des stats que les items peuvent avoir.</td></tr>
+        <tr><td>Diminuer stats min</td><td>Reduit le plancher (meilleur worst case sur les rolls).</td></tr>
+        <tr><td>Rarete = multiplicateur</td><td>La rarete de l'item multiplie les stats OU augmente le max / diminue le min.</td></tr>
+        <tr><td>Stats supplementaires</td><td>Upgrade : un item peut proposer 1 stat de plus en echange d'un max reduit. Ex: au lieu de 1 stat entre 20-100%, on a 2 stats entre 10-60%.</td></tr>
+        <tr><td>Debloquer stats cachees</td><td>Certaines stats ne sont pas visibles par defaut sur les items. La forge permet de les reveler.</td></tr>
+    </table>
+    <p class="note">Tout est upgradeable par niveau. Chaque palier de forge debloque ou ameliore une de ces features.</p>
+
+    <h3>5.5 Temple des Benedictions (Batiment Traits)</h3>
+    <p>Systeme pour influencer les traits des futurs aventuriers recrutes.</p>
+    <table>
+        <tr><th>Aspect</th><th>Detail</th></tr>
+        <tr><td>Traits</td><td>Chaque aventurier a des traits aleatoires (positifs et negatifs). Ex: "+30% degats lance", "-10% PV".</td></tr>
+        <tr><td>Rarete des traits</td><td>Commun, Rare, Epique, Legendaire. Probas augmentables.</td></tr>
+        <tr><td>Benediction</td><td>Rassembler plusieurs aventuriers avec le MEME trait pour activer une benediction sur ce trait.</td></tr>
+        <tr><td>Cout</td><td>Par defaut : 5 aventuriers avec le meme trait requis. Upgradeable pour diminuer ce nombre.</td></tr>
+        <tr><td>Effet</td><td>Le trait beni apparait plus souvent chez les futurs recrutes — pendant la run actuelle ET les suivantes.</td></tr>
+        <tr><td>Limite</td><td>Nombre max de benedictions actives simultanées. Augmentable par upgrade.</td></tr>
+        <tr><td>Pas de sacrifice</td><td>Les aventuriers ne sont pas detruits. On les garde. Il faut juste en avoir assez avec le bon trait.</td></tr>
+    </table>
+
+    <h3>5.6 Centre d'Entrainement</h3>
+    <table>
+        <tr><th>Aspect</th><th>Detail</th></tr>
+        <tr><td>Fonction</td><td>Ameliore l'IA des aventuriers en combat</td></tr>
+        <tr><td>Niveaux</td><td>Basique (tape le plus proche) &rarr; Intermediaire (heal prio low HP) &rarr; Avance (roles, targeting intelligent)</td></tr>
+    </table>
+
+    <h3>Resume des batiments</h3>
+    <table>
+        <tr><th>Batiment</th><th>Ce qui reset</th><th>Ce qui reste</th></tr>
+        <tr><td>Centre de Recrutement</td><td>Aventuriers en file</td><td>Niveau du batiment, probas</td></tr>
+        <tr><td>Caserne</td><td>Equipe actuelle</td><td>Taille max debloquee</td></tr>
+        <tr><td>Entrepot</td><td>Tout le loot</td><td>Taille inventaire, filtres auto-vente</td></tr>
+        <tr><td>Forge</td><td>Items ameliores</td><td>Niveaux de forge (stats min/max, stats bonus)</td></tr>
+        <tr><td>Temple Benedictions</td><td>Rien</td><td>Benedictions actives + niveau du temple</td></tr>
+        <tr><td>Centre Entrainement</td><td>Rien</td><td>Niveau IA</td></tr>
+    </table>
+</div>
+
+<!-- ============================================================ -->
+<!-- 6. GAMEPLAY                                                  -->
+<!-- ============================================================ -->
+
+<div class="section page-break">
+    <h2>6. Gameplay — Synthese</h2>
+
+    <h3>6.1 Aventuriers</h3>
+    <p>Classes fixes (Guerrier, Tank, Mage, Healer, Archer) avec stats aleatoires controlees (min/max par classe). Rangs F&rarr;S. Chaque aventurier a des traits positifs et negatifs aleatoires.</p>
+
+    <h3>6.2 Combat</h3>
+    <p>Semi-auto : avancent et attaquent seuls, skills activables manuellement. Ennemis par paliers. Mort = retour palier precedent. Farm offline simule par le serveur.</p>
+
+    <h3>6.3 Loot</h3>
+    <p>Drop par monstre, influence par palier + luck du compte. Gere par l'Entrepot (auto-vente configurable). Inventaire visible dans l'ecran combat.</p>
+
+    <h3>6.4 Traits &amp; Benedictions</h3>
+    <p>Traits sur aventuriers uniquement. Rarete variable. Benissables via le Temple pour augmenter les probas (run actuelle + futures). Nombre de benedictions limite et upgradeable.</p>
+
+    <h3>6.5 Reset hebdo</h3>
+    <p>Dimanche minuit : paliers &rarr; 1, aventuriers perdus, loot perdu. Batiments + arbre + benedictions conserves. Upgrades en cours passent de 50% &rarr; 100%.</p>
+</div>
+
+<!-- ============================================================ -->
+<!-- 7. VERSIONS                                                  -->
+<!-- ============================================================ -->
+
+<div class="section page-break">
+    <h2>7. Roadmap</h2>
+
+    <h3><span class="version-tag vf">V1</span> Socle Minimal</h3>
+    <p>1 guerrier (ATK, PV, regen PV, vitesse attaque), avance gauche&rarr;droite, 1 ennemi par palier, palier suivant si tue / retour si mort. HUD bas avec stats + equipement. Loot basique au kill.</p>
+
+    <h3><span class="version-tag">V2</span> Equipe &amp; Classes</h3>
+    <p>Centre de Recrutement + Caserne. 5 classes, rangs F&rarr;S, stats aleatoires controlees, bonus/malus. Equipe upgradeable. Skills manuels. Plusieurs ennemis par palier.</p>
+
+    <h3><span class="version-tag">V3</span> Economie &amp; Batiments</h3>
+    <p>Monnaie in-game + gems. Batiments upgradeable (Caserne, Forge, Entrepot, Recrutement). Mecanique 50%/100%. Reset hebdo dimanche. Entrepot avec auto-vente.</p>
+
+    <h3><span class="version-tag">V4</span> Traits, Benedictions &amp; IA</h3>
+    <p>Systeme de traits. Temple des Benedictions. Centre Entrainement (niveaux IA). Forge avancee (stats cachees, stats bonus). Arbre de competences permanent.</p>
+
+    <h3><span class="version-tag">V5</span> Monetisation &amp; Online</h3>
+    <p>Pubs rewarded, pass anti-pub, cosmetiques+stats, shop gems. Leaderboard hebdo. Farm offline (simulation serveur). Auth + sauvegarde serveur + anti-triche.</p>
+
+    <h3><span class="version-tag">V+</span> Futures</h3>
+    <p>Guildes, events, boss hebdo, PvP indirect, nouveaux batiments, nouvelles classes...</p>
+</div>
+
+<!-- ============================================================ -->
+<!-- 8. MAQUETTES                                                 -->
+<!-- ============================================================ -->
+
+<div class="section page-break">
+    <h2>8. Maquettes — Wireframes Mobile</h2>
+    <p class="note">Layout : haut = zone de jeu/contenu, bas = HUD/infos. Nav fixe en bas. Bouton COMBAT central plus gros.</p>
+
+    <!-- COMBAT -->
+    <h3>8.1 Ecran Combat</h3>
+    <p class="note">Ratio : ~2/3 champ de bataille, ~1/3 HUD. Unites alignees en colonne (haut en bas) sur 2 rangees (front/back). Le HUD a un toggle : soit Stats equipe, soit Inventaire loot — jamais les deux en meme temps.</p>
+    <div class="phone">
+        <div class="phone-notch">Palier 5-12 | Or: 3420 | &#128337; Reset: 3j 14h</div>
+        <!-- BATTLEFIELD — 2/3 -->
+        <div style="height:290px; border-bottom: 2px solid #222; padding:8px; position:relative; background:#f0f0f0;">
+            <!-- Sol -->
+            <div style="position:absolute; bottom:0; left:0; right:0; height:40px; border-top:1px solid #222; background:#e8e8e8; font-size:8px; text-align:center; padding-top:14px; color:#aaa;">[ terrain ]</div>
+
+            <!-- ALLIES — gauche, 2 colonnes (front / back), alignes verticalement -->
+            <div style="position:absolute; bottom:48px; left:10px; display:flex; gap:6px;">
+                <!-- Colonne BACK (healers, mages) -->
+                <div style="display:flex; flex-direction:column; gap:4px;">
+                    <div style="text-align:center;">
+                        <div class="wf-box" style="width:42px; height:48px; flex-direction:column; font-size:8px; margin:0;"><div>&#10014;</div><div>Heal</div></div>
+                        <div style="border:1px solid #222; height:4px; width:42px; margin-top:1px;"><div style="background:#222; height:100%; width:100%;"></div></div>
+                    </div>
+                    <div style="text-align:center;">
+                        <div class="wf-box" style="width:42px; height:48px; flex-direction:column; font-size:8px; margin:0;"><div>&#128302;</div><div>Mage</div></div>
+                        <div style="border:1px solid #222; height:4px; width:42px; margin-top:1px;"><div style="background:#222; height:100%; width:70%;"></div></div>
+                    </div>
+                </div>
+                <!-- Colonne FRONT (tanks, guerriers) -->
+                <div style="display:flex; flex-direction:column; gap:4px;">
+                    <div style="text-align:center;">
+                        <div class="wf-box" style="width:42px; height:48px; flex-direction:column; font-size:8px; margin:0;"><div>&#128737;</div><div>Tank</div></div>
+                        <div style="border:1px solid #222; height:4px; width:42px; margin-top:1px;"><div style="background:#222; height:100%; width:55%;"></div></div>
+                    </div>
+                    <div style="text-align:center;">
+                        <div class="wf-box" style="width:42px; height:48px; flex-direction:column; font-size:8px; margin:0;"><div>&#9876;</div><div>Guerr</div></div>
+                        <div style="border:1px solid #222; height:4px; width:42px; margin-top:1px;"><div style="background:#222; height:100%; width:80%;"></div></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Labels colonnes -->
+            <div style="position:absolute; bottom:170px; left:15px; font-size:7px; color:#999;">BACK</div>
+            <div style="position:absolute; bottom:170px; left:63px; font-size:7px; color:#999;">FRONT</div>
+
+            <!-- Fleche direction -->
+            <div style="position:absolute; bottom:90px; left:120px; font-size:18px;">&rarr;</div>
+
+            <!-- ENNEMIS — droite, aussi en colonnes verticales -->
+            <div style="position:absolute; bottom:48px; right:15px; display:flex; gap:6px;">
+                <div style="display:flex; flex-direction:column; gap:4px;">
+                    <div style="text-align:center;">
+                        <div class="wf-box" style="width:42px; height:48px; flex-direction:column; font-size:8px; margin:0; border-width:2px;"><div>&#128121;</div><div>Gobelin</div></div>
+                        <div style="border:1px solid #222; height:4px; width:42px; margin-top:1px;"><div style="background:#222; height:100%; width:40%;"></div></div>
+                    </div>
+                    <div style="text-align:center;">
+                        <div class="wf-box" style="width:42px; height:48px; flex-direction:column; font-size:8px; margin:0; border-width:2px;"><div>&#128126;</div><div>Squelette</div></div>
+                        <div style="border:1px solid #222; height:4px; width:42px; margin-top:1px;"><div style="background:#222; height:100%; width:65%;"></div></div>
+                    </div>
+                </div>
+                <div style="display:flex; flex-direction:column; gap:4px;">
+                    <div style="text-align:center;">
+                        <div class="wf-box" style="width:42px; height:48px; flex-direction:column; font-size:8px; margin:0; border-width:2px;"><div>&#128520;</div><div>Boss?</div></div>
+                        <div style="border:1px solid #222; height:4px; width:42px; margin-top:1px;"><div style="background:#222; height:100%; width:90%;"></div></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Skills flottants en bas du battlefield -->
+            <div style="position:absolute; bottom:5px; left:50%; transform:translateX(-50%); display:flex; gap:3px;">
+                <div class="wf-box" style="width:38px; height:30px; flex-direction:column; font-size:7px; margin:0; background:#fff;"><div>&#9876;</div><div>Rage</div></div>
+                <div class="wf-box" style="width:38px; height:30px; flex-direction:column; font-size:7px; margin:0; background:#fff;"><div>&#128737;</div><div>Provoc</div></div>
+                <div class="wf-box" style="width:38px; height:30px; flex-direction:column; font-size:7px; margin:0; background:#fff;"><div>&#10014;</div><div>Soin+</div></div>
+                <div class="wf-box" style="width:38px; height:30px; flex-direction:column; font-size:7px; margin:0; background:#fff;"><div>&#128302;</div><div>Bolt</div></div>
+            </div>
+
+            <!-- Palier -->
+            <div style="position:absolute; top:5px; right:8px; font-size:9px; border:1px solid #222; padding:2px 5px; background:#fff;">Palier 5-12</div>
+        </div>
+
+        <!-- HUD BAS — 1/3 avec toggle -->
+        <div style="padding:8px; min-height:135px;">
+            <!-- Toggle buttons -->
+            <div style="display:flex; gap:0; margin-bottom:6px; border:1px solid #222;">
+                <div style="flex:1; text-align:center; padding:5px; font-size:10px; font-weight:bold; background:#222; color:#fff;">&#9881; STATS EQUIPE</div>
+                <div style="flex:1; text-align:center; padding:5px; font-size:10px; border-left:1px solid #222;">&#128188; INVENTAIRE</div>
+            </div>
+
+            <!-- Vue STATS (active) -->
+            <div style="border:1px solid #222; padding:6px;">
+                <div style="display:flex; justify-content:space-between; font-size:10px; font-weight:bold; border-bottom:1px solid #222; padding-bottom:3px; margin-bottom:3px;">
+                    <span>&#9876; Guerrier Rang C — Niv.8</span>
+                    <span style="font-size:9px; color:#555;">&#9664; 2/4 &#9654;</span>
+                </div>
+                <div style="display:flex; gap:10px;">
+                    <div style="flex:1;">
+                        <div class="wf-stat-row"><span>PV</span><span>280/340</span></div>
+                        <div class="wf-stat-row"><span>ATK</span><span>45</span></div>
+                        <div class="wf-stat-row"><span>DEF</span><span>22</span></div>
+                        <div class="wf-stat-row"><span>VIT ATK</span><span>1.2/s</span></div>
+                    </div>
+                    <div style="flex:1;">
+                        <div style="font-size:9px; font-weight:bold; margin-bottom:2px;">Equipement :</div>
+                        <div style="display:flex; gap:2px; flex-wrap:wrap;">
+                            <div class="wf-box" style="width:28px; height:28px; font-size:6px; padding:1px;">Epee</div>
+                            <div class="wf-box" style="width:28px; height:28px; font-size:6px; padding:1px;">Armure</div>
+                            <div class="wf-box-dashed" style="width:28px; height:28px; font-size:6px;">--</div>
+                            <div class="wf-box-dashed" style="width:28px; height:28px; font-size:6px;">--</div>
+                        </div>
+                        <div style="font-size:8px; margin-top:3px; color:#555;">Traits: +12% crit | -8% regen</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- NAV -->
+        <div class="phone-nav">
+            <div>&#127968;<br>Village</div>
+            <div>&#127795;<br>Arbre</div>
+            <div class="combat-btn active">&#9876;<br>COMBAT</div>
+            <div>&#128101;<br>Guilde</div>
+            <div>&#128176;<br>Shop</div>
+        </div>
+    </div>
+
+    <!-- COMBAT — Vue Inventaire (toggle) -->
+    <h3>8.1b Ecran Combat — Toggle Inventaire</h3>
+    <p class="note">Meme ecran, mais le joueur a appuye sur le toggle "INVENTAIRE".</p>
+    <div class="phone">
+        <div class="phone-notch">Palier 5-12 | Or: 3420</div>
+        <div style="height:290px; border-bottom: 2px solid #222; background:#f0f0f0; display:flex; align-items:center; justify-content:center; font-size:11px; color:#999;">
+            [ meme champ de bataille que 8.1 ]
+        </div>
+        <!-- HUD — Vue inventaire -->
+        <div style="padding:8px; min-height:135px;">
+            <div style="display:flex; gap:0; margin-bottom:6px; border:1px solid #222;">
+                <div style="flex:1; text-align:center; padding:5px; font-size:10px; border-right:1px solid #222;">&#9881; STATS EQUIPE</div>
+                <div style="flex:1; text-align:center; padding:5px; font-size:10px; font-weight:bold; background:#222; color:#fff;">&#128188; INVENTAIRE</div>
+            </div>
+            <div style="border:1px solid #222; padding:5px;">
+                <div style="font-size:9px; font-weight:bold; margin-bottom:3px;">Loot (6/8) — Auto-vente: iLvl&lt;5</div>
+                <div style="display:flex; gap:3px; flex-wrap:wrap;">
+                    <div class="wf-box" style="width:55px; height:42px; flex-direction:column; font-size:7px;"><div>&#9876; Epee +12</div><div style="color:#555;">iLvl 14 &#9733;&#9733;&#9733;</div></div>
+                    <div class="wf-box" style="width:55px; height:42px; flex-direction:column; font-size:7px;"><div>&#128737; Armure +8</div><div style="color:#555;">iLvl 10 &#9733;&#9733;</div></div>
+                    <div class="wf-box" style="width:55px; height:42px; flex-direction:column; font-size:7px;"><div>&#127993; Arc +15</div><div style="color:#555;">iLvl 18 &#9733;&#9733;&#9733;&#9733;</div></div>
+                    <div class="wf-box" style="width:55px; height:42px; flex-direction:column; font-size:7px;"><div>&#128302; Baton +20</div><div style="color:#555;">iLvl 22 &#9733;&#9733;&#9733;&#9733;&#9733;</div></div>
+                    <div class="wf-box" style="width:55px; height:42px; flex-direction:column; font-size:7px;"><div>&#128095; Bottes +5</div><div style="color:#555;">iLvl 6 &#9733;</div></div>
+                    <div class="wf-box" style="width:55px; height:42px; flex-direction:column; font-size:7px;"><div>&#9935; Casque +3</div><div style="color:#555;">iLvl 4 &#9733;</div></div>
+                    <div class="wf-box-dashed" style="width:55px; height:42px; font-size:7px;">vide</div>
+                    <div class="wf-box-dashed" style="width:55px; height:42px; font-size:7px;">vide</div>
+                </div>
+            </div>
+        </div>
+        <div class="phone-nav">
+            <div>&#127968;<br>Village</div>
+            <div>&#127795;<br>Arbre</div>
+            <div class="combat-btn active">&#9876;<br>COMBAT</div>
+            <div>&#128101;<br>Guilde</div>
+            <div>&#128176;<br>Shop</div>
+        </div>
+    </div>
+
+    <!-- VILLAGE -->
+    <h3>8.2 Ecran Village</h3>
+    <div class="phone">
+        <div class="phone-notch">VILLAGE | &#128337; Reset: 3j 14h</div>
+        <div style="padding:10px; min-height:410px;">
+            <div style="font-size:12px; font-weight:bold; text-align:center; margin-bottom:10px;">-- Batiments --</div>
+
+            <div style="border:1px solid #222; padding:7px; margin-bottom:5px; display:flex; justify-content:space-between; align-items:center;">
+                <div><div style="font-size:11px; font-weight:bold;">&#127970; Centre Recrutement — Niv.3</div><div style="font-size:9px; color:#555;">3 aventuriers en file | Probas: F85% E10% D4% C1%</div></div>
+                <span class="wf-btn" style="font-size:8px; padding:3px 6px;">ENTRER</span>
+            </div>
+
+            <div style="border:1px solid #222; padding:7px; margin-bottom:5px; display:flex; justify-content:space-between; align-items:center;">
+                <div><div style="font-size:11px; font-weight:bold;">&#9876; Caserne — Niv.2</div><div style="font-size:9px; color:#555;">Equipe max : 3 aventuriers</div></div>
+                <span class="wf-btn" style="font-size:8px; padding:3px 6px;">UPGRADE</span>
+            </div>
+
+            <div style="border:1px solid #222; padding:7px; margin-bottom:5px; display:flex; justify-content:space-between; align-items:center;">
+                <div><div style="font-size:11px; font-weight:bold;">&#128230; Entrepot — Niv.2</div><div style="font-size:9px; color:#555;">8 slots | Auto-vente: ON (iLvl &lt; 5)</div></div>
+                <span class="wf-btn" style="font-size:8px; padding:3px 6px;">ENTRER</span>
+            </div>
+
+            <div style="border:1px solid #222; padding:7px; margin-bottom:5px; display:flex; justify-content:space-between; align-items:center;">
+                <div><div style="font-size:11px; font-weight:bold;">&#128296; Forge — Niv.1</div><div style="font-size:9px; color:#555;">Stats max/min, stats bonus</div></div>
+                <span class="wf-btn" style="font-size:8px; padding:3px 6px;">ENTRER</span>
+            </div>
+
+            <div style="border:1px solid #222; padding:7px; margin-bottom:5px; display:flex; justify-content:space-between; align-items:center;">
+                <div><div style="font-size:11px; font-weight:bold;">&#9971; Temple Benedictions — Niv.1</div><div style="font-size:9px; color:#555;">Benedictions: 1/2 actives</div></div>
+                <span class="wf-btn" style="font-size:8px; padding:3px 6px;">ENTRER</span>
+            </div>
+
+            <div style="border:1px solid #222; padding:7px; margin-bottom:5px; display:flex; justify-content:space-between; align-items:center;">
+                <div><div style="font-size:11px; font-weight:bold;">&#127941; Centre Entrainement — Niv.0</div><div style="font-size:9px; color:#555;">IA: Basique</div></div>
+                <span class="wf-btn" style="font-size:8px; padding:3px 6px;">CONSTRUIRE</span>
+            </div>
+
+            <!-- En cours -->
+            <div style="border:1px dashed #999; padding:6px; margin-top:8px; text-align:center; font-size:10px; color:#777;">
+                &#9888; Forge Niv.1&rarr;2 en cours (50% &rarr; 100% apres reset)<br>
+                <div style="border:1px solid #222; height:6px; margin:4px auto; width:80%;"><div style="background:#888; height:100%; width:50%;"></div></div>
+            </div>
+        </div>
+        <div class="phone-nav">
+            <div class="active">&#127968;<br>Village</div>
+            <div>&#127795;<br>Arbre</div>
+            <div class="combat-btn">&#9876;<br>COMBAT</div>
+            <div>&#128101;<br>Guilde</div>
+            <div>&#128176;<br>Shop</div>
+        </div>
+    </div>
+
+    <!-- TEMPLE BENEDICTIONS -->
+    <h3>8.3 Temple des Benedictions (sous-ecran Village)</h3>
+    <div class="phone">
+        <div class="phone-notch">&#9971; TEMPLE DES BENEDICTIONS — Niv.1</div>
+        <div style="padding:10px; min-height:410px;">
+            <div style="font-size:10px; text-align:center; margin-bottom:8px;">Benedictions actives : <strong>1 / 2</strong> | Aventuriers requis par benediction : <strong>5</strong></div>
+
+            <!-- Benediction active -->
+            <div style="border:2px solid #222; padding:8px; margin-bottom:8px; background:#f5f5f5;">
+                <div style="font-size:11px; font-weight:bold;">&#10024; Benediction : "+15% degats lance"</div>
+                <div style="font-size:10px; color:#555; margin-top:3px;">Trait beni — apparait 3x plus souvent au recrutement</div>
+                <div style="font-size:9px; color:#777; margin-top:2px;">Permanent (survit au reset)</div>
+            </div>
+
+            <!-- Benediction en cours -->
+            <div style="border:1px solid #222; padding:8px; margin-bottom:8px;">
+                <div style="font-size:11px; font-weight:bold;">Preparer une benediction :</div>
+                <div style="font-size:10px; margin-top:5px;">Trait cible : <strong>"+20% soin"</strong></div>
+                <div style="font-size:10px; margin-top:3px;">Aventuriers avec ce trait : <strong>3 / 5 requis</strong></div>
+                <div style="display:flex; gap:3px; margin-top:5px;">
+                    <div class="wf-box" style="width:50px; height:35px; font-size:8px; flex-direction:column;"><div>&#10014; Heal</div><div>Rang E</div></div>
+                    <div class="wf-box" style="width:50px; height:35px; font-size:8px; flex-direction:column;"><div>&#10014; Heal</div><div>Rang F</div></div>
+                    <div class="wf-box" style="width:50px; height:35px; font-size:8px; flex-direction:column;"><div>&#9876; Guerr</div><div>Rang D</div></div>
+                    <div class="wf-box-dashed" style="width:50px; height:35px; font-size:8px;">?</div>
+                    <div class="wf-box-dashed" style="width:50px; height:35px; font-size:8px;">?</div>
+                </div>
+                <div style="text-align:center; margin-top:6px;">
+                    <span class="wf-btn" style="font-size:9px; color:#999;">ACTIVER (2 manquants)</span>
+                </div>
+            </div>
+
+            <!-- Upgrade -->
+            <div style="border:1px dashed #999; padding:6px; text-align:center; font-size:10px;">
+                <div>Upgrade Temple Niv.2 :</div>
+                <div style="font-size:9px; color:#555;">+1 benediction max | Requis: 4 aventuriers au lieu de 5</div>
+                <div style="margin-top:4px;">
+                    <span class="wf-btn" style="font-size:9px;">1200 or</span>
+                    <span class="wf-btn" style="font-size:9px;">&#9889; 30 gems</span>
+                </div>
+            </div>
+
+            <div style="text-align:center; margin-top:10px;">
+                <span class="wf-btn" style="font-size:10px;">&larr; Retour Village</span>
+            </div>
+        </div>
+        <div class="phone-nav">
+            <div class="active">&#127968;<br>Village</div>
+            <div>&#127795;<br>Arbre</div>
+            <div class="combat-btn">&#9876;<br>COMBAT</div>
+            <div>&#128101;<br>Guilde</div>
+            <div>&#128176;<br>Shop</div>
+        </div>
+    </div>
+
+    <!-- ENTREPOT -->
+    <h3>8.4 Entrepot / Gestion Loot (sous-ecran Village)</h3>
+    <div class="phone">
+        <div class="phone-notch">&#128230; ENTREPOT — Niv.2 (8 slots)</div>
+        <div style="padding:10px; min-height:410px;">
+            <!-- Inventaire -->
+            <div style="font-size:10px; font-weight:bold; margin-bottom:5px;">Inventaire (6/8)</div>
+            <div style="display:flex; gap:3px; flex-wrap:wrap; margin-bottom:10px;">
+                <div class="wf-box" style="width:65px; height:50px; flex-direction:column; font-size:8px;"><div>&#9876; Epee +12</div><div style="color:#555;">iLvl 14</div><div style="font-size:7px;">&#9733;&#9733;&#9733;</div></div>
+                <div class="wf-box" style="width:65px; height:50px; flex-direction:column; font-size:8px;"><div>&#128737; Armure +8</div><div style="color:#555;">iLvl 10</div><div style="font-size:7px;">&#9733;&#9733;</div></div>
+                <div class="wf-box" style="width:65px; height:50px; flex-direction:column; font-size:8px;"><div>&#127993; Arc +15</div><div style="color:#555;">iLvl 18</div><div style="font-size:7px;">&#9733;&#9733;&#9733;&#9733;</div></div>
+                <div class="wf-box" style="width:65px; height:50px; flex-direction:column; font-size:8px;"><div>&#128302; Baton +20</div><div style="color:#555;">iLvl 22</div><div style="font-size:7px;">&#9733;&#9733;&#9733;&#9733;&#9733;</div></div>
+                <div class="wf-box" style="width:65px; height:50px; flex-direction:column; font-size:8px;"><div>&#128095; Bottes +5</div><div style="color:#555;">iLvl 6</div><div style="font-size:7px;">&#9733;</div></div>
+                <div class="wf-box" style="width:65px; height:50px; flex-direction:column; font-size:8px;"><div>&#9935; Casque +3</div><div style="color:#555;">iLvl 4</div><div style="font-size:7px;">&#9733;</div></div>
+                <div class="wf-box-dashed" style="width:65px; height:50px; font-size:8px;">vide</div>
+                <div class="wf-box-dashed" style="width:65px; height:50px; font-size:8px;">vide</div>
+            </div>
+
+            <!-- Config auto-vente -->
+            <div style="border:1px solid #222; padding:8px; margin-bottom:8px;">
+                <div style="font-size:10px; font-weight:bold; margin-bottom:5px;">&#9881; Auto-vente (actif pendant farm offline)</div>
+                <div class="wf-stat-row"><span>Vendre si iLvl &lt;</span><span style="border:1px solid #222; padding:1px 6px;">5</span></div>
+                <div class="wf-stat-row"><span>Vendre si rarete &lt;</span><span style="border:1px solid #222; padding:1px 6px;">&#9733;&#9733;</span></div>
+                <div class="wf-stat-row"><span>Vendre si pas la stat :</span><span style="border:1px solid #222; padding:1px 6px;">ATK</span></div>
+                <div style="font-size:9px; color:#999; margin-top:4px;">&#128274; Filtre par stats : debloquer Entrepot Niv.3</div>
+            </div>
+
+            <!-- Upgrade -->
+            <div style="text-align:center;">
+                <span class="wf-btn" style="font-size:9px;">UPGRADE Niv.3 (+4 slots, filtre stats) — 600 or</span>
+            </div>
+
+            <div style="text-align:center; margin-top:8px;">
+                <span class="wf-btn" style="font-size:10px;">&larr; Retour Village</span>
+            </div>
+        </div>
+        <div class="phone-nav">
+            <div class="active">&#127968;<br>Village</div>
+            <div>&#127795;<br>Arbre</div>
+            <div class="combat-btn">&#9876;<br>COMBAT</div>
+            <div>&#128101;<br>Guilde</div>
+            <div>&#128176;<br>Shop</div>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- 9. BACKLOG                                                   -->
+<!-- ============================================================ -->
+
+<div class="section page-break">
+    <h2>9. Backlog — Epics &amp; Stories</h2>
+
+    <div class="epic">
+        <div class="epic-title"><span class="version-tag vf">V1</span> Socle Minimal</div>
+        <div class="story">US-01 : Champ de bataille 2D (haut) + HUD (bas) + nav 5 onglets</div>
+        <div class="story">US-02 : 1 guerrier auto-avance gauche&rarr;droite, attaque auto le premier ennemi</div>
+        <div class="story">US-03 : Ennemi attaque en retour, barres de PV</div>
+        <div class="story">US-04 : Paliers : ennemi tue = palier suivant, mort = palier precedent</div>
+        <div class="story">US-05 : HUD stats perso selectionne (PV, ATK, DEF, VIT ATK)</div>
+        <div class="story">US-06 : Loot basique au kill, inventaire inline dans ecran combat</div>
+        <div class="story">US-07 : Equiper un item sur le guerrier</div>
+        <div class="story">US-08 : Setup Unity 2D + pipeline CI/CD GitHub Actions</div>
+        <div class="story">US-09 : Setup API ASP.NET Core + PostgreSQL + Docker</div>
+        <div class="story">US-10 : Version desktop : mode borderless overlay (always-on-top) ou fallback borderless window</div>
+    </div>
+
+    <div class="epic">
+        <div class="epic-title"><span class="version-tag">V2</span> Equipe &amp; Classes</div>
+        <div class="story">US-11 : Centre de Recrutement (batiment village) — propose aventurier toutes les Xh</div>
+        <div class="story">US-12 : File d'attente 3 max, refus manuel</div>
+        <div class="story">US-13 : 5 classes avec stats min/max, rangs F&rarr;S, bonus/malus</div>
+        <div class="story">US-14 : Caserne — taille equipe upgradeable</div>
+        <div class="story">US-15 : Skills manuels par classe</div>
+        <div class="story">US-16 : Plusieurs ennemis par palier, scaling difficulte</div>
+    </div>
+
+    <div class="epic">
+        <div class="epic-title"><span class="version-tag">V3</span> Economie &amp; Batiments</div>
+        <div class="story">US-17 : Monnaie in-game (or) + monnaie premium (gems)</div>
+        <div class="story">US-18 : Entrepot — taille inventaire upgradeable</div>
+        <div class="story">US-19 : Entrepot — auto-vente par iLvl (si plein, compare et vend le plus faible)</div>
+        <div class="story">US-20 : Entrepot — auto-vente par rarete minimum</div>
+        <div class="story">US-21 : Entrepot — filtre auto-vente par stats souhaitees</div>
+        <div class="story">US-22 : Forge — augmenter stats max / diminuer stats min des items</div>
+        <div class="story">US-23 : Forge — debloquer stats cachees sur items</div>
+        <div class="story">US-24 : Forge — option stats supplementaires (2 stats moindres au lieu de 1 forte)</div>
+        <div class="story">US-25 : Mecanique 50%/100% sur tous les batiments</div>
+        <div class="story">US-26 : Reset hebdo dimanche minuit</div>
+    </div>
+
+    <div class="epic">
+        <div class="epic-title"><span class="version-tag">V4</span> Traits, Benedictions &amp; IA</div>
+        <div class="story">US-27 : Traits aleatoires sur aventuriers (positifs/negatifs, rarete variable)</div>
+        <div class="story">US-28 : Temple — rassembler X aventuriers meme trait pour activer benediction</div>
+        <div class="story">US-29 : Temple — benediction augmente proba du trait (run actuelle + futures)</div>
+        <div class="story">US-30 : Temple — nombre max benedictions, upgradeable + reduction du nombre requis</div>
+        <div class="story">US-31 : Centre Entrainement — niveaux IA (basique/intermediaire/avance)</div>
+        <div class="story">US-32 : Arbre de competences permanent (luck, XP, slots, classes)</div>
+    </div>
+
+    <div class="epic">
+        <div class="epic-title"><span class="version-tag">V5</span> Monetisation &amp; Online</div>
+        <div class="story">US-33 : Farm offline — simulation serveur au retour (combat + loot sur temps ecoule)</div>
+        <div class="story">US-34 : Pubs rewarded + pass anti-pub</div>
+        <div class="story">US-35 : Shop gems + cosmetiques avec stats</div>
+        <div class="story">US-36 : Leaderboard hebdo (palier max)</div>
+        <div class="story">US-37 : Auth complete + sauvegarde serveur + anti-triche</div>
+    </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- 10. CI/CD                                                    -->
+<!-- ============================================================ -->
+
+<div class="section">
+    <h2>10. CI/CD</h2>
+    <div style="max-width:600px; margin:25px auto;">
+        <div class="archi-layer">
+            <span class="archi-layer-name">DEV</span>
+            Push feature branch &rarr; GitHub
+        </div>
+        <div class="arrow-down">&darr;</div>
+        <div class="archi-layer">
+            <span class="archi-layer-name">PIPELINE</span>
+            Unity Build (mobile+PC) + dotnet build API + xUnit tests
+        </div>
+        <div class="arrow-down">&darr;</div>
+        <div class="archi-layer">
+            <span class="archi-layer-name">MERGE</span>
+            PR &rarr; master (GitHub flow, squash merge)
+        </div>
+        <div class="arrow-down">&darr;</div>
+        <div style="display:flex; gap:10px;">
+            <div class="archi-layer" style="flex:1;">
+                <span class="archi-layer-name">SERVEUR</span>
+                Docker &rarr; VPS
+            </div>
+            <div class="archi-layer" style="flex:1;">
+                <span class="archi-layer-name">CLIENT</span>
+                Steam + APK/IPA
+            </div>
+        </div>
+    </div>
+</div>
+
+<div style="margin-top:60px; border-top:2px solid #222; padding-top:15px; font-size:12px; color:#777; text-align:center;">
+    Premier Jet — [ Nom a Determiner ] — Roguelite Auto-Battler 2D — Solo Dev — V0.3
+</div>
+
+</body>
+</html>
