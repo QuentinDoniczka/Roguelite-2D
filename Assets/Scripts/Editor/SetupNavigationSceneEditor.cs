@@ -42,7 +42,7 @@ namespace RogueliteAutoBattler.Editor
         private static readonly Color ModalOverlayColor = (Color)new Color32(0, 0, 0, 150);
         private static readonly Color TransparentWhite = new(1f, 1f, 1f, 0f);
 
-        [MenuItem("GameObject/UI/Setup Navigation UI")]
+        [MenuItem("Roguelite/Setup Navigation UI")]
         private static void SetupNavigationUI()
         {
             Canvas existingCanvas = Object.FindFirstObjectByType<Canvas>(FindObjectsInactive.Include);
