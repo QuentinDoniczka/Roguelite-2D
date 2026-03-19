@@ -74,6 +74,9 @@ namespace RogueliteAutoBattler.Editor
             if (es != null)
                 Undo.DestroyObjectImmediate(es.gameObject);
 
+            // Ensure sorting layers exist
+            EnsureSortingLayers();
+
             // Also remove old NavigationManager
             NavigationManager oldNav = UnityEngine.Object.FindFirstObjectByType<NavigationManager>(FindObjectsInactive.Include);
             if (oldNav != null)
@@ -83,10 +86,11 @@ namespace RogueliteAutoBattler.Editor
             GameObject esGo = CreateEventSystem();
             GameObject canvasGo = CreateCanvas();
 
-            // 1. Game area (behind) — contains combat + tab panels
+            // 1. Game area (behind) — contains combat (default) + tab panels
             GameObject gameArea = CreateArea(canvasGo.transform, "GameArea", InfoTop, 1f, Color.clear);
-            UIScreen combatScreen = CreateCombatPanel(gameArea.transform);
-            UIScreen[] tabScreens = CreateTabPanels(gameArea.transform);
+            UIScreen combatScreen;
+            UIScreen[] tabScreens;
+            CreateAllPanels(gameArea.transform, out combatScreen, out tabScreens);
 
             // 2. Info area — contains default info + per-tab info panels
             GameObject infoArea = CreateArea(canvasGo.transform, "InfoArea", NavRatio, InfoTop, Color.clear);
@@ -145,8 +149,8 @@ namespace RogueliteAutoBattler.Editor
         private static GameObject CreateArea(Transform parent, string name, float anchorBottom, float anchorTop, Color bg)
         {
             var go = new GameObject(name);
-            GameObjectUtility.SetParentAndAlign(go, parent.gameObject);
-            RectTransform r = go.AddComponent<RectTransform>();
+            go.transform.SetParent(parent, false);
+            RectTransform r = go.GetOrAddRectTransform();
             r.anchorMin = new Vector2(0, anchorBottom);
             r.anchorMax = new Vector2(1, anchorTop);
             r.offsetMin = Vector2.zero;
@@ -159,62 +163,49 @@ namespace RogueliteAutoBattler.Editor
         }
 
         // =============================================================
-        // Combat (default screen, always behind)
+        // All panels (combat default + 5 tab panels) — same structure
         // =============================================================
 
-        private static UIScreen CreateCombatPanel(Transform parent)
+        private static void CreateAllPanels(Transform parent, out UIScreen combatScreen, out UIScreen[] tabScreens)
         {
-            var go = new GameObject("CombatPanel");
-            GameObjectUtility.SetParentAndAlign(go, parent.gameObject);
-            Stretch(go.AddComponent<RectTransform>());
+            // Combat = default, visible. Same structure as all other panels.
+            combatScreen = CreatePanel(parent, "CombatPanel", "COMBAT", "A4161A", typeof(CombatScreen), true);
 
-            go.AddComponent<Image>().color = HexToColor("A4161A");
-
-            CanvasGroup cg = go.AddComponent<CanvasGroup>();
-            cg.alpha = 1f;
-            cg.blocksRaycasts = true;
-            cg.interactable = true;
-
-            UIScreen screen = go.AddComponent<CombatScreen>();
-            CreateLabel(go.transform, "Label", "COMBAT", CombatFontSize, Color.white);
-            return screen;
-        }
-
-        // =============================================================
-        // Tab panels (overlay on top of combat)
-        // =============================================================
-
-        private static UIScreen[] CreateTabPanels(Transform parent)
-        {
+            // Tab panels = hidden by default
             var configs = new[]
             {
                 new PanelCfg("VillagePanel", "VILLAGE", "2D6A4F", typeof(VillageScreen)),
                 new PanelCfg("SkillTreePanel", "ARBRE", "7B2D8E", typeof(SkillTreeScreen)),
-                new PanelCfg("AutrePanel", "AUTRE", "555555", typeof(GuildScreen)), // placeholder
-                new PanelCfg("GuildePanel", "GUILDE", "1D3557", typeof(ShopScreen)), // placeholder
-                new PanelCfg("ShopPanel", "SHOP", "E9C46A", typeof(VillageScreen)), // placeholder
+                new PanelCfg("AutrePanel", "AUTRE", "555555", typeof(GuildScreen)),
+                new PanelCfg("GuildePanel", "GUILDE", "1D3557", typeof(ShopScreen)),
+                new PanelCfg("ShopPanel", "SHOP", "E9C46A", typeof(VillageScreen)),
             };
 
-            var screens = new UIScreen[TabCount];
+            tabScreens = new UIScreen[TabCount];
             for (int i = 0; i < configs.Length; i++)
             {
                 PanelCfg c = configs[i];
-                var go = new GameObject(c.Name);
-                GameObjectUtility.SetParentAndAlign(go, parent.gameObject);
-                Stretch(go.AddComponent<RectTransform>());
-
-                go.AddComponent<Image>().color = HexToColor(c.Hex);
-
-                // Start hidden — combat is visible by default
-                CanvasGroup cg = go.AddComponent<CanvasGroup>();
-                cg.alpha = 0f;
-                cg.blocksRaycasts = false;
-                cg.interactable = false;
-
-                screens[i] = (UIScreen)go.AddComponent(c.ScreenType);
-                CreateLabel(go.transform, "Label", c.Label, PanelFontSize, Color.white);
+                tabScreens[i] = CreatePanel(parent, c.Name, c.Label, c.Hex, c.ScreenType, false);
             }
-            return screens;
+        }
+
+        /// <summary>Creates a single panel — identical structure for combat and tabs.</summary>
+        private static UIScreen CreatePanel(Transform parent, string name, string label, string hex, System.Type screenType, bool visible)
+        {
+            var go = new GameObject(name);
+            go.transform.SetParent(parent, false);
+            Stretch(go.GetOrAddRectTransform());
+
+            go.AddComponent<Image>().color = HexToColor(hex);
+
+            CanvasGroup cg = go.AddComponent<CanvasGroup>();
+            cg.alpha = visible ? 1f : 0f;
+            cg.blocksRaycasts = visible;
+            cg.interactable = visible;
+
+            UIScreen screen = (UIScreen)go.AddComponent(screenType);
+            CreateLabel(go.transform, "Label", label, PanelFontSize, Color.white);
+            return screen;
         }
 
         // =============================================================
@@ -225,8 +216,8 @@ namespace RogueliteAutoBattler.Editor
         private static UIScreen CreateInfoPanel(Transform parent, string name, string label, Color bg, bool visible = false)
         {
             var go = new GameObject(name);
-            GameObjectUtility.SetParentAndAlign(go, parent.gameObject);
-            Stretch(go.AddComponent<RectTransform>());
+            go.transform.SetParent(parent, false);
+            Stretch(go.GetOrAddRectTransform());
             go.AddComponent<Image>().color = bg;
 
             CanvasGroup cg = go.AddComponent<CanvasGroup>();
@@ -267,9 +258,9 @@ namespace RogueliteAutoBattler.Editor
         private static GameObject CreateNavBar(Transform parent)
         {
             var go = new GameObject("NavBar");
-            GameObjectUtility.SetParentAndAlign(go, parent.gameObject);
+            go.transform.SetParent(parent, false);
 
-            RectTransform r = go.AddComponent<RectTransform>();
+            RectTransform r = go.GetOrAddRectTransform();
             r.anchorMin = Vector2.zero;
             r.anchorMax = new Vector2(1, NavRatio);
             r.offsetMin = Vector2.zero;
@@ -304,8 +295,8 @@ namespace RogueliteAutoBattler.Editor
             {
                 TabCfg c = configs[i];
                 var go = new GameObject(c.Name);
-                GameObjectUtility.SetParentAndAlign(go, parent.gameObject);
-                go.AddComponent<RectTransform>();
+                go.transform.SetParent(parent, false);
+                go.GetOrAddRectTransform();
 
                 // Button background — fills its cell, no border
                 Image img = go.AddComponent<Image>();
@@ -351,8 +342,8 @@ namespace RogueliteAutoBattler.Editor
         private static void CreateModalLayer(Transform parent)
         {
             var go = new GameObject("ModalLayer");
-            GameObjectUtility.SetParentAndAlign(go, parent.gameObject);
-            Stretch(go.AddComponent<RectTransform>());
+            go.transform.SetParent(parent, false);
+            Stretch(go.GetOrAddRectTransform());
             go.AddComponent<Image>().color = ModalBg;
             CanvasGroup cg = go.AddComponent<CanvasGroup>();
             cg.alpha = 0f;
@@ -368,7 +359,7 @@ namespace RogueliteAutoBattler.Editor
             TabButton[] tabButtons, UIScreen[] tabScreens, UIScreen[] infoScreens)
         {
             var go = new GameObject("NavigationManager");
-            GameObjectUtility.SetParentAndAlign(go, parent.gameObject);
+            go.transform.SetParent(parent, false);
             NavigationManager nav = go.AddComponent<NavigationManager>();
             var so = new SerializedObject(nav);
 
@@ -428,6 +419,14 @@ namespace RogueliteAutoBattler.Editor
         // Helpers
         // =============================================================
 
+        private static RectTransform GetOrAddRectTransform(this GameObject go)
+        {
+            RectTransform r = go.GetComponent<RectTransform>();
+            if (r == null)
+                r = go.AddComponent<RectTransform>();
+            return r;
+        }
+
         private static void Stretch(RectTransform r)
         {
             r.anchorMin = Vector2.zero;
@@ -439,14 +438,47 @@ namespace RogueliteAutoBattler.Editor
         private static TextMeshProUGUI CreateLabel(Transform parent, string name, string text, int size, Color color)
         {
             var go = new GameObject(name);
-            GameObjectUtility.SetParentAndAlign(go, parent.gameObject);
-            Stretch(go.AddComponent<RectTransform>());
+            go.transform.SetParent(parent, false);
+            Stretch(go.GetOrAddRectTransform());
             TextMeshProUGUI tmp = go.AddComponent<TextMeshProUGUI>();
             tmp.text = text;
             tmp.fontSize = size;
             tmp.color = color;
             tmp.alignment = TextAlignmentOptions.Center;
             return tmp;
+        }
+
+        /// <summary>
+        /// Ensures the required sorting layers exist: Background, Ground, Characters, Effects, UI.
+        /// </summary>
+        private static void EnsureSortingLayers()
+        {
+            string[] requiredLayers = { "Background", "Ground", "Characters", "Effects", "UI" };
+            SerializedObject tagManager = new SerializedObject(AssetDatabase.LoadMainAssetAtPath("ProjectSettings/TagManager.asset"));
+            SerializedProperty sortingLayers = tagManager.FindProperty("m_SortingLayers");
+
+            foreach (string layerName in requiredLayers)
+            {
+                bool exists = false;
+                for (int i = 0; i < sortingLayers.arraySize; i++)
+                {
+                    if (sortingLayers.GetArrayElementAtIndex(i).FindPropertyRelative("name").stringValue == layerName)
+                    {
+                        exists = true;
+                        break;
+                    }
+                }
+
+                if (!exists)
+                {
+                    sortingLayers.InsertArrayElementAtIndex(sortingLayers.arraySize);
+                    SerializedProperty newLayer = sortingLayers.GetArrayElementAtIndex(sortingLayers.arraySize - 1);
+                    newLayer.FindPropertyRelative("name").stringValue = layerName;
+                    newLayer.FindPropertyRelative("uniqueID").intValue = layerName.GetHashCode();
+                }
+            }
+
+            tagManager.ApplyModifiedProperties();
         }
 
         private static Color HexToColor(string hex)
