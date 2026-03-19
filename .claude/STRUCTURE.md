@@ -28,13 +28,22 @@ Assets/
 │   ├── Services/
 │   │   └── Local/  (empty)
 │   ├── UI/
-│   │   ├── Core/  (empty)
+│   │   ├── Core/
+│   │   │   ├── NavigationManager.cs
+│   │   │   ├── ScreenStack.cs
+│   │   │   ├── TabButton.cs
+│   │   │   └── UIScreen.cs
 │   │   ├── Screens/
-│   │   │   ├── Combat/  (empty)
-│   │   │   ├── Guild/  (empty)
-│   │   │   ├── Shop/  (empty)
-│   │   │   ├── SkillTree/  (empty)
-│   │   │   └── Village/  (empty)
+│   │   │   ├── Combat/
+│   │   │   │   └── CombatScreen.cs
+│   │   │   ├── Guild/
+│   │   │   │   └── GuildScreen.cs
+│   │   │   ├── Shop/
+│   │   │   │   └── ShopScreen.cs
+│   │   │   ├── SkillTree/
+│   │   │   │   └── SkillTreeScreen.cs
+│   │   │   └── Village/
+│   │   │       └── VillageScreen.cs
 │   │   └── Widgets/  (empty)
 │   └── Village/  (empty)
 ├── Settings/

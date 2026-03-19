@@ -1,6 +1,6 @@
 ---
 name: git-unity
-description: Use this agent to manage git state — check branch status, create feature branches from master, commit changes following conventional commits, and push only on explicit request.
+description: Use this agent to manage git state — check branch status, create feature branches from dev, commit changes following conventional commits, push, create PRs, and merge PRs (squash merge if CI passes).
 tools: [Bash, Read, Glob, Grep]
 model: haiku
 color: green
@@ -156,9 +156,36 @@ When invoked with task "push" (ONLY when explicitly requested):
    - If `gh pr create` fails because a PR already exists, report the existing PR URL instead
 8. **After push + PR** — Report: "Branch pushed. PR created targeting `dev` with auto-close for Issue #X." and include the PR URL.
 
+## Task: Merge PR
+
+When invoked with task "merge-pr":
+
+1. **Find the PR** — Get the PR for the current branch:
+   ```bash
+   gh pr view --json number,title,state,mergeable,statusCheckRollup,url
+   ```
+2. **Check PR state** — If the PR is not open, report and stop.
+3. **Check CI status** — Inspect `statusCheckRollup`:
+   - If checks are still running → wait up to 5 minutes, polling every 30 seconds with `gh pr checks --watch --fail-fast` or `gh pr view --json statusCheckRollup`
+   - If checks pass (all SUCCESS/NEUTRAL) → proceed to merge
+   - If checks fail → STOP. Report which checks failed. Do NOT merge.
+4. **Check mergeability** — If `mergeable` is `CONFLICTING`:
+   - STOP. Report: "PR has merge conflicts. Manual resolution needed."
+   - Do NOT attempt to force merge.
+5. **Merge the PR** — Squash merge into `dev`:
+   ```bash
+   gh pr merge <number> --squash --delete-branch
+   ```
+   This merges as the authenticated GitHub user (Quentin Doniczka).
+6. **Switch back to dev** — After merge:
+   ```bash
+   git checkout dev && git pull origin dev
+   ```
+7. **Report** — "PR #X merged into `dev`. Branch deleted. Now on `dev` (up-to-date)." Include the PR URL.
+
 ## Rules
 
-- NEVER push unless explicitly told to (task "push")
+- NEVER push unless explicitly told to (task "push") or as part of the push task
 - NEVER push to main or dev directly
 - NEVER amend existing commits
 - NEVER use --force or --force-with-lease on anything
@@ -172,3 +199,5 @@ When invoked with task "push" (ONLY when explicitly requested):
 - Commit messages MUST follow Conventional Commits format
 - Branch names MUST follow the naming convention
 - If there are no changes, do nothing — just report clean state
+- NEVER merge a PR if CI checks are failing
+- Merge is always squash merge via `gh pr merge --squash --delete-branch`

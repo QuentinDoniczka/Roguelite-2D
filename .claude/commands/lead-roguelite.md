@@ -19,7 +19,7 @@ Gameplay : recruter aventuriers → equiper → combat auto (gauche→droite) + 
 | Agent | Role |
 |-------|------|
 | `github-boards` | Gestion GitHub Projects : creer/lire/modifier les work items (Milestones = Epics, Issues = features), decomposer des features, gerer les etats (Todo, In Progress, Done). |
-| `git-unity` | Gestion git complete : verifier l'etat du repo, preparer les branches feature depuis master, commiter (conventional commits), push sur demande. Ne push jamais sauf demande explicite. |
+| `git-unity` | Gestion git complete : verifier l'etat du repo, preparer les branches feature depuis dev, commiter (conventional commits), push, creer PR, et merger PR (squash merge si CI verte). |
 | `leaddev-unity` | Analyser la structure, planifier l'architecture (client/serveur/2D), lister classes/fonctions a creer ou modifier |
 | `dev-unity` | Implementer le code Unity 2D (classes, fonctions, SO, MonoBehaviours, DTOs, services API...) |
 | `refacto-unity` | Refactorer, optimiser, nettoyer, appliquer les patterns — verification 2D et client/serveur |
@@ -28,11 +28,23 @@ Gameplay : recruter aventuriers → equiper → combat auto (gauche→droite) + 
 | `brainstorm-unity` | **TOUJOURS invoque en premier.** Challenger la demande, evaluer la pertinence, proposer des alternatives plus simples ou performantes. Prend en compte le client/serveur et le 2D. |
 | `test-play-unity` | Lancer les tests Play Mode existants apres implementation. Utilise des fake accounts a differents niveaux de progression. Aussi utilise pour ecrire de nouveaux tests (apres refacto). |
 
-## Deux modes d'invocation
+## Invocation
+
+La commande recoit un argument optionnel via `$ARGUMENTS`.
+
+**Routing automatique :**
+
+1. **Pas d'argument** (`$ARGUMENTS` est vide) → **Mode B** : recuperer la prochaine Issue et la traiter.
+2. **Numero d'Issue** (ex: `/lead-roguelite #12` ou `/lead-roguelite 12`) → **Mode B** : travailler sur cette Issue specifique.
+3. **Description d'un besoin/feature** (ex: `/lead-roguelite ajouter un systeme de craft`) → **Mode A** : decomposer et creer les Issues.
+
+$ARGUMENTS
+
+---
 
 ### Mode A : "Nouvelle feature" — l'utilisateur decrit un besoin
 
-Quand l'utilisateur decrit une feature, un besoin, ou une grosse fonctionnalite :
+Declenchement : `$ARGUMENTS` contient une description de feature (pas un numero).
 
 1. **Lire le board** — Delegue a `github-boards` avec la tache "get-board-status" pour voir l'etat actuel (Milestones, Issues — ce qui est fait, en cours, a faire).
 2. **Decomposer** — Delegue a `github-boards` avec la tache "decompose-feature". L'agent :
@@ -45,12 +57,12 @@ Quand l'utilisateur decrit une feature, un besoin, ou une grosse fonctionnalite 
 3. **Presenter** — Affiche la decomposition a l'utilisateur. Puis demande : "On commence par quelle Issue ?" ou propose la premiere logiquement.
 4. **Enchainer en Mode B** avec l'Issue choisie.
 
-### Mode B : "Issue suivante" — travailler sur la prochaine Issue
+### Mode B : "Issue suivante" — travailler sur une Issue
 
-Quand l'utilisateur demande de travailler sur la prochaine Issue (ou une Issue specifique) :
+Declenchement : `$ARGUMENTS` est vide OU contient un numero d'Issue.
 
 1. **Recuperer l'Issue** :
-   - Si l'utilisateur a specifie un numero → utiliser ce numero
+   - Si `$ARGUMENTS` contient un numero → utiliser ce numero
    - Sinon → deleguer a `github-boards` avec "get-next-issue" pour trouver la prochaine (d'abord "In Progress" = reprendre, puis "Todo" = commencer)
    - L'agent retourne : numero, titre, body, liste des tasks
 2. **Contextualiser** — Lire le board pour comprendre ou on en est dans la Milestone parente (quelles Issues sont faites, lesquelles restent). Ce contexte est passe au brainstorm et au leaddev.
@@ -176,10 +188,14 @@ Si une section est vide (ex: aucun fichier supprime), ne pas l'afficher.
 
 **Apres le rapport** :
 a) Delegue a `git-unity` avec la tache "commit" pour commiter tous les changements avec un message Conventional Commits qui reference l'Issue (ex: `feat(combat): add auto-battle flow (#12)`).
-b) **Demande a l'utilisateur** s'il veut push la branche. Si oui :
-   - Delegue a `git-unity` avec la tache "push" (sync auto avec master avant de push)
-   - Delegue a `github-boards` avec "complete-issue" : ferme l'Issue, verifie si toutes les Issues de la Milestone sont fermees → si oui, ferme la Milestone
+b) Delegue a `git-unity` avec la tache "push" (sync auto avec dev avant de push). La PR est creee automatiquement par l'agent.
    - Si le sync detecte des conflits, delegue a `dev-unity` pour les resoudre, puis relance le push.
+c) **Merge automatique** — Delegue a `git-unity` avec la tache "merge-pr" :
+   - L'agent verifie que la CI passe sur la PR
+   - Si CI verte → squash merge automatique (merge en tant que Quentin Doniczka via `gh`)
+   - Si CI rouge → STOP, rapporte les erreurs. On corrige et on relance.
+   - Si conflit de merge → STOP, rapporte la situation.
+d) Delegue a `github-boards` avec "complete-issue" : ferme l'Issue, verifie si toutes les Issues de la Milestone sont fermees → si oui, ferme la Milestone.
 
 ## Agents hors chaine (manuels)
 
@@ -197,9 +213,9 @@ Ces agents ne sont **jamais** lances automatiquement dans le workflow. L'utilisa
 - **Si un agent echoue** — analyse et relance avec meilleur contexte.
 - **Toujours passer le contexte** aux agents.
 - **Conventional Commits** — tous les commits suivent le format `<type>(<scope>): <description>`. Inclure le numero d'Issue quand applicable (ex: `(#12)`).
-- **GitHub flow** — `master` = branche principale. Les feature branches sont TOUJOURS creees depuis `master`. Les PRs ciblent `master` avec Squash and merge.
-- **Push explicite** — ne jamais push sans l'approbation de l'utilisateur.
-- **Merge strategy** — pour sync avec master, toujours `git merge origin/master` (jamais rebase). Les merge commits sur la feature branch disparaissent au squash merge de la PR.
+- **GitHub flow** — `dev` = branche d'integration. Les feature branches sont TOUJOURS creees depuis `dev`. Les PRs ciblent `dev` avec Squash and merge. `main` = branche stable/release.
+- **Push + merge automatique** — apres commit, le lead enchaine push → PR → merge sans demander. Si CI echoue ou conflit, on s'arrete et on corrige.
+- **Merge strategy** — pour sync avec dev, toujours `git merge origin/dev` (jamais rebase). Les merge commits sur la feature branch disparaissent au squash merge de la PR.
 - **GitHub Boards** — chaque Issue travaillee doit etre tracee : In Progress au debut, Done au push.
 - **2D uniquement** — tous les agents doivent utiliser des composants 2D (Rigidbody2D, Collider2D, SpriteRenderer, etc.)
 - **Client/serveur** — toujours verifier que la logique critique est cote serveur, le client ne fait qu'afficher et envoyer des requetes
