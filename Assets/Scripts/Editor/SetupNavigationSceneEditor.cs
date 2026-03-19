@@ -88,9 +88,10 @@ namespace RogueliteAutoBattler.Editor
             UIScreen combatScreen = CreateCombatPanel(gameArea.transform);
             UIScreen[] tabScreens = CreateTabPanels(gameArea.transform);
 
-            // 2. Info panel
-            CreateArea(canvasGo.transform, "InfoPanel", NavRatio, InfoTop, InfoBg);
-            CreateLabel(canvasGo.transform.Find("InfoPanel"), "InfoLabel", "INVENTAIRE / STATS", InfoFontSize, Color.white);
+            // 2. Info area — contains default info + per-tab info panels
+            GameObject infoArea = CreateArea(canvasGo.transform, "InfoArea", NavRatio, InfoTop, Color.clear);
+            UIScreen defaultInfoScreen = CreateInfoPanel(infoArea.transform, "CombatInfo", "INVENTAIRE / STATS", InfoBg, true);
+            UIScreen[] infoScreens = CreateTabInfoPanels(infoArea.transform);
 
             // 3. Nav bar (edge to edge, no padding)
             GameObject navBar = CreateNavBar(canvasGo.transform);
@@ -100,7 +101,7 @@ namespace RogueliteAutoBattler.Editor
             CreateModalLayer(canvasGo.transform);
 
             // 5. NavigationManager (child of UICanvas for clean hierarchy)
-            GameObject navGo = CreateNavigationManager(canvasGo.transform, combatScreen, tabButtons, tabScreens);
+            GameObject navGo = CreateNavigationManager(canvasGo.transform, combatScreen, defaultInfoScreen, tabButtons, tabScreens, infoScreens);
             WireCancelAction(navGo.GetComponent<NavigationManager>());
 
             // Undo
@@ -217,7 +218,50 @@ namespace RogueliteAutoBattler.Editor
         }
 
         // =============================================================
-        // Nav bar — bottom 10%, edge to edge, no padding
+        // Info panels (inside InfoArea)
+        // =============================================================
+
+        /// <summary>Creates a single info panel with background and label.</summary>
+        private static UIScreen CreateInfoPanel(Transform parent, string name, string label, Color bg, bool visible = false)
+        {
+            var go = new GameObject(name);
+            GameObjectUtility.SetParentAndAlign(go, parent.gameObject);
+            Stretch(go.AddComponent<RectTransform>());
+            go.AddComponent<Image>().color = bg;
+
+            CanvasGroup cg = go.AddComponent<CanvasGroup>();
+            cg.alpha = visible ? 1f : 0f;
+            cg.blocksRaycasts = visible;
+            cg.interactable = visible;
+
+            UIScreen screen = go.AddComponent<UIScreen>();
+            CreateLabel(go.transform, "Label", label, InfoFontSize, Color.white);
+            return screen;
+        }
+
+        /// <summary>Creates one info panel per tab, all hidden by default.</summary>
+        private static UIScreen[] CreateTabInfoPanels(Transform parent)
+        {
+            var configs = new[]
+            {
+                new InfoCfg("VillageInfo", "VILLAGE", "1B4332"),
+                new InfoCfg("ArbreInfo", "ARBRE", "4A1D6B"),
+                new InfoCfg("AutreInfo", "AUTRE", "333333"),
+                new InfoCfg("GuildeInfo", "GUILDE", "0D2137"),
+                new InfoCfg("ShopInfo", "SHOP", "B8962E"),
+            };
+
+            var screens = new UIScreen[TabCount];
+            for (int i = 0; i < configs.Length; i++)
+            {
+                InfoCfg c = configs[i];
+                screens[i] = CreateInfoPanel(parent, c.Name, c.Label, HexToColor(c.Hex));
+            }
+            return screens;
+        }
+
+        // =============================================================
+        // Nav bar — bottom 8%, edge to edge, no padding
         // =============================================================
 
         private static GameObject CreateNavBar(Transform parent)
@@ -320,36 +364,34 @@ namespace RogueliteAutoBattler.Editor
         // NavigationManager wiring
         // =============================================================
 
-        private static GameObject CreateNavigationManager(Transform parent, UIScreen defaultScreen, TabButton[] tabButtons, UIScreen[] tabScreens)
+        private static GameObject CreateNavigationManager(Transform parent, UIScreen defaultScreen, UIScreen defaultInfoScreen,
+            TabButton[] tabButtons, UIScreen[] tabScreens, UIScreen[] infoScreens)
         {
             var go = new GameObject("NavigationManager");
             GameObjectUtility.SetParentAndAlign(go, parent.gameObject);
             NavigationManager nav = go.AddComponent<NavigationManager>();
             var so = new SerializedObject(nav);
 
-            // Wire default screen (combat)
+            // Wire default screens
             SetObj(so, "_defaultScreen", defaultScreen);
+            SetObj(so, "_defaultInfoScreen", defaultInfoScreen);
 
-            // Wire tab buttons
-            SerializedProperty tabsProp = FindProp(so, "_tabButtons");
-            if (tabsProp != null)
-            {
-                tabsProp.arraySize = TabCount;
-                for (int i = 0; i < TabCount; i++)
-                    tabsProp.GetArrayElementAtIndex(i).objectReferenceValue = tabButtons[i];
-            }
-
-            // Wire tab screens
-            SerializedProperty screensProp = FindProp(so, "_rootScreens");
-            if (screensProp != null)
-            {
-                screensProp.arraySize = TabCount;
-                for (int i = 0; i < TabCount; i++)
-                    screensProp.GetArrayElementAtIndex(i).objectReferenceValue = tabScreens[i];
-            }
+            // Wire arrays
+            WireArray(so, "_tabButtons", tabButtons, TabCount);
+            WireArray(so, "_rootScreens", tabScreens, TabCount);
+            WireArray(so, "_infoScreens", infoScreens, TabCount);
 
             so.ApplyModifiedProperties();
             return go;
+        }
+
+        private static void WireArray(SerializedObject so, string name, Component[] items, int count)
+        {
+            SerializedProperty prop = FindProp(so, name);
+            if (prop == null) return;
+            prop.arraySize = count;
+            for (int i = 0; i < count; i++)
+                prop.GetArrayElementAtIndex(i).objectReferenceValue = items[i];
         }
 
         private static void WireCancelAction(NavigationManager nav)
@@ -439,6 +481,13 @@ namespace RogueliteAutoBattler.Editor
             public readonly System.Type ScreenType;
             public PanelCfg(string name, string label, string hex, System.Type type)
             { Name = name; Label = label; Hex = hex; ScreenType = type; }
+        }
+
+        private readonly struct InfoCfg
+        {
+            public readonly string Name, Label, Hex;
+            public InfoCfg(string name, string label, string hex)
+            { Name = name; Label = label; Hex = hex; }
         }
 
         private readonly struct TabCfg

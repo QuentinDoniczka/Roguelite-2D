@@ -17,10 +17,14 @@ namespace RogueliteAutoBattler.UI.Core
         /// </summary>
         public static NavigationManager Instance { get; private set; }
 
-        [Header("Default Screen")]
+        [Header("Default Screens")]
         [SerializeField]
-        [Tooltip("The screen shown when no tab is selected (Combat/Battle).")]
+        [Tooltip("Main screen shown when no tab is selected (Combat/Battle).")]
         private UIScreen _defaultScreen;
+
+        [SerializeField]
+        [Tooltip("Info panel shown when no tab is selected.")]
+        private UIScreen _defaultInfoScreen;
 
         [Header("Tab Setup")]
         [SerializeField]
@@ -30,6 +34,10 @@ namespace RogueliteAutoBattler.UI.Core
         [SerializeField]
         [Tooltip("Root screens in order (same order as tab buttons).")]
         private UIScreen[] _rootScreens;
+
+        [SerializeField]
+        [Tooltip("Info screens in order (same order as tab buttons).")]
+        private UIScreen[] _infoScreens;
 
         [Header("Input")]
         [SerializeField]
@@ -74,11 +82,28 @@ namespace RogueliteAutoBattler.UI.Core
                 return;
             }
 
+            if (_infoScreens != null && _infoScreens.Length != _rootScreens.Length)
+            {
+                Debug.LogError("[NavigationManager] Info screens count must match root screens.", this);
+                enabled = false;
+                return;
+            }
+
             _stacks = new ScreenStack[_rootScreens.Length];
             for (int i = 0; i < _rootScreens.Length; i++)
             {
                 _rootScreens[i].OnHide();
                 _stacks[i] = new ScreenStack(_rootScreens[i]);
+            }
+
+            // Hide all info screens
+            if (_infoScreens != null)
+            {
+                for (int i = 0; i < _infoScreens.Length; i++)
+                {
+                    if (_infoScreens[i] != null)
+                        _infoScreens[i].OnHide();
+                }
             }
         }
 
@@ -86,9 +111,11 @@ namespace RogueliteAutoBattler.UI.Core
         {
             if (_stacks == null) return;
 
-            // Show default screen (combat), no tab selected
+            // Show default screens (combat + combat info), no tab selected
             if (_defaultScreen != null)
                 _defaultScreen.OnShow();
+            if (_defaultInfoScreen != null)
+                _defaultInfoScreen.OnShow();
         }
 
         private void OnEnable()
@@ -153,16 +180,21 @@ namespace RogueliteAutoBattler.UI.Core
             {
                 _tabButtons[_currentTabIndex].Deselect();
                 _stacks[_currentTabIndex].HideCurrent();
+                HideInfoScreen(_currentTabIndex);
             }
-            else if (_defaultScreen != null)
+            else
             {
-                // Hide default screen (combat)
-                _defaultScreen.OnHide();
+                // Hide default screens (combat)
+                if (_defaultScreen != null)
+                    _defaultScreen.OnHide();
+                if (_defaultInfoScreen != null)
+                    _defaultInfoScreen.OnHide();
             }
 
             _currentTabIndex = index;
             _stacks[_currentTabIndex].ShowCurrent();
             _tabButtons[_currentTabIndex].Select();
+            ShowInfoScreen(_currentTabIndex);
 
             OnTabChanged?.Invoke(_currentTabIndex);
         }
@@ -176,12 +208,15 @@ namespace RogueliteAutoBattler.UI.Core
             {
                 _tabButtons[_currentTabIndex].Deselect();
                 _stacks[_currentTabIndex].HideCurrent();
+                HideInfoScreen(_currentTabIndex);
             }
 
             _currentTabIndex = -1;
 
             if (_defaultScreen != null)
                 _defaultScreen.OnShow();
+            if (_defaultInfoScreen != null)
+                _defaultInfoScreen.OnShow();
 
             OnTabChanged?.Invoke(-1);
         }
@@ -203,6 +238,18 @@ namespace RogueliteAutoBattler.UI.Core
         {
             if (_stacks == null || _currentTabIndex < 0) return null;
             return _stacks[_currentTabIndex].Pop();
+        }
+
+        private void ShowInfoScreen(int index)
+        {
+            if (_infoScreens != null && index >= 0 && index < _infoScreens.Length && _infoScreens[index] != null)
+                _infoScreens[index].OnShow();
+        }
+
+        private void HideInfoScreen(int index)
+        {
+            if (_infoScreens != null && index >= 0 && index < _infoScreens.Length && _infoScreens[index] != null)
+                _infoScreens[index].OnHide();
         }
     }
 }
