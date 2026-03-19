@@ -27,6 +27,7 @@ Gameplay : recruter aventuriers → equiper → combat auto (gauche→droite) + 
 | `review-unity` | Audit COMPLET du projet entier. Utilise uniquement sur demande explicite (hors chaine principale). Read-only. |
 | `brainstorm-unity` | **TOUJOURS invoque en premier.** Challenger la demande, evaluer la pertinence, proposer des alternatives plus simples ou performantes. Prend en compte le client/serveur et le 2D. |
 | `test-play-unity` | Lancer les tests Play Mode existants apres implementation. Utilise des fake accounts a differents niveaux de progression. Aussi utilise pour ecrire de nouveaux tests (apres refacto). |
+| `dev-ux-unity` | Creer des scripts Editor interactifs avec bouton Inspector auto-destructeur — pour setup scene, wiring UI, generation prefabs. Utiliser quand une Issue necessite du setup scene Unity (Canvas, hierarchie, composants). |
 
 ## Invocation
 
