@@ -49,6 +49,8 @@ Assets/
 │   ├── Adventurers/  (empty)
 │   ├── Combat/  (empty)
 │   ├── Core/  (empty)
+│   ├── Editor/
+│   │   └── SetupNavigationSceneEditor.cs
 │   ├── Items/  (empty)
 │   ├── ScriptableObjects/  (empty)
 │   ├── Services/

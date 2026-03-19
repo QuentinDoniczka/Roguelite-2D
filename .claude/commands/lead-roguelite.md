@@ -156,8 +156,8 @@ a) Delegue a `review-commit-unity` (PAS `review-unity`). L'agent n'audite QUE le
    - Naming et conventions
    - Cross-reference (composants ↔ prefabs, ScriptableObjects ↔ assets, events ↔ subscribers, DTOs ↔ contrats API)
    L'agent produit un rapport classe par severite (CRITICAL, HIGH, MEDIUM, LOW).
-b) **Si le rapport contient des issues CRITICAL ou HIGH** → delegue a `refacto-unity` avec le rapport complet en contexte. L'agent corrige tous les CRITICAL et HIGH.
-c) **Si que MEDIUM/LOW ou aucun issue** → passer directement a la suite.
+b) **Si le rapport contient des issues (CRITICAL, HIGH, MEDIUM ou LOW)** → delegue a `refacto-unity` avec le rapport complet en contexte. L'agent corrige **TOUTES** les issues, quelle que soit la severite. On vise du clean code : magic numbers, naming, unused usings, null guards, conventions — tout doit etre propre.
+c) **Si aucune issue** → passer directement a la suite.
 **Ne jamais sauter cette etape.**
 > **Note** : `review-unity` (audit complet du projet entier) reste disponible mais n'est utilise que sur demande explicite de l'utilisateur, en dehors de cette chaine.
 
