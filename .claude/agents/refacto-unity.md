@@ -123,3 +123,4 @@ Suggest a pattern **only** when the code already suffers from the problem the pa
 - **Grep before deleting** — always verify zero references across the project before removing a file or function
 - **2D only** — if you spot any 3D component usage, replace with 2D equivalent
 - **Respect client/server boundary** — don't move server logic to client or vice versa
+- **Verify compilation** — check for `using` ambiguities (e.g. `System.Object` vs `UnityEngine.Object`), qualify types explicitly when both namespaces are imported. Never use target-typed `new(...)` — always use explicit `new Type(...)`. Never assume C# 9+ features work — stick to C# 8 safe syntax.

@@ -189,14 +189,18 @@ Si une section est vide (ex: aucun fichier supprime), ne pas l'afficher.
 
 **Apres le rapport** :
 a) Delegue a `git-unity` avec la tache "commit" pour commiter tous les changements avec un message Conventional Commits qui reference l'Issue (ex: `feat(combat): add auto-battle flow (#12)`).
-b) Delegue a `git-unity` avec la tache "push" (sync auto avec dev avant de push). La PR est creee automatiquement par l'agent.
+b) Delegue a `git-unity` avec la tache "push" (sync auto avec dev avant de push).
    - Si le sync detecte des conflits, delegue a `dev-unity` pour les resoudre, puis relance le push.
-c) **Merge automatique** — Delegue a `git-unity` avec la tache "merge-pr" :
+c) **STOP — Demande de validation a l'utilisateur.** Affiche :
+   - "Branche pushee. Teste dans Unity et confirme que tout fonctionne. Dis 'ok' pour creer la PR et merger."
+   - **Ne PAS creer de PR ni merger avant la validation.**
+d) **Apres validation utilisateur** — Delegue a `git-unity` avec la tache "create-pr" pour creer la PR.
+e) **Merge** — Delegue a `git-unity` avec la tache "merge-pr" :
    - L'agent verifie que la CI passe sur la PR
    - Si CI verte → squash merge automatique (merge en tant que Quentin Doniczka via `gh`)
    - Si CI rouge → STOP, rapporte les erreurs. On corrige et on relance.
    - Si conflit de merge → STOP, rapporte la situation.
-d) Delegue a `github-boards` avec "complete-issue" : ferme l'Issue, verifie si toutes les Issues de la Milestone sont fermees → si oui, ferme la Milestone.
+f) Delegue a `github-boards` avec "complete-issue" : ferme l'Issue, verifie si toutes les Issues de la Milestone sont fermees → si oui, ferme la Milestone.
 
 ## Agents hors chaine (manuels)
 

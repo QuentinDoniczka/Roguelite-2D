@@ -127,15 +127,24 @@ When invoked with task "sync-with-dev":
 
 ## Task: Push Branch
 
-When invoked with task "push" (ONLY when explicitly requested):
+When invoked with task "push":
 
 1. Get current branch: `git branch --show-current`
 2. **NEVER push to main or dev directly** — if on main or dev, STOP and report error.
 3. **Sync with dev first** — Execute the "Sync with Dev" task before pushing. If sync fails (conflicts), STOP — do not push an unsynced branch.
 4. Push: `git push origin <branch-name>`
 5. If first push, use: `git push -u origin <branch-name>`
-6. **Extract Issue number** — Parse the branch name to get the issue number (e.g., `feature/12-combat-flow` → `12`).
-7. **Create Pull Request automatically** — Use `gh pr create` targeting `dev`:
+6. **Report** — "Branch `<branch-name>` pushed. Ready for validation."
+
+**Push does NOT create a PR.** The PR is created separately after user validation.
+
+## Task: Create PR
+
+When invoked with task "create-pr":
+
+1. Get current branch: `git branch --show-current`
+2. **Extract Issue number** — Parse the branch name to get the issue number (e.g., `feature/12-combat-flow` → `12`).
+3. **Create Pull Request** — Use `gh pr create` targeting `dev`:
    ```bash
    gh pr create --base dev --title "<commit-type>(<scope>): <description> (#<issue-number>)" --body "$(cat <<'EOF'
    Closes #<issue-number>
@@ -154,7 +163,7 @@ When invoked with task "push" (ONLY when explicitly requested):
    - The PR title follows Conventional Commits format
    - `Closes #<issue-number>` in the body auto-closes the Issue on merge
    - If `gh pr create` fails because a PR already exists, report the existing PR URL instead
-8. **After push + PR** — Report: "Branch pushed. PR created targeting `dev` with auto-close for Issue #X." and include the PR URL.
+4. **Report** — "PR created targeting `dev` with auto-close for Issue #X." and include the PR URL.
 
 ## Task: Merge PR
 
