@@ -28,7 +28,8 @@ namespace RogueliteAutoBattler.Editor
         private const int CanvasHeight = 1920;
         private const float CanvasMatch = 0.5f;
         private const float CanvasPlaneDistance = 100f;
-        private const int CanvasSortingOrder = 1;
+        private const int CanvasSortingOrder = 1000;
+        private const int BackgroundSortingOrder = 0;
 
         // Layout ratios (from bottom)
         private const float NavRatio = 0.08f;   // bottom 8%
@@ -53,6 +54,8 @@ namespace RogueliteAutoBattler.Editor
         private static readonly Color InfoBg = (Color)new Color32(30, 30, 40, 240);
         private static readonly Color BtnHighlighted = (Color)new Color32(220, 220, 220, 255);
         private static readonly Color BtnPressed = (Color)new Color32(180, 180, 180, 255);
+        private static readonly Color GameAreaBg = (Color)new Color32(20, 20, 30, 255);
+        private static readonly Color InfoAreaBg = (Color)new Color32(25, 25, 35, 255);
 
         [MenuItem("Roguelite/Setup Navigation UI")]
         private static void SetupNavigationUI()
@@ -98,11 +101,21 @@ namespace RogueliteAutoBattler.Editor
 
             // 1. Game area (top 60%) — contains combat + tab panels
             GameObject gameArea = EditorUIFactory.CreateArea(canvasGo.transform, "GameArea", InfoTop, 1f, Color.clear);
+
+            // Background panel — renders behind battleground via nested Canvas override
+            var bgGo = new GameObject("GameAreaBackground");
+            GameObjectUtility.SetParentAndAlign(bgGo, gameArea);
+            EditorUIFactory.Stretch(bgGo.AddComponent<RectTransform>());
+            bgGo.AddComponent<Image>().color = GameAreaBg;
+            Canvas bgCanvas = bgGo.AddComponent<Canvas>();
+            bgCanvas.overrideSorting = true;
+            bgCanvas.sortingOrder = BackgroundSortingOrder;
+
             UIScreen combatScreen = CombatHudBuilder.CreateCombatPanel(gameArea.transform);
             UIScreen[] tabScreens = CreateTabPanels(gameArea.transform);
 
             // 2. Info area — contains default info + per-tab info panels
-            GameObject infoArea = EditorUIFactory.CreateArea(canvasGo.transform, "InfoArea", NavRatio, InfoTop, Color.clear);
+            GameObject infoArea = EditorUIFactory.CreateArea(canvasGo.transform, "InfoArea", NavRatio, InfoTop, InfoAreaBg);
             UIScreen defaultInfoScreen = CreateInfoPanel(infoArea.transform, "CombatInfo", "INVENTAIRE / STATS", InfoBg, true);
             UIScreen[] infoScreens = CreateTabInfoPanels(infoArea.transform);
 

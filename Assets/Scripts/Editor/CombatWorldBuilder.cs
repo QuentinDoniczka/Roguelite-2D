@@ -10,6 +10,7 @@ namespace RogueliteAutoBattler.Editor
     {
         private const float CameraOrthoSize = 5.4f;
         private const float CameraZPosition = -10f;
+        private const int BattlefieldSortingOrder = 0;
         private static readonly Color BattlefieldBg = (Color)new Color32(106, 45, 47, 255);
 
         /// <summary>
@@ -59,7 +60,7 @@ namespace RogueliteAutoBattler.Editor
             SpriteRenderer bgRenderer = bgGo.AddComponent<SpriteRenderer>();
             bgRenderer.sprite = CreateOrLoadPlaceholderSprite();
             bgRenderer.color = BattlefieldBg;
-            bgRenderer.sortingOrder = -1;
+            bgRenderer.sortingOrder = BattlefieldSortingOrder;
             // Camera ortho size 5.4 → visible height ~10.8, width ~6 (9:16). Scale to cover.
             bgGo.transform.localScale = new Vector3(12f, 12f, 1f);
 
