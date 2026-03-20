@@ -21,13 +21,13 @@ Gameplay : recruter aventuriers → equiper → combat auto (gauche→droite) + 
 | `github-boards` | Gestion GitHub Projects : creer/lire/modifier les work items (Milestones = Epics, Issues = features), decomposer des features, gerer les etats (Todo, In Progress, Done). |
 | `git-unity` | Gestion git complete : verifier l'etat du repo, preparer les branches feature depuis dev, commiter (conventional commits), push, creer PR, et merger PR (squash merge si CI verte). |
 | `leaddev-unity` | Analyser la structure, planifier l'architecture (client/serveur/2D), lister classes/fonctions a creer ou modifier |
-| `dev-unity` | Implementer le code Unity 2D (classes, fonctions, SO, MonoBehaviours, DTOs, services API...) |
+| `dev-ux-unity` | **Agent principal pour tout ce qui est visuel/scene/UI.** Editor scripts, Canvas/HUD layout, hierarchie scene, world-space setup (CombatWorld, backgrounds), prefab wiring, configuration camera. Utilise AVANT `dev-unity` si la tache est visuelle. |
+| `dev-unity` | Implementer le code **runtime** Unity 2D (classes, fonctions, SO, MonoBehaviours, DTOs, services API, game logic). **Ne PAS utiliser pour du setup scene, UI layout, ou Editor scripts** — utiliser `dev-ux-unity` a la place. |
 | `refacto-unity` | Refactorer, optimiser, nettoyer, appliquer les patterns — verification 2D et client/serveur |
 | `review-commit-unity` | Auditer UNIQUEMENT les fichiers modifies/crees dans le dernier commit ou les changements non commites. Verifie aussi la frontiere client/serveur. Leger et scope. Read-only. |
 | `review-unity` | Audit COMPLET du projet entier. Utilise uniquement sur demande explicite (hors chaine principale). Read-only. |
 | `brainstorm-unity` | **TOUJOURS invoque en premier.** Challenger la demande, evaluer la pertinence, proposer des alternatives plus simples ou performantes. Prend en compte le client/serveur et le 2D. |
 | `test-play-unity` | Lancer les tests Play Mode existants apres implementation. Utilise des fake accounts a differents niveaux de progression. Aussi utilise pour ecrire de nouveaux tests (apres refacto). |
-| `dev-ux-unity` | Creer des scripts Editor interactifs avec bouton Inspector auto-destructeur — pour setup scene, wiring UI, generation prefabs. Utiliser quand une Issue necessite du setup scene Unity (Canvas, hierarchie, composants). |
 
 ## Invocation
 
@@ -118,7 +118,20 @@ Delegue a `leaddev-unity` pour produire le plan technique base sur l'approche re
 
 ### 4. Implementer
 
-Delegue directement a `dev-unity` sans attendre validation, sauf si le plan implique un choix d'architecture ambigu (dans ce cas, presente les options avec pour/contre et laisse choisir).
+**Routing conditionnel — choisir le bon agent :**
+
+a) **Determiner si la tache est UX/scene ou runtime :**
+   - **UX/scene** = tout ce qui touche a : hierarchie de scene, Canvas, HUD, UI layout, Editor scripts (`[MenuItem]`, custom Inspector), setup scene, prefab wiring, configuration camera, world-space setup (CombatWorld, backgrounds, SpriteRenderer), anchors/RectTransform, CanvasGroup, LayoutGroups
+   - **Runtime** = tout ce qui touche a : game logic (combat, AI, state machines), classes C# (interfaces, services, SO), MonoBehaviour logic (Update, FixedUpdate), client/serveur (DTOs, API calls), systemes de jeu
+
+b) **Router :**
+   - **Si UX/scene** → delegue a `dev-ux-unity`
+   - **Si runtime** → delegue a `dev-unity`
+   - **Si les deux** → delegue d'abord a `dev-ux-unity` (scene/UI), puis a `dev-unity` (logic runtime)
+
+**Ne JAMAIS utiliser `dev-unity` pour du setup scene, UI layout, ou Editor scripts.**
+
+Delegue directement sans attendre validation, sauf si le plan implique un choix d'architecture ambigu (dans ce cas, presente les options avec pour/contre et laisse choisir).
 
 ### 4b. Validation par tests existants
 
