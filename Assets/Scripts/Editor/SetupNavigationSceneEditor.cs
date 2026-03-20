@@ -1,5 +1,4 @@
 using RogueliteAutoBattler.UI.Core;
-using RogueliteAutoBattler.UI.Screens.Combat;
 using RogueliteAutoBattler.UI.Screens.Guild;
 using RogueliteAutoBattler.UI.Screens.Shop;
 using RogueliteAutoBattler.UI.Screens.SkillTree;
@@ -17,9 +16,10 @@ namespace RogueliteAutoBattler.Editor
 {
     /// <summary>
     /// Creates the navigation UI hierarchy in one click.
-    /// Layout: 60% game (top) | 30% info (middle) | 10% nav bar (bottom, edge to edge).
+    /// Layout: 60% game (top) | 32% info (middle) | 8% nav bar (bottom, edge to edge).
     /// Combat is the default screen (no tab selected).
-    /// 5 tabs: Village, Arbre, Autre, Guilde, Shop.
+    /// CombatPanel is transparent — reveals the 2D world (CombatWorld) behind the Overlay Canvas.
+    /// Tab panels are opaque and cover the world when active.
     /// </summary>
     public static class SetupNavigationSceneEditor
     {
@@ -27,6 +27,8 @@ namespace RogueliteAutoBattler.Editor
         private const int CanvasWidth = 1080;
         private const int CanvasHeight = 1920;
         private const float CanvasMatch = 0.5f;
+        private const float CanvasPlaneDistance = 100f;
+        private const int CanvasSortingOrder = 1;
 
         // Layout ratios (from bottom)
         private const float NavRatio = 0.08f;   // bottom 8%
@@ -40,7 +42,6 @@ namespace RogueliteAutoBattler.Editor
         private const int NavFontSize = 22;
         private const int PanelFontSize = 56;
         private const int InfoFontSize = 32;
-        private const int CombatFontSize = 56;
 
         // Input
         private const string InputAssetPath = "Assets/Settings/InputSystem_Actions.inputactions";
@@ -50,13 +51,14 @@ namespace RogueliteAutoBattler.Editor
         private static readonly Color NavBtnNormal = (Color)new Color32(40, 40, 40, 255);
         private static readonly Color NavBtnSelected = (Color)new Color32(80, 80, 80, 255);
         private static readonly Color InfoBg = (Color)new Color32(30, 30, 40, 240);
-        private static readonly Color ModalBg = (Color)new Color32(0, 0, 0, 150);
+        private static readonly Color BtnHighlighted = (Color)new Color32(220, 220, 220, 255);
+        private static readonly Color BtnPressed = (Color)new Color32(180, 180, 180, 255);
 
         [MenuItem("Roguelite/Setup Navigation UI")]
         private static void SetupNavigationUI()
         {
             Canvas existingCanvas =
-                UnityEngine.Object.FindFirstObjectByType<Canvas>(FindObjectsInactive.Include);
+                Object.FindFirstObjectByType<Canvas>(FindObjectsInactive.Include);
             if (existingCanvas != null)
             {
                 if (!EditorUtility.DisplayDialog("Canvas Exists", "Replace existing Canvas?", "Replace", "Cancel"))
@@ -67,33 +69,40 @@ namespace RogueliteAutoBattler.Editor
             int undoGroup = Undo.GetCurrentGroup();
             Undo.SetCurrentGroupName("Setup Navigation UI");
 
+            // Cleanup existing objects
             if (existingCanvas != null)
                 Undo.DestroyObjectImmediate(existingCanvas.gameObject);
 
-            EventSystem es = UnityEngine.Object.FindFirstObjectByType<EventSystem>(FindObjectsInactive.Include);
+            EventSystem es = Object.FindFirstObjectByType<EventSystem>(FindObjectsInactive.Include);
             if (es != null)
                 Undo.DestroyObjectImmediate(es.gameObject);
 
-            // Ensure sorting layers exist
-            EnsureSortingLayers();
-
-            // Also remove old NavigationManager
-            NavigationManager oldNav = UnityEngine.Object.FindFirstObjectByType<NavigationManager>(FindObjectsInactive.Include);
+            NavigationManager oldNav = Object.FindFirstObjectByType<NavigationManager>(FindObjectsInactive.Include);
             if (oldNav != null)
                 Undo.DestroyObjectImmediate(oldNav.gameObject);
 
-            // --- Build ---
-            GameObject esGo = CreateEventSystem();
-            GameObject canvasGo = CreateCanvas();
+            GameObject oldWorld = GameObject.Find("CombatWorld");
+            if (oldWorld != null)
+                Undo.DestroyObjectImmediate(oldWorld);
 
-            // 1. Game area (behind) — contains combat (default) + tab panels
-            GameObject gameArea = CreateArea(canvasGo.transform, "GameArea", InfoTop, 1f, Color.clear);
-            UIScreen combatScreen;
-            UIScreen[] tabScreens;
-            CreateAllPanels(gameArea.transform, out combatScreen, out tabScreens);
+            // --- Setup camera ---
+            Camera mainCam = CombatWorldBuilder.ConfigureMainCamera();
+
+            // --- Build 2D world ---
+            GameObject combatWorldGo = CombatWorldBuilder.CreateCombatWorld();
+            Undo.RegisterCreatedObjectUndo(combatWorldGo, "CombatWorld");
+
+            // --- Build Canvas HUD (Overlay — draws on top of world) ---
+            GameObject esGo = CreateEventSystem();
+            GameObject canvasGo = CreateCanvas(mainCam);
+
+            // 1. Game area (top 60%) — contains combat + tab panels
+            GameObject gameArea = EditorUIFactory.CreateArea(canvasGo.transform, "GameArea", InfoTop, 1f, Color.clear);
+            UIScreen combatScreen = CombatHudBuilder.CreateCombatPanel(gameArea.transform);
+            UIScreen[] tabScreens = CreateTabPanels(gameArea.transform);
 
             // 2. Info area — contains default info + per-tab info panels
-            GameObject infoArea = CreateArea(canvasGo.transform, "InfoArea", NavRatio, InfoTop, Color.clear);
+            GameObject infoArea = EditorUIFactory.CreateArea(canvasGo.transform, "InfoArea", NavRatio, InfoTop, Color.clear);
             UIScreen defaultInfoScreen = CreateInfoPanel(infoArea.transform, "CombatInfo", "INVENTAIRE / STATS", InfoBg, true);
             UIScreen[] infoScreens = CreateTabInfoPanels(infoArea.transform);
 
@@ -101,10 +110,7 @@ namespace RogueliteAutoBattler.Editor
             GameObject navBar = CreateNavBar(canvasGo.transform);
             TabButton[] tabButtons = CreateTabButtons(navBar.transform);
 
-            // 4. Modal layer
-            CreateModalLayer(canvasGo.transform);
-
-            // 5. NavigationManager (child of UICanvas for clean hierarchy)
+            // 4. NavigationManager (child of UICanvas for clean hierarchy)
             GameObject navGo = CreateNavigationManager(canvasGo.transform, combatScreen, defaultInfoScreen, tabButtons, tabScreens, infoScreens);
             WireCancelAction(navGo.GetComponent<NavigationManager>());
 
@@ -130,11 +136,14 @@ namespace RogueliteAutoBattler.Editor
             return go;
         }
 
-        private static GameObject CreateCanvas()
+        private static GameObject CreateCanvas(Camera cam)
         {
             var go = new GameObject("UICanvas");
             Canvas c = go.AddComponent<Canvas>();
-            c.renderMode = RenderMode.ScreenSpaceOverlay;
+            c.renderMode = RenderMode.ScreenSpaceCamera;
+            c.worldCamera = cam;
+            c.planeDistance = CanvasPlaneDistance;
+            c.sortingOrder = CanvasSortingOrder;
 
             CanvasScaler s = go.AddComponent<CanvasScaler>();
             s.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
@@ -145,67 +154,38 @@ namespace RogueliteAutoBattler.Editor
             return go;
         }
 
-        /// <summary>Creates a rectangular area between two vertical anchor ratios.</summary>
-        private static GameObject CreateArea(Transform parent, string name, float anchorBottom, float anchorTop, Color bg)
-        {
-            var go = new GameObject(name);
-            go.transform.SetParent(parent, false);
-            RectTransform r = go.GetOrAddRectTransform();
-            r.anchorMin = new Vector2(0, anchorBottom);
-            r.anchorMax = new Vector2(1, anchorTop);
-            r.offsetMin = Vector2.zero;
-            r.offsetMax = Vector2.zero;
-
-            if (bg.a > 0)
-                go.AddComponent<Image>().color = bg;
-
-            return go;
-        }
-
         // =============================================================
-        // All panels (combat default + 5 tab panels) — same structure
+        // Tab panels (overlay on top of combat)
         // =============================================================
 
-        private static void CreateAllPanels(Transform parent, out UIScreen combatScreen, out UIScreen[] tabScreens)
+        private static UIScreen[] CreateTabPanels(Transform parent)
         {
-            // Combat = default, visible. Same structure as all other panels.
-            combatScreen = CreatePanel(parent, "CombatPanel", "COMBAT", "A4161A", typeof(CombatScreen), true);
-
-            // Tab panels = hidden by default
             var configs = new[]
             {
                 new PanelCfg("VillagePanel", "VILLAGE", "2D6A4F", typeof(VillageScreen)),
                 new PanelCfg("SkillTreePanel", "ARBRE", "7B2D8E", typeof(SkillTreeScreen)),
-                new PanelCfg("AutrePanel", "AUTRE", "555555", typeof(GuildScreen)),
-                new PanelCfg("GuildePanel", "GUILDE", "1D3557", typeof(ShopScreen)),
-                new PanelCfg("ShopPanel", "SHOP", "E9C46A", typeof(VillageScreen)),
+                new PanelCfg("AutrePanel", "AUTRE", "555555", typeof(GuildScreen)), // placeholder — replace with AutreScreen when created
+                new PanelCfg("GuildePanel", "GUILDE", "1D3557", typeof(ShopScreen)), // placeholder — replace with GuildScreen when created
+                new PanelCfg("ShopPanel", "SHOP", "E9C46A", typeof(VillageScreen)), // placeholder — replace with ShopScreen when created
             };
 
-            tabScreens = new UIScreen[TabCount];
+            var screens = new UIScreen[TabCount];
             for (int i = 0; i < configs.Length; i++)
             {
                 PanelCfg c = configs[i];
-                tabScreens[i] = CreatePanel(parent, c.Name, c.Label, c.Hex, c.ScreenType, false);
+                var go = new GameObject(c.Name);
+                GameObjectUtility.SetParentAndAlign(go, parent.gameObject);
+                EditorUIFactory.Stretch(go.AddComponent<RectTransform>());
+
+                go.AddComponent<Image>().color = EditorUIFactory.HexToColor(c.Hex);
+
+                // Start hidden — combat is visible by default
+                EditorUIFactory.SetupCanvasGroup(go, false);
+
+                screens[i] = (UIScreen)go.AddComponent(c.ScreenType);
+                EditorUIFactory.CreateLabel(go.transform, "Label", c.Label, PanelFontSize, Color.white);
             }
-        }
-
-        /// <summary>Creates a single panel — identical structure for combat and tabs.</summary>
-        private static UIScreen CreatePanel(Transform parent, string name, string label, string hex, System.Type screenType, bool visible)
-        {
-            var go = new GameObject(name);
-            go.transform.SetParent(parent, false);
-            Stretch(go.GetOrAddRectTransform());
-
-            go.AddComponent<Image>().color = HexToColor(hex);
-
-            CanvasGroup cg = go.AddComponent<CanvasGroup>();
-            cg.alpha = visible ? 1f : 0f;
-            cg.blocksRaycasts = visible;
-            cg.interactable = visible;
-
-            UIScreen screen = (UIScreen)go.AddComponent(screenType);
-            CreateLabel(go.transform, "Label", label, PanelFontSize, Color.white);
-            return screen;
+            return screens;
         }
 
         // =============================================================
@@ -216,17 +196,14 @@ namespace RogueliteAutoBattler.Editor
         private static UIScreen CreateInfoPanel(Transform parent, string name, string label, Color bg, bool visible = false)
         {
             var go = new GameObject(name);
-            go.transform.SetParent(parent, false);
-            Stretch(go.GetOrAddRectTransform());
+            GameObjectUtility.SetParentAndAlign(go, parent.gameObject);
+            EditorUIFactory.Stretch(go.AddComponent<RectTransform>());
             go.AddComponent<Image>().color = bg;
 
-            CanvasGroup cg = go.AddComponent<CanvasGroup>();
-            cg.alpha = visible ? 1f : 0f;
-            cg.blocksRaycasts = visible;
-            cg.interactable = visible;
+            EditorUIFactory.SetupCanvasGroup(go, visible);
 
             UIScreen screen = go.AddComponent<UIScreen>();
-            CreateLabel(go.transform, "Label", label, InfoFontSize, Color.white);
+            EditorUIFactory.CreateLabel(go.transform, "Label", label, InfoFontSize, Color.white);
             return screen;
         }
 
@@ -246,7 +223,7 @@ namespace RogueliteAutoBattler.Editor
             for (int i = 0; i < configs.Length; i++)
             {
                 InfoCfg c = configs[i];
-                screens[i] = CreateInfoPanel(parent, c.Name, c.Label, HexToColor(c.Hex));
+                screens[i] = CreateInfoPanel(parent, c.Name, c.Label, EditorUIFactory.HexToColor(c.Hex));
             }
             return screens;
         }
@@ -258,9 +235,9 @@ namespace RogueliteAutoBattler.Editor
         private static GameObject CreateNavBar(Transform parent)
         {
             var go = new GameObject("NavBar");
-            go.transform.SetParent(parent, false);
+            GameObjectUtility.SetParentAndAlign(go, parent.gameObject);
 
-            RectTransform r = go.GetOrAddRectTransform();
+            RectTransform r = go.AddComponent<RectTransform>();
             r.anchorMin = Vector2.zero;
             r.anchorMax = new Vector2(1, NavRatio);
             r.offsetMin = Vector2.zero;
@@ -270,7 +247,6 @@ namespace RogueliteAutoBattler.Editor
 
             HorizontalLayoutGroup layout = go.AddComponent<HorizontalLayoutGroup>();
             layout.spacing = 0;
-            layout.padding = new RectOffset(0, 0, 0, 0);
             layout.childControlWidth = true;
             layout.childControlHeight = true;
             layout.childForceExpandWidth = true;
@@ -295,8 +271,8 @@ namespace RogueliteAutoBattler.Editor
             {
                 TabCfg c = configs[i];
                 var go = new GameObject(c.Name);
-                go.transform.SetParent(parent, false);
-                go.GetOrAddRectTransform();
+                GameObjectUtility.SetParentAndAlign(go, parent.gameObject);
+                go.AddComponent<RectTransform>();
 
                 // Button background — fills its cell, no border
                 Image img = go.AddComponent<Image>();
@@ -306,8 +282,8 @@ namespace RogueliteAutoBattler.Editor
                 Button btn = go.AddComponent<Button>();
                 ColorBlock cb = btn.colors;
                 cb.normalColor = Color.white;
-                cb.highlightedColor = (Color)new Color32(220, 220, 220, 255);
-                cb.pressedColor = (Color)new Color32(180, 180, 180, 255);
+                cb.highlightedColor = BtnHighlighted;
+                cb.pressedColor = BtnPressed;
                 cb.selectedColor = Color.white;
                 btn.colors = cb;
 
@@ -320,35 +296,19 @@ namespace RogueliteAutoBattler.Editor
                 buttons[i] = tb;
 
                 // Label — centered text, stays white always
-                TextMeshProUGUI tmp = CreateLabel(go.transform, "Label", c.Label, NavFontSize, Color.white);
+                TextMeshProUGUI tmp = EditorUIFactory.CreateLabel(go.transform, "Label", c.Label, NavFontSize, Color.white);
                 tmp.fontStyle = FontStyles.Bold;
 
                 // Wire SerializedFields
                 // NOTE: _label is NOT wired — keeps text white. Only _icon (background) changes color.
                 var so = new SerializedObject(tb);
-                SetInt(so, "_tabIndex", c.Index);
-                SetObj(so, "_icon", img);
-                SetColor(so, "_normalColor", NavBtnNormal);
-                SetColor(so, "_selectedColor", NavBtnSelected);
+                EditorUIFactory.SetInt(so, "_tabIndex", c.Index);
+                EditorUIFactory.SetObj(so, "_icon", img);
+                EditorUIFactory.SetColor(so, "_normalColor", NavBtnNormal);
+                EditorUIFactory.SetColor(so, "_selectedColor", NavBtnSelected);
                 so.ApplyModifiedProperties();
             }
             return buttons;
-        }
-
-        // =============================================================
-        // Modal layer
-        // =============================================================
-
-        private static void CreateModalLayer(Transform parent)
-        {
-            var go = new GameObject("ModalLayer");
-            go.transform.SetParent(parent, false);
-            Stretch(go.GetOrAddRectTransform());
-            go.AddComponent<Image>().color = ModalBg;
-            CanvasGroup cg = go.AddComponent<CanvasGroup>();
-            cg.alpha = 0f;
-            cg.blocksRaycasts = false;
-            cg.interactable = false;
         }
 
         // =============================================================
@@ -359,30 +319,21 @@ namespace RogueliteAutoBattler.Editor
             TabButton[] tabButtons, UIScreen[] tabScreens, UIScreen[] infoScreens)
         {
             var go = new GameObject("NavigationManager");
-            go.transform.SetParent(parent, false);
+            GameObjectUtility.SetParentAndAlign(go, parent.gameObject);
             NavigationManager nav = go.AddComponent<NavigationManager>();
             var so = new SerializedObject(nav);
 
             // Wire default screens
-            SetObj(so, "_defaultScreen", defaultScreen);
-            SetObj(so, "_defaultInfoScreen", defaultInfoScreen);
+            EditorUIFactory.SetObj(so, "_defaultScreen", defaultScreen);
+            EditorUIFactory.SetObj(so, "_defaultInfoScreen", defaultInfoScreen);
 
             // Wire arrays
-            WireArray(so, "_tabButtons", tabButtons, TabCount);
-            WireArray(so, "_rootScreens", tabScreens, TabCount);
-            WireArray(so, "_infoScreens", infoScreens, TabCount);
+            EditorUIFactory.WireArray(so, "_tabButtons", tabButtons, TabCount);
+            EditorUIFactory.WireArray(so, "_rootScreens", tabScreens, TabCount);
+            EditorUIFactory.WireArray(so, "_infoScreens", infoScreens, TabCount);
 
             so.ApplyModifiedProperties();
             return go;
-        }
-
-        private static void WireArray(SerializedObject so, string name, Component[] items, int count)
-        {
-            SerializedProperty prop = FindProp(so, name);
-            if (prop == null) return;
-            prop.arraySize = count;
-            for (int i = 0; i < count; i++)
-                prop.GetArrayElementAtIndex(i).objectReferenceValue = items[i];
         }
 
         private static void WireCancelAction(NavigationManager nav)
@@ -394,14 +345,14 @@ namespace RogueliteAutoBattler.Editor
                 return;
             }
             var so = new SerializedObject(nav);
-            SetObj(so, "_cancelAction", cancelRef);
+            EditorUIFactory.SetObj(so, "_cancelAction", cancelRef);
             so.ApplyModifiedProperties();
         }
 
         private static InputActionReference FindActionRef(string path, string map, string action)
         {
-            UnityEngine.Object[] assets = AssetDatabase.LoadAllAssetsAtPath(path);
-            foreach (UnityEngine.Object asset in assets)
+            Object[] assets = AssetDatabase.LoadAllAssetsAtPath(path);
+            foreach (Object asset in assets)
             {
                 if (asset is InputActionReference r &&
                     r.action != null &&
@@ -414,94 +365,6 @@ namespace RogueliteAutoBattler.Editor
             }
             return null;
         }
-
-        // =============================================================
-        // Helpers
-        // =============================================================
-
-        private static RectTransform GetOrAddRectTransform(this GameObject go)
-        {
-            RectTransform r = go.GetComponent<RectTransform>();
-            if (r == null)
-                r = go.AddComponent<RectTransform>();
-            return r;
-        }
-
-        private static void Stretch(RectTransform r)
-        {
-            r.anchorMin = Vector2.zero;
-            r.anchorMax = Vector2.one;
-            r.offsetMin = Vector2.zero;
-            r.offsetMax = Vector2.zero;
-        }
-
-        private static TextMeshProUGUI CreateLabel(Transform parent, string name, string text, int size, Color color)
-        {
-            var go = new GameObject(name);
-            go.transform.SetParent(parent, false);
-            Stretch(go.GetOrAddRectTransform());
-            TextMeshProUGUI tmp = go.AddComponent<TextMeshProUGUI>();
-            tmp.text = text;
-            tmp.fontSize = size;
-            tmp.color = color;
-            tmp.alignment = TextAlignmentOptions.Center;
-            return tmp;
-        }
-
-        /// <summary>
-        /// Ensures the required sorting layers exist: Background, Ground, Characters, Effects, UI.
-        /// </summary>
-        private static void EnsureSortingLayers()
-        {
-            string[] requiredLayers = { "Background", "Ground", "Characters", "Effects", "UI" };
-            SerializedObject tagManager = new SerializedObject(AssetDatabase.LoadMainAssetAtPath("ProjectSettings/TagManager.asset"));
-            SerializedProperty sortingLayers = tagManager.FindProperty("m_SortingLayers");
-
-            foreach (string layerName in requiredLayers)
-            {
-                bool exists = false;
-                for (int i = 0; i < sortingLayers.arraySize; i++)
-                {
-                    if (sortingLayers.GetArrayElementAtIndex(i).FindPropertyRelative("name").stringValue == layerName)
-                    {
-                        exists = true;
-                        break;
-                    }
-                }
-
-                if (!exists)
-                {
-                    sortingLayers.InsertArrayElementAtIndex(sortingLayers.arraySize);
-                    SerializedProperty newLayer = sortingLayers.GetArrayElementAtIndex(sortingLayers.arraySize - 1);
-                    newLayer.FindPropertyRelative("name").stringValue = layerName;
-                    newLayer.FindPropertyRelative("uniqueID").intValue = layerName.GetHashCode();
-                }
-            }
-
-            tagManager.ApplyModifiedProperties();
-        }
-
-        private static Color HexToColor(string hex)
-        {
-            if (ColorUtility.TryParseHtmlString("#" + hex, out Color c)) return c;
-            return Color.magenta;
-        }
-
-        private static SerializedProperty FindProp(SerializedObject so, string name)
-        {
-            SerializedProperty p = so.FindProperty(name);
-            if (p == null) Debug.LogError($"[SetupNavigationUI] Property '{name}' not found on {so.targetObject.GetType().Name}.");
-            return p;
-        }
-
-        private static void SetInt(SerializedObject so, string name, int v)
-        { SerializedProperty p = FindProp(so, name); if (p != null) p.intValue = v; }
-
-        private static void SetObj(SerializedObject so, string name, UnityEngine.Object v)
-        { SerializedProperty p = FindProp(so, name); if (p != null) p.objectReferenceValue = v; }
-
-        private static void SetColor(SerializedObject so, string name, Color v)
-        { SerializedProperty p = FindProp(so, name); if (p != null) p.colorValue = v; }
 
         // =============================================================
         // Config structs
