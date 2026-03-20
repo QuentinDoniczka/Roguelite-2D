@@ -4,6 +4,7 @@ using RogueliteAutoBattler.UI.Screens.Guild;
 using RogueliteAutoBattler.UI.Screens.Shop;
 using RogueliteAutoBattler.UI.Screens.SkillTree;
 using RogueliteAutoBattler.UI.Screens.Village;
+using System.IO;
 using TMPro;
 using UnityEditor;
 using UnityEditor.SceneManagement;
@@ -19,7 +20,9 @@ namespace RogueliteAutoBattler.Editor
     /// Creates the navigation UI hierarchy in one click.
     /// Layout: 60% game (top) | 30% info (middle) | 10% nav bar (bottom, edge to edge).
     /// Combat is the default screen (no tab selected).
-    /// 5 tabs: Village, Arbre, Autre, Guilde, Shop.
+    /// CombatWorld lives in the 2D world (ortho camera, SpriteRenderers, Sorting Layers).
+    /// Canvas Overlay = HUD only (NavBar, InfoArea, ModalLayer, opaque tab panels).
+    /// CombatPanel is transparent — reveals the world behind.
     /// </summary>
     public static class SetupNavigationSceneEditor
     {
@@ -40,10 +43,30 @@ namespace RogueliteAutoBattler.Editor
         private const int NavFontSize = 22;
         private const int PanelFontSize = 56;
         private const int InfoFontSize = 32;
-        private const int CombatFontSize = 56;
+        private const int CombatLabelFontSize = 24;
+
+        // Camera
+        private const float CameraOrthoSize = 5.4f;
+        private const float CameraZPosition = -10f;
+
+        // Combat world
+        // Covers visible camera area: CameraOrthoSize * 2 = 10.8 units visible height + margin
+        private const float BackgroundScale = 12f;
+        private const int PlaceholderTextureSize = 4;
+
+        // Top center label anchors
+        private const float TopLabelAnchorLeft = 0.25f;
+        private const float TopLabelAnchorRight = 0.75f;
+        private const float TopLabelAnchorBottom = 0.9f;
+
+        // Sorting layers
+        private static readonly string[] SortingLayerNames = { "Background", "Characters", "Effects" };
 
         // Input
         private const string InputAssetPath = "Assets/Settings/InputSystem_Actions.inputactions";
+
+        // Placeholder texture
+        private const string PlaceholderTexturePath = "Assets/Sprites/Environment/placeholder_white.png";
 
         // Colors
         private static readonly Color NavBarBg = (Color)new Color32(25, 25, 25, 255);
@@ -51,12 +74,15 @@ namespace RogueliteAutoBattler.Editor
         private static readonly Color NavBtnSelected = (Color)new Color32(80, 80, 80, 255);
         private static readonly Color InfoBg = (Color)new Color32(30, 30, 40, 240);
         private static readonly Color ModalBg = (Color)new Color32(0, 0, 0, 150);
+        private static readonly Color BtnHighlighted = (Color)new Color32(220, 220, 220, 255);
+        private static readonly Color BtnPressed = (Color)new Color32(180, 180, 180, 255);
+        private static readonly Color BattlefieldBg = (Color)new Color32(30, 30, 25, 255);
 
         [MenuItem("Roguelite/Setup Navigation UI")]
         private static void SetupNavigationUI()
         {
             Canvas existingCanvas =
-                UnityEngine.Object.FindFirstObjectByType<Canvas>(FindObjectsInactive.Include);
+                Object.FindFirstObjectByType<Canvas>(FindObjectsInactive.Include);
             if (existingCanvas != null)
             {
                 if (!EditorUtility.DisplayDialog("Canvas Exists", "Replace existing Canvas?", "Replace", "Cancel"))
@@ -67,19 +93,31 @@ namespace RogueliteAutoBattler.Editor
             int undoGroup = Undo.GetCurrentGroup();
             Undo.SetCurrentGroupName("Setup Navigation UI");
 
+            // Cleanup existing objects
             if (existingCanvas != null)
                 Undo.DestroyObjectImmediate(existingCanvas.gameObject);
 
-            EventSystem es = UnityEngine.Object.FindFirstObjectByType<EventSystem>(FindObjectsInactive.Include);
+            EventSystem es = Object.FindFirstObjectByType<EventSystem>(FindObjectsInactive.Include);
             if (es != null)
                 Undo.DestroyObjectImmediate(es.gameObject);
 
-            // Also remove old NavigationManager
-            NavigationManager oldNav = UnityEngine.Object.FindFirstObjectByType<NavigationManager>(FindObjectsInactive.Include);
+            NavigationManager oldNav = Object.FindFirstObjectByType<NavigationManager>(FindObjectsInactive.Include);
             if (oldNav != null)
                 Undo.DestroyObjectImmediate(oldNav.gameObject);
 
-            // --- Build ---
+            GameObject oldWorld = GameObject.Find("CombatWorld");
+            if (oldWorld != null)
+                Undo.DestroyObjectImmediate(oldWorld);
+
+            // --- Setup layers and camera ---
+            EnsureSortingLayers(SortingLayerNames);
+            ConfigureMainCamera();
+
+            // --- Build 2D world ---
+            GameObject combatWorldGo = CreateCombatWorld();
+            Undo.RegisterCreatedObjectUndo(combatWorldGo, "CombatWorld");
+
+            // --- Build Canvas HUD ---
             GameObject esGo = CreateEventSystem();
             GameObject canvasGo = CreateCanvas();
 
@@ -112,6 +150,199 @@ namespace RogueliteAutoBattler.Editor
             EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
             Selection.activeGameObject = canvasGo;
             Debug.Log("[SetupNavigationUI] Done. Press Play — click tabs to switch panels.");
+        }
+
+        // =============================================================
+        // Sorting layers
+        // =============================================================
+
+        /// <summary>
+        /// Ensures the specified sorting layers exist in ProjectSettings/TagManager.asset.
+        /// Adds any missing layers without removing existing ones.
+        /// </summary>
+        private static void EnsureSortingLayers(string[] layerNames)
+        {
+            Object tagManager = AssetDatabase.LoadMainAssetAtPath("ProjectSettings/TagManager.asset");
+            if (tagManager == null)
+            {
+                Debug.LogError("[SetupNavigationUI] Could not load TagManager.asset.");
+                return;
+            }
+
+            var so = new SerializedObject(tagManager);
+            SerializedProperty sortingLayers = so.FindProperty("m_SortingLayers");
+            if (sortingLayers == null)
+            {
+                Debug.LogError("[SetupNavigationUI] m_SortingLayers property not found.");
+                return;
+            }
+
+            // Find the current max uniqueID across all existing sorting layers
+            int maxUniqueID = 0;
+            for (int i = 0; i < sortingLayers.arraySize; i++)
+            {
+                SerializedProperty entry = sortingLayers.GetArrayElementAtIndex(i);
+                SerializedProperty idProp = entry.FindPropertyRelative("uniqueID");
+                if (idProp != null && idProp.intValue > maxUniqueID)
+                    maxUniqueID = idProp.intValue;
+            }
+
+            foreach (string layerName in layerNames)
+            {
+                bool exists = false;
+                for (int i = 0; i < sortingLayers.arraySize; i++)
+                {
+                    SerializedProperty entry = sortingLayers.GetArrayElementAtIndex(i);
+                    SerializedProperty nameProp = entry.FindPropertyRelative("name");
+                    if (nameProp != null && nameProp.stringValue == layerName)
+                    {
+                        exists = true;
+                        break;
+                    }
+                }
+
+                if (!exists)
+                {
+                    maxUniqueID++;
+                    int newIndex = sortingLayers.arraySize;
+                    sortingLayers.InsertArrayElementAtIndex(newIndex);
+                    SerializedProperty newEntry = sortingLayers.GetArrayElementAtIndex(newIndex);
+                    newEntry.FindPropertyRelative("name").stringValue = layerName;
+                    newEntry.FindPropertyRelative("uniqueID").intValue = maxUniqueID;
+                    newEntry.FindPropertyRelative("locked").boolValue = false;
+                    Debug.Log($"[SetupNavigationUI] Added sorting layer: {layerName}");
+                }
+            }
+
+            so.ApplyModifiedProperties();
+        }
+
+        // =============================================================
+        // Camera
+        // =============================================================
+
+        /// <summary>
+        /// Configures the main camera as orthographic with the correct settings for 2D mobile.
+        /// Creates one if none exists.
+        /// </summary>
+        private static void ConfigureMainCamera()
+        {
+            Camera cam = Camera.main;
+            if (cam == null)
+                cam = Object.FindFirstObjectByType<Camera>(FindObjectsInactive.Include);
+
+            if (cam == null)
+            {
+                var camGo = new GameObject("Main Camera");
+                cam = camGo.AddComponent<Camera>();
+                camGo.tag = "MainCamera";
+                Undo.RegisterCreatedObjectUndo(camGo, "Main Camera");
+            }
+            else
+            {
+                Undo.RecordObject(cam, "Configure Camera");
+                Undo.RecordObject(cam.transform, "Configure Camera");
+            }
+
+            cam.orthographic = true;
+            cam.orthographicSize = CameraOrthoSize;
+            cam.transform.position = new Vector3(0, 0, CameraZPosition);
+            cam.backgroundColor = Color.black;
+            cam.clearFlags = CameraClearFlags.SolidColor;
+        }
+
+        // =============================================================
+        // Combat World (2D world, not Canvas)
+        // =============================================================
+
+        /// <summary>
+        /// Creates the CombatWorld hierarchy in the 2D world with SpriteRenderers and Sorting Layers.
+        /// </summary>
+        private static GameObject CreateCombatWorld()
+        {
+            var root = new GameObject("CombatWorld");
+            root.transform.position = Vector3.zero;
+
+            // Background
+            var bgGo = new GameObject("Background");
+            bgGo.transform.SetParent(root.transform, false);
+            SpriteRenderer bgRenderer = bgGo.AddComponent<SpriteRenderer>();
+            bgRenderer.sortingLayerName = "Background";
+            bgRenderer.sortingOrder = 0;
+
+            // Create and save placeholder texture as a persistent asset
+            Sprite bgSprite = CreateOrLoadPlaceholderSprite();
+            bgRenderer.sprite = bgSprite;
+            bgRenderer.color = BattlefieldBg;
+            bgGo.transform.localScale = new Vector3(BackgroundScale, BackgroundScale, 1f);
+
+            // Characters container
+            var charsGo = new GameObject("Characters");
+            charsGo.transform.SetParent(root.transform, false);
+
+            // Effects container
+            var fxGo = new GameObject("Effects");
+            fxGo.transform.SetParent(root.transform, false);
+
+            return root;
+        }
+
+        /// <summary>
+        /// Creates a 4x4 white texture, saves it as an asset, and returns a Sprite loaded from that asset.
+        /// If the asset already exists, loads it directly.
+        /// </summary>
+        private static Sprite CreateOrLoadPlaceholderSprite()
+        {
+            // If the asset already exists, return it without recreating the file
+            Sprite existing = AssetDatabase.LoadAssetAtPath<Sprite>(PlaceholderTexturePath);
+            if (existing != null)
+                return existing;
+
+            try
+            {
+                // Ensure directory exists
+                string directory = Path.GetDirectoryName(PlaceholderTexturePath);
+                if (!Directory.Exists(directory))
+                    Directory.CreateDirectory(directory);
+
+                // Create small white texture
+                int pixelCount = PlaceholderTextureSize * PlaceholderTextureSize;
+                var tex = new Texture2D(PlaceholderTextureSize, PlaceholderTextureSize, TextureFormat.RGBA32, false);
+                Color[] pixels = new Color[pixelCount];
+                for (int i = 0; i < pixels.Length; i++)
+                    pixels[i] = Color.white;
+                tex.SetPixels(pixels);
+                tex.Apply();
+
+                // Save to disk
+                byte[] pngData = tex.EncodeToPNG();
+                File.WriteAllBytes(PlaceholderTexturePath, pngData);
+                Object.DestroyImmediate(tex);
+
+                AssetDatabase.ImportAsset(PlaceholderTexturePath, ImportAssetOptions.ForceUpdate);
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogError($"[SetupNavigationUI] Failed to create placeholder sprite: {e.Message}");
+                return null;
+            }
+
+            // Configure texture import settings for sprite
+            var importer = (TextureImporter)AssetImporter.GetAtPath(PlaceholderTexturePath);
+            if (importer != null)
+            {
+                importer.textureType = TextureImporterType.Sprite;
+                importer.spritePixelsPerUnit = PlaceholderTextureSize;
+                importer.filterMode = FilterMode.Point;
+                importer.SaveAndReimport();
+            }
+
+            // Load the sprite from the asset
+            Sprite sprite = AssetDatabase.LoadAssetAtPath<Sprite>(PlaceholderTexturePath);
+            if (sprite == null)
+                Debug.LogError($"[SetupNavigationUI] Failed to load sprite from {PlaceholderTexturePath}");
+
+            return sprite;
         }
 
         // =============================================================
@@ -159,7 +390,7 @@ namespace RogueliteAutoBattler.Editor
         }
 
         // =============================================================
-        // Combat (default screen, always behind)
+        // Combat (default screen — transparent, reveals 2D world behind)
         // =============================================================
 
         private static UIScreen CreateCombatPanel(Transform parent)
@@ -168,15 +399,14 @@ namespace RogueliteAutoBattler.Editor
             GameObjectUtility.SetParentAndAlign(go, parent.gameObject);
             Stretch(go.AddComponent<RectTransform>());
 
-            go.AddComponent<Image>().color = HexToColor("A4161A");
-
-            CanvasGroup cg = go.AddComponent<CanvasGroup>();
-            cg.alpha = 1f;
-            cg.blocksRaycasts = true;
-            cg.interactable = true;
+            // No Image — transparent panel reveals CombatWorld behind
+            SetupCanvasGroup(go, true);
 
             UIScreen screen = go.AddComponent<CombatScreen>();
-            CreateLabel(go.transform, "Label", "COMBAT", CombatFontSize, Color.white);
+
+            // Debug label — anchored to top center, fixed height
+            CreateTopCenterLabel(go.transform, "Label", "COMBAT", CombatLabelFontSize, Color.white);
+
             return screen;
         }
 
@@ -190,9 +420,9 @@ namespace RogueliteAutoBattler.Editor
             {
                 new PanelCfg("VillagePanel", "VILLAGE", "2D6A4F", typeof(VillageScreen)),
                 new PanelCfg("SkillTreePanel", "ARBRE", "7B2D8E", typeof(SkillTreeScreen)),
-                new PanelCfg("AutrePanel", "AUTRE", "555555", typeof(GuildScreen)), // placeholder
-                new PanelCfg("GuildePanel", "GUILDE", "1D3557", typeof(ShopScreen)), // placeholder
-                new PanelCfg("ShopPanel", "SHOP", "E9C46A", typeof(VillageScreen)), // placeholder
+                new PanelCfg("AutrePanel", "AUTRE", "555555", typeof(GuildScreen)), // placeholder — replace with AutreScreen when created
+                new PanelCfg("GuildePanel", "GUILDE", "1D3557", typeof(ShopScreen)), // placeholder — replace with GuildScreen when created
+                new PanelCfg("ShopPanel", "SHOP", "E9C46A", typeof(VillageScreen)), // placeholder — replace with ShopScreen when created
             };
 
             var screens = new UIScreen[TabCount];
@@ -206,10 +436,7 @@ namespace RogueliteAutoBattler.Editor
                 go.AddComponent<Image>().color = HexToColor(c.Hex);
 
                 // Start hidden — combat is visible by default
-                CanvasGroup cg = go.AddComponent<CanvasGroup>();
-                cg.alpha = 0f;
-                cg.blocksRaycasts = false;
-                cg.interactable = false;
+                SetupCanvasGroup(go, false);
 
                 screens[i] = (UIScreen)go.AddComponent(c.ScreenType);
                 CreateLabel(go.transform, "Label", c.Label, PanelFontSize, Color.white);
@@ -229,10 +456,7 @@ namespace RogueliteAutoBattler.Editor
             Stretch(go.AddComponent<RectTransform>());
             go.AddComponent<Image>().color = bg;
 
-            CanvasGroup cg = go.AddComponent<CanvasGroup>();
-            cg.alpha = visible ? 1f : 0f;
-            cg.blocksRaycasts = visible;
-            cg.interactable = visible;
+            SetupCanvasGroup(go, visible);
 
             UIScreen screen = go.AddComponent<UIScreen>();
             CreateLabel(go.transform, "Label", label, InfoFontSize, Color.white);
@@ -279,7 +503,6 @@ namespace RogueliteAutoBattler.Editor
 
             HorizontalLayoutGroup layout = go.AddComponent<HorizontalLayoutGroup>();
             layout.spacing = 0;
-            layout.padding = new RectOffset(0, 0, 0, 0);
             layout.childControlWidth = true;
             layout.childControlHeight = true;
             layout.childForceExpandWidth = true;
@@ -315,8 +538,8 @@ namespace RogueliteAutoBattler.Editor
                 Button btn = go.AddComponent<Button>();
                 ColorBlock cb = btn.colors;
                 cb.normalColor = Color.white;
-                cb.highlightedColor = (Color)new Color32(220, 220, 220, 255);
-                cb.pressedColor = (Color)new Color32(180, 180, 180, 255);
+                cb.highlightedColor = BtnHighlighted;
+                cb.pressedColor = BtnPressed;
                 cb.selectedColor = Color.white;
                 btn.colors = cb;
 
@@ -354,10 +577,7 @@ namespace RogueliteAutoBattler.Editor
             GameObjectUtility.SetParentAndAlign(go, parent.gameObject);
             Stretch(go.AddComponent<RectTransform>());
             go.AddComponent<Image>().color = ModalBg;
-            CanvasGroup cg = go.AddComponent<CanvasGroup>();
-            cg.alpha = 0f;
-            cg.blocksRaycasts = false;
-            cg.interactable = false;
+            SetupCanvasGroup(go, false);
         }
 
         // =============================================================
@@ -409,8 +629,8 @@ namespace RogueliteAutoBattler.Editor
 
         private static InputActionReference FindActionRef(string path, string map, string action)
         {
-            UnityEngine.Object[] assets = AssetDatabase.LoadAllAssetsAtPath(path);
-            foreach (UnityEngine.Object asset in assets)
+            Object[] assets = AssetDatabase.LoadAllAssetsAtPath(path);
+            foreach (Object asset in assets)
             {
                 if (asset is InputActionReference r &&
                     r.action != null &&
@@ -428,6 +648,15 @@ namespace RogueliteAutoBattler.Editor
         // Helpers
         // =============================================================
 
+        private static CanvasGroup SetupCanvasGroup(GameObject go, bool visible)
+        {
+            CanvasGroup cg = go.AddComponent<CanvasGroup>();
+            cg.alpha = visible ? 1f : 0f;
+            cg.blocksRaycasts = visible;
+            cg.interactable = visible;
+            return cg;
+        }
+
         private static void Stretch(RectTransform r)
         {
             r.anchorMin = Vector2.zero;
@@ -441,6 +670,29 @@ namespace RogueliteAutoBattler.Editor
             var go = new GameObject(name);
             GameObjectUtility.SetParentAndAlign(go, parent.gameObject);
             Stretch(go.AddComponent<RectTransform>());
+            return ConfigureText(go, text, size, color);
+        }
+
+        /// <summary>
+        /// Creates a label anchored to top center with a fixed height.
+        /// Used for debug indicators that should not stretch the full panel.
+        /// </summary>
+        private static TextMeshProUGUI CreateTopCenterLabel(Transform parent, string name, string text, int size, Color color)
+        {
+            var go = new GameObject(name);
+            GameObjectUtility.SetParentAndAlign(go, parent.gameObject);
+
+            RectTransform r = go.AddComponent<RectTransform>();
+            r.anchorMin = new Vector2(TopLabelAnchorLeft, TopLabelAnchorBottom);
+            r.anchorMax = new Vector2(TopLabelAnchorRight, 1f);
+            r.offsetMin = Vector2.zero;
+            r.offsetMax = Vector2.zero;
+
+            return ConfigureText(go, text, size, color);
+        }
+
+        private static TextMeshProUGUI ConfigureText(GameObject go, string text, int size, Color color)
+        {
             TextMeshProUGUI tmp = go.AddComponent<TextMeshProUGUI>();
             tmp.text = text;
             tmp.fontSize = size;
@@ -463,13 +715,22 @@ namespace RogueliteAutoBattler.Editor
         }
 
         private static void SetInt(SerializedObject so, string name, int v)
-        { SerializedProperty p = FindProp(so, name); if (p != null) p.intValue = v; }
+        {
+            SerializedProperty p = FindProp(so, name);
+            if (p != null) p.intValue = v;
+        }
 
-        private static void SetObj(SerializedObject so, string name, UnityEngine.Object v)
-        { SerializedProperty p = FindProp(so, name); if (p != null) p.objectReferenceValue = v; }
+        private static void SetObj(SerializedObject so, string name, Object v)
+        {
+            SerializedProperty p = FindProp(so, name);
+            if (p != null) p.objectReferenceValue = v;
+        }
 
         private static void SetColor(SerializedObject so, string name, Color v)
-        { SerializedProperty p = FindProp(so, name); if (p != null) p.colorValue = v; }
+        {
+            SerializedProperty p = FindProp(so, name);
+            if (p != null) p.colorValue = v;
+        }
 
         // =============================================================
         // Config structs

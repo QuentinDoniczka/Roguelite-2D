@@ -7,109 +7,105 @@ Tout (contenu de jeu + HUD) est dans un seul Canvas Screen Space Overlay (1080x1
 - Pas de Sorting Layers → impossible de gerer la profondeur 2D
 - Le contenu de jeu (combat, village) est traite comme du UI alors que c'est du monde 2D
 
-## Architecture cible : separation Layer-Based
+## Approche choisie : Option C — Hybride
+
+**Seul CombatWorld vit dans le monde 2D.** Les autres onglets (Village, Shop, Arbre, Guilde) restent des panneaux Canvas opaques. Pas de WorldLayerManager, pas de modification de NavigationManager ou des runtime scripts.
+
+### Pourquoi cette approche
+
+- **Minimal** : seul le combat a besoin du monde 2D (sprites, physique, sorting layers). Village/Shop/etc. sont du pur UI (listes, boutons, texte).
+- **Pas de code runtime modifie** : uniquement le script Editor de setup change. Aucun risque de regression.
+- **Idempotent** : re-lancer le setup remplace tout proprement (cleanup CombatWorld + Canvas + EventSystem).
+- **Progressif** : si un jour Village a besoin d'un monde 2D, on l'ajoute sans casser l'existant.
+
+### Alternatives evaluees et rejetees
+
+- **Option A (full extraction)** : extraire tous les onglets dans le monde 2D, creer un WorldLayerManager. Over-engineering — Village/Shop n'ont pas besoin de SpriteRenderers.
+- **Option B (tout Canvas)** : garder tout dans le Canvas. Probleme d'echelle x100 pour les sprites de combat, pas de Sorting Layers.
+
+## Architecture cible
 
 ### Monde 2D (camera orthographique)
 
-Rendu par la camera ortho, a echelle normale (persos ~1 unite).
+CombatWorld est toujours actif — le combat continue en fond.
 
 ```
-WorldContent/
-  CombatWorld/          (TOUJOURS actif — le combat continue en fond)
-    Background          (SpriteRenderer, Sorting Layer: Background)
-    Characters/         (SpriteRenderers, Sorting Layer: Characters)
-    Effects/            (Sorting Layer: Effects)
-  VillageWorld/         (active uniquement quand tab Village selectionnee)
-    VillageBackground
-    Buildings/
-  SkillTreeWorld/       (idem)
-  GuildWorld/           (idem)
-  ShopWorld/            (idem)
+CombatWorld/                  (monde 2D, toujours actif)
+  Background                  (SpriteRenderer, Sorting Layer: Background)
+  Characters/                 (conteneur, Sorting Layer: Characters)
+  Effects/                    (conteneur, Sorting Layer: Effects)
 ```
-
-Gere par un nouveau **WorldLayerManager** qui ecoute `NavigationManager.OnTabChanged` et fait `SetActive(true/false)` sur les roots monde.
 
 ### Canvas Screen Space Overlay (HUD uniquement)
 
-Reste en pixels (1080x1920), uniquement pour les elements UI qui se superposent au monde.
-
 ```
-UICanvas/ (Screen Space Overlay)
-  InfoArea/             (30% du bas — panneaux info par tab)
-    CombatInfo          (UIScreen + CanvasGroup)
-    VillageInfo
-    ...
-  NavBar/               (8% du bas — 5 boutons tab)
+UICanvas/ (Screen Space Overlay, 1080x1920)
+  GameArea/ (ancres 40%-100%)
+    CombatPanel               (transparent — revele CombatWorld derriere)
+    VillagePanel               (opaque, cache)
+    SkillTreePanel             (opaque, cache)
+    AutrePanel                 (opaque, cache)
+    GuildePanel                (opaque, cache)
+    ShopPanel                  (opaque, cache)
+  InfoArea/ (ancres 8%-40%)
+    CombatInfo                 (visible par defaut)
+    VillageInfo, ArbreInfo...  (caches)
+  NavBar/ (ancres 0%-8%)
   ModalLayer/
   NavigationManager
 ```
 
 ### Camera
 
-- Orthographique, size ~5.4
-- Le monde s'etend derriere le HUD (pas de viewport crop)
+- Orthographique, size 5.4 (~10.8 unites de haut visible)
+- Position (0, 0, -10)
+- Background color noir
 - Le Canvas Overlay se dessine par-dessus automatiquement
 
-### Sorting Layers (a configurer)
+### Sorting Layers (ajoutes par le setup)
 
 | Ordre | Nom          | Usage                    |
 |-------|-------------|--------------------------|
-| 0     | Background  | Fonds de chaque ecran    |
-| 1     | World       | Elements de decor        |
-| 2     | Characters  | Persos et ennemis        |
-| 3     | Effects     | Particules, VFX          |
+| 0     | Background  | Fond champ de bataille   |
+| 1     | Characters  | Aventuriers et ennemis   |
+| 2     | Effects     | Particules, VFX          |
 
-### Echelle
+### CombatPanel transparent
 
-- Personnages : ~1 unite de haut
-- Camera ortho size : ~5.4 (10.8 unites de haut visible)
-- Zone visible au-dessus du HUD : ~6.5 unites
-- Sprites 128px → ~1 unite (bonne densite pixel sur mobile)
+- Pas d'Image component (pas de fond colore)
+- CanvasGroup (alpha=1, blocksRaycasts=true, interactable=true)
+- CombatScreen component conserve
+- Label "COMBAT" en petit (size 24), ancre au top center comme indicateur debug
 
 ## Code impacte
 
-### Nouveau fichier
+### Fichier modifie
 
-- **`WorldLayerManager.cs`** (~30 lignes)
-  - MonoBehaviour, ecoute `NavigationManager.OnTabChanged`
-  - Array de roots monde (`GameObject[]`)
-  - `SetActive(true/false)` selon le tab actif
-  - Le combat reste toujours actif (jamais desactive)
+- **`SetupNavigationSceneEditor.cs`** — Ajout de :
+  - `EnsureSortingLayers()` : ajoute Background/Characters/Effects dans TagManager
+  - `ConfigureMainCamera()` : configure la camera ortho (size 5.4, pos 0,0,-10)
+  - `CreateCombatWorld()` : cree la hierarchie monde 2D avec SpriteRenderers
+  - `CreateOrLoadPlaceholderSprite()` : cree un placeholder blanc 4x4 sauvegarde comme asset
+  - Modification de `SetupNavigationUI()` : cleanup CombatWorld, appel des nouvelles methodes
+  - Modification de `CreateCombatPanel()` : suppression Image, label reduit et ancre top center
 
-### Fichiers modifies
+### Fichiers NON modifies (aucun changement runtime)
 
-- **`NavigationManager.cs`** — Retirer `_rootScreens` / `_defaultScreen` (plus de panneaux monde dans le Canvas). Garder `_infoScreens`, `_defaultInfoScreen`, `_tabButtons`. L'event `OnTabChanged` reste le point d'integration.
-- **`SetupNavigationSceneEditor.cs`** — Refaire : creer les roots monde (WorldContent + enfants) + le Canvas HUD (sans GameArea). Configurer les Sorting Layers.
-- **`UIScreen.cs`** — Aucun changement. Reste HUD-only avec CanvasGroup.
-- **`ScreenStack.cs`** — Aucun changement.
-- **`TabButton.cs`** — Aucun changement.
+- `NavigationManager.cs` — inchange
+- `UIScreen.cs` — inchange
+- `ScreenStack.cs` — inchange
+- `TabButton.cs` — inchange
+- `CombatScreen.cs` — inchange
+- Tous les screen implementations — inchanges
 
-### Fichiers potentiellement supprimes
+### Assets crees
 
-- Les screen implementations vides (CombatScreen.cs, VillageScreen.cs, etc.) si elles ne servent plus cote Canvas. A evaluer — elles pourraient devenir des composants sur les roots monde.
-
-## TODO supplementaire : Mettre a jour l'agent dev-ux-unity
-
-L'agent `dev-ux-unity` (qui genere les scripts Editor interactifs pour le setup scene) doit etre mis a jour pour :
-- Connaitre la nouvelle architecture monde 2D + HUD Canvas
-- Generer des setups qui respectent la separation (pas tout dans le Canvas)
-- Faire des recherches internet sur les best practices Unity 2D pour :
-  - Setup orthographic camera optimal pour mobile portrait
-  - Sorting Layers et order in layer patterns
-  - World-space vs Screen-space pour les jeux 2D mobiles
-  - Organisation hierarchie scene Unity 2D
-- Devenir vraiment performant pour generer des scenes 2D propres
-
-L'objectif est que quand on lance le setup, la scene soit prete avec :
-- Camera bien configuree
-- Sorting Layers definis
-- Monde 2D structure
-- Canvas HUD minimal par-dessus
-- Tout cable et fonctionnel
+- `Assets/Sprites/Environment/placeholder_white.png` — texture 4x4 blanche, importee comme Sprite
 
 ## Regles
 
 - **Client uniquement** — pas d'impact serveur
-- **2D uniquement** — Rigidbody2D, Collider2D, SpriteRenderer, Physics2D
+- **2D uniquement** — SpriteRenderer, Sorting Layers, camera orthographique
 - **Pas de scale x100** — tout en unites monde normales
-- **Combat toujours actif** — ne jamais desactiver le monde combat
+- **Combat toujours actif** — CombatWorld jamais desactive
+- **Setup idempotent** — re-lancer remplace tout proprement

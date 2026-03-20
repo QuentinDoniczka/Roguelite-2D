@@ -25,7 +25,7 @@
 Doc detaille : `Assets/doc/premier-jet-roguelite.html`
 
 # Project Structure
-Generated: 2026-03-19
+Generated: 2026-03-20
 
 Assets/
 ├── Animations/  (empty)
@@ -37,6 +37,7 @@ Assets/
 │   └── LootTables/  (empty)
 ├── doc/
 │   ├── architecture-ui.md
+│   ├── plan-issue-40.md
 │   └── premier-jet-roguelite.html
 ├── Fonts/  (empty)
 ├── Prefabs/
@@ -83,10 +84,11 @@ Assets/
 │   │   └── URP2DSceneTemplate.unity
 │   ├── UniversalRenderPipelineGlobalSettings.asset
 │   └── UniversalRP.asset
-└── Sprites/
-    ├── Characters/  (empty)
-    ├── Environment/  (empty)
-    ├── Items/  (empty)
-    └── UI/  (empty)
+├── Sprites/
+│   ├── Characters/  (empty)
+│   ├── Environment/  (empty)
+│   ├── Items/  (empty)
+│   └── UI/  (empty)
+└── TextMesh Pro/  (TMP package — fonts, shaders, examples)
 
 ProjectSettings/  (Unity defaults)

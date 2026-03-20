@@ -50,46 +50,89 @@ Quand on change d'onglet, le stack de l'onglet precedent est preserve. Revenir s
 
 ---
 
+## Separation Monde 2D / Canvas HUD
+
+### Principe
+
+Le contenu de jeu (combat) vit dans le **monde 2D** (SpriteRenderers, Sorting Layers, camera orthographique), pas dans le Canvas. Le Canvas Screen Space Overlay est reserve au **HUD uniquement** (barre de navigation, panneaux d'info, modales, panneaux d'onglets opaques).
+
+### CombatWorld (monde 2D)
+
+- Rendu par la camera orthographique (size 5.4, ~10.8 unites de haut visible)
+- Personnages a echelle normale (~1 unite de haut)
+- Utilise des **Sorting Layers** pour la profondeur : `Background`, `Characters`, `Effects`
+- Toujours actif — le combat continue en fond quand on change d'onglet
+
+### Canvas Overlay (HUD)
+
+- Screen Space Overlay (1080x1920, scale with screen size)
+- Contient : NavBar (8% bas), InfoArea (30%), GameArea (60% haut), ModalLayer
+- **CombatPanel est transparent** (pas d'Image) — il laisse voir le CombatWorld derriere
+- Les autres onglets (Village, Shop, Arbre, Guilde) sont des **panneaux opaques** avec fond colore qui masquent le monde 2D
+- Quand on revient sur Combat, le CombatPanel transparent revele le monde 2D
+
+### Sorting Layers
+
+| Ordre | Nom          | Usage                          |
+|-------|-------------|--------------------------------|
+| 0     | Default     | (Unity built-in)               |
+| 1     | Background  | Fond du champ de bataille      |
+| 2     | Characters  | Aventuriers et ennemis         |
+| 3     | Effects     | Particules, VFX, projectiles   |
+
+### Camera
+
+- Orthographique, size 5.4
+- Position (0, 0, -10)
+- Background color noir
+- Le monde 2D s'affiche derriere le Canvas Overlay automatiquement
+
+---
+
 ## Onglets du jeu
 
 | # | Onglet | Description | Sous-ecrans |
 |---|--------|-------------|-------------|
+| -1 | **COMBAT** (defaut) | Ecran par defaut, pas un onglet. Battlefield transparent + HUD. Affiche quand aucun tab n'est selectionne. | Toggle Stats/Inventaire (pas de stack) |
 | 0 | Village | Gestion des batiments | 6 batiments (Recrutement, Caserne, Entrepot, Forge, Temple, Entrainement) |
 | 1 | Arbre | Arbre de competences permanent | Aucun |
-| 2 | **COMBAT** | Battlefield 2/3 + HUD 1/3 (bouton central, plus grand) | Toggle Stats/Inventaire (pas de stack) |
+| 2 | Autre | Placeholder | Aucun |
 | 3 | Guilde | Social, classements | Aucun |
 | 4 | Shop | Monetisation, cosmetiques | Aucun |
 
 ---
 
-## Hierarchie Canvas (scene unique)
+## Hierarchie scene (monde 2D + Canvas HUD)
 
 ```
 GameScene
-  +-- [Main Camera] (Orthographique, pour sprites 2D battlefield)
-  +-- [Battlefield] (GameObjects 2D : aventuriers, ennemis — SpriteRenderers)
+  +-- [Main Camera] (Orthographique, size 5.4, pos 0,0,-10)
+  +-- [CombatWorld] (monde 2D — toujours actif)
+  |     +-- Background (SpriteRenderer, Sorting Layer: Background)
+  |     +-- Characters/ (conteneur pour aventuriers/ennemis)
+  |     +-- Effects/ (conteneur pour VFX)
+  +-- [EventSystem] (InputSystemUIInputModule)
   +-- [UICanvas] (Screen Space - Overlay, CanvasScaler 1080x1920)
-  |     +-- [TopBar] (Palier, Or, Timer reset — toujours visible)
-  |     +-- [ContentArea] (s'etire entre TopBar et BottomNav)
-  |     |     +-- [VillagePanel] (CanvasGroup, cache par defaut)
+  |     +-- [GameArea] (ancres 40%-100%, top 60%)
+  |     |     +-- [CombatPanel] (transparent — revele CombatWorld)
+  |     |     |     +-- CombatScreen (CanvasGroup)
+  |     |     |     +-- Label (debug, ancre top center, petit)
+  |     |     +-- [VillagePanel] (CanvasGroup, opaque, cache)
   |     |     |     +-- VillageScreen
-  |     |     |     +-- RecrutementScreen (cache)
-  |     |     |     +-- EntrepotScreen (cache)
-  |     |     |     +-- ForgeScreen (cache)
-  |     |     |     +-- TempleScreen (cache)
-  |     |     |     +-- CaserneScreen (cache)
-  |     |     |     +-- EntrainementScreen (cache)
-  |     |     +-- [ArbrePanel] (CanvasGroup, cache)
-  |     |     +-- [CombatPanel] (CanvasGroup, visible par defaut)
-  |     |     |     +-- BattlefieldOverlay (skills flottants sur le champ de bataille)
-  |     |     |     +-- HUDArea (bas 1/3)
-  |     |     |           +-- ToggleBar (Stats | Inventaire)
-  |     |     |           +-- StatsPanel
-  |     |     |           +-- InventoryPanel (cache)
-  |     |     +-- [GuildePanel] (CanvasGroup, cache)
-  |     |     +-- [ShopPanel] (CanvasGroup, cache)
-  |     +-- [BottomNav] (5 boutons onglet — toujours visible, par-dessus)
-  |     +-- [ModalLayer] (popups/confirmations — cache)
+  |     |     +-- [SkillTreePanel] (CanvasGroup, opaque, cache)
+  |     |     +-- [AutrePanel] (CanvasGroup, opaque, cache)
+  |     |     +-- [GuildePanel] (CanvasGroup, opaque, cache)
+  |     |     +-- [ShopPanel] (CanvasGroup, opaque, cache)
+  |     +-- [InfoArea] (ancres 8%-40%, 30% tall)
+  |     |     +-- CombatInfo (UIScreen, visible par defaut)
+  |     |     +-- VillageInfo (UIScreen, cache)
+  |     |     +-- ArbreInfo (UIScreen, cache)
+  |     |     +-- AutreInfo (UIScreen, cache)
+  |     |     +-- GuildeInfo (UIScreen, cache)
+  |     |     +-- ShopInfo (UIScreen, cache)
+  |     +-- [NavBar] (ancres 0%-8%, 5 boutons tab)
+  |     +-- [ModalLayer] (cache, popups/confirmations)
+  |     +-- [NavigationManager]
 ```
 
 ---
