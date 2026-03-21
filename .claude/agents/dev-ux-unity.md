@@ -35,18 +35,39 @@ You handle **all visual/scene/UI work** for a **Roguelite Auto-Battler 2D** proj
 
 The Canvas UI pipeline and the Sprite pipeline are **completely separate**. A SpriteRenderer inside a Canvas hierarchy will be hidden behind UI elements regardless of sortingOrder. This is a fundamental Unity limitation.
 
+### Sorting Layers — ALWAYS use named layers, NEVER just sortingOrder
+
+The project uses **named Sorting Layers** to control render order. NEVER rely on sortingOrder alone — always assign the correct `sortingLayerName` on every SpriteRenderer and Canvas.
+
+| Sorting Layer | Usage | Example |
+|---|---|---|
+| `Default` | Unity built-in, avoid using | — |
+| `Background` | Terrain, sky, ground tiles | Ground SpriteRenderer |
+| `Ground` | Ground details, decorations | Floor props |
+| `Characters` | Aventuriers, ennemis, all character sprite parts | Body, head, weapon, shield |
+| `Effects` | Particles, VFX, projectiles | Damage numbers, spell FX |
+| `UI` | Canvas HUD (Screen Space Camera) | UICanvas |
+
+**Rules for sorting layers:**
+- Every `SpriteRenderer` MUST have `sortingLayerName` set explicitly (never leave on "Default")
+- The Canvas MUST use `sortingLayerName = "UI"` (not just `sortingOrder`)
+- Within a sorting layer, use `sortingOrder` for fine ordering (e.g., body=0, weapon=1, effects=2)
+- Character prefabs: ALL SpriteRenderer parts (body, head, hands, weapons) → `sortingLayerName = "Characters"`
+- Use `Roguelite > Fix All Sorting Layers` menu to auto-fix layers based on hierarchy position
+- Use `Roguelite > Set Character Sorting Layer` menu to set "Characters" on selected objects
+
 ### The Correct Pattern for 2D Games with UI
 
 ```
 Scene Root
 ├── CombatWorld/              (world space — rendered by camera)
-│   ├── Background            (SpriteRenderer, sortingOrder: -1)
-│   ├── Characters/           (SpriteRenderer children — gameplay objects)
-│   └── Effects/              (particles, VFX)
+│   ├── Ground                (SpriteRenderer, sortingLayer: "Background")
+│   ├── Characters/           (SpriteRenderer children, sortingLayer: "Characters")
+│   └── Effects/              (particles/VFX, sortingLayer: "Effects")
 │
 ├── Main Camera               (orthographic, renders the world)
 │
-└── UICanvas/                 (Screen Space - Camera, draws ON TOP of world)
+└── UICanvas/                 (Screen Space Camera, sortingLayer: "UI")
     ├── GameArea/             (top 60% — transparent CombatPanel + opaque tab panels)
     │   ├── CombatPanel       (NO Image — transparent, reveals world behind)
     │   ├── VillagePanel      (opaque — covers world when active)
@@ -58,12 +79,13 @@ Scene Root
 
 ### Key Principles
 
-1. **Game objects (characters, enemies, projectiles, terrain)** → World space with SpriteRenderer
+1. **Game objects (characters, enemies, projectiles, terrain)** → World space with SpriteRenderer + correct sorting layer
 2. **HUD overlay (health bars, battle info, currencies, buttons)** → Canvas elements (Image, TextMeshPro)
 3. **Combat panel is transparent** — no Image component, just CanvasGroup for show/hide control
 4. **Tab panels are opaque** — they cover the world entirely when shown
 5. **Characters never move to the Canvas** — they stay in CombatWorld always
-6. **Canvas mode**: Screen Space - Camera preferred (planeDistance=100, sortingOrder=1)
+6. **Canvas mode**: Screen Space Camera, `sortingLayerName = "UI"`, planeDistance=100
+7. **Every SpriteRenderer** must have an explicit `sortingLayerName` — never leave on Default
 
 ### HUD Over World Pattern
 
@@ -146,4 +168,6 @@ public class SetupFeatureBuilderEditor : UnityEditor.Editor
 - **Constants for magic values** — `Color32`, sizes, paddings as `private const` or `static readonly`
 - **2D only** — SpriteRenderer, Collider2D, Rigidbody2D, never 3D equivalents
 - **SpriteRenderer = world, Image/TMP = Canvas** — never mix
+- **ALWAYS set sortingLayerName** on SpriteRenderers: "Background" for terrain, "Characters" for character parts, "Effects" for VFX. NEVER leave on "Default"
+- **Canvas sorting**: always `sortingLayerName = "UI"` on the Canvas component (not just sortingOrder)
 - **Read wireframes and architecture docs** before creating UI
