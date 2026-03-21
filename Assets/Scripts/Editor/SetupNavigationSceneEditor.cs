@@ -27,8 +27,6 @@ namespace RogueliteAutoBattler.Editor
         private const int CanvasWidth = 1080;
         private const int CanvasHeight = 1920;
         private const float CanvasMatch = 0.5f;
-        private const float CanvasPlaneDistance = 100f;
-        private const int CanvasSortingOrder = 1;
 
         // Layout ratios (from bottom)
         private const float NavRatio = 0.08f;   // bottom 8%
@@ -140,10 +138,7 @@ namespace RogueliteAutoBattler.Editor
         {
             var go = new GameObject("UICanvas");
             Canvas c = go.AddComponent<Canvas>();
-            c.renderMode = RenderMode.ScreenSpaceCamera;
-            c.worldCamera = cam;
-            c.planeDistance = CanvasPlaneDistance;
-            c.sortingOrder = CanvasSortingOrder;
+            c.renderMode = RenderMode.ScreenSpaceOverlay;
 
             CanvasScaler s = go.AddComponent<CanvasScaler>();
             s.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;

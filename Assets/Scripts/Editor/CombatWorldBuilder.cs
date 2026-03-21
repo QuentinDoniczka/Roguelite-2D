@@ -13,13 +13,8 @@ namespace RogueliteAutoBattler.Editor
         private const float CameraZPosition = -10f;
 
         // Ground tile — 200 units wide so the camera never sees an edge during a scroll session.
-        // Height matches the GameArea (top 60% of screen). With orthoSize 5.4:
-        //   visible height = 10.8, GameArea = 60% = 6.48 units
-        //   GameArea bottom = -5.4 + 0.4 * 10.8 = -1.08, top = 5.4
-        //   center Y = (-1.08 + 5.4) / 2 = 2.16
+        // Height and centerY are calculated at runtime by GroundFitter.
         private const float GroundWidth = 200f;
-        private const float GroundHeight = 6.48f;
-        private const float GroundCenterY = 2.16f;
 
         private const string GridSpritePath = "Assets/Sprites/Environment/grid_ground.png";
         private const int GridTextureSize = 64;   // pixels per tile
@@ -81,16 +76,17 @@ namespace RogueliteAutoBattler.Editor
 
             // Ground — tiled checkerboard, sized to match GameArea (top 60% of screen).
             // Positioned behind everything on Background sorting layer.
+            // GroundFitter recalculates size and position at runtime from the camera.
             var groundGo = new GameObject("Ground");
             groundGo.transform.SetParent(root.transform, false);
-            groundGo.transform.localPosition = new Vector3(0f, GroundCenterY, 0f);
             SpriteRenderer groundRenderer = groundGo.AddComponent<SpriteRenderer>();
             groundRenderer.sprite = CreateOrLoadGridSprite();
             groundRenderer.drawMode = SpriteDrawMode.Tiled;
-            groundRenderer.size = new Vector2(GroundWidth, GroundHeight);
+            groundRenderer.size = new Vector2(GroundWidth, 6.48f); // initial value — overridden by GroundFitter
             groundRenderer.sortingLayerName = "Background";
             groundRenderer.sortingOrder = -10;
             groundRenderer.color = Color.white;
+            groundGo.AddComponent<GroundFitter>();
 
             var charsGo = new GameObject("Characters");
             charsGo.transform.SetParent(root.transform, false);
