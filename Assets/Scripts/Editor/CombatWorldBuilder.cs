@@ -16,6 +16,9 @@ namespace RogueliteAutoBattler.Editor
         // Height and centerY are calculated at runtime by GroundFitter.
         private const float GroundWidth = 200f;
 
+        // Must match GroundFitter._gameAreaBottomRatio default (0.40f).
+        private const float GameAreaBottomRatio = 0.40f;
+
         private const string GridSpritePath = "Assets/Sprites/Environment/grid_ground.png";
         private const int GridTextureSize = 64;   // pixels per tile
         private const int GridCellSize = 8;        // pixels per checkerboard cell
@@ -67,7 +70,8 @@ namespace RogueliteAutoBattler.Editor
 
         /// <summary>
         /// Creates a CombatWorld container with a tiled ground and containers for characters/effects.
-        /// Also attaches WorldConveyorDebug for play-mode scroll testing.
+        /// Attaches WorldConveyor (side-scroll motion) and CombatScrollManager (phase controller)
+        /// to the root. GroundFitter is attached to the Ground child.
         /// </summary>
         internal static GameObject CreateCombatWorld()
         {
@@ -85,7 +89,7 @@ namespace RogueliteAutoBattler.Editor
             // Position and size for edit-mode preview (GroundFitter overrides at runtime).
             // GameArea = top 60%: bottom at y = -orthoSize + 0.4*visibleHeight, top at y = orthoSize
             float visibleHeight = CameraOrthoSize * 2f;
-            float gameAreaBottom = -CameraOrthoSize + 0.40f * visibleHeight;
+            float gameAreaBottom = -CameraOrthoSize + GameAreaBottomRatio * visibleHeight;
             float groundHeight = CameraOrthoSize - gameAreaBottom;
             float groundCenterY = (gameAreaBottom + CameraOrthoSize) * 0.5f;
             groundGo.transform.localPosition = new Vector3(0f, groundCenterY, 0f);
@@ -96,25 +100,33 @@ namespace RogueliteAutoBattler.Editor
             // URP 2D uses Lit sprites by default — without a Light2D in the scene,
             // sprites appear black. The ground is a flat background that doesn't
             // need lighting, so we use the Unlit material.
-            groundRenderer.material = new Material(Shader.Find("Universal Render Pipeline/2D/Sprite-Unlit-Default"));
+            var unlitShader = Shader.Find("Universal Render Pipeline/2D/Sprite-Unlit-Default");
+            if (unlitShader != null)
+                groundRenderer.material = new Material(unlitShader);
+            else
+                Debug.LogWarning($"[{nameof(CombatWorldBuilder)}] Shader 'Sprite-Unlit-Default' not found. Ground may render black.");
             groundGo.AddComponent<GroundFitter>();
 
             // Characters container — place all adventurer and enemy prefabs here.
             // Every SpriteRenderer in this subtree must use sorting layer "Characters" (order 3).
-            // Use "Roguelite > Set Character Sorting Layer" or "Roguelite > Fix All Sorting Layers"
-            // to bulk-assign the layer after dropping prefabs in.
             var charsGo = new GameObject("Characters");
             charsGo.transform.SetParent(root.transform, false);
 
             // Effects container — VFX, projectiles, hit-sparks, etc.
             // SpriteRenderers here should use sorting layer "Effects" (order 4) so they
-            // render on top of characters. Particle Systems default to this layer automatically
-            // when placed under this container and "Fix All Sorting Layers" is run.
+            // render on top of characters.
             var fxGo = new GameObject("Effects");
             fxGo.transform.SetParent(root.transform, false);
 
-            // Debug scroll helper — active only in play mode via OnGUI.
-            root.AddComponent<WorldConveyorDebug>();
+            // Runtime scroll components on the CombatWorld root.
+            // WorldConveyor drives the physical side-scroll motion.
+            // CombatScrollManager orchestrates scroll phases and references the conveyor.
+            root.AddComponent<WorldConveyor>();
+            var manager = root.AddComponent<CombatScrollManager>();
+
+            var soManager = new SerializedObject(manager);
+            EditorUIFactory.SetObj(soManager, "_conveyor", root.GetComponent<WorldConveyor>());
+            soManager.ApplyModifiedProperties();
 
             return root;
         }
@@ -184,49 +196,6 @@ namespace RogueliteAutoBattler.Editor
             }
 
             return AssetDatabase.LoadAssetAtPath<Sprite>(GridSpritePath);
-        }
-
-        // ------------------------------------------------------------------
-        // Kept for callers that reference the placeholder (canvas background etc.)
-        // ------------------------------------------------------------------
-
-        /// <summary>
-        /// Creates a 4x4 white texture saved as asset, or loads it if it already exists.
-        /// </summary>
-        internal static Sprite CreateOrLoadPlaceholderSprite()
-        {
-            const string path = "Assets/Sprites/Environment/placeholder_white.png";
-
-            Sprite existing = AssetDatabase.LoadAssetAtPath<Sprite>(path);
-            if (existing != null)
-                return existing;
-
-            string directory = System.IO.Path.GetDirectoryName(path);
-            if (!System.IO.Directory.Exists(directory))
-                System.IO.Directory.CreateDirectory(directory);
-
-            var tex = new Texture2D(4, 4, TextureFormat.RGBA32, false);
-            var pixels = new Color[16];
-            for (int i = 0; i < pixels.Length; i++)
-                pixels[i] = Color.white;
-            tex.SetPixels(pixels);
-            tex.Apply();
-
-            System.IO.File.WriteAllBytes(path, tex.EncodeToPNG());
-            Object.DestroyImmediate(tex);
-
-            AssetDatabase.ImportAsset(path, ImportAssetOptions.ForceUpdate);
-
-            var importer = (TextureImporter)AssetImporter.GetAtPath(path);
-            if (importer != null)
-            {
-                importer.textureType = TextureImporterType.Sprite;
-                importer.spritePixelsPerUnit = 4;
-                importer.filterMode = FilterMode.Point;
-                importer.SaveAndReimport();
-            }
-
-            return AssetDatabase.LoadAssetAtPath<Sprite>(path);
         }
     }
 }

@@ -6,6 +6,7 @@ namespace RogueliteAutoBattler.Combat
     /// Sizes and positions the ground SpriteRenderer to match the GameArea
     /// (top portion of the screen). Recalculates when screen size or camera changes.
     /// </summary>
+    [RequireComponent(typeof(SpriteRenderer))]
     public class GroundFitter : MonoBehaviour
     {
         [SerializeField] private float _gameAreaBottomRatio = 0.40f;
@@ -19,6 +20,10 @@ namespace RogueliteAutoBattler.Combat
         private void Awake()
         {
             _renderer = GetComponent<SpriteRenderer>();
+        }
+
+        private void Start()
+        {
             _camera = Camera.main;
             if (_renderer == null || _camera == null)
             {
