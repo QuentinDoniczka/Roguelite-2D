@@ -88,9 +88,17 @@ namespace RogueliteAutoBattler.Editor
             groundRenderer.color = Color.white;
             groundGo.AddComponent<GroundFitter>();
 
+            // Characters container — place all adventurer and enemy prefabs here.
+            // Every SpriteRenderer in this subtree must use sorting layer "Characters" (order 3).
+            // Use "Roguelite > Set Character Sorting Layer" or "Roguelite > Fix All Sorting Layers"
+            // to bulk-assign the layer after dropping prefabs in.
             var charsGo = new GameObject("Characters");
             charsGo.transform.SetParent(root.transform, false);
 
+            // Effects container — VFX, projectiles, hit-sparks, etc.
+            // SpriteRenderers here should use sorting layer "Effects" (order 4) so they
+            // render on top of characters. Particle Systems default to this layer automatically
+            // when placed under this container and "Fix All Sorting Layers" is run.
             var fxGo = new GameObject("Effects");
             fxGo.transform.SetParent(root.transform, false);
 
