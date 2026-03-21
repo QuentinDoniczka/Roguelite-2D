@@ -92,7 +92,11 @@ namespace RogueliteAutoBattler.Editor
             float gameAreaBottom = -CameraOrthoSize + GameAreaBottomRatio * visibleHeight;
             float groundHeight = CameraOrthoSize - gameAreaBottom;
             float groundCenterY = (gameAreaBottom + CameraOrthoSize) * 0.5f;
-            groundGo.transform.localPosition = new Vector3(0f, groundCenterY, 0f);
+            // Anchor left edge to the left of the screen (assume ~16:9 aspect for edit preview).
+            float previewAspect = 9f / 16f; // portrait mobile
+            float previewHalfWidth = CameraOrthoSize * previewAspect;
+            float anchorX = -previewHalfWidth + GroundWidth * 0.5f;
+            groundGo.transform.localPosition = new Vector3(anchorX, groundCenterY, 0f);
             groundRenderer.size = new Vector2(GroundWidth, groundHeight);
             groundRenderer.sortingLayerName = "Background";
             groundRenderer.sortingOrder = -10;

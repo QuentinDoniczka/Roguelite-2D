@@ -56,7 +56,11 @@ namespace RogueliteAutoBattler.Combat
 
             float width = Mathf.Max(_groundWidth, visibleWidth + 2f);
             _renderer.size = new Vector2(width, groundHeight);
-            transform.localPosition = new Vector3(transform.localPosition.x, groundCenterY, 0f);
+            // Anchor left edge to the left edge of the screen.
+            // Sprite is centered on its transform, so offset by half width minus half visible width.
+            float visibleHalfWidth = visibleWidth * 0.5f;
+            float anchorX = -visibleHalfWidth + width * 0.5f;
+            transform.localPosition = new Vector3(anchorX, groundCenterY, 0f);
 
             _lastOrthoSize = orthoSize;
             _lastAspect = aspect;
