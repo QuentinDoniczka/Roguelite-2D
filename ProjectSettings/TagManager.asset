@@ -51,10 +51,10 @@ TagManager:
     uniqueID: 751597202
     locked: 0
   - name: Effects
-    uniqueID: 0
+    uniqueID: 1306571940
     locked: 0
   - name: UI
-    uniqueID: 0
+    uniqueID: 1987654321
     locked: 0
   m_RenderingLayers:
   - Default
