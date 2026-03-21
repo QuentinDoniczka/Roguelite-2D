@@ -1,3 +1,4 @@
+using RogueliteAutoBattler.Combat;
 using UnityEditor;
 using UnityEngine;
 
@@ -10,7 +11,24 @@ namespace RogueliteAutoBattler.Editor
     {
         private const float CameraOrthoSize = 5.4f;
         private const float CameraZPosition = -10f;
-        private static readonly Color BattlefieldBg = (Color)new Color32(106, 45, 47, 255);
+
+        // Ground tile — 200 units wide so the camera never sees an edge during a scroll session.
+        // Height equals the full visible height (orthoSize * 2).
+        private const float GroundWidth = 200f;
+        private const float GroundHeight = 10.8f; // CameraOrthoSize * 2
+
+        private const string GridSpritePath = "Assets/Sprites/Environment/grid_ground.png";
+        private const int GridTextureSize = 64;   // pixels per tile
+        private const int GridCellSize = 8;        // pixels per checkerboard cell
+        private const int GridPixelsPerUnit = 64;  // 1 tile = 1 world unit
+
+        // Checkerboard colours — dark green / light green so movement is obvious.
+        private static readonly Color32 GridColorA = new Color32(45, 90, 39, 255);   // #2d5a27
+        private static readonly Color32 GridColorB = new Color32(61, 122, 55, 255);  // #3d7a37
+
+        // ------------------------------------------------------------------
+        // Camera
+        // ------------------------------------------------------------------
 
         /// <summary>
         /// Configures the main camera as orthographic with the correct settings for 2D mobile.
@@ -44,24 +62,29 @@ namespace RogueliteAutoBattler.Editor
             return cam;
         }
 
+        // ------------------------------------------------------------------
+        // CombatWorld hierarchy
+        // ------------------------------------------------------------------
+
         /// <summary>
-        /// Creates a CombatWorld container with a background and containers for characters/effects.
-        /// Place character prefabs as children of Characters/.
+        /// Creates a CombatWorld container with a tiled ground and containers for characters/effects.
+        /// Also attaches WorldConveyorDebug for play-mode scroll testing.
         /// </summary>
         internal static GameObject CreateCombatWorld()
         {
             var root = new GameObject("CombatWorld");
             root.transform.position = Vector3.zero;
 
-            // Background — red sprite covering the visible camera area
-            var bgGo = new GameObject("Background");
-            bgGo.transform.SetParent(root.transform, false);
-            SpriteRenderer bgRenderer = bgGo.AddComponent<SpriteRenderer>();
-            bgRenderer.sprite = CreateOrLoadPlaceholderSprite();
-            bgRenderer.color = BattlefieldBg;
-            bgRenderer.sortingOrder = -1;
-            // Camera ortho size 5.4 → visible height ~10.8, width ~6 (9:16). Scale to cover.
-            bgGo.transform.localScale = new Vector3(12f, 12f, 1f);
+            // Ground — tiled checkerboard sprite, very wide so edges never appear on screen.
+            var groundGo = new GameObject("Ground");
+            groundGo.transform.SetParent(root.transform, false);
+            SpriteRenderer groundRenderer = groundGo.AddComponent<SpriteRenderer>();
+            groundRenderer.sprite = CreateOrLoadGridSprite();
+            groundRenderer.drawMode = SpriteDrawMode.Tiled;
+            groundRenderer.size = new Vector2(GroundWidth, GroundHeight);
+            groundRenderer.sortingLayerName = "Background";
+            groundRenderer.sortingOrder = 0;
+            groundRenderer.color = Color.white;
 
             var charsGo = new GameObject("Characters");
             charsGo.transform.SetParent(root.transform, false);
@@ -69,12 +92,84 @@ namespace RogueliteAutoBattler.Editor
             var fxGo = new GameObject("Effects");
             fxGo.transform.SetParent(root.transform, false);
 
+            // Debug scroll helper — active only in play mode via OnGUI.
+            root.AddComponent<WorldConveyorDebug>();
+
             return root;
         }
 
+        // ------------------------------------------------------------------
+        // Grid sprite
+        // ------------------------------------------------------------------
+
+        /// <summary>
+        /// Creates a 64x64 checkerboard PNG in Assets/Sprites/Environment/ and imports it
+        /// as a Sprite with Repeat wrap mode and FullRect mesh so SpriteDrawMode.Tiled works.
+        /// Returns the imported Sprite asset.
+        /// </summary>
+        internal static Sprite CreateOrLoadGridSprite()
+        {
+            // Re-use existing asset if already imported correctly.
+            Sprite existing = AssetDatabase.LoadAssetAtPath<Sprite>(GridSpritePath);
+            if (existing != null)
+                return existing;
+
+            // Ensure the directory exists.
+            string directory = System.IO.Path.GetDirectoryName(GridSpritePath);
+            if (!System.IO.Directory.Exists(directory))
+                System.IO.Directory.CreateDirectory(directory);
+
+            // Build the checkerboard texture in memory.
+            var tex = new Texture2D(GridTextureSize, GridTextureSize, TextureFormat.RGBA32, false);
+            var pixels = new Color32[GridTextureSize * GridTextureSize];
+
+            for (int y = 0; y < GridTextureSize; y++)
+            {
+                for (int x = 0; x < GridTextureSize; x++)
+                {
+                    int cellX = x / GridCellSize;
+                    int cellY = y / GridCellSize;
+                    pixels[y * GridTextureSize + x] = ((cellX + cellY) % 2 == 0) ? GridColorA : GridColorB;
+                }
+            }
+
+            tex.SetPixels32(pixels);
+            tex.Apply();
+
+            System.IO.File.WriteAllBytes(GridSpritePath, tex.EncodeToPNG());
+            Object.DestroyImmediate(tex);
+
+            // First import — sets the raw asset type.
+            AssetDatabase.ImportAsset(GridSpritePath, ImportAssetOptions.ForceUpdate);
+
+            // Configure the importer for tiled sprite use.
+            var importer = (TextureImporter)AssetImporter.GetAtPath(GridSpritePath);
+            if (importer != null)
+            {
+                importer.textureType = TextureImporterType.Sprite;
+                importer.spritePixelsPerUnit = GridPixelsPerUnit;
+                importer.filterMode = FilterMode.Point;
+                importer.wrapMode = TextureWrapMode.Repeat;
+                importer.textureCompression = TextureImporterCompression.Uncompressed;
+
+                // FullRect mesh is required for SpriteDrawMode.Tiled to function.
+                var spriteSettings = new TextureImporterSettings();
+                importer.ReadTextureSettings(spriteSettings);
+                spriteSettings.spriteMeshType = SpriteMeshType.FullRect;
+                importer.SetTextureSettings(spriteSettings);
+
+                importer.SaveAndReimport();
+            }
+
+            return AssetDatabase.LoadAssetAtPath<Sprite>(GridSpritePath);
+        }
+
+        // ------------------------------------------------------------------
+        // Kept for callers that reference the placeholder (canvas background etc.)
+        // ------------------------------------------------------------------
+
         /// <summary>
         /// Creates a 4x4 white texture saved as asset, or loads it if it already exists.
-        /// Used as a placeholder sprite for the battlefield background.
         /// </summary>
         internal static Sprite CreateOrLoadPlaceholderSprite()
         {
