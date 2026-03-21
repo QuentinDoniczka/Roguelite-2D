@@ -157,6 +157,7 @@ namespace RogueliteAutoBattler.Editor
             if (importer != null)
             {
                 importer.textureType = TextureImporterType.Sprite;
+                importer.spriteImportMode = SpriteImportMode.Single;
                 importer.spritePixelsPerUnit = GridPixelsPerUnit;
                 importer.filterMode = FilterMode.Point;
                 importer.wrapMode = TextureWrapMode.Repeat;
