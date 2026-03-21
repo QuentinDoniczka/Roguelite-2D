@@ -138,7 +138,11 @@ namespace RogueliteAutoBattler.Editor
         {
             var go = new GameObject("UICanvas");
             Canvas c = go.AddComponent<Canvas>();
-            c.renderMode = RenderMode.ScreenSpaceOverlay;
+            c.renderMode = RenderMode.ScreenSpaceCamera;
+            c.worldCamera = cam;
+            c.planeDistance = 100f;
+            c.sortingLayerName = "UI";
+            c.sortingOrder = 0;
 
             CanvasScaler s = go.AddComponent<CanvasScaler>();
             s.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
