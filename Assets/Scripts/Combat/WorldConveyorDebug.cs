@@ -3,17 +3,25 @@ using UnityEngine;
 namespace RogueliteAutoBattler.Combat
 {
     /// <summary>
-    /// Simple debug MonoBehaviour attached to CombatWorld.
-    /// Provides an OnGUI panel to trigger a horizontal scroll of the world
-    /// and verify that the tiled ground moves correctly.
+    /// Debug tool for testing CombatWorld scrolling with acceleration/deceleration.
+    /// OnGUI panel with editable fields for distance, max speed, and acceleration.
+    /// Deceleration mirrors acceleration so the motion feels symmetric.
     /// </summary>
     public class WorldConveyorDebug : MonoBehaviour
     {
-        [SerializeField] private float _scrollDistance = 10f;
-        [SerializeField] private float _scrollSpeed = 5f;
-
         private float _targetX;
+        private float _currentSpeed;
         private bool _isScrolling;
+
+        // GUI input strings
+        private string _distanceStr = "10";
+        private string _maxSpeedStr = "5";
+        private string _accelStr = "3";
+
+        // Parsed values
+        private float _distance = 10f;
+        private float _maxSpeed = 5f;
+        private float _acceleration = 3f;
 
         // ------------------------------------------------------------------ lifecycle
 
@@ -27,14 +35,40 @@ namespace RogueliteAutoBattler.Combat
             if (!_isScrolling)
                 return;
 
-            Vector3 pos = transform.position;
-            float newX = Mathf.MoveTowards(pos.x, _targetX, _scrollSpeed * Time.deltaTime);
-            transform.position = new Vector3(newX, pos.y, pos.z);
+            float posX = transform.position.x;
+            float remaining = Mathf.Abs(_targetX - posX);
 
-            if (Mathf.Abs(newX - _targetX) < 0.01f)
+            // Braking distance: v² / (2 * a)
+            float brakingDist = (_currentSpeed * _currentSpeed) / (2f * _acceleration);
+
+            if (remaining <= brakingDist)
             {
-                transform.position = new Vector3(_targetX, pos.y, pos.z);
+                // Decelerate
+                _currentSpeed -= _acceleration * Time.deltaTime;
+                if (_currentSpeed < 0.01f)
+                    _currentSpeed = 0.01f;
+            }
+            else if (_currentSpeed < _maxSpeed)
+            {
+                // Accelerate
+                _currentSpeed += _acceleration * Time.deltaTime;
+                if (_currentSpeed > _maxSpeed)
+                    _currentSpeed = _maxSpeed;
+            }
+
+            float direction = Mathf.Sign(_targetX - posX);
+            float step = _currentSpeed * Time.deltaTime;
+
+            if (step >= remaining)
+            {
+                transform.position = new Vector3(_targetX, transform.position.y, transform.position.z);
+                _currentSpeed = 0f;
                 _isScrolling = false;
+            }
+            else
+            {
+                float newX = posX + direction * step;
+                transform.position = new Vector3(newX, transform.position.y, transform.position.z);
             }
         }
 
@@ -42,57 +76,81 @@ namespace RogueliteAutoBattler.Combat
 
         private void OnGUI()
         {
-            const int PanelW = 500;
-            const int PanelH = 300;
-            const int FontSize = 24;
+            const int PanelW = 520;
+            const int PanelH = 380;
+            const int FontSize = 22;
             const int BtnHeight = 60;
+            const int FieldW = 120;
+            const int LabelW = 200;
 
             float px = (Screen.width - PanelW) * 0.5f;
             float py = (Screen.height - PanelH) * 0.5f;
             Rect panelRect = new Rect(px, py, PanelW, PanelH);
 
-            // Semi-transparent background
-            GUI.color = new Color(0f, 0f, 0f, 0.7f);
+            GUI.color = new Color(0f, 0f, 0f, 0.75f);
             GUI.DrawTexture(panelRect, Texture2D.whiteTexture);
             GUI.color = Color.white;
 
-            GUILayout.BeginArea(panelRect);
+            GUILayout.BeginArea(new Rect(px + 16f, py + 12f, PanelW - 32f, PanelH - 24f));
 
-            GUIStyle labelStyle = new GUIStyle(GUI.skin.label)
+            GUIStyle label = new GUIStyle(GUI.skin.label)
             {
                 fontSize = FontSize,
-                alignment = TextAnchor.MiddleCenter,
                 normal = { textColor = Color.white }
             };
 
-            GUIStyle btnStyle = new GUIStyle(GUI.skin.button)
+            GUIStyle labelYellow = new GUIStyle(label)
             {
-                fontSize = FontSize,
+                normal = { textColor = Color.yellow },
                 fontStyle = FontStyle.Bold
             };
 
-            GUILayout.Space(16f);
+            GUIStyle field = new GUIStyle(GUI.skin.textField) { fontSize = FontSize };
+            GUIStyle btn = new GUIStyle(GUI.skin.button) { fontSize = FontSize, fontStyle = FontStyle.Bold };
 
-            // Position readout
-            GUILayout.Label($"Position X: {transform.position.x:F2}", labelStyle);
+            // Status
+            GUILayout.Label($"Position X: {transform.position.x:F2}   Speed: {_currentSpeed:F1}", labelYellow);
+            GUILayout.Space(10f);
 
-            GUILayout.Space(8f);
-
-            // Distance field
+            // Distance
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Distance:", labelStyle, GUILayout.Width(160f));
-            string distStr = GUILayout.TextField(_scrollDistance.ToString("F1"), labelStyle, GUILayout.Width(100f));
-            if (float.TryParse(distStr, out float parsed))
-                _scrollDistance = parsed;
+            GUILayout.Label("Distance:", label, GUILayout.Width(LabelW));
+            _distanceStr = GUILayout.TextField(_distanceStr, field, GUILayout.Width(FieldW), GUILayout.Height(32f));
+            float.TryParse(_distanceStr, System.Globalization.NumberStyles.Float,
+                System.Globalization.CultureInfo.InvariantCulture, out _distance);
             GUILayout.EndHorizontal();
 
-            GUILayout.Space(12f);
+            GUILayout.Space(4f);
+
+            // Max speed
+            GUILayout.BeginHorizontal();
+            GUILayout.Label("Max Speed:", label, GUILayout.Width(LabelW));
+            _maxSpeedStr = GUILayout.TextField(_maxSpeedStr, field, GUILayout.Width(FieldW), GUILayout.Height(32f));
+            float.TryParse(_maxSpeedStr, System.Globalization.NumberStyles.Float,
+                System.Globalization.CultureInfo.InvariantCulture, out _maxSpeed);
+            GUILayout.EndHorizontal();
+
+            GUILayout.Space(4f);
+
+            // Acceleration (= deceleration)
+            GUILayout.BeginHorizontal();
+            GUILayout.Label("Accel / Decel:", label, GUILayout.Width(LabelW));
+            _accelStr = GUILayout.TextField(_accelStr, field, GUILayout.Width(FieldW), GUILayout.Height(32f));
+            float.TryParse(_accelStr, System.Globalization.NumberStyles.Float,
+                System.Globalization.CultureInfo.InvariantCulture, out _acceleration);
+            GUILayout.EndHorizontal();
+
+            GUILayout.Space(14f);
 
             // Scroll button
-            if (GUILayout.Button(">> SCROLL >>", btnStyle, GUILayout.Height(BtnHeight)))
+            if (GUILayout.Button(">> SCROLL >>", btn, GUILayout.Height(BtnHeight)))
             {
-                _targetX = transform.position.x - _scrollDistance;
-                _isScrolling = true;
+                if (_distance > 0f && _acceleration > 0f && _maxSpeed > 0f)
+                {
+                    _targetX = transform.position.x - _distance;
+                    _currentSpeed = 0f;
+                    _isScrolling = true;
+                }
             }
 
             GUILayout.EndArea();
