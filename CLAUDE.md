@@ -29,7 +29,7 @@ Generated: 2026-03-21
 
 Assets/
 ├── Animations/
-│   ├── Character/  (7 files)
+│   ├── Character/  (7 files: 6 .anim + 1 .controller)
 │   ├── Elk/  (4 files)
 │   ├── Horse/  (4 files)
 │   ├── Wildboar/  (4 files)
@@ -43,11 +43,12 @@ Assets/
 ├── doc/
 │   ├── MedievalFantasyCharacters/  (14 files)
 │   ├── architecture-ui.md
+│   ├── plan-issue-6.md
 │   ├── plan-issue-40.md
 │   └── premier-jet-roguelite.html
 ├── Fonts/  (empty)
 ├── Prefabs/
-│   ├── Characters/  (4 prefabs)
+│   ├── Characters/  (5 prefabs: Elk, Horse, Wildboar, Wolf, sampleCharacterHuman)
 │   ├── Effects/  (empty)
 │   └── UI/  (empty)
 ├── Scenes/
@@ -55,7 +56,9 @@ Assets/
 ├── Scripts/
 │   ├── Adventurers/  (empty)
 │   ├── Combat/
+│   │   ├── CharacterMover.cs
 │   │   ├── CombatScrollManager.cs
+│   │   ├── CombatSpawnManager.cs
 │   │   ├── GroundFitter.cs
 │   │   └── WorldConveyor.cs
 │   ├── Core/  (empty)
@@ -97,13 +100,13 @@ Assets/
 │   ├── UniversalRenderPipelineGlobalSettings.asset
 │   └── UniversalRP.asset
 ├── Sprites/
-│   ├── Characters/  (137 files)
+│   ├── Characters/  (156 files)
 │   ├── Effects/  (25 files)
 │   ├── Environment/
 │   │   ├── grid_ground.png
 │   │   └── placeholder_white.png
-│   ├── Items/  (53 files)
+│   ├── Items/  (54 files)
 │   └── UI/  (empty)
-└── TextMesh Pro/  (TMP package — fonts, shaders, examples)
+└── TextMesh Pro/  (173 files — TMP package: fonts, shaders, examples)
 
 ProjectSettings/  (Unity defaults)

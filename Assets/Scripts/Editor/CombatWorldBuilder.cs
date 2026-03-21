@@ -70,19 +70,22 @@ namespace RogueliteAutoBattler.Editor
 
         /// <summary>
         /// Creates a CombatWorld container with a tiled ground and containers for characters/effects.
-        /// Attaches WorldConveyor (side-scroll motion) and CombatScrollManager (phase controller)
-        /// to the root. GroundFitter is attached to the Ground child.
+        /// Attaches WorldConveyor (side-scroll motion), CombatScrollManager (phase controller),
+        /// and CombatSpawnManager (spawn orchestrator) to the root.
+        /// GroundFitter is attached to the Ground child.
         /// </summary>
         internal static GameObject CreateCombatWorld()
         {
             var root = new GameObject("CombatWorld");
             root.transform.position = Vector3.zero;
+            Undo.RegisterCreatedObjectUndo(root, "Create CombatWorld");
 
             // Ground — tiled checkerboard, sized to match GameArea (top 60% of screen).
             // Positioned behind everything on Background sorting layer.
             // GroundFitter recalculates size and position at runtime from the camera.
             var groundGo = new GameObject("Ground");
             groundGo.transform.SetParent(root.transform, false);
+            Undo.RegisterCreatedObjectUndo(groundGo, "Create CombatWorld");
             SpriteRenderer groundRenderer = groundGo.AddComponent<SpriteRenderer>();
             groundRenderer.sprite = CreateOrLoadGridSprite();
             groundRenderer.drawMode = SpriteDrawMode.Tiled;
@@ -111,26 +114,43 @@ namespace RogueliteAutoBattler.Editor
                 Debug.LogWarning($"[{nameof(CombatWorldBuilder)}] Shader 'Sprite-Unlit-Default' not found. Ground may render black.");
             groundGo.AddComponent<GroundFitter>();
 
-            // Characters container — place all adventurer and enemy prefabs here.
-            // Every SpriteRenderer in this subtree must use sorting layer "Characters" (order 3).
-            var charsGo = new GameObject("Characters");
-            charsGo.transform.SetParent(root.transform, false);
+            // Team container — place adventurer prefabs here.
+            // Every SpriteRenderer in this subtree must use sorting layer "Characters".
+            var teamGo = new GameObject(CombatSpawnManager.TeamContainerName);
+            teamGo.transform.SetParent(root.transform, false);
+            Undo.RegisterCreatedObjectUndo(teamGo, "Create CombatWorld");
+
+            // Enemies container — place enemy prefabs here.
+            // Every SpriteRenderer in this subtree must use sorting layer "Characters".
+            var enemiesGo = new GameObject(CombatSpawnManager.EnemiesContainerName);
+            enemiesGo.transform.SetParent(root.transform, false);
+            Undo.RegisterCreatedObjectUndo(enemiesGo, "Create CombatWorld");
 
             // Effects container — VFX, projectiles, hit-sparks, etc.
             // SpriteRenderers here should use sorting layer "Effects" (order 4) so they
             // render on top of characters.
             var fxGo = new GameObject("Effects");
             fxGo.transform.SetParent(root.transform, false);
+            Undo.RegisterCreatedObjectUndo(fxGo, "Create CombatWorld");
 
             // Runtime scroll components on the CombatWorld root.
             // WorldConveyor drives the physical side-scroll motion.
             // CombatScrollManager orchestrates scroll phases and references the conveyor.
             root.AddComponent<WorldConveyor>();
-            var manager = root.AddComponent<CombatScrollManager>();
+            var scrollManager = root.AddComponent<CombatScrollManager>();
 
-            var soManager = new SerializedObject(manager);
-            EditorUIFactory.SetObj(soManager, "_conveyor", root.GetComponent<WorldConveyor>());
-            soManager.ApplyModifiedProperties();
+            var soScrollManager = new SerializedObject(scrollManager);
+            EditorUIFactory.SetObj(soScrollManager, "_conveyor", root.GetComponent<WorldConveyor>());
+            soScrollManager.ApplyModifiedProperties();
+
+            // CombatSpawnManager handles spawning adventurers and enemies into their containers.
+            // _characterPrefab is intentionally left null — assign in the Inspector.
+            var spawnManager = root.AddComponent<CombatSpawnManager>();
+
+            var soSpawnManager = new SerializedObject(spawnManager);
+            EditorUIFactory.SetObj(soSpawnManager, "_teamContainer", teamGo.transform);
+            EditorUIFactory.SetObj(soSpawnManager, "_enemiesContainer", enemiesGo.transform);
+            soSpawnManager.ApplyModifiedProperties();
 
             return root;
         }
