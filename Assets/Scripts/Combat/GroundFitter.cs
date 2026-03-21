@@ -58,8 +58,9 @@ namespace RogueliteAutoBattler.Combat
             _renderer.size = new Vector2(width, groundHeight);
             // Anchor left edge to the left edge of the screen.
             // Sprite is centered on its transform, so offset by half width minus half visible width.
+            // Offset so left edge is 1 unit past the screen's left edge (safety buffer).
             float visibleHalfWidth = visibleWidth * 0.5f;
-            float anchorX = -visibleHalfWidth + width * 0.5f;
+            float anchorX = -(visibleHalfWidth + 1f) + width * 0.5f;
             transform.localPosition = new Vector3(anchorX, groundCenterY, 0f);
 
             _lastOrthoSize = orthoSize;
