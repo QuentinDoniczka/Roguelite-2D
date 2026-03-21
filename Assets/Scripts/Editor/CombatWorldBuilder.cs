@@ -82,7 +82,14 @@ namespace RogueliteAutoBattler.Editor
             SpriteRenderer groundRenderer = groundGo.AddComponent<SpriteRenderer>();
             groundRenderer.sprite = CreateOrLoadGridSprite();
             groundRenderer.drawMode = SpriteDrawMode.Tiled;
-            groundRenderer.size = new Vector2(GroundWidth, 6.48f); // initial value — overridden by GroundFitter
+            // Position and size for edit-mode preview (GroundFitter overrides at runtime).
+            // GameArea = top 60%: bottom at y = -orthoSize + 0.4*visibleHeight, top at y = orthoSize
+            float visibleHeight = CameraOrthoSize * 2f;
+            float gameAreaBottom = -CameraOrthoSize + 0.40f * visibleHeight;
+            float groundHeight = CameraOrthoSize - gameAreaBottom;
+            float groundCenterY = (gameAreaBottom + CameraOrthoSize) * 0.5f;
+            groundGo.transform.localPosition = new Vector3(0f, groundCenterY, 0f);
+            groundRenderer.size = new Vector2(GroundWidth, groundHeight);
             groundRenderer.sortingLayerName = "Background";
             groundRenderer.sortingOrder = -10;
             groundRenderer.color = Color.white;

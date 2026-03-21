@@ -13,21 +13,24 @@ namespace RogueliteAutoBattler.Combat
         private float _currentSpeed;
         private bool _isScrolling;
 
-        // GUI input strings
-        private string _distanceStr = "10";
-        private string _maxSpeedStr = "5";
-        private string _accelStr = "3";
-
-        // Parsed values
+        // Parsed values (defaults)
         private float _distance = 10f;
         private float _maxSpeed = 5f;
         private float _acceleration = 3f;
+
+        // GUI input strings
+        private string _distanceStr;
+        private string _maxSpeedStr;
+        private string _accelStr;
 
         // ------------------------------------------------------------------ lifecycle
 
         private void Awake()
         {
             _targetX = transform.position.x;
+            _distanceStr = _distance.ToString("F1");
+            _maxSpeedStr = _maxSpeed.ToString("F1");
+            _accelStr = _acceleration.ToString("F1");
         }
 
         private void Update()
@@ -38,19 +41,26 @@ namespace RogueliteAutoBattler.Combat
             float posX = transform.position.x;
             float remaining = Mathf.Abs(_targetX - posX);
 
+            if (remaining < 0.01f)
+            {
+                transform.position = new Vector3(_targetX, transform.position.y, transform.position.z);
+                _currentSpeed = 0f;
+                _isScrolling = false;
+                Debug.Log($"[WorldConveyorDebug] Arrived at X={_targetX:F2}");
+                return;
+            }
+
             // Braking distance: v² / (2 * a)
             float brakingDist = (_currentSpeed * _currentSpeed) / (2f * _acceleration);
 
-            if (remaining <= brakingDist)
+            if (remaining <= brakingDist + 0.1f)
             {
-                // Decelerate
                 _currentSpeed -= _acceleration * Time.deltaTime;
-                if (_currentSpeed < 0.01f)
-                    _currentSpeed = 0.01f;
+                if (_currentSpeed < 0.1f)
+                    _currentSpeed = 0.1f;
             }
             else if (_currentSpeed < _maxSpeed)
             {
-                // Accelerate
                 _currentSpeed += _acceleration * Time.deltaTime;
                 if (_currentSpeed > _maxSpeed)
                     _currentSpeed = _maxSpeed;
@@ -64,6 +74,7 @@ namespace RogueliteAutoBattler.Combat
                 transform.position = new Vector3(_targetX, transform.position.y, transform.position.z);
                 _currentSpeed = 0f;
                 _isScrolling = false;
+                Debug.Log($"[WorldConveyorDebug] Arrived at X={_targetX:F2}");
             }
             else
             {
@@ -76,84 +87,67 @@ namespace RogueliteAutoBattler.Combat
 
         private void OnGUI()
         {
-            const int PanelW = 520;
-            const int PanelH = 380;
-            const int FontSize = 22;
-            const int BtnHeight = 60;
-            const int FieldW = 120;
-            const int LabelW = 200;
+            const float PanelW = 500f;
+            const float PanelH = 360f;
+            const float Pad = 14f;
+            const float RowH = 34f;
+            const float BtnH = 55f;
+            const float LabelW = 190f;
 
             float px = (Screen.width - PanelW) * 0.5f;
             float py = (Screen.height - PanelH) * 0.5f;
-            Rect panelRect = new Rect(px, py, PanelW, PanelH);
+            Rect panel = new Rect(px, py, PanelW, PanelH);
 
-            GUI.color = new Color(0f, 0f, 0f, 0.75f);
-            GUI.DrawTexture(panelRect, Texture2D.whiteTexture);
-            GUI.color = Color.white;
+            // Background
+            GUI.Box(panel, "");
 
-            GUILayout.BeginArea(new Rect(px + 16f, py + 12f, PanelW - 32f, PanelH - 24f));
+            float y = panel.y + Pad;
+            float contentW = PanelW - Pad * 2f;
+            float fieldX = panel.x + Pad + LabelW + 8f;
+            float fieldW = contentW - LabelW - 8f;
 
-            GUIStyle label = new GUIStyle(GUI.skin.label)
-            {
-                fontSize = FontSize,
-                normal = { textColor = Color.white }
-            };
-
-            GUIStyle labelYellow = new GUIStyle(label)
-            {
-                normal = { textColor = Color.yellow },
-                fontStyle = FontStyle.Bold
-            };
-
-            GUIStyle field = new GUIStyle(GUI.skin.textField) { fontSize = FontSize };
-            GUIStyle btn = new GUIStyle(GUI.skin.button) { fontSize = FontSize, fontStyle = FontStyle.Bold };
-
-            // Status
-            GUILayout.Label($"Position X: {transform.position.x:F2}   Speed: {_currentSpeed:F1}", labelYellow);
-            GUILayout.Space(10f);
+            // Status line
+            string status = _isScrolling ? $"SCROLLING  speed={_currentSpeed:F1}" : "IDLE";
+            GUI.Label(new Rect(panel.x + Pad, y, contentW, RowH),
+                $"X={transform.position.x:F2}  |  {status}");
+            y += RowH + 6f;
 
             // Distance
-            GUILayout.BeginHorizontal();
-            GUILayout.Label("Distance:", label, GUILayout.Width(LabelW));
-            _distanceStr = GUILayout.TextField(_distanceStr, field, GUILayout.Width(FieldW), GUILayout.Height(32f));
+            GUI.Label(new Rect(panel.x + Pad, y, LabelW, RowH), "Distance:");
+            _distanceStr = GUI.TextField(new Rect(fieldX, y, fieldW, RowH), _distanceStr);
             float.TryParse(_distanceStr, System.Globalization.NumberStyles.Float,
                 System.Globalization.CultureInfo.InvariantCulture, out _distance);
-            GUILayout.EndHorizontal();
-
-            GUILayout.Space(4f);
+            y += RowH + 4f;
 
             // Max speed
-            GUILayout.BeginHorizontal();
-            GUILayout.Label("Max Speed:", label, GUILayout.Width(LabelW));
-            _maxSpeedStr = GUILayout.TextField(_maxSpeedStr, field, GUILayout.Width(FieldW), GUILayout.Height(32f));
+            GUI.Label(new Rect(panel.x + Pad, y, LabelW, RowH), "Max Speed:");
+            _maxSpeedStr = GUI.TextField(new Rect(fieldX, y, fieldW, RowH), _maxSpeedStr);
             float.TryParse(_maxSpeedStr, System.Globalization.NumberStyles.Float,
                 System.Globalization.CultureInfo.InvariantCulture, out _maxSpeed);
-            GUILayout.EndHorizontal();
+            y += RowH + 4f;
 
-            GUILayout.Space(4f);
-
-            // Acceleration (= deceleration)
-            GUILayout.BeginHorizontal();
-            GUILayout.Label("Accel / Decel:", label, GUILayout.Width(LabelW));
-            _accelStr = GUILayout.TextField(_accelStr, field, GUILayout.Width(FieldW), GUILayout.Height(32f));
+            // Accel/Decel
+            GUI.Label(new Rect(panel.x + Pad, y, LabelW, RowH), "Accel / Decel:");
+            _accelStr = GUI.TextField(new Rect(fieldX, y, fieldW, RowH), _accelStr);
             float.TryParse(_accelStr, System.Globalization.NumberStyles.Float,
                 System.Globalization.CultureInfo.InvariantCulture, out _acceleration);
-            GUILayout.EndHorizontal();
-
-            GUILayout.Space(14f);
+            y += RowH + 12f;
 
             // Scroll button
-            if (GUILayout.Button(">> SCROLL >>", btn, GUILayout.Height(BtnHeight)))
+            if (GUI.Button(new Rect(panel.x + Pad, y, contentW, BtnH), ">> SCROLL >>"))
             {
-                if (_distance > 0f && _acceleration > 0f && _maxSpeed > 0f)
+                if (_distance > 0f && _acceleration > 0.01f && _maxSpeed > 0.01f)
                 {
                     _targetX = transform.position.x - _distance;
                     _currentSpeed = 0f;
                     _isScrolling = true;
+                    Debug.Log($"[WorldConveyorDebug] Scroll started: distance={_distance}, maxSpeed={_maxSpeed}, accel={_acceleration}, target={_targetX:F2}");
+                }
+                else
+                {
+                    Debug.LogWarning("[WorldConveyorDebug] Invalid values — distance, speed, and acceleration must be > 0");
                 }
             }
-
-            GUILayout.EndArea();
         }
     }
 }
