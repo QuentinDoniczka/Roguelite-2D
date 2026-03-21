@@ -95,16 +95,6 @@ namespace RogueliteAutoBattler.Combat
                 _isScrolling = true;
             }
 
-            GUILayout.Space(8f);
-
-            // Reset button
-            if (GUILayout.Button("RESET", btnStyle, GUILayout.Height(BtnHeight)))
-            {
-                _isScrolling = false;
-                _targetX = 0f;
-                transform.position = new Vector3(0f, transform.position.y, transform.position.z);
-            }
-
             GUILayout.EndArea();
         }
     }

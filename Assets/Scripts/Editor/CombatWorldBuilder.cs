@@ -86,6 +86,10 @@ namespace RogueliteAutoBattler.Editor
             groundRenderer.sortingLayerName = "Background";
             groundRenderer.sortingOrder = -10;
             groundRenderer.color = Color.white;
+            // URP 2D uses Lit sprites by default — without a Light2D in the scene,
+            // sprites appear black. The ground is a flat background that doesn't
+            // need lighting, so we use the Unlit material.
+            groundRenderer.material = new Material(Shader.Find("Universal Render Pipeline/2D/Sprite-Unlit-Default"));
             groundGo.AddComponent<GroundFitter>();
 
             // Characters container — place all adventurer and enemy prefabs here.
