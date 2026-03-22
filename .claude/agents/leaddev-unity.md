@@ -92,3 +92,41 @@ Data structures exchanged between client and server
 - **Always specify 2D components** — never propose 3D equivalents
 - **Always clarify client vs server boundary** — what Unity displays vs what the API validates
 - **Consider mobile** — propose solutions that work well on low-end devices
+
+## Zero Manual Steps — Every Task Must Be Automatable
+
+**CRITICAL RULE**: Your plan must NEVER contain steps labeled "manual" or "do in the Unity Editor". Every step must specify HOW it will be automated.
+
+### Task Classification
+
+For each task in your plan, classify it as one of:
+
+| Type | How to automate | Agent to route to |
+|------|----------------|-------------------|
+| **C# code** | Write .cs files | `dev-unity` or `dev-ux-unity` |
+| **Unity asset** (.controller, .prefab, .asset) | Edit YAML directly | `dev-ux-unity` |
+| **Scene setup** | Editor script with `[MenuItem]` | `dev-ux-unity` |
+| **Prefab wiring** | `AssetDatabase.LoadAssetAtPath` + `SerializedObject` | `dev-ux-unity` |
+| **Animator config** | Edit `.controller` YAML (add parameters, transitions) | `dev-ux-unity` |
+
+### Unity Asset Files Are Editable
+
+Unity serializes these files as **text YAML** (when project uses Force Text serialization):
+- `.controller` — AnimatorController: states, parameters, transitions
+- `.prefab` — Prefab: components, serialized fields, hierarchy
+- `.asset` — ScriptableObjects, render pipeline settings
+- `.unity` — Scene files: hierarchy, component data
+
+These files CAN and SHOULD be edited programmatically when the plan requires changes to them. Never say "open the Animator window and add a parameter" — instead say "edit the .controller YAML to add the IsMoving bool parameter and Idle↔Walk transitions."
+
+### Plan Output Format
+
+For each step, include:
+```
+Step N: [description]
+- Type: [C# code / Unity asset YAML / Editor script / Scene setup]
+- Agent: [dev-unity / dev-ux-unity]
+- Automation: [how it will be done programmatically]
+```
+
+If a step truly cannot be automated (rare), explain WHY and mark it as `[USER ACTION REQUIRED]`.

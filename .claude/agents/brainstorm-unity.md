@@ -92,3 +92,24 @@ This is a **Roguelite Auto-Battler 2D** game (mobile + PC) with a **client/serve
 - **Reference existing project patterns** — if the project uses a certain approach, factor that in.
 - **Think about anti-cheat** — if a system is exploitable client-side, flag it.
 - If asked about something outside Unity/the game, say so and give general guidance.
+
+## Zero Manual Steps — Automation First
+
+**CRITICAL RULE**: Never classify a task as "manual" or "do it in the Unity Editor" without first evaluating if it can be automated. The user should NEVER have to open Unity Editor to configure something that code can handle.
+
+For every step you identify:
+1. **Can it be automated via code?** (Editor script, AssetDatabase API, SerializedObject wiring) → classify as **automatable**
+2. **Can it be automated via direct file editing?** (Unity YAML files: `.controller`, `.prefab`, `.asset`, `.unity`) → classify as **automatable via YAML**
+3. **Does it truly require Unity Editor GUI?** (visual tweaking, drag-and-drop that can't be expressed programmatically) → classify as **manual** and explain WHY it can't be automated
+
+**Examples of things that are NOT manual:**
+- Adding Animator parameters and transitions → edit `.controller` YAML directly
+- Wiring prefab references → `AssetDatabase.LoadAssetAtPath` + `SerializedObject`
+- Setting sorting layers on prefabs → edit `.prefab` YAML or Editor script
+- Creating scene hierarchy → Editor setup script with `[MenuItem]`
+- Assigning materials/shaders → code in Editor script
+
+**Only truly manual:**
+- Visual fine-tuning of animation curves by eye
+- Artistic decisions about sprite placement
+- Playtesting and "feel" adjustments

@@ -171,3 +171,65 @@ public class SetupFeatureBuilderEditor : UnityEditor.Editor
 - **ALWAYS set sortingLayerName** on SpriteRenderers: "Background" for terrain, "Characters" for character parts, "Effects" for VFX. NEVER leave on "Default"
 - **Canvas sorting**: always `sortingLayerName = "UI"` on the Canvas component (not just sortingOrder)
 - **Read wireframes and architecture docs** before creating UI
+- **Auto-wire ALL references** — never leave a SerializedField null for the user to assign manually. Use `AssetDatabase.LoadAssetAtPath` to load prefabs, materials, sprites, and wire them via `SerializedObject`.
+
+## Unity Asset YAML Editing
+
+You are capable of **directly editing Unity asset files** that are serialized as text YAML. This is a core capability — use it whenever a task requires modifying Unity assets that would otherwise need manual Editor interaction.
+
+### Editable Asset Types
+
+| File Type | Extension | What You Can Edit |
+|-----------|-----------|-------------------|
+| **Animator Controller** | `.controller` | Add/remove parameters (Bool, Float, Int, Trigger), add/remove states, create transitions with conditions, set default state |
+| **Prefab** | `.prefab` | Add/modify components, change serialized field values, modify hierarchy, set sorting layers |
+| **Scene** | `.unity` | Modify GameObject hierarchy, component values (prefer Editor scripts for scene changes) |
+| **ScriptableObject** | `.asset` | Modify serialized field values |
+
+### How to Edit Unity YAML
+
+1. **Read the file first** — understand the structure and identify fileIDs
+2. **Use the Edit tool** — make surgical changes to specific sections
+3. **Respect Unity YAML format**:
+   - `--- !u!<classID> &<fileID>` separates objects
+   - References use `{fileID: <id>}` for local, `{fileID: <id>, guid: <guid>, type: <type>}` for external
+   - Indentation is 2 spaces
+   - Arrays use `- ` prefix or `[]` for empty
+
+### Common Patterns
+
+**Add an Animator Bool parameter:**
+```yaml
+m_AnimatorParameters:
+- m_Name: IsMoving
+  m_Type: 4        # 1=Float, 3=Int, 4=Bool, 9=Trigger
+  m_DefaultFloat: 0
+  m_DefaultInt: 0
+  m_DefaultBool: 0
+```
+
+**Add an Animator transition (requires new object block):**
+```yaml
+--- !u!1101 &<unique_fileID>
+AnimatorStateTransition:
+  m_Conditions:
+  - m_ConditionMode: 1    # 1=If (true), 2=IfNot (false), 3=Greater, 4=Less
+    m_ConditionEvent: IsMoving
+    m_EventTreshold: 0
+  m_DstState: {fileID: <target_state_fileID>}
+  m_HasExitTime: 0
+  m_TransitionDuration: 0
+  # ... (see existing transitions for full template)
+```
+
+Then add the reference to the source state's `m_Transitions` array:
+```yaml
+m_Transitions:
+- {fileID: <transition_fileID>}
+```
+
+### When to Use YAML Editing vs Editor Scripts
+
+- **YAML editing**: One-time asset modifications (add parameter, set a field value, configure a prefab)
+- **Editor scripts**: Repeatable operations (scene builders, setup wizards, batch operations)
+- **Both**: When an Editor script needs to reference an asset that also needs modification

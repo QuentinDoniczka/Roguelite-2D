@@ -28,6 +28,7 @@ Gameplay : recruter aventuriers → equiper → combat auto (gauche→droite) + 
 | `review-unity` | Audit COMPLET du projet entier. Utilise uniquement sur demande explicite (hors chaine principale). Read-only. |
 | `brainstorm-unity` | **TOUJOURS invoque en premier.** Challenger la demande, evaluer la pertinence, proposer des alternatives plus simples ou performantes. Prend en compte le client/serveur et le 2D. |
 | `test-play-unity` | Lancer les tests Play Mode existants apres implementation. Utilise des fake accounts a differents niveaux de progression. Aussi utilise pour ecrire de nouveaux tests (apres refacto). |
+| `agent-improver` | **Amelioration continue des agents.** Analyse les echecs du workflow (etapes manuelles, erreurs, corrections utilisateur) et modifie les prompts des agents concernes pour que le probleme ne se reproduise plus. |
 
 ## Invocation
 
@@ -215,6 +216,25 @@ e) **Merge** — Delegue a `git-unity` avec la tache "merge-pr" :
    - Si conflit de merge → STOP, rapporte la situation.
 f) Delegue a `github-boards` avec "complete-issue" : ferme l'Issue, verifie si toutes les Issues de la Milestone sont fermees → si oui, ferme la Milestone.
 
+### 8b. Retrospective — Amelioration continue des agents
+
+**Declenchement conditionnel** — apres le rapport (etape 8), SI l'une de ces situations s'est produite pendant le workflow :
+
+- L'utilisateur a du faire une action manuelle que le workflow aurait pu automatiser
+- L'utilisateur a corrige ou conteste une decision d'un agent
+- Un agent a produit un resultat qui a necessite un re-travail
+- Le lead a du contourner le plan d'un agent (ex: editer un fichier YAML au lieu de suivre "faites-le manuellement")
+
+**Alors** : delegue a `agent-improver` avec :
+- Description du probleme (ce qui a echoue ou necessite intervention manuelle)
+- Quel(s) agent(s) sont concernes
+- Ce qui aurait du se passer vs ce qui s'est passe
+- L'agent analyse la cause racine, modifie les prompts concernes, et rapporte les changements
+
+**Si aucun probleme** → sauter cette etape.
+
+> **Principe "Zero Etapes Manuelles"** : l'utilisateur ne devrait JAMAIS avoir a ouvrir Unity pour configurer quelque chose que le code peut gerer. Les seules actions utilisateur acceptables sont : cliquer sur un menu item pour executer un script, et faire Play pour tester.
+
 ## Agents hors chaine (manuels)
 
 Ces agents ne sont **jamais** lances automatiquement dans le workflow. L'utilisateur les demande explicitement quand il en a besoin.
@@ -226,9 +246,11 @@ Ces agents ne sont **jamais** lances automatiquement dans le workflow. L'utilisa
 ## Regles
 
 - **Ne jamais coder toi-meme** — toujours deleguer.
+- **Zero etapes manuelles** — ne JAMAIS demander a l'utilisateur de configurer quelque chose dans Unity Editor si c'est automatisable (YAML editing, AssetDatabase, SerializedObject wiring, Editor scripts). Les seules actions utilisateur = cliquer un menu item + Play pour tester.
 - **Pas de validation systematique** — avance de maniere autonome. Demande un choix uniquement quand il y a une vraie ambiguite.
 - **Un agent = une tache.**
 - **Si un agent echoue** — analyse et relance avec meilleur contexte.
+- **Si un agent propose une etape manuelle** — challenger et demander comment l'automatiser. Si c'est automatisable, router la tache au bon agent (generalement `dev-ux-unity` pour les assets Unity).
 - **Toujours passer le contexte** aux agents.
 - **Conventional Commits** — tous les commits suivent le format `<type>(<scope>): <description>`. Inclure le numero d'Issue quand applicable (ex: `(#12)`).
 - **GitHub flow** — `dev` = branche d'integration. Les feature branches sont TOUJOURS creees depuis `dev`. Les PRs ciblent `dev` avec Squash and merge. `main` = branche stable/release.
