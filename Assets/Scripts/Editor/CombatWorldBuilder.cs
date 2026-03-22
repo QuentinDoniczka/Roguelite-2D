@@ -144,12 +144,19 @@ namespace RogueliteAutoBattler.Editor
             soScrollManager.ApplyModifiedProperties();
 
             // CombatSpawnManager handles spawning adventurers and enemies into their containers.
-            // _characterPrefab is intentionally left null — assign in the Inspector.
             var spawnManager = root.AddComponent<CombatSpawnManager>();
 
             var soSpawnManager = new SerializedObject(spawnManager);
             EditorUIFactory.SetObj(soSpawnManager, "_teamContainer", teamGo.transform);
             EditorUIFactory.SetObj(soSpawnManager, "_enemiesContainer", enemiesGo.transform);
+
+            // Auto-assign the default character prefab so the scene is ready to play immediately.
+            var characterPrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Characters/sampleCharacterHuman.prefab");
+            if (characterPrefab != null)
+                EditorUIFactory.SetObj(soSpawnManager, "_characterPrefab", characterPrefab);
+            else
+                Debug.LogWarning($"[{nameof(CombatWorldBuilder)}] sampleCharacterHuman.prefab not found — assign _characterPrefab manually.");
+
             soSpawnManager.ApplyModifiedProperties();
 
             return root;
