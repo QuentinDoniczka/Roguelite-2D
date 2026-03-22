@@ -3,10 +3,10 @@ using UnityEngine;
 namespace RogueliteAutoBattler.Combat
 {
     /// <summary>
-    /// Moves this character along the X axis toward a target Transform.
-    /// Stops when within <see cref="_stoppingDistance"/>. Drives the Animator
-    /// <c>IsMoving</c> bool parameter when an Animator is present.
+    /// Moves this character along the X axis toward a target Transform using Rigidbody2D velocity.
+    /// Stops when within <see cref="_stoppingDistance"/>. Drives the Animator via Play("Walk"/"Idle").
     /// </summary>
+    [RequireComponent(typeof(Rigidbody2D))]
     public class CharacterMover : MonoBehaviour
     {
         [Header("Movement")]
@@ -18,8 +18,8 @@ namespace RogueliteAutoBattler.Combat
 
         private Transform _target;
         private Animator _animator;
+        private Rigidbody2D _rb;
         private bool _isMoving;
-        private static readonly int IsMovingHash = Animator.StringToHash("IsMoving");
 
         /// <summary>The Transform this character moves toward. Set to null to stop.</summary>
         public Transform Target
@@ -34,12 +34,21 @@ namespace RogueliteAutoBattler.Combat
         private void Awake()
         {
             _animator = GetComponent<Animator>();
+            _rb = GetComponent<Rigidbody2D>();
+
+            if (_animator != null)
+                _animator.applyRootMotion = false;
+
+            // Configure Rigidbody2D for kinematic-like movement via velocity.
+            _rb.gravityScale = 0f;
+            _rb.constraints = RigidbodyConstraints2D.FreezeRotation;
         }
 
-        private void LateUpdate()
+        private void FixedUpdate()
         {
             if (_target == null)
             {
+                _rb.linearVelocity = Vector2.zero;
                 SetMoving(false);
                 return;
             }
@@ -48,15 +57,13 @@ namespace RogueliteAutoBattler.Combat
 
             if (Mathf.Abs(deltaX) <= _stoppingDistance)
             {
+                _rb.linearVelocity = Vector2.zero;
                 SetMoving(false);
                 return;
             }
 
-            // Move only in X — Y and Z are never touched.
-            Vector3 pos = transform.position;
-            pos.x = Mathf.MoveTowards(pos.x, _target.position.x, _moveSpeed * Time.deltaTime);
-            transform.position = pos;
-
+            float dirX = Mathf.Sign(deltaX);
+            _rb.linearVelocity = new Vector2(dirX * _moveSpeed, 0f);
             SetMoving(true);
         }
 
@@ -68,7 +75,7 @@ namespace RogueliteAutoBattler.Combat
             _isMoving = moving;
 
             if (_animator != null)
-                _animator.SetBool(IsMovingHash, _isMoving);
+                _animator.Play(_isMoving ? "Walk" : "Idle");
         }
     }
 }
