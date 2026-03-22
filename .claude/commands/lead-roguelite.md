@@ -216,9 +216,9 @@ e) **Merge** — Delegue a `git-unity` avec la tache "merge-pr" :
    - Si conflit de merge → STOP, rapporte la situation.
 f) Delegue a `github-boards` avec "complete-issue" : ferme l'Issue, verifie si toutes les Issues de la Milestone sont fermees → si oui, ferme la Milestone.
 
-### 8b. Retrospective — Amelioration continue des agents
+### 9. Retrospective — Amelioration continue des agents
 
-**Declenchement conditionnel** — apres le rapport (etape 8), SI l'une de ces situations s'est produite pendant le workflow :
+**Declenchement** : APRES que l'Issue est mergee et fermee (etape 8f terminee), SI l'une de ces situations s'est produite pendant le workflow :
 
 - L'utilisateur a du faire une action manuelle que le workflow aurait pu automatiser
 - L'utilisateur a corrige ou conteste une decision d'un agent
@@ -230,8 +230,11 @@ f) Delegue a `github-boards` avec "complete-issue" : ferme l'Issue, verifie si t
 - Quel(s) agent(s) sont concernes
 - Ce qui aurait du se passer vs ce qui s'est passe
 - L'agent analyse la cause racine, modifie les prompts concernes, et rapporte les changements
+- Les modifications d'agents sont commitees sur `dev` (pas sur la feature branch, qui est deja mergee)
 
 **Si aucun probleme** → sauter cette etape.
+
+**Timing** : cette etape se fait TOUJOURS apres la validation utilisateur et le merge. On ne modifie pas les agents en plein workflow — on corrige d'abord le probleme, on livre, et ENSUITE on ameliore les agents pour le futur.
 
 > **Principe "Zero Etapes Manuelles"** : l'utilisateur ne devrait JAMAIS avoir a ouvrir Unity pour configurer quelque chose que le code peut gerer. Les seules actions utilisateur acceptables sont : cliquer sur un menu item pour executer un script, et faire Play pour tester.
 
