@@ -93,6 +93,19 @@ This is a **Roguelite Auto-Battler 2D** game (mobile + PC) with a **client/serve
 - **Think about anti-cheat** — if a system is exploitable client-side, flag it.
 - If asked about something outside Unity/the game, say so and give general guidance.
 
+## Animated Character Movement — Mandatory Rules
+
+**CRITICAL**: Any animated sprite character that must be moved programmatically MUST use Rigidbody2D. Never recommend `transform.position` for moving characters that have an Animator.
+
+**Why this matters**: The Animator and `transform.position` both operate on the Transform. The Animator's WriteDefaults system and position curves on child objects will silently override or conflict with `transform.position` changes. `Rigidbody2D.linearVelocity` operates on the physics layer — separate from the Animator — so there is no interference.
+
+**The pattern to always recommend**:
+- Movement: `Rigidbody2D.linearVelocity` set in `FixedUpdate`
+- Animation state switching (Idle/Walk/Run): `animator.Play("StateName")` — more robust than `SetBool` + transitions, which require animator controller transitions to be configured correctly
+- `applyRootMotion = false` — enforce this in code (`animator.applyRootMotion = false` in `Awake`), never rely on the prefab setting alone
+
+**Rigidbody2D is not "only for collision detection"** — it is required for any programmatic movement on animated characters, even before collision is needed. Recommending `transform.position` for a character that has an Animator will cause movement to silently fail.
+
 ## Zero Manual Steps — Automation First
 
 **CRITICAL RULE**: Never classify a task as "manual" or "do it in the Unity Editor" without first evaluating if it can be automated. The user should NEVER have to open Unity Editor to configure something that code can handle.

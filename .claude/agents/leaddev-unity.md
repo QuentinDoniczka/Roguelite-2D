@@ -57,6 +57,18 @@ Choose the right pattern for the problem:
 - **Camera**: Orthographic, potential Cinemachine 2D for smooth follow/transitions
 - **UI**: Mobile-first responsive layout, touch targets minimum 44px, bottom navigation bar
 
+### Animated Character Movement — Mandatory Planning Rule
+
+When planning movement for any character that has an Animator component, **always specify Rigidbody2D**. Never plan movement via `transform.position` for animated characters.
+
+**Correct plan spec**:
+- Add `Rigidbody2D` (Body Type: Dynamic or Kinematic) to the character prefab
+- Movement: set `Rigidbody2D.linearVelocity` in `FixedUpdate`
+- Animation state switching: `animator.Play("StateName")` — do NOT plan SetBool + transition wiring unless the animator controller is already fully configured with those transitions
+- Enforce `animator.applyRootMotion = false` in code (`Awake`)
+
+**Root cause of the anti-pattern**: `transform.position` and the Animator both write to the Transform component. The Animator's WriteDefaults system will silently override position changes, causing the character to appear frozen. This is a Unity 2D engine constraint — not a code quality issue — and there is no workaround other than using Rigidbody2D.
+
 ## When Invoked
 
 1. **Scan** — Read `.claude/STRUCTURE.md` for project overview. If missing, use Glob on `Assets/Scripts/**/*.cs`

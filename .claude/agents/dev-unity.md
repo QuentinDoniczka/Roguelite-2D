@@ -66,6 +66,41 @@ You are a senior Unity 2D C# developer working on a **Roguelite Auto-Battler 2D*
 - For movement: `Rigidbody2D.MovePosition()` in FixedUpdate, or transform.Translate for non-physics movement
 - Mobile-first: keep draw calls low, use sprite atlases, avoid overdraw
 
+### Animated Character Movement — Critical Rules
+
+**NEVER use `transform.position` to move a character that has an Animator.** The Animator writes to the Transform on the same update cycle — its WriteDefaults system and any position curves on child objects will silently override your `transform.position` changes, causing the character to appear frozen with no error.
+
+**Always use this pattern for animated characters**:
+
+```csharp
+// Awake — enforce applyRootMotion off in code, never rely on prefab setting
+private void Awake()
+{
+    _rb = GetComponent<Rigidbody2D>();
+    _animator = GetComponent<Animator>();
+    _animator.applyRootMotion = false;
+}
+
+// FixedUpdate — physics layer is separate from Animator layer, no interference
+private void FixedUpdate()
+{
+    _rb.linearVelocity = new Vector2(_speed, 0f);
+}
+
+// Use animator.Play() for simple state changes — more robust than SetBool + transitions
+// SetBool + transitions require the animator controller to have transitions wired correctly
+private void SetMoving(bool isMoving)
+{
+    _animator.Play(isMoving ? "Walk" : "Idle");
+}
+```
+
+**Rules**:
+- Moving animated characters: `Rigidbody2D.linearVelocity` in `FixedUpdate` — always
+- Animation state switching (Idle/Walk/Run): prefer `animator.Play("StateName")` over `SetBool` unless transitions are already verified in the controller
+- Always call `animator.applyRootMotion = false` in `Awake()` in code
+- `transform.position` is acceptable only for non-animated objects (UI anchors, static environment pieces)
+
 ## API Communication Patterns
 
 When implementing client-side code that talks to the server:
