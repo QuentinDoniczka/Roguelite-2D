@@ -15,12 +15,11 @@ namespace RogueliteAutoBattler.Combat
         [Header("Spawn Positions")]
         // Spawn X values are relative to world origin (camera centered at x=0).
         // Defaults assume portrait 9:16 layout: orthographic size 5.4, visible half-width ~3.0.
-        // At -3 and +3 the characters are near the screen edges but fully visible.
-        [Tooltip("World X position where the ally spawns. Default -3 places it near the left edge of a portrait 9:16 viewport (ortho size 5.4, half-width ~3.0).")]
-        [SerializeField] private float _allySpawnX = -3f;
+        [Tooltip("World X position where the ally spawns.")]
+        [SerializeField] private float _allySpawnX = -1f;
 
-        [Tooltip("World X position where the enemy spawns. Default +3 places it near the right edge of a portrait 9:16 viewport (ortho size 5.4, half-width ~3.0).")]
-        [SerializeField] private float _enemySpawnX = 3f;
+        [Tooltip("World X position where the enemy spawns.")]
+        [SerializeField] private float _enemySpawnX = 1f;
 
         [Tooltip("World Y position for both spawns.")]
         [SerializeField] private float _spawnY = 0f;
@@ -40,9 +39,9 @@ namespace RogueliteAutoBattler.Combat
         private const string AllyName = "Warrior";
         private const string EnemyName = "Enemy";
 
-        // Enemies face left (toward the ally). Negating X on the root flips the
-        // entire multi-sprite rig. Collider2D and Physics2D handle negative scale correctly.
-        private static readonly Vector3 FacingLeftScale = new Vector3(-1f, 1f, 1f);
+        // The default sprite faces left. The ally needs to be flipped to face right
+        // (toward the enemy). Negating X on the root flips the entire multi-sprite rig.
+        private static readonly Vector3 FacingRightScale = new Vector3(-1f, 1f, 1f);
 
         /// <summary>The spawned ally GameObject.</summary>
         public GameObject AllyInstance { get; private set; }
@@ -67,6 +66,7 @@ namespace RogueliteAutoBattler.Combat
                 _teamContainer
             );
             AllyInstance.name = AllyName;
+            AllyInstance.transform.localScale = FacingRightScale;
 
             EnemyInstance = Instantiate(
                 _characterPrefab,
@@ -75,7 +75,6 @@ namespace RogueliteAutoBattler.Combat
                 _enemiesContainer
             );
             EnemyInstance.name = EnemyName;
-            EnemyInstance.transform.localScale = FacingLeftScale;
 
             var mover = AllyInstance.AddComponent<CharacterMover>();
             mover.Target = EnemyInstance.transform;

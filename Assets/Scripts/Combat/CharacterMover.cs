@@ -36,7 +36,7 @@ namespace RogueliteAutoBattler.Combat
             _animator = GetComponent<Animator>();
         }
 
-        private void Update()
+        private void LateUpdate()
         {
             if (_target == null)
             {
