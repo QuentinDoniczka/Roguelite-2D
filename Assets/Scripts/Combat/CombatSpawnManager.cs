@@ -51,38 +51,62 @@ namespace RogueliteAutoBattler.Combat
             if (scrollManager != null)
                 scrollManager.enabled = false;
 
-            // Spawn ally
-            AllyInstance = Instantiate(_characterPrefab, new Vector3(_allySpawnX, _spawnY, 0f), Quaternion.identity, _teamContainer);
-            AllyInstance.name = AllyName;
-            AllyInstance.transform.localScale = FacingRightScale;
+            // Spawn ally — root faces right (flipped scale), Visual child is unscaled.
+            AllyInstance = SpawnCharacter(AllyName, _allySpawnX, _teamContainer, facingRight: true);
 
-            // Spawn enemy
-            EnemyInstance = Instantiate(_characterPrefab, new Vector3(_enemySpawnX, _spawnY, 0f), Quaternion.identity, _enemiesContainer);
-            EnemyInstance.name = EnemyName;
+            // Spawn enemy — faces left by default (no flip needed).
+            EnemyInstance = SpawnCharacter(EnemyName, _enemySpawnX, _enemiesContainer, facingRight: false);
 
-            // Add components manually — no RequireComponent chain
+            // Wire combat targets after both roots exist.
             SetupCombatCharacter(AllyInstance, EnemyInstance.transform);
             SetupCombatCharacter(EnemyInstance, AllyInstance.transform);
         }
 
-        private void SetupCombatCharacter(GameObject character, Transform target)
+        /// <summary>
+        /// Instantiates the prefab and wraps it under a new root so that the Animator
+        /// (on the Visual child) cannot conflict with the Rigidbody2D (on the root).
+        ///
+        /// Resulting hierarchy:
+        ///   Root [Rigidbody2D, CharacterMover, CombatController]
+        ///   └── Visual  (= original prefab instance, keeps SpriteRenderer + Animator)
+        /// </summary>
+        private GameObject SpawnCharacter(string characterName, float spawnX, Transform container, bool facingRight)
         {
-            // Add Rigidbody2D first
-            var rb = character.AddComponent<Rigidbody2D>();
+            // Create the physics root at the desired world position.
+            var root = new GameObject(characterName);
+            root.transform.SetParent(container, worldPositionStays: false);
+            root.transform.position = new Vector3(spawnX, _spawnY, 0f);
+
+            if (facingRight)
+                root.transform.localScale = FacingRightScale;
+
+            // Instantiate the prefab as the Visual child.
+            var visual = Instantiate(_characterPrefab, root.transform);
+            visual.name = "Visual";
+            visual.transform.localPosition = Vector3.zero;
+            visual.transform.localRotation = Quaternion.identity;
+            visual.transform.localScale = Vector3.one;
+
+            return root;
+        }
+
+        private void SetupCombatCharacter(GameObject root, Transform target)
+        {
+            // Rigidbody2D lives on the root — no Animator conflict.
+            var rb = root.AddComponent<Rigidbody2D>();
             rb.bodyType = RigidbodyType2D.Dynamic;
             rb.gravityScale = 0f;
             rb.constraints = RigidbodyConstraints2D.FreezeRotation;
             rb.interpolation = RigidbodyInterpolation2D.Interpolate;
             rb.collisionDetectionMode = CollisionDetectionMode2D.Discrete;
 
-            // Add CharacterMover
-            var mover = character.AddComponent<CharacterMover>();
+            // CharacterMover and CombatController also on the root.
+            var mover = root.AddComponent<CharacterMover>();
             mover.Target = target;
 
-            // Add CombatController
-            character.AddComponent<CombatController>();
+            root.AddComponent<CombatController>();
 
-            Debug.Log($"[CombatSpawnManager] Setup {character.name}: rb.simulated={rb.simulated}, rb.bodyType={rb.bodyType}, target={target.name}");
+            Debug.Log($"[CombatSpawnManager] Setup {root.name}: rb.simulated={rb.simulated}, rb.bodyType={rb.bodyType}, target={target.name}");
         }
 
         private void FindContainersIfNeeded()

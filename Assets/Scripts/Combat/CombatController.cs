@@ -38,7 +38,8 @@ namespace RogueliteAutoBattler.Combat
         private void Awake()
         {
             _mover = GetComponent<CharacterMover>();
-            _animator = GetComponent<Animator>();
+            // Animator lives on the Visual child, not on this root GameObject.
+            _animator = GetComponentInChildren<Animator>();
         }
 
         private void FixedUpdate()
