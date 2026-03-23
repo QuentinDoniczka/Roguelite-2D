@@ -14,11 +14,10 @@ namespace RogueliteAutoBattler.Combat
         [SerializeField] private GameObject _characterPrefab;
 
         [Header("Spawn Positions")]
-        [Tooltip("World X position where the ally spawns.")]
-        [SerializeField] private float _allySpawnX = -1f;
-
-        [Tooltip("World Y position for both spawns.")]
+        [Tooltip("World Y position for ally spawn.")]
         [SerializeField] private float _spawnY = 0f;
+
+        private const float AllyScreenRatio = 0.7f;
 
         [Header("Stats")]
         [Tooltip("CharacterStats asset for the ally.")]
@@ -55,8 +54,11 @@ namespace RogueliteAutoBattler.Combat
             if (scrollManager != null)
                 scrollManager.enabled = false;
 
-            // Spawn ally — prefab already has Root (Rigidbody2D) → Visual (Animator) hierarchy.
-            AllyInstance = Instantiate(_characterPrefab, new Vector3(_allySpawnX, _spawnY, 0f), Quaternion.identity, _teamContainer);
+            // Compute ally spawn from camera so it's always on the left side of the screen.
+            var cam = Camera.main;
+            float allyX = cam != null ? -(cam.orthographicSize * cam.aspect * AllyScreenRatio) : -2f;
+
+            AllyInstance = Instantiate(_characterPrefab, new Vector3(allyX, _spawnY, 0f), Quaternion.identity, _teamContainer);
             AllyInstance.name = AllyName;
             AllyInstance.transform.localScale = FacingRightScale;
 

@@ -27,7 +27,12 @@ namespace RogueliteAutoBattler.Combat
         [Tooltip("Parent transform for the ally team (used to find targets for enemies).")]
         [SerializeField] private Transform _teamContainer;
 
-        private const float BaseEnemySpawnX = 1f;
+        // Spawn positions as % of screen half-width from center.
+        private const float AllyScreenRatio = 0.7f;   // 70% toward left edge
+        private const float EnemyScreenRatio = 0.7f;   // 70% toward right edge
+
+        private float _allySpawnX;
+        private float _enemySpawnX;
 
         private int _aliveEnemyCount;
         private int _pendingWaveCount;
@@ -37,6 +42,7 @@ namespace RogueliteAutoBattler.Combat
         private IEnumerator Start()
         {
             FindContainersIfNeeded();
+            ComputeScreenSpawnPositions();
             ApplyStage(_currentStageIndex);
             // Wait one frame to ensure CombatSpawnManager has spawned the ally.
             yield return null;
@@ -137,7 +143,7 @@ namespace RogueliteAutoBattler.Combat
             }
 
             Vector3 spawnPosition = new Vector3(
-                BaseEnemySpawnX + data.SpawnOffset.x,
+                _enemySpawnX + data.SpawnOffset.x,
                 data.SpawnOffset.y,
                 0f
             );
@@ -261,6 +267,21 @@ namespace RogueliteAutoBattler.Combat
 
             var relay = animator.gameObject.AddComponent<AnimationEventRelay>();
             relay.Initialize(controller);
+        }
+
+        private void ComputeScreenSpawnPositions()
+        {
+            var cam = Camera.main;
+            if (cam == null)
+            {
+                _allySpawnX = -2f;
+                _enemySpawnX = 2f;
+                return;
+            }
+
+            float halfWidth = cam.orthographicSize * cam.aspect;
+            _allySpawnX = -halfWidth * AllyScreenRatio;
+            _enemySpawnX = halfWidth * EnemyScreenRatio;
         }
 
         private void FindContainersIfNeeded()
