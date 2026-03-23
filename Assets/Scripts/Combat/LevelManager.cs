@@ -33,10 +33,12 @@ namespace RogueliteAutoBattler.Combat
         private bool _levelInProgress;
         private bool _allyRetargetWired;
 
-        private void Start()
+        private IEnumerator Start()
         {
             FindContainersIfNeeded();
             ApplyStage(_currentStageIndex);
+            // Wait one frame to ensure CombatSpawnManager has spawned the ally.
+            yield return null;
             StartLevel(_currentLevelIndex);
         }
 
