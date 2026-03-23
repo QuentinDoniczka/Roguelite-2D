@@ -4,7 +4,7 @@ namespace RogueliteAutoBattler.Combat
 {
     /// <summary>
     /// Spawns an ally and an enemy from a shared character prefab at the start of combat,
-    /// then wires a <see cref="CharacterMover"/> on the ally so it walks toward the enemy.
+    /// then wires a <see cref="CombatController"/> on each so they walk toward and attack each other.
     /// </summary>
     public class CombatSpawnManager : MonoBehaviour
     {
@@ -76,8 +76,11 @@ namespace RogueliteAutoBattler.Combat
             );
             EnemyInstance.name = EnemyName;
 
-            var mover = AllyInstance.AddComponent<CharacterMover>();
-            mover.Target = EnemyInstance.transform;
+            var allyController = AllyInstance.AddComponent<CombatController>();
+            allyController.Target = EnemyInstance.transform;
+
+            var enemyController = EnemyInstance.AddComponent<CombatController>();
+            enemyController.Target = AllyInstance.transform;
         }
 
         private void FindContainersIfNeeded()

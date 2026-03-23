@@ -4,7 +4,8 @@ namespace RogueliteAutoBattler.Combat
 {
     /// <summary>
     /// Moves this character along the X axis toward a target Transform using Rigidbody2D velocity.
-    /// Stops when within <see cref="_stoppingDistance"/>. Drives the Animator via Play("Walk"/"Idle").
+    /// Drives the Animator via Play("Walk"/"Idle"). Stop decisions (e.g. attack range) are
+    /// the responsibility of the caller — use <see cref="Stop"/> or disable this component.
     /// </summary>
     [RequireComponent(typeof(Rigidbody2D))]
     public class CharacterMover : MonoBehaviour
@@ -12,9 +13,6 @@ namespace RogueliteAutoBattler.Combat
         [Header("Movement")]
         [Tooltip("Movement speed in world units per second.")]
         [SerializeField] private float _moveSpeed = 2f;
-
-        [Tooltip("Distance at which the character stops approaching the target.")]
-        [SerializeField] private float _stoppingDistance = 0.5f;
 
         private Transform _target;
         private Animator _animator;
@@ -27,9 +25,6 @@ namespace RogueliteAutoBattler.Combat
             get => _target;
             set => _target = value;
         }
-
-        /// <summary>True while the character is actively moving toward its target.</summary>
-        public bool IsMoving => _isMoving;
 
         private void Awake()
         {
@@ -54,17 +49,18 @@ namespace RogueliteAutoBattler.Combat
             }
 
             float deltaX = _target.position.x - transform.position.x;
-
-            if (Mathf.Abs(deltaX) <= _stoppingDistance)
-            {
-                _rb.linearVelocity = Vector2.zero;
-                SetMoving(false);
-                return;
-            }
-
             float dirX = Mathf.Sign(deltaX);
             _rb.linearVelocity = new Vector2(dirX * _moveSpeed, 0f);
             SetMoving(true);
+        }
+
+        /// <summary>
+        /// Immediately zeroes velocity. Does not play any animation — the caller is
+        /// responsible for driving the Animator after this point (e.g. CombatController).
+        /// </summary>
+        public void Stop()
+        {
+            _rb.linearVelocity = Vector2.zero;
         }
 
         private void SetMoving(bool moving)
