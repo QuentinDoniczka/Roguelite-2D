@@ -30,12 +30,20 @@ namespace RogueliteAutoBattler.Combat
             _currentHp = stats.maxHp;
         }
 
+        /// <summary>Fired once when CurrentHp reaches zero.</summary>
+        public event System.Action OnDied;
+
         /// <summary>Reduces CurrentHp by <paramref name="damage"/>, clamped to zero.</summary>
         public void TakeDamage(int damage)
         {
+            if (IsDead) return;
+
             _currentHp = Mathf.Max(0, _currentHp - damage);
             if (IsDead)
+            {
                 Debug.Log($"[CombatStats] {gameObject.name} died!");
+                OnDied?.Invoke();
+            }
         }
 
         private void FixedUpdate()
