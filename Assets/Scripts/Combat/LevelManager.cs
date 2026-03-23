@@ -177,7 +177,7 @@ namespace RogueliteAutoBattler.Combat
             // Wire ally to target this enemy if it has no target yet.
             SetAllyTarget(enemy.transform);
 
-            Debug.Log($"[{nameof(LevelManager)}] Spawned enemy '{data.EnemyName}' at {spawnPosition}");
+            Debug.Log($"[{nameof(LevelManager)}] Spawned enemy '{data.EnemyName}' at local {enemy.transform.localPosition}");
         }
 
 
