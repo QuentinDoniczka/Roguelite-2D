@@ -83,8 +83,11 @@ namespace RogueliteAutoBattler.Combat
             if (_allyStats != null) allyMover.SetMoveSpeed(_allyStats.moveSpeed);
             if (_enemyStats != null) enemyMover.SetMoveSpeed(_enemyStats.moveSpeed);
 
-            AllyInstance.AddComponent<CombatController>();
-            EnemyInstance.AddComponent<CombatController>();
+            var allyController = AllyInstance.AddComponent<CombatController>();
+            var enemyController = EnemyInstance.AddComponent<CombatController>();
+
+            WireAnimationRelay(AllyInstance, allyController);
+            WireAnimationRelay(EnemyInstance, enemyController);
 
             // Wire targets after both exist.
             allyMover.Target = EnemyInstance.transform;
@@ -101,6 +104,18 @@ namespace RogueliteAutoBattler.Combat
 
             var combatStats = character.AddComponent<CombatStats>();
             combatStats.Initialize(stats);
+        }
+
+        private void WireAnimationRelay(GameObject character, CombatController controller)
+        {
+            var animator = character.GetComponentInChildren<Animator>();
+            if (animator == null)
+            {
+                Debug.LogWarning($"[{nameof(CombatSpawnManager)}] No Animator found on {character.name} — AnimationEventRelay not added.");
+                return;
+            }
+            var relay = animator.gameObject.AddComponent<AnimationEventRelay>();
+            relay.Initialize(controller);
         }
 
         private void FindContainersIfNeeded()

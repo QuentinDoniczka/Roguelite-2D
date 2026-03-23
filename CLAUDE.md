@@ -25,7 +25,7 @@
 Doc detaille : `Assets/doc/premier-jet-roguelite.html`
 
 # Project Structure
-Generated: 2026-03-21
+Generated: 2026-03-23
 
 Assets/
 ├── Animations/
@@ -36,9 +36,11 @@ Assets/
 │   └── Wolf/  (4 files)
 ├── Audio/  (empty)
 ├── Data/
-│   ├── Adventurers/  (empty)
+│   ├── Adventurers/
+│   │   └── WarriorStats.asset
 │   ├── Buildings/  (empty)
-│   ├── Enemies/  (empty)
+│   ├── Enemies/
+│   │   └── EnemyStats.asset
 │   └── LootTables/  (empty)
 ├── doc/
 │   ├── MedievalFantasyCharacters/  (14 files)
@@ -56,10 +58,14 @@ Assets/
 ├── Scripts/
 │   ├── Adventurers/  (empty)
 │   ├── Combat/
+│   │   ├── AnimationEventRelay.cs
 │   │   ├── CharacterMover.cs
+│   │   ├── CombatController.cs
 │   │   ├── CombatScrollManager.cs
 │   │   ├── CombatSpawnManager.cs
+│   │   ├── CombatStats.cs
 │   │   ├── GroundFitter.cs
+│   │   ├── HealthBar.cs
 │   │   └── WorldConveyor.cs
 │   ├── Core/  (empty)
 │   ├── Editor/
@@ -68,7 +74,8 @@ Assets/
 │   │   ├── EditorUIFactory.cs
 │   │   └── SetupNavigationSceneEditor.cs
 │   ├── Items/  (empty)
-│   ├── ScriptableObjects/  (empty)
+│   ├── ScriptableObjects/
+│   │   └── CharacterStats.cs
 │   ├── Services/
 │   │   └── Local/  (empty)
 │   ├── UI/
@@ -100,12 +107,12 @@ Assets/
 │   ├── UniversalRenderPipelineGlobalSettings.asset
 │   └── UniversalRP.asset
 ├── Sprites/
-│   ├── Characters/  (156 files)
+│   ├── Characters/  (155 files)
 │   ├── Effects/  (25 files)
 │   ├── Environment/
 │   │   ├── grid_ground.png
 │   │   └── placeholder_white.png
-│   ├── Items/  (54 files)
+│   ├── Items/  (53 files)
 │   └── UI/  (empty)
 └── TextMesh Pro/  (173 files — TMP package: fonts, shaders, examples)
 

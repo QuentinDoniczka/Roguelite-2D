@@ -2,7 +2,6 @@ using UnityEngine;
 
 namespace RogueliteAutoBattler.Combat
 {
-    /// <summary>Combat states a character can be in during auto-battle.</summary>
     public enum CombatState
     {
         None,
@@ -14,7 +13,8 @@ namespace RogueliteAutoBattler.Combat
     /// Manages auto-battle state for a single character. Reads distance to the target
     /// each FixedUpdate and transitions between Moving and Attacking states.
     /// Delegates movement to <see cref="CharacterMover"/> and animation to the Animator.
-    /// Requires <see cref="CombatStats"/> on the same GameObject (added at spawn).
+    /// Damage is dealt via animation event callback (<see cref="OnAnimationHit"/>),
+    /// ensuring visual and logical synchronization.
     /// </summary>
     public class CombatController : MonoBehaviour
     {
@@ -22,12 +22,18 @@ namespace RogueliteAutoBattler.Combat
         [Tooltip("Distance in world units at which the character stops and attacks.")]
         [SerializeField] private float _attackRange = 0.5f;
 
+        private const float ChopAttackDuration = 0.5f;
+        private const string AnimChopAttack = "ChopAttack";
+        private const string AnimIdle = "Idle";
+
         private CharacterMover _mover;
         private Animator _animator;
+        private bool _hasAnimator;
         private CombatStats _stats;
         private CombatStats _targetStats;
         private CombatState _state;
         private float _attackTimer;
+        private bool _waitingForHit;
 
         /// <summary>Current combat state of this character.</summary>
         public CombatState State => _state;
@@ -42,8 +48,8 @@ namespace RogueliteAutoBattler.Combat
         private void Awake()
         {
             _mover = GetComponent<CharacterMover>();
-            // Animator lives on the Visual child, not on this root GameObject.
             _animator = GetComponentInChildren<Animator>();
+            _hasAnimator = _animator != null;
             _stats = GetComponent<CombatStats>();
         }
 
@@ -59,14 +65,11 @@ namespace RogueliteAutoBattler.Combat
             else
                 SetState(CombatState.Moving);
 
-            if (_state == CombatState.Attacking)
+            if (_state == CombatState.Attacking && !_waitingForHit)
             {
                 _attackTimer -= Time.fixedDeltaTime;
                 if (_attackTimer <= 0f)
-                {
-                    Attack();
-                    _attackTimer = 1f / _stats.BaseStats.attackSpeed;
-                }
+                    StartAttackSwing();
             }
         }
 
@@ -81,7 +84,8 @@ namespace RogueliteAutoBattler.Combat
             {
                 case CombatState.Moving:
                     _mover.enabled = true;
-                    if (_animator != null)
+                    _waitingForHit = false;
+                    if (_hasAnimator)
                         _animator.speed = 1f;
                     break;
 
@@ -91,25 +95,55 @@ namespace RogueliteAutoBattler.Combat
                     _targetStats = _mover.Target != null
                         ? _mover.Target.GetComponent<CombatStats>()
                         : null;
-                    _attackTimer = 0f; // attack immediately on first hit
-                    if (_animator != null && _stats != null)
-                    {
-                        _animator.speed = _stats.BaseStats.attackSpeed;
-                        _animator.Play("ChopAttack");
-                    }
+                    _attackTimer = 0f; // attack immediately on first transition
                     break;
             }
         }
 
-        private void Attack()
+        private void StartAttackSwing()
         {
-            if (_targetStats != null && !_targetStats.IsDead)
+            if (_stats == null || _stats.BaseStats == null || _stats.BaseStats.attackSpeed <= 0f)
+                return;
+
+            _waitingForHit = true;
+
+            float attackInterval = 1f / _stats.BaseStats.attackSpeed;
+            float animSpeed = attackInterval < ChopAttackDuration
+                ? ChopAttackDuration / attackInterval
+                : 1f;
+
+            if (_hasAnimator)
+            {
+                _animator.speed = animSpeed;
+                _animator.Play(AnimChopAttack, -1, 0f);
+            }
+        }
+
+        /// <summary>
+        /// Called by <see cref="AnimationEventRelay"/> when the attack animation
+        /// reaches the hit frame. Deals damage and returns to idle.
+        /// </summary>
+        public void OnAnimationHit()
+        {
+            if (!_waitingForHit)
+                return;
+
+            _waitingForHit = false;
+
+            if (_stats != null && _targetStats != null && !_targetStats.IsDead)
             {
                 _targetStats.TakeDamage(_stats.BaseStats.atk);
                 Debug.Log($"[Attack] {name} hits {_targetStats.gameObject.name} for {_stats.BaseStats.atk} dmg. HP: {_targetStats.CurrentHp}/{_targetStats.MaxHp}");
-                if (_animator != null)
-                    _animator.Play("ChopAttack", -1, 0f); // restart from beginning
             }
+
+            if (_hasAnimator)
+            {
+                _animator.speed = 1f;
+                _animator.Play(AnimIdle);
+            }
+
+            if (_stats != null && _stats.BaseStats != null)
+                _attackTimer = 1f / _stats.BaseStats.attackSpeed;
         }
     }
 }
