@@ -129,8 +129,6 @@ namespace RogueliteAutoBattler.Combat
                         : null;
                     if (_targetStats != null)
                         _targetStats.OnDied += HandleTargetDied;
-
-                    _attackTimer = 0f; // attack immediately on first transition
                     break;
 
                 case CombatState.Dead:

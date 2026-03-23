@@ -155,16 +155,17 @@ namespace RogueliteAutoBattler.Combat
             var mover = enemy.AddComponent<CharacterMover>();
             mover.SetMoveSpeed(data.MoveSpeed);
 
-            Transform allyTarget = FindFirstAliveAlly();
+            var enemyTransform = enemy.transform;
+            Transform allyTarget = FindClosestAliveIn(_teamContainer, enemyTransform.position);
             if (allyTarget != null)
                 mover.Target = allyTarget;
             else
                 Debug.LogWarning($"[{nameof(LevelManager)}] No alive ally found for enemy '{data.EnemyName}' to target.");
 
-            // CombatController — set attack range, wire retarget delegate.
+            // CombatController — set attack range, wire retarget delegate with closure on position.
             var controller = enemy.AddComponent<CombatController>();
             controller.SetAttackRange(data.AttackRange);
-            controller.FindNewTarget = FindFirstAliveAlly;
+            controller.FindNewTarget = () => FindClosestAliveIn(_teamContainer, enemyTransform.position);
 
             // AnimationEventRelay — wire animation events to the controller.
             WireAnimationRelay(enemy, controller);
@@ -176,38 +177,32 @@ namespace RogueliteAutoBattler.Combat
         }
 
         /// <summary>
-        /// Finds the first alive ally in the team container (has CombatStats and is not dead).
+        /// Finds the closest alive ally to the caller.
+        /// Since FindNewTarget is a Func&lt;Transform&gt; with no parameters,
+        /// we search relative to the calling enemy's position via the enemies container.
         /// </summary>
-        private Transform FindFirstAliveAlly()
+        private Transform FindClosestAliveIn(Transform container, Vector3 from)
         {
-            if (_teamContainer == null)
+            if (container == null)
                 return null;
 
-            for (int i = 0; i < _teamContainer.childCount; i++)
+            Transform closest = null;
+            float closestDist = float.MaxValue;
+
+            foreach (Transform child in container)
             {
-                var child = _teamContainer.GetChild(i);
-                if (child.TryGetComponent<CombatStats>(out var stats) && !stats.IsDead)
-                    return child;
+                if (!child.TryGetComponent<CombatStats>(out var stats) || stats.IsDead)
+                    continue;
+
+                float dist = Vector2.Distance(from, child.position);
+                if (dist < closestDist)
+                {
+                    closestDist = dist;
+                    closest = child;
+                }
             }
 
-            return null;
-        }
-
-        /// <summary>
-        /// Finds the first alive enemy in the enemies container.
-        /// </summary>
-        private Transform FindFirstAliveEnemy()
-        {
-            if (_enemiesContainer == null)
-                return null;
-
-            foreach (Transform child in _enemiesContainer)
-            {
-                if (child.TryGetComponent<CombatStats>(out var stats) && !stats.IsDead)
-                    return child;
-            }
-
-            return null;
+            return closest;
         }
 
         /// <summary>
@@ -216,26 +211,33 @@ namespace RogueliteAutoBattler.Combat
         /// </summary>
         private void SetAllyTarget(Transform firstEnemy)
         {
-            Transform allyTransform = FindFirstAliveAlly();
-            if (allyTransform == null)
+            if (_teamContainer == null)
                 return;
 
-            if (!allyTransform.TryGetComponent<CharacterMover>(out var allyMover))
-                return;
-
-            // Assign target if ally has none or current target is dead
-            bool needsTarget = allyMover.Target == null;
-            if (!needsTarget && allyMover.Target.TryGetComponent<CombatStats>(out var targetStats))
-                needsTarget = targetStats.IsDead;
-
-            if (needsTarget)
-                allyMover.Target = firstEnemy;
-
-            // Wire retarget delegate once
-            if (!_allyRetargetWired && allyTransform.TryGetComponent<CombatController>(out var allyController))
+            for (int i = 0; i < _teamContainer.childCount; i++)
             {
-                allyController.FindNewTarget = FindFirstAliveEnemy;
-                _allyRetargetWired = true;
+                var allyTransform = _teamContainer.GetChild(i);
+                if (!allyTransform.TryGetComponent<CombatStats>(out var allyStats) || allyStats.IsDead)
+                    continue;
+
+                if (!allyTransform.TryGetComponent<CharacterMover>(out var allyMover))
+                    continue;
+
+                // Assign target if ally has none or current target is dead
+                bool needsTarget = allyMover.Target == null;
+                if (!needsTarget && allyMover.Target.TryGetComponent<CombatStats>(out var targetStats))
+                    needsTarget = targetStats.IsDead;
+
+                if (needsTarget)
+                    allyMover.Target = firstEnemy;
+
+                // Wire retarget delegate once (closure captures ally position)
+                if (!_allyRetargetWired && allyTransform.TryGetComponent<CombatController>(out var allyController))
+                {
+                    var allyRef = allyTransform;
+                    allyController.FindNewTarget = () => FindClosestAliveIn(_enemiesContainer, allyRef.position);
+                    _allyRetargetWired = true;
+                }
             }
         }
 
