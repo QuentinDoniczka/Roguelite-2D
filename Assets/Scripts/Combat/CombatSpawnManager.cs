@@ -23,6 +23,10 @@ namespace RogueliteAutoBattler.Combat
         [Tooltip("World Y position for both spawns.")]
         [SerializeField] private float _spawnY = 0f;
 
+        [Header("Stats")]
+        [Tooltip("Default CharacterStats asset applied to both ally and enemy at spawn.")]
+        [SerializeField] private CharacterStats _defaultStats;
+
         [Header("Containers")]
         [SerializeField] private Transform _teamContainer;
         [SerializeField] private Transform _enemiesContainer;
@@ -68,6 +72,22 @@ namespace RogueliteAutoBattler.Combat
 
             AllyInstance.AddComponent<CombatController>();
             EnemyInstance.AddComponent<CombatController>();
+
+            // Initialize stats before wiring targets so CombatController can read them immediately.
+            if (_defaultStats != null)
+            {
+                var allyStats = AllyInstance.AddComponent<CombatStats>();
+                allyStats.Initialize(_defaultStats);
+                allyMover.SetMoveSpeed(_defaultStats.moveSpeed);
+
+                var enemyStats = EnemyInstance.AddComponent<CombatStats>();
+                enemyStats.Initialize(_defaultStats);
+                enemyMover.SetMoveSpeed(_defaultStats.moveSpeed);
+            }
+            else
+            {
+                Debug.LogWarning($"[{nameof(CombatSpawnManager)}] No CharacterStats assigned — characters will have no stats!", this);
+            }
 
             // Wire targets after both exist.
             allyMover.Target = EnemyInstance.transform;

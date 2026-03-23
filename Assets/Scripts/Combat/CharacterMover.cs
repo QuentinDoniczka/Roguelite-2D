@@ -53,6 +53,12 @@ namespace RogueliteAutoBattler.Combat
             SetMoving(true);
         }
 
+        /// <summary>Overrides the serialized move speed at runtime (set from stats on spawn).</summary>
+        public void SetMoveSpeed(float speed)
+        {
+            _moveSpeed = speed;
+        }
+
         /// <summary>Immediately zeroes velocity.</summary>
         public void Stop()
         {

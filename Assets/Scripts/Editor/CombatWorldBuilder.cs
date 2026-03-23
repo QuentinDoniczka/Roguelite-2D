@@ -157,6 +157,13 @@ namespace RogueliteAutoBattler.Editor
             else
                 Debug.LogWarning($"[{nameof(CombatWorldBuilder)}] sampleCharacterHuman.prefab not found — assign _characterPrefab manually.");
 
+            // Auto-assign default stats.
+            var defaultStats = AssetDatabase.LoadAssetAtPath<CharacterStats>("Assets/Data/Adventurers/WarriorStats.asset");
+            if (defaultStats != null)
+                EditorUIFactory.SetObj(soSpawnManager, "_defaultStats", defaultStats);
+            else
+                Debug.LogWarning($"[{nameof(CombatWorldBuilder)}] WarriorStats.asset not found — assign _defaultStats manually.");
+
             soSpawnManager.ApplyModifiedProperties();
 
             return root;

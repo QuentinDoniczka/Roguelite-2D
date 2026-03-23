@@ -14,6 +14,7 @@ namespace RogueliteAutoBattler.Combat
     /// Manages auto-battle state for a single character. Reads distance to the target
     /// each FixedUpdate and transitions between Moving and Attacking states.
     /// Delegates movement to <see cref="CharacterMover"/> and animation to the Animator.
+    /// Requires <see cref="CombatStats"/> on the same GameObject (added at spawn).
     /// </summary>
     public class CombatController : MonoBehaviour
     {
@@ -23,7 +24,10 @@ namespace RogueliteAutoBattler.Combat
 
         private CharacterMover _mover;
         private Animator _animator;
+        private CombatStats _stats;
+        private CombatStats _targetStats;
         private CombatState _state;
+        private float _attackTimer;
 
         /// <summary>Current combat state of this character.</summary>
         public CombatState State => _state;
@@ -40,6 +44,7 @@ namespace RogueliteAutoBattler.Combat
             _mover = GetComponent<CharacterMover>();
             // Animator lives on the Visual child, not on this root GameObject.
             _animator = GetComponentInChildren<Animator>();
+            _stats = GetComponent<CombatStats>();
         }
 
         private void FixedUpdate()
@@ -53,6 +58,16 @@ namespace RogueliteAutoBattler.Combat
                 SetState(CombatState.Attacking);
             else
                 SetState(CombatState.Moving);
+
+            if (_state == CombatState.Attacking)
+            {
+                _attackTimer -= Time.fixedDeltaTime;
+                if (_attackTimer <= 0f)
+                {
+                    Attack();
+                    _attackTimer = 1f / _stats.BaseStats.attackSpeed;
+                }
+            }
         }
 
         private void SetState(CombatState newState)
@@ -66,14 +81,33 @@ namespace RogueliteAutoBattler.Combat
             {
                 case CombatState.Moving:
                     _mover.enabled = true;
+                    if (_animator != null)
+                        _animator.speed = 1f;
                     break;
 
                 case CombatState.Attacking:
                     _mover.Stop();
                     _mover.enabled = false;
-                    if (_animator != null)
+                    _targetStats = _mover.Target != null
+                        ? _mover.Target.GetComponent<CombatStats>()
+                        : null;
+                    _attackTimer = 0f; // attack immediately on first hit
+                    if (_animator != null && _stats != null)
+                    {
+                        _animator.speed = _stats.BaseStats.attackSpeed;
                         _animator.Play("ChopAttack");
+                    }
                     break;
+            }
+        }
+
+        private void Attack()
+        {
+            if (_targetStats != null && !_targetStats.IsDead)
+            {
+                _targetStats.TakeDamage(_stats.BaseStats.atk);
+                if (_animator != null)
+                    _animator.Play("ChopAttack", -1, 0f); // restart from beginning
             }
         }
     }
