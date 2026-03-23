@@ -1,4 +1,5 @@
 using RogueliteAutoBattler.Combat;
+using RogueliteAutoBattler.Data;
 using UnityEditor;
 using UnityEngine;
 
@@ -184,6 +185,17 @@ namespace RogueliteAutoBattler.Editor
                 EditorUIFactory.SetObj(soSpawnManager, "_enemyStats", enemyStats);
 
             soSpawnManager.ApplyModifiedProperties();
+
+            // LevelManager reads the LevelDatabase at runtime and swaps the ground sprite.
+            var levelManager = root.AddComponent<LevelManager>();
+            var soLevelManager = new SerializedObject(levelManager);
+            EditorUIFactory.SetObj(soLevelManager, "_groundRenderer", groundRenderer);
+
+            var levelDb = AssetDatabase.LoadAssetAtPath<LevelDatabase>("Assets/Data/LevelDatabase.asset");
+            if (levelDb != null)
+                EditorUIFactory.SetObj(soLevelManager, "_levelDatabase", levelDb);
+
+            soLevelManager.ApplyModifiedProperties();
 
             return root;
         }
