@@ -4,6 +4,12 @@ using UnityEngine;
 
 namespace RogueliteAutoBattler.Data
 {
+    public enum AttackType
+    {
+        Melee,
+        Range
+    }
+
     [Serializable]
     public class StageData
     {
@@ -50,6 +56,8 @@ namespace RogueliteAutoBattler.Data
         [SerializeField] private int atk = 10;
         [SerializeField] private float attackSpeed = 1f;
         [SerializeField] private float moveSpeed = 2f;
+        [SerializeField] private float attackRange = 0.5f;
+        [SerializeField] private AttackType attackType = AttackType.Melee;
         [SerializeField] private Vector2 spawnOffset;
 
         public string EnemyName => enemyName;
@@ -58,6 +66,8 @@ namespace RogueliteAutoBattler.Data
         public int Atk => atk;
         public float AttackSpeed => attackSpeed;
         public float MoveSpeed => moveSpeed;
+        public float AttackRange => attackRange;
+        public AttackType AttackType => attackType;
         public Vector2 SpawnOffset => spawnOffset;
     }
 }

@@ -459,6 +459,8 @@ namespace RogueliteAutoBattler.Editor
                     newEnemy.FindPropertyRelative("atk").intValue            = 10;
                     newEnemy.FindPropertyRelative("attackSpeed").floatValue  = 1f;
                     newEnemy.FindPropertyRelative("moveSpeed").floatValue    = 2f;
+                    newEnemy.FindPropertyRelative("attackRange").floatValue  = 0.5f;
+                    newEnemy.FindPropertyRelative("attackType").enumValueIndex = 0;
                     newEnemy.FindPropertyRelative("spawnOffset").vector2Value = Vector2.zero;
 
                     var defaultPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(DefaultEnemyPrefabPath);
@@ -523,6 +525,8 @@ namespace RogueliteAutoBattler.Editor
             var atkProp             = enemyProp.FindPropertyRelative("atk");
             var attackSpeedProp     = enemyProp.FindPropertyRelative("attackSpeed");
             var moveSpeedProp       = enemyProp.FindPropertyRelative("moveSpeed");
+            var attackRangeProp     = enemyProp.FindPropertyRelative("attackRange");
+            var attackTypeProp      = enemyProp.FindPropertyRelative("attackType");
             var spawnOffsetProp     = enemyProp.FindPropertyRelative("spawnOffset");
 
             if (hpProp != null)
@@ -544,6 +548,17 @@ namespace RogueliteAutoBattler.Editor
                 moveSpeedProp.floatValue = EditorGUILayout.FloatField("Move Speed", moveSpeedProp.floatValue);
             else
                 Debug.LogError("[LevelEditor] Property 'moveSpeed' not found on EnemySpawnData.");
+
+            if (attackRangeProp != null)
+                attackRangeProp.floatValue = EditorGUILayout.FloatField("Attack Range", attackRangeProp.floatValue);
+            else
+                Debug.LogError("[LevelEditor] Property 'attackRange' not found on EnemySpawnData.");
+
+            if (attackTypeProp != null)
+                attackTypeProp.enumValueIndex = (int)(AttackType)EditorGUILayout.EnumPopup(
+                    "Attack Type", (AttackType)attackTypeProp.enumValueIndex);
+            else
+                Debug.LogError("[LevelEditor] Property 'attackType' not found on EnemySpawnData.");
 
             if (spawnOffsetProp != null)
                 spawnOffsetProp.vector2Value = EditorGUILayout.Vector2Field("Spawn Offset", spawnOffsetProp.vector2Value);
