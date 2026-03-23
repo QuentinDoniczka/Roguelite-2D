@@ -31,9 +31,12 @@ namespace RogueliteAutoBattler.Data
     public class WaveData
     {
         [SerializeField] private string waveName = "Wave";
+        [SerializeField] [Tooltip("Delay in seconds before this wave spawns (Wave 1 is always 0).")]
+        private float spawnDelay;
         [SerializeField] private List<EnemySpawnData> enemies = new List<EnemySpawnData>();
 
         public string WaveName => waveName;
+        public float SpawnDelay => spawnDelay;
         public List<EnemySpawnData> Enemies => enemies;
     }
 

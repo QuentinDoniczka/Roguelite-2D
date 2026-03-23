@@ -369,6 +369,7 @@ namespace RogueliteAutoBattler.Editor
                     wavesProp.arraySize++;
                     var newWave = wavesProp.GetArrayElementAtIndex(wavesProp.arraySize - 1);
                     newWave.FindPropertyRelative("waveName").stringValue = $"Wave {wavesProp.arraySize}";
+                    newWave.FindPropertyRelative("spawnDelay").floatValue = 0f;
                     newWave.FindPropertyRelative("enemies").arraySize    = 0;
                     EditorUtility.SetDirty(_database);
                 }
@@ -408,6 +409,18 @@ namespace RogueliteAutoBattler.Editor
                 GUILayout.Height(WaveHeaderHeight));
 
             GUILayout.Label($"Wave {wi + 1}", EditorStyles.boldLabel, GUILayout.Width(60));
+
+            // Spawn delay — wave 1 is always 0 and non-editable
+            var delayProp = waveProp.FindPropertyRelative("spawnDelay");
+            bool isFirstWave = (wi == 0);
+            if (isFirstWave)
+                delayProp.floatValue = 0f;
+
+            EditorGUI.BeginDisabledGroup(isFirstWave);
+            GUILayout.Label("Delay:", GUILayout.Width(40));
+            delayProp.floatValue = EditorGUILayout.FloatField(delayProp.floatValue, GUILayout.Width(50));
+            GUILayout.Label("s", GUILayout.Width(12));
+            EditorGUI.EndDisabledGroup();
 
             if (GUILayout.Button("-", GUILayout.Width(SmallButtonWidth), GUILayout.Height(WaveHeaderHeight - 4)))
             {
