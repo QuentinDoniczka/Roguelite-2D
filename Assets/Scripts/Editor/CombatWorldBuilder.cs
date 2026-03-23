@@ -28,6 +28,23 @@ namespace RogueliteAutoBattler.Editor
         private static readonly Color32 GridColorA = new Color32(45, 90, 39, 255);   // #2d5a27
         private static readonly Color32 GridColorB = new Color32(61, 122, 55, 255);  // #3d7a37
 
+        // Blue variant for alternate terrain.
+        private const string GridBlueSpritePath = "Assets/Sprites/Environment/grid_ground_blue.png";
+        private static readonly Color32 GridBlueColorA = new Color32(30, 60, 120, 255);  // #1e3c78
+        private static readonly Color32 GridBlueColorB = new Color32(45, 85, 160, 255);  // #2d55a0
+
+        // ------------------------------------------------------------------
+        // Generate terrain sprites
+        // ------------------------------------------------------------------
+
+        [MenuItem("Roguelite/Generate Terrain Sprites")]
+        private static void GenerateAllTerrainSprites()
+        {
+            CreateOrLoadGridSprite();
+            CreateOrLoadBlueGridSprite();
+            Debug.Log("[CombatWorldBuilder] Terrain sprites generated in Assets/Sprites/Environment/");
+        }
+
         // ------------------------------------------------------------------
         // Camera
         // ------------------------------------------------------------------
@@ -180,16 +197,27 @@ namespace RogueliteAutoBattler.Editor
         /// as a Sprite with Repeat wrap mode and FullRect mesh so SpriteDrawMode.Tiled works.
         /// Returns the imported Sprite asset.
         /// </summary>
+        /// <summary>
+        /// Creates or loads the blue checkerboard grid sprite (alternate terrain).
+        /// </summary>
+        internal static Sprite CreateOrLoadBlueGridSprite()
+        {
+            return CreateOrLoadCheckerboardSprite(GridBlueSpritePath, GridBlueColorA, GridBlueColorB);
+        }
+
         internal static Sprite CreateOrLoadGridSprite()
         {
-            // Re-use existing asset if already imported correctly.
-            Sprite existing = AssetDatabase.LoadAssetAtPath<Sprite>(GridSpritePath);
+            return CreateOrLoadCheckerboardSprite(GridSpritePath, GridColorA, GridColorB);
+        }
+
+        private static Sprite CreateOrLoadCheckerboardSprite(string path, Color32 colorA, Color32 colorB)
+        {
+            Sprite existing = AssetDatabase.LoadAssetAtPath<Sprite>(path);
             if (existing != null)
                 return existing;
 
-            EditorUIFactory.EnsureDirectoryExists(GridSpritePath);
+            EditorUIFactory.EnsureDirectoryExists(path);
 
-            // Build the checkerboard texture in memory.
             var tex = new Texture2D(GridTextureSize, GridTextureSize, TextureFormat.RGBA32, false);
             var pixels = new Color32[GridTextureSize * GridTextureSize];
 
@@ -199,21 +227,19 @@ namespace RogueliteAutoBattler.Editor
                 {
                     int cellX = x / GridCellSize;
                     int cellY = y / GridCellSize;
-                    pixels[y * GridTextureSize + x] = ((cellX + cellY) % 2 == 0) ? GridColorA : GridColorB;
+                    pixels[y * GridTextureSize + x] = ((cellX + cellY) % 2 == 0) ? colorA : colorB;
                 }
             }
 
             tex.SetPixels32(pixels);
             tex.Apply();
 
-            System.IO.File.WriteAllBytes(GridSpritePath, tex.EncodeToPNG());
+            System.IO.File.WriteAllBytes(path, tex.EncodeToPNG());
             Object.DestroyImmediate(tex);
 
-            // First import — sets the raw asset type.
-            AssetDatabase.ImportAsset(GridSpritePath, ImportAssetOptions.ForceUpdate);
+            AssetDatabase.ImportAsset(path, ImportAssetOptions.ForceUpdate);
 
-            // Configure the importer for tiled sprite use.
-            var importer = (TextureImporter)AssetImporter.GetAtPath(GridSpritePath);
+            var importer = (TextureImporter)AssetImporter.GetAtPath(path);
             if (importer != null)
             {
                 importer.textureType = TextureImporterType.Sprite;
@@ -223,7 +249,6 @@ namespace RogueliteAutoBattler.Editor
                 importer.wrapMode = TextureWrapMode.Repeat;
                 importer.textureCompression = TextureImporterCompression.Uncompressed;
 
-                // FullRect mesh is required for SpriteDrawMode.Tiled to function.
                 var spriteSettings = new TextureImporterSettings();
                 importer.ReadTextureSettings(spriteSettings);
                 spriteSettings.spriteMeshType = SpriteMeshType.FullRect;
@@ -232,7 +257,7 @@ namespace RogueliteAutoBattler.Editor
                 importer.SaveAndReimport();
             }
 
-            return AssetDatabase.LoadAssetAtPath<Sprite>(GridSpritePath);
+            return AssetDatabase.LoadAssetAtPath<Sprite>(path);
         }
     }
 }
