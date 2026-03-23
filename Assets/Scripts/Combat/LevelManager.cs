@@ -27,9 +27,7 @@ namespace RogueliteAutoBattler.Combat
         [Tooltip("Parent transform for the ally team (used to find targets for enemies).")]
         [SerializeField] private Transform _teamContainer;
 
-        // Spawn positions as % of screen half-width from center.
-        private const float AllyScreenRatio = 0.7f;   // 70% toward left edge
-        private const float EnemyScreenRatio = 0.7f;   // 70% toward right edge
+        private const float BaseEnemySpawnX = 1f;
 
         private int _aliveEnemyCount;
         private int _pendingWaveCount;
@@ -138,10 +136,13 @@ namespace RogueliteAutoBattler.Combat
                 return;
             }
 
-            float localX = ScreenXToLocal(EnemyScreenRatio, false) + data.SpawnOffset.x;
+            Vector3 spawnPosition = new Vector3(
+                BaseEnemySpawnX + data.SpawnOffset.x,
+                data.SpawnOffset.y,
+                0f
+            );
 
-            GameObject enemy = Instantiate(data.Prefab, Vector3.zero, Quaternion.identity, _enemiesContainer);
-            enemy.transform.localPosition = new Vector3(localX, data.SpawnOffset.y, 0f);
+            GameObject enemy = Instantiate(data.Prefab, spawnPosition, Quaternion.identity, _enemiesContainer);
             enemy.name = data.EnemyName;
 
             // CombatStats — direct initialization from EnemySpawnData values (no SO needed).
@@ -177,7 +178,7 @@ namespace RogueliteAutoBattler.Combat
             // Wire ally to target this enemy if it has no target yet.
             SetAllyTarget(enemy.transform);
 
-            Debug.Log($"[{nameof(LevelManager)}] Spawned enemy '{data.EnemyName}' at local {enemy.transform.localPosition}");
+            Debug.Log($"[{nameof(LevelManager)}] Spawned enemy '{data.EnemyName}' at {spawnPosition}");
         }
 
 
@@ -260,19 +261,6 @@ namespace RogueliteAutoBattler.Combat
 
             var relay = animator.gameObject.AddComponent<AnimationEventRelay>();
             relay.Initialize(controller);
-        }
-
-        /// <summary>
-        /// Converts a screen-relative X position to CombatWorld local X.
-        /// Accounts for CombatWorld's current scroll offset.
-        /// </summary>
-        private float ScreenXToLocal(float screenRatio, bool leftSide)
-        {
-            var cam = Camera.main;
-            float halfWidth = cam != null ? cam.orthographicSize * cam.aspect : 3f;
-            float worldX = leftSide ? -halfWidth * screenRatio : halfWidth * screenRatio;
-            // Convert world position to CombatWorld local
-            return worldX - transform.position.x;
         }
 
         private void FindContainersIfNeeded()

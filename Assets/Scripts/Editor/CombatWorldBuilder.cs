@@ -132,17 +132,21 @@ namespace RogueliteAutoBattler.Editor
                 Debug.LogWarning($"[{nameof(CombatWorldBuilder)}] Shader 'Sprite-Unlit-Default' not found. Ground may render black.");
             groundGo.AddComponent<GroundFitter>();
 
-            // Team and Enemies containers under CombatWorld (move with the conveyor).
-            // Spawn positions are computed in screen-space and converted to local coords.
+            // Team container — place adventurer prefabs here.
+            // Every SpriteRenderer in this subtree must use sorting layer "Characters".
             var teamGo = new GameObject(CombatSpawnManager.TeamContainerName);
             teamGo.transform.SetParent(root.transform, false);
             Undo.RegisterCreatedObjectUndo(teamGo, "Create CombatWorld");
 
+            // Enemies container — place enemy prefabs here.
+            // Every SpriteRenderer in this subtree must use sorting layer "Characters".
             var enemiesGo = new GameObject(CombatSpawnManager.EnemiesContainerName);
             enemiesGo.transform.SetParent(root.transform, false);
             Undo.RegisterCreatedObjectUndo(enemiesGo, "Create CombatWorld");
 
             // Effects container — VFX, projectiles, hit-sparks, etc.
+            // SpriteRenderers here should use sorting layer "Effects" (order 4) so they
+            // render on top of characters.
             var fxGo = new GameObject("Effects");
             fxGo.transform.SetParent(root.transform, false);
             Undo.RegisterCreatedObjectUndo(fxGo, "Create CombatWorld");
