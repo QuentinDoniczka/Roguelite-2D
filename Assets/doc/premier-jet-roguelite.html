@@ -107,6 +107,61 @@
     <p class="note">A investiguer : Unity supporte le borderless natif. Pour l'overlay always-on-top par-dessus les jeux fullscreen, il faudra potentiellement un plugin natif Windows (SetWindowPos / TOPMOST) ou un wrapper. A tester en V1.</p>
 </div>
 <div class="section">
+    <h2>2b. Strategie Backend — Phase Client-Only (V1-V4)</h2>
+
+    <p class="note">V1 a V4 : pas de backend. Toutes les donnees sont mockees ou en dur cote client Unity. Le vrai backend (ASP.NET Core + PostgreSQL) sera implemente en V5.</p>
+
+    <table>
+        <tr>
+            <th>Donnee</th>
+            <th>Strategie V1-V4</th>
+            <th>Strategie V5 (backend reel)</th>
+        </tr>
+        <tr>
+            <td>Loot / drops</td>
+            <td>ScriptableObjects avec tables de loot en dur</td>
+            <td>LootService API — generation serveur, anti-triche</td>
+        </tr>
+        <tr>
+            <td>Stats ennemis</td>
+            <td>ScriptableObjects avec stats par palier</td>
+            <td>Base de donnees, scaling serveur</td>
+        </tr>
+        <tr>
+            <td>Progression / paliers</td>
+            <td>Donnees locales (PlayerPrefs ou fichier JSON local)</td>
+            <td>ProgressService API — sauvegarde serveur</td>
+        </tr>
+        <tr>
+            <td>Auth / comptes</td>
+            <td>Pas d'auth, profil local unique</td>
+            <td>AuthService API — JWT, comptes, cross-device</td>
+        </tr>
+        <tr>
+            <td>Combat validation</td>
+            <td>Pas de validation, client fait foi</td>
+            <td>CombatService API — serveur autoritaire</td>
+        </tr>
+        <tr>
+            <td>Farm offline</td>
+            <td>Calcul local au retour (temps ecoule x stats)</td>
+            <td>OfflineSimulator API — simulation serveur</td>
+        </tr>
+        <tr>
+            <td>Leaderboard</td>
+            <td>Pas de leaderboard</td>
+            <td>LeaderboardService API — classement serveur</td>
+        </tr>
+        <tr>
+            <td>Monnaie / gems</td>
+            <td>Compteurs locaux</td>
+            <td>Transactions validees serveur</td>
+        </tr>
+    </table>
+
+    <p>Cette strategie permet de developper et tester 100% du gameplay sans infrastructure serveur. Les interfaces (Services) seront concues pour etre facilement remplacees par des appels API en V5 (pattern Strategy ou injection de dependances).</p>
+</div>
+<div class="section">
     <h2>3. Architecture</h2>
     <div style="max-width: 550px; margin: 20px auto;">
         <div class="archi-layer">
@@ -271,7 +326,7 @@
     <h2>7. Roadmap</h2>
 
     <h3><span class="version-tag vf">V1</span> Socle Minimal</h3>
-    <p>1 guerrier (ATK, PV, regen PV, vitesse attaque), avance gauche&rarr;droite, 1 ennemi par palier, palier suivant si tue / retour si mort. HUD bas avec stats + equipement. Loot basique au kill.</p>
+    <p><strong>100% client, donnees mockees.</strong> 1 guerrier (ATK, PV, regen PV, vitesse attaque), avance gauche&rarr;droite, 1 ennemi par palier, palier suivant si tue / retour si mort. HUD bas avec stats + equipement. Loot basique au kill.</p>
 
     <h3><span class="version-tag">V2</span> Equipe &amp; Classes</h3>
     <p>Centre de Recrutement + Caserne. 5 classes, rangs F&rarr;S, stats aleatoires controlees, bonus/malus. Equipe upgradeable. Skills manuels. Plusieurs ennemis par palier.</p>
@@ -283,7 +338,7 @@
     <p>Systeme de traits. Temple des Benedictions. Centre Entrainement (niveaux IA). Forge avancee (stats cachees, stats bonus). Arbre de competences permanent.</p>
 
     <h3><span class="version-tag">V5</span> Monetisation &amp; Online</h3>
-    <p>Pubs rewarded, pass anti-pub, cosmetiques+stats, shop gems. Leaderboard hebdo. Farm offline (simulation serveur). Auth + sauvegarde serveur + anti-triche.</p>
+    <p><strong>Backend reel (ASP.NET Core + PostgreSQL).</strong> Remplacement des mocks par les vrais services API. Auth complete + sauvegarde serveur + anti-triche. Farm offline (simulation serveur). Leaderboard hebdo. Pubs rewarded, pass anti-pub, cosmetiques+stats, shop gems.</p>
 
     <h3><span class="version-tag">V+</span> Futures</h3>
     <p>Guildes, events, boss hebdo, PvP indirect, nouveaux batiments, nouvelles classes...</p>
@@ -622,7 +677,7 @@
         <div class="story">US-06 : Loot basique au kill, inventaire inline dans ecran combat</div>
         <div class="story">US-07 : Equiper un item sur le guerrier</div>
         <div class="story">US-08 : Setup Unity 2D + pipeline CI/CD GitHub Actions</div>
-        <div class="story">US-09 : Setup API ASP.NET Core + PostgreSQL + Docker</div>
+        <div class="story">US-09 : <s>Setup API ASP.NET Core + PostgreSQL + Docker</s> <em>(reporte en V5 — V1 utilise des donnees mockees/en dur)</em></div>
         <div class="story">US-10 : Version desktop : mode borderless overlay (always-on-top) ou fallback borderless window</div>
     </div>
 

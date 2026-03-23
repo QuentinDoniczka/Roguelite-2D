@@ -19,20 +19,34 @@ Gameplay : recruter aventuriers → equiper → combat auto (gauche→droite) + 
 | Agent | Role |
 |-------|------|
 | `github-boards` | Gestion GitHub Projects : creer/lire/modifier les work items (Milestones = Epics, Issues = features), decomposer des features, gerer les etats (Todo, In Progress, Done). |
-| `git-unity` | Gestion git complete : verifier l'etat du repo, preparer les branches feature depuis master, commiter (conventional commits), push sur demande. Ne push jamais sauf demande explicite. |
+| `git-unity` | Gestion git complete : verifier l'etat du repo, preparer les branches feature depuis dev, commiter (conventional commits), push, creer PR, et merger PR (squash merge si CI verte). |
 | `leaddev-unity` | Analyser la structure, planifier l'architecture (client/serveur/2D), lister classes/fonctions a creer ou modifier |
-| `dev-unity` | Implementer le code Unity 2D (classes, fonctions, SO, MonoBehaviours, DTOs, services API...) |
+| `dev-ux-unity` | **Agent principal pour tout ce qui est visuel/scene/UI.** Editor scripts, Canvas/HUD layout, hierarchie scene, world-space setup (CombatWorld, backgrounds), prefab wiring, configuration camera. Utilise AVANT `dev-unity` si la tache est visuelle. |
+| `dev-unity` | Implementer le code **runtime** Unity 2D (classes, fonctions, SO, MonoBehaviours, DTOs, services API, game logic). **Ne PAS utiliser pour du setup scene, UI layout, ou Editor scripts** — utiliser `dev-ux-unity` a la place. |
 | `refacto-unity` | Refactorer, optimiser, nettoyer, appliquer les patterns — verification 2D et client/serveur |
 | `review-commit-unity` | Auditer UNIQUEMENT les fichiers modifies/crees dans le dernier commit ou les changements non commites. Verifie aussi la frontiere client/serveur. Leger et scope. Read-only. |
 | `review-unity` | Audit COMPLET du projet entier. Utilise uniquement sur demande explicite (hors chaine principale). Read-only. |
 | `brainstorm-unity` | **TOUJOURS invoque en premier.** Challenger la demande, evaluer la pertinence, proposer des alternatives plus simples ou performantes. Prend en compte le client/serveur et le 2D. |
 | `test-play-unity` | Lancer les tests Play Mode existants apres implementation. Utilise des fake accounts a differents niveaux de progression. Aussi utilise pour ecrire de nouveaux tests (apres refacto). |
+| `agent-improver` | **Amelioration continue des agents.** Analyse les echecs du workflow (etapes manuelles, erreurs, corrections utilisateur) et modifie les prompts des agents concernes pour que le probleme ne se reproduise plus. |
 
-## Deux modes d'invocation
+## Invocation
+
+La commande recoit un argument optionnel via `$ARGUMENTS`.
+
+**Routing automatique :**
+
+1. **Pas d'argument** (`$ARGUMENTS` est vide) → **Mode B** : recuperer la prochaine Issue et la traiter.
+2. **Numero d'Issue** (ex: `/lead-roguelite #12` ou `/lead-roguelite 12`) → **Mode B** : travailler sur cette Issue specifique.
+3. **Description d'un besoin/feature** (ex: `/lead-roguelite ajouter un systeme de craft`) → **Mode A** : decomposer et creer les Issues.
+
+$ARGUMENTS
+
+---
 
 ### Mode A : "Nouvelle feature" — l'utilisateur decrit un besoin
 
-Quand l'utilisateur decrit une feature, un besoin, ou une grosse fonctionnalite :
+Declenchement : `$ARGUMENTS` contient une description de feature (pas un numero).
 
 1. **Lire le board** — Delegue a `github-boards` avec la tache "get-board-status" pour voir l'etat actuel (Milestones, Issues — ce qui est fait, en cours, a faire).
 2. **Decomposer** — Delegue a `github-boards` avec la tache "decompose-feature". L'agent :
@@ -45,12 +59,12 @@ Quand l'utilisateur decrit une feature, un besoin, ou une grosse fonctionnalite 
 3. **Presenter** — Affiche la decomposition a l'utilisateur. Puis demande : "On commence par quelle Issue ?" ou propose la premiere logiquement.
 4. **Enchainer en Mode B** avec l'Issue choisie.
 
-### Mode B : "Issue suivante" — travailler sur la prochaine Issue
+### Mode B : "Issue suivante" — travailler sur une Issue
 
-Quand l'utilisateur demande de travailler sur la prochaine Issue (ou une Issue specifique) :
+Declenchement : `$ARGUMENTS` est vide OU contient un numero d'Issue.
 
 1. **Recuperer l'Issue** :
-   - Si l'utilisateur a specifie un numero → utiliser ce numero
+   - Si `$ARGUMENTS` contient un numero → utiliser ce numero
    - Sinon → deleguer a `github-boards` avec "get-next-issue" pour trouver la prochaine (d'abord "In Progress" = reprendre, puis "Todo" = commencer)
    - L'agent retourne : numero, titre, body, liste des tasks
 2. **Contextualiser** — Lire le board pour comprendre ou on en est dans la Milestone parente (quelles Issues sont faites, lesquelles restent). Ce contexte est passe au brainstorm et au leaddev.
@@ -99,39 +113,63 @@ L'agent doit :
 
 **Presente le resultat du brainstorm a l'utilisateur** avec ta recommandation. Si plusieurs options valides existent, laisse l'utilisateur choisir. Si une option est clairement superieure, recommande-la et avance sauf objection.
 
-### 3. Analyser
+### 3. Analyser et decomposer
 
 Delegue a `leaddev-unity` pour produire le plan technique base sur l'approche retenue. Passe les Tasks de l'Issue comme checklist a couvrir. Le plan doit clairement separer **client Unity 2D** vs **serveur API** si applicable.
 
-### 4. Implementer
+**Decomposition obligatoire en sous-taches** : le plan doit decouper l'implementation en **sous-taches simples et testables**. Chaque sous-tache :
+- Est independamment verifiable (on peut ecrire un test d'integration pour elle)
+- A un critere de succes clair (ex: "le personnage se deplace de A vers B en 0.5s")
+- Est assez petite pour debugger facilement si ca casse
+- Peut etre validee par un test AVANT de passer a la suivante
 
-Delegue directement a `dev-unity` sans attendre validation, sauf si le plan implique un choix d'architecture ambigu (dans ce cas, presente les options avec pour/contre et laisse choisir).
+Exemple de decomposition :
+```
+Sous-tache 1: Spawn — le prefab s'instancie a la bonne position
+  Test: position du GO == spawn position attendue
+Sous-tache 2: Mouvement — le personnage se deplace vers la cible
+  Test: apres 0.5s, position.x a change dans la bonne direction
+Sous-tache 3: Arret — le personnage s'arrete a portee
+  Test: quand distance < attackRange, velocity == 0
+```
 
-### 4b. Validation par tests existants
+### 4. Boucle implementation par sous-tache
 
-**TOUJOURS apres l'implementation.** Delegue a `test-play-unity` pour lancer **uniquement les tests existants** (PAS de creation de nouveaux tests a cette etape).
+**Pour CHAQUE sous-tache du plan** (dans l'ordre), repeter :
 
-- L'agent lance les tests Play Mode via Unity CLI en batch mode
-- **Si tous les tests passent** → passer a l'etape 5
-- **Si des tests echouent** → triage :
-  a) **Test obsolete/invalide** (le test verifie un comportement qui a legitimement change avec la feature) → deleguer a `test-play-unity` pour corriger le test, puis relancer
-  b) **Bug reel** (surtout physique 2D, combat, loot) → deleguer a `dev-unity` pour debugger et corriger le code source, puis relancer les tests
-  c) Repeter jusqu'a ce que tous les tests passent
+**4a. Implementer la sous-tache**
 
-> **Regle de triage** : en cas de doute, privilegier la correction du code plutot que du test. Le test represente le comportement attendu — s'il cassait avant la feature, c'est probablement un vrai bug.
+Routing conditionnel — choisir le bon agent :
+- **UX/scene** (hierarchie, Canvas, HUD, Editor scripts, prefab wiring, camera) → `dev-ux-unity`
+- **Runtime** (game logic, MonoBehaviour, combat, AI, DTOs) → `dev-unity`
+- **Les deux** → `dev-ux-unity` d'abord, puis `dev-unity`
 
-**Ne jamais sauter cette etape. Ne jamais creer de nouveaux tests ici — la creation de tests se fait apres le refacto (etape 5b).**
+**Ne JAMAIS utiliser `dev-unity` pour du setup scene, UI layout, ou Editor scripts.**
+
+**4b. Ecrire le test d'integration pour la sous-tache**
+
+Delegue a `test-play-unity` pour ecrire un test Play Mode qui valide le comportement de la sous-tache. Le test doit :
+- Etre dans `Assets/Tests/PlayMode/` avec un `.asmdef` test
+- Utiliser `UnityTest` (coroutine) pour les tests qui necessitent plusieurs frames
+- Instancier le prefab, executer le comportement, verifier le resultat
+- Etre autonome (pas de dependance a la scene active)
+
+**4c. Lancer le test**
+
+Delegue a `test-play-unity` pour lancer le test via Unity CLI batch mode.
+
+- **Si le test passe** → la sous-tache est validee, passer a la suivante
+- **Si le test echoue** → debugger et corriger le code (PAS le test, sauf si le test est faux). Relancer jusqu'a ce que ca passe.
+
+> **Principe** : on ne passe JAMAIS a la sous-tache suivante tant que les tests de la sous-tache courante ne passent pas. Cela evite d'accumuler des bugs invisibles.
+
+**4d. Sous-tache suivante**
+
+Repeter 4a-4c pour chaque sous-tache. A la fin de toutes les sous-taches, lancer TOUS les tests ensemble pour verifier qu'il n'y a pas de regression.
 
 ### 5. Refactorer (fichiers)
 
 **TOUJOURS apres l'implementation.** Delegue a `refacto-unity` sur chaque fichier cree ou modifie par `dev-unity`. L'agent analyse ET corrige directement les problemes locaux (dead code, unused usings, naming, Unity 2D anti-patterns, composants 3D errones, allocations dans Update, `is null` sur UnityEngine.Object, DRY entre scripts, public fields → `[SerializeField] private`, magic numbers → constantes, violations frontiere client/serveur, etc.). **Ne jamais sauter cette etape.**
-
-### 5b. Nouveaux tests (si applicable)
-
-**Apres le refacto.** Si la feature implique un nouveau comportement testable (nouveau systeme, nouvelle interaction, nouvelle regle de jeu), deleguer a `test-play-unity` pour **ecrire et lancer de nouveaux tests** couvrant la feature implementee. Passe en contexte les fichiers crees/modifies, le comportement attendu, et **le niveau de progression (fake account) pertinent pour le test**.
-
-- Si les nouveaux tests echouent → meme triage que 4b (corriger test ou code)
-- Si la feature est un simple refacto ou une modification mineure deja couverte par les tests existants → sauter cette etape
 
 ### 6. Audit commit
 
@@ -144,8 +182,8 @@ a) Delegue a `review-commit-unity` (PAS `review-unity`). L'agent n'audite QUE le
    - Naming et conventions
    - Cross-reference (composants ↔ prefabs, ScriptableObjects ↔ assets, events ↔ subscribers, DTOs ↔ contrats API)
    L'agent produit un rapport classe par severite (CRITICAL, HIGH, MEDIUM, LOW).
-b) **Si le rapport contient des issues CRITICAL ou HIGH** → delegue a `refacto-unity` avec le rapport complet en contexte. L'agent corrige tous les CRITICAL et HIGH.
-c) **Si que MEDIUM/LOW ou aucun issue** → passer directement a la suite.
+b) **Si le rapport contient des issues (CRITICAL, HIGH, MEDIUM ou LOW)** → delegue a `refacto-unity` avec le rapport complet en contexte. L'agent corrige **TOUTES** les issues, quelle que soit la severite. On vise du clean code : magic numbers, naming, unused usings, null guards, conventions — tout doit etre propre.
+c) **Si aucune issue** → passer directement a la suite.
 **Ne jamais sauter cette etape.**
 > **Note** : `review-unity` (audit complet du projet entier) reste disponible mais n'est utilise que sur demande explicite de l'utilisateur, en dehors de cette chaine.
 
@@ -176,10 +214,40 @@ Si une section est vide (ex: aucun fichier supprime), ne pas l'afficher.
 
 **Apres le rapport** :
 a) Delegue a `git-unity` avec la tache "commit" pour commiter tous les changements avec un message Conventional Commits qui reference l'Issue (ex: `feat(combat): add auto-battle flow (#12)`).
-b) **Demande a l'utilisateur** s'il veut push la branche. Si oui :
-   - Delegue a `git-unity` avec la tache "push" (sync auto avec master avant de push)
-   - Delegue a `github-boards` avec "complete-issue" : ferme l'Issue, verifie si toutes les Issues de la Milestone sont fermees → si oui, ferme la Milestone
+b) Delegue a `git-unity` avec la tache "push" (sync auto avec dev avant de push).
    - Si le sync detecte des conflits, delegue a `dev-unity` pour les resoudre, puis relance le push.
+c) **STOP — Demande de validation a l'utilisateur.** Affiche :
+   - "Branche pushee. Teste dans Unity et confirme que tout fonctionne. Dis 'ok' pour creer la PR et merger."
+   - **Ne PAS creer de PR ni merger avant la validation.**
+d) **Apres validation utilisateur** — Delegue a `git-unity` avec la tache "create-pr" pour creer la PR.
+e) **Merge** — Delegue a `git-unity` avec la tache "merge-pr" :
+   - L'agent verifie que la CI passe sur la PR
+   - Si CI verte → squash merge automatique (merge en tant que Quentin Doniczka via `gh`)
+   - Si CI rouge → STOP, rapporte les erreurs. On corrige et on relance.
+   - Si conflit de merge → STOP, rapporte la situation.
+f) Delegue a `github-boards` avec "complete-issue" : ferme l'Issue, verifie si toutes les Issues de la Milestone sont fermees → si oui, ferme la Milestone.
+
+### 9. Retrospective — Amelioration continue des agents
+
+**Declenchement** : APRES que l'Issue est mergee et fermee (etape 8f terminee), SI l'une de ces situations s'est produite pendant le workflow :
+
+- L'utilisateur a du faire une action manuelle que le workflow aurait pu automatiser
+- L'utilisateur a corrige ou conteste une decision d'un agent
+- Un agent a produit un resultat qui a necessite un re-travail
+- Le lead a du contourner le plan d'un agent (ex: editer un fichier YAML au lieu de suivre "faites-le manuellement")
+
+**Alors** : delegue a `agent-improver` avec :
+- Description du probleme (ce qui a echoue ou necessite intervention manuelle)
+- Quel(s) agent(s) sont concernes
+- Ce qui aurait du se passer vs ce qui s'est passe
+- L'agent analyse la cause racine, modifie les prompts concernes, et rapporte les changements
+- Les modifications d'agents sont commitees sur `dev` (pas sur la feature branch, qui est deja mergee)
+
+**Si aucun probleme** → sauter cette etape.
+
+**Timing** : cette etape se fait TOUJOURS apres la validation utilisateur et le merge. On ne modifie pas les agents en plein workflow — on corrige d'abord le probleme, on livre, et ENSUITE on ameliore les agents pour le futur.
+
+> **Principe "Zero Etapes Manuelles"** : l'utilisateur ne devrait JAMAIS avoir a ouvrir Unity pour configurer quelque chose que le code peut gerer. Les seules actions utilisateur acceptables sont : cliquer sur un menu item pour executer un script, et faire Play pour tester.
 
 ## Agents hors chaine (manuels)
 
@@ -192,14 +260,16 @@ Ces agents ne sont **jamais** lances automatiquement dans le workflow. L'utilisa
 ## Regles
 
 - **Ne jamais coder toi-meme** — toujours deleguer.
+- **Zero etapes manuelles** — ne JAMAIS demander a l'utilisateur de configurer quelque chose dans Unity Editor si c'est automatisable (YAML editing, AssetDatabase, SerializedObject wiring, Editor scripts). Les seules actions utilisateur = cliquer un menu item + Play pour tester.
 - **Pas de validation systematique** — avance de maniere autonome. Demande un choix uniquement quand il y a une vraie ambiguite.
 - **Un agent = une tache.**
 - **Si un agent echoue** — analyse et relance avec meilleur contexte.
+- **Si un agent propose une etape manuelle** — challenger et demander comment l'automatiser. Si c'est automatisable, router la tache au bon agent (generalement `dev-ux-unity` pour les assets Unity).
 - **Toujours passer le contexte** aux agents.
 - **Conventional Commits** — tous les commits suivent le format `<type>(<scope>): <description>`. Inclure le numero d'Issue quand applicable (ex: `(#12)`).
-- **GitHub flow** — `master` = branche principale. Les feature branches sont TOUJOURS creees depuis `master`. Les PRs ciblent `master` avec Squash and merge.
-- **Push explicite** — ne jamais push sans l'approbation de l'utilisateur.
-- **Merge strategy** — pour sync avec master, toujours `git merge origin/master` (jamais rebase). Les merge commits sur la feature branch disparaissent au squash merge de la PR.
+- **GitHub flow** — `dev` = branche d'integration. Les feature branches sont TOUJOURS creees depuis `dev`. Les PRs ciblent `dev` avec Squash and merge. `main` = branche stable/release.
+- **Push + merge automatique** — apres commit, le lead enchaine push → PR → merge sans demander. Si CI echoue ou conflit, on s'arrete et on corrige.
+- **Merge strategy** — pour sync avec dev, toujours `git merge origin/dev` (jamais rebase). Les merge commits sur la feature branch disparaissent au squash merge de la PR.
 - **GitHub Boards** — chaque Issue travaillee doit etre tracee : In Progress au debut, Done au push.
 - **2D uniquement** — tous les agents doivent utiliser des composants 2D (Rigidbody2D, Collider2D, SpriteRenderer, etc.)
 - **Client/serveur** — toujours verifier que la logique critique est cote serveur, le client ne fait qu'afficher et envoyer des requetes
