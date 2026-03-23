@@ -1,8 +1,7 @@
-using System.Collections.Generic;
-using RogueliteAutoBattler.Combat;
 using RogueliteAutoBattler.Data;
 using UnityEditor;
 using UnityEngine;
+using System.Collections.Generic;
 
 namespace RogueliteAutoBattler.Editor
 {
@@ -21,6 +20,7 @@ namespace RogueliteAutoBattler.Editor
         private const float AddButtonHeight    = 22f;
         private const float WaveHeaderHeight   = 26f;
         private const string DatabaseDefaultPath = "Assets/Data/LevelDatabase.asset";
+        private const string DefaultEnemyPrefabPath = "Assets/Prefabs/Characters/sampleCharacterHuman.prefab";
 
         // ─── State ───────────────────────────────────────────────────────────
         private LevelDatabase     _database;
@@ -38,28 +38,6 @@ namespace RogueliteAutoBattler.Editor
         private GUIStyle _selectedRowStyle;
         private Texture2D _selectedRowTexture;
 
-        // Reusable dictionary for SyncOverrideList (avoid allocating every OnGUI).
-        private readonly Dictionary<string, (bool enabled, int intVal, float floatVal)> _syncOverrideCache =
-            new Dictionary<string, (bool enabled, int intVal, float floatVal)>();
-
-        // Version counter incremented when CharacterStats fields are re-discovered.
-        // SyncOverrideList is skipped for a property path that was already synced at the current version.
-        private int _fieldsVersion;
-        private readonly Dictionary<string, int> _syncedAtVersion = new Dictionary<string, int>();
-
-        // Cached SerializedObject for the currently displayed baseStats (avoid recreating per frame).
-        private CharacterStats _cachedBaseStatsRef;
-        private SerializedObject _cachedBaseStatsSO;
-
-        // Auto-discovered CharacterStats fields (cached once in OnEnable).
-        private struct DiscoveredField
-        {
-            public string                  name;
-            public string                  displayName;
-            public SerializedPropertyType  propertyType;
-        }
-        private readonly List<DiscoveredField> _statsFields = new List<DiscoveredField>();
-
         // ─── MenuItem ────────────────────────────────────────────────────────
 
         [MenuItem("Roguelite/Level Editor")]
@@ -74,55 +52,19 @@ namespace RogueliteAutoBattler.Editor
 
         private void OnEnable()
         {
-            DiscoverCharacterStatsFields();
             TryAutoLoadDatabase();
         }
 
         private void OnDisable()
         {
             _serializedDatabase = null;
-            _selectedRowStyle = null;
-            _cachedBaseStatsRef = null;
-            _cachedBaseStatsSO = null;
+            _selectedRowStyle   = null;
 
             if (_selectedRowTexture != null)
             {
                 DestroyImmediate(_selectedRowTexture);
                 _selectedRowTexture = null;
             }
-        }
-
-        // ─── CharacterStats field discovery ──────────────────────────────────
-
-        /// <summary>
-        /// Instantiates a temporary CharacterStats SO, iterates its serialized properties,
-        /// and caches every non-Unity-internal field for stat-override drawing.
-        /// </summary>
-        private void DiscoverCharacterStatsFields()
-        {
-            _statsFields.Clear();
-            _fieldsVersion++;
-
-            var tempSo = ScriptableObject.CreateInstance<CharacterStats>();
-            var so = new SerializedObject(tempSo);
-
-            SerializedProperty it = so.GetIterator();
-            bool enter = true;
-            while (it.NextVisible(enter))
-            {
-                enter = false;
-                // Skip Unity internal properties (m_Script, etc.)
-                if (it.name.StartsWith("m_")) continue;
-
-                _statsFields.Add(new DiscoveredField
-                {
-                    name         = it.name,
-                    displayName  = it.displayName,
-                    propertyType = it.propertyType
-                });
-            }
-
-            DestroyImmediate(tempSo);
         }
 
         // ─── Auto-load / create database ─────────────────────────────────────
@@ -154,7 +96,6 @@ namespace RogueliteAutoBattler.Editor
             _selectedStageIndex = -1;
             _selectedLevelIndex = -1;
             _foldouts.Clear();
-            _syncedAtVersion.Clear();
             Repaint();
         }
 
@@ -234,8 +175,8 @@ namespace RogueliteAutoBattler.Editor
                 {
                     stagesProp.arraySize++;
                     var newStage = stagesProp.GetArrayElementAtIndex(stagesProp.arraySize - 1);
-                    newStage.FindPropertyRelative("stageName").stringValue =
-                        $"Stage {stagesProp.arraySize}";
+                    newStage.FindPropertyRelative("stageName").stringValue = $"Stage {stagesProp.arraySize}";
+                    newStage.FindPropertyRelative("terrain").objectReferenceValue = null;
                     newStage.FindPropertyRelative("levels").arraySize = 0;
                     _selectedStageIndex = stagesProp.arraySize - 1;
                     _selectedLevelIndex = -1;
@@ -263,7 +204,6 @@ namespace RogueliteAutoBattler.Editor
                             }
                         }
 
-                        // Remove button
                         if (GUILayout.Button("-", GUILayout.Width(SmallButtonWidth), GUILayout.Height(RowHeight)))
                         {
                             if (EditorUtility.DisplayDialog("Remove Stage",
@@ -273,7 +213,7 @@ namespace RogueliteAutoBattler.Editor
                                 _selectedStageIndex = Mathf.Clamp(_selectedStageIndex, -1, stagesProp.arraySize - 1);
                                 _selectedLevelIndex = -1;
                                 EditorUtility.SetDirty(_database);
-                                break; // collection modified
+                                break;
                             }
                         }
                     }
@@ -282,14 +222,20 @@ namespace RogueliteAutoBattler.Editor
 
                 GUILayout.FlexibleSpace();
 
-                // Inline rename for selected stage
+                // Inline rename + terrain for selected stage
                 if (_selectedStageIndex >= 0 && _selectedStageIndex < stagesProp.arraySize)
                 {
-                    var nameProp = stagesProp
-                        .GetArrayElementAtIndex(_selectedStageIndex)
-                        .FindPropertyRelative("stageName");
+                    var stageElement = stagesProp.GetArrayElementAtIndex(_selectedStageIndex);
+
+                    var nameProp    = stageElement.FindPropertyRelative("stageName");
+                    var terrainProp = stageElement.FindPropertyRelative("terrain");
+
                     GUILayout.Label("Name:", EditorStyles.miniLabel);
                     nameProp.stringValue = EditorGUILayout.TextField(nameProp.stringValue);
+
+                    GUILayout.Label("Terrain:", EditorStyles.miniLabel);
+                    terrainProp.objectReferenceValue = EditorGUILayout.ObjectField(
+                        terrainProp.objectReferenceValue, typeof(GameObject), false);
                 }
             }
             GUILayout.EndVertical();
@@ -326,8 +272,7 @@ namespace RogueliteAutoBattler.Editor
                 {
                     levelsProp.arraySize++;
                     var newLevel = levelsProp.GetArrayElementAtIndex(levelsProp.arraySize - 1);
-                    newLevel.FindPropertyRelative("levelName").stringValue =
-                        $"Level {levelsProp.arraySize}";
+                    newLevel.FindPropertyRelative("levelName").stringValue = $"Level {levelsProp.arraySize}";
                     newLevel.FindPropertyRelative("waves").arraySize = 0;
                     _selectedLevelIndex = levelsProp.arraySize - 1;
                     EditorUtility.SetDirty(_database);
@@ -422,9 +367,8 @@ namespace RogueliteAutoBattler.Editor
                 {
                     wavesProp.arraySize++;
                     var newWave = wavesProp.GetArrayElementAtIndex(wavesProp.arraySize - 1);
-                    newWave.FindPropertyRelative("waveName").stringValue  = "Wave";
-                    newWave.FindPropertyRelative("terrain").stringValue   = "";
-                    newWave.FindPropertyRelative("enemies").arraySize     = 0;
+                    newWave.FindPropertyRelative("waveName").stringValue = $"Wave {wavesProp.arraySize}";
+                    newWave.FindPropertyRelative("enemies").arraySize    = 0;
                     EditorUtility.SetDirty(_database);
                 }
 
@@ -456,7 +400,6 @@ namespace RogueliteAutoBattler.Editor
         private bool DrawWave(SerializedProperty wavesProp, int wi)
         {
             var waveProp    = wavesProp.GetArrayElementAtIndex(wi);
-            var terrainProp = waveProp.FindPropertyRelative("terrain");
             var enemiesProp = waveProp.FindPropertyRelative("enemies");
 
             // ── Wave header ──────────────────────────────────────────────────
@@ -464,8 +407,6 @@ namespace RogueliteAutoBattler.Editor
                 GUILayout.Height(WaveHeaderHeight));
 
             GUILayout.Label($"Wave {wi + 1}", EditorStyles.boldLabel, GUILayout.Width(60));
-            GUILayout.Label("Terrain:", GUILayout.Width(50));
-            terrainProp.stringValue = EditorGUILayout.TextField(terrainProp.stringValue);
 
             if (GUILayout.Button("-", GUILayout.Width(SmallButtonWidth), GUILayout.Height(WaveHeaderHeight - 4)))
             {
@@ -499,13 +440,17 @@ namespace RogueliteAutoBattler.Editor
                 {
                     enemiesProp.arraySize++;
                     var newEnemy = enemiesProp.GetArrayElementAtIndex(enemiesProp.arraySize - 1);
-                    newEnemy.FindPropertyRelative("enemyName").stringValue        = "Enemy";
-                    newEnemy.FindPropertyRelative("prefab").objectReferenceValue  = null;
-                    newEnemy.FindPropertyRelative("baseStats").objectReferenceValue = null;
-                    newEnemy.FindPropertyRelative("spawnOffset").vector2Value     = Vector2.zero;
-                    // Clear overrides
-                    newEnemy.FindPropertyRelative("statOverrides")
-                            .FindPropertyRelative("overrides").arraySize = 0;
+                    newEnemy.FindPropertyRelative("enemyName").stringValue   = "Enemy";
+                    newEnemy.FindPropertyRelative("hp").intValue             = 50;
+                    newEnemy.FindPropertyRelative("atk").intValue            = 10;
+                    newEnemy.FindPropertyRelative("attackSpeed").floatValue  = 1f;
+                    newEnemy.FindPropertyRelative("moveSpeed").floatValue    = 2f;
+                    newEnemy.FindPropertyRelative("detectionRadius").floatValue = 3f;
+                    newEnemy.FindPropertyRelative("spawnOffset").vector2Value = Vector2.zero;
+
+                    var defaultPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(DefaultEnemyPrefabPath);
+                    newEnemy.FindPropertyRelative("prefab").objectReferenceValue = defaultPrefab;
+
                     EditorUtility.SetDirty(_database);
                 }
             }
@@ -519,13 +464,11 @@ namespace RogueliteAutoBattler.Editor
         /// </summary>
         private bool DrawEnemy(SerializedProperty enemiesProp, int wi, int ei)
         {
-            var enemyProp      = enemiesProp.GetArrayElementAtIndex(ei);
-            var enemyNameProp  = enemyProp.FindPropertyRelative("enemyName");
-            var prefabProp     = enemyProp.FindPropertyRelative("prefab");
-            var baseStatsProp  = enemyProp.FindPropertyRelative("baseStats");
-            var offsetProp     = enemyProp.FindPropertyRelative("spawnOffset");
+            var enemyProp     = enemiesProp.GetArrayElementAtIndex(ei);
+            var enemyNameProp = enemyProp.FindPropertyRelative("enemyName");
+            var prefabProp    = enemyProp.FindPropertyRelative("prefab");
 
-            string foldoutKey  = enemyProp.propertyPath;
+            string foldoutKey = enemyProp.propertyPath;
             if (!_foldouts.ContainsKey(foldoutKey))
                 _foldouts[foldoutKey] = false;
 
@@ -558,109 +501,47 @@ namespace RogueliteAutoBattler.Editor
 
             EditorGUI.indentLevel++;
 
-            // Core fields
             enemyNameProp.stringValue = EditorGUILayout.TextField("Name", enemyNameProp.stringValue);
 
             prefabProp.objectReferenceValue = EditorGUILayout.ObjectField(
                 "Prefab", prefabProp.objectReferenceValue, typeof(GameObject), false);
 
-            baseStatsProp.objectReferenceValue = EditorGUILayout.ObjectField(
-                "Base Stats", baseStatsProp.objectReferenceValue, typeof(CharacterStats), false);
+            var hpProp              = enemyProp.FindPropertyRelative("hp");
+            var atkProp             = enemyProp.FindPropertyRelative("atk");
+            var attackSpeedProp     = enemyProp.FindPropertyRelative("attackSpeed");
+            var moveSpeedProp       = enemyProp.FindPropertyRelative("moveSpeed");
+            var detectionRadiusProp = enemyProp.FindPropertyRelative("detectionRadius");
+            var spawnOffsetProp     = enemyProp.FindPropertyRelative("spawnOffset");
 
-            offsetProp.vector2Value = EditorGUILayout.Vector2Field("Spawn Offset", offsetProp.vector2Value);
-
-            // Stat overrides
-            GUILayout.Space(4f);
-            GUILayout.Label("-- Stat Overrides --", EditorStyles.centeredGreyMiniLabel);
-
-            var overridesListProp = enemyProp
-                .FindPropertyRelative("statOverrides")
-                .FindPropertyRelative("overrides");
-
-            if (overridesListProp != null)
-            {
-                SyncOverrideList(overridesListProp);
-
-                var baseStats = baseStatsProp.objectReferenceValue as CharacterStats;
-                // Handle destroyed Unity objects that pass the 'as' cast but are logically null.
-                if (baseStats == null) baseStats = null;
-                SerializedObject baseStatsSO = GetCachedBaseStatsSO(baseStats);
-
-                for (int oi = 0; oi < overridesListProp.arraySize; oi++)
-                {
-                    var overrideProp       = overridesListProp.GetArrayElementAtIndex(oi);
-                    var fieldNameProp      = overrideProp.FindPropertyRelative("fieldName");
-                    var enabledProp        = overrideProp.FindPropertyRelative("enabled");
-                    var intValueProp       = overrideProp.FindPropertyRelative("intValue");
-                    var floatValueProp     = overrideProp.FindPropertyRelative("floatValue");
-
-                    // Find matching discovered field for displayName
-                    string displayName = fieldNameProp.stringValue;
-                    SerializedPropertyType fieldType = SerializedPropertyType.Float;
-
-                    foreach (var df in _statsFields)
-                    {
-                        if (df.name == fieldNameProp.stringValue)
-                        {
-                            displayName = df.displayName;
-                            fieldType   = df.propertyType;
-                            break;
-                        }
-                    }
-
-                    bool isIntField = (fieldType == SerializedPropertyType.Integer);
-
-                    // Fallback base value from baseStats SO
-                    float baseValueFloat = 0f;
-                    int baseValueInt = 0;
-                    if (baseStatsSO != null)
-                    {
-                        var baseProp = baseStatsSO.FindProperty(fieldNameProp.stringValue);
-                        if (baseProp != null)
-                        {
-                            if (baseProp.propertyType == SerializedPropertyType.Integer)
-                            {
-                                baseValueInt = baseProp.intValue;
-                                baseValueFloat = baseProp.intValue;
-                            }
-                            else
-                            {
-                                baseValueFloat = baseProp.floatValue;
-                                baseValueInt = (int)baseProp.floatValue;
-                            }
-                        }
-                    }
-
-                    GUILayout.BeginHorizontal();
-                    {
-                        enabledProp.boolValue = EditorGUILayout.Toggle(enabledProp.boolValue, GUILayout.Width(16));
-
-                        EditorGUI.BeginDisabledGroup(!enabledProp.boolValue);
-
-                        if (isIntField)
-                        {
-                            int displayInt = enabledProp.boolValue ? intValueProp.intValue : baseValueInt;
-                            int intVal = EditorGUILayout.IntField(displayName, displayInt);
-                            if (enabledProp.boolValue)
-                                intValueProp.intValue = intVal;
-                        }
-                        else
-                        {
-                            float displayFloat = enabledProp.boolValue ? floatValueProp.floatValue : baseValueFloat;
-                            float floatVal = EditorGUILayout.FloatField(displayName, displayFloat);
-                            if (enabledProp.boolValue)
-                                floatValueProp.floatValue = floatVal;
-                        }
-
-                        EditorGUI.EndDisabledGroup();
-                    }
-                    GUILayout.EndHorizontal();
-                }
-            }
+            if (hpProp != null)
+                hpProp.intValue = EditorGUILayout.IntField("HP", hpProp.intValue);
             else
-            {
-                Debug.LogError("[LevelEditor] 'statOverrides.overrides' property not found on EnemySpawnData.");
-            }
+                Debug.LogError("[LevelEditor] Property 'hp' not found on EnemySpawnData.");
+
+            if (atkProp != null)
+                atkProp.intValue = EditorGUILayout.IntField("ATK", atkProp.intValue);
+            else
+                Debug.LogError("[LevelEditor] Property 'atk' not found on EnemySpawnData.");
+
+            if (attackSpeedProp != null)
+                attackSpeedProp.floatValue = EditorGUILayout.FloatField("Attack Speed", attackSpeedProp.floatValue);
+            else
+                Debug.LogError("[LevelEditor] Property 'attackSpeed' not found on EnemySpawnData.");
+
+            if (moveSpeedProp != null)
+                moveSpeedProp.floatValue = EditorGUILayout.FloatField("Move Speed", moveSpeedProp.floatValue);
+            else
+                Debug.LogError("[LevelEditor] Property 'moveSpeed' not found on EnemySpawnData.");
+
+            if (detectionRadiusProp != null)
+                detectionRadiusProp.floatValue = EditorGUILayout.FloatField("Detection Radius", detectionRadiusProp.floatValue);
+            else
+                Debug.LogError("[LevelEditor] Property 'detectionRadius' not found on EnemySpawnData.");
+
+            if (spawnOffsetProp != null)
+                spawnOffsetProp.vector2Value = EditorGUILayout.Vector2Field("Spawn Offset", spawnOffsetProp.vector2Value);
+            else
+                Debug.LogError("[LevelEditor] Property 'spawnOffset' not found on EnemySpawnData.");
 
             EditorGUI.indentLevel--;
             GUILayout.Space(2f);
@@ -668,79 +549,7 @@ namespace RogueliteAutoBattler.Editor
             return false;
         }
 
-        /// <summary>
-        /// Ensures the overrides list contains exactly one entry per discovered CharacterStats field,
-        /// in the same order. Adds missing entries; removes stale ones.
-        /// Skips work if this property path was already synced at the current fields version.
-        /// </summary>
-        private void SyncOverrideList(SerializedProperty overridesProp)
-        {
-            string propPath = overridesProp.propertyPath;
-            if (_syncedAtVersion.TryGetValue(propPath, out int ver) && ver == _fieldsVersion)
-                return;
-
-            // Build a lookup of current entries by fieldName.
-            _syncOverrideCache.Clear();
-            var existing = _syncOverrideCache;
-            for (int i = 0; i < overridesProp.arraySize; i++)
-            {
-                var entry      = overridesProp.GetArrayElementAtIndex(i);
-                string fn      = entry.FindPropertyRelative("fieldName").stringValue;
-                bool enabled   = entry.FindPropertyRelative("enabled").boolValue;
-                int intVal     = entry.FindPropertyRelative("intValue").intValue;
-                float floatVal = entry.FindPropertyRelative("floatValue").floatValue;
-                if (!existing.ContainsKey(fn))
-                    existing[fn] = (enabled, intVal, floatVal);
-            }
-
-            // Rebuild the array to match discovered fields exactly (preserving existing values).
-            overridesProp.arraySize = _statsFields.Count;
-            for (int i = 0; i < _statsFields.Count; i++)
-            {
-                string fn   = _statsFields[i].name;
-                var entry   = overridesProp.GetArrayElementAtIndex(i);
-                entry.FindPropertyRelative("fieldName").stringValue = fn;
-
-                if (existing.TryGetValue(fn, out var prev))
-                {
-                    entry.FindPropertyRelative("enabled").boolValue     = prev.enabled;
-                    entry.FindPropertyRelative("intValue").intValue     = prev.intVal;
-                    entry.FindPropertyRelative("floatValue").floatValue = prev.floatVal;
-                }
-                else
-                {
-                    entry.FindPropertyRelative("enabled").boolValue     = false;
-                    entry.FindPropertyRelative("intValue").intValue     = 0;
-                    entry.FindPropertyRelative("floatValue").floatValue = 0f;
-                }
-            }
-
-            _syncedAtVersion[propPath] = _fieldsVersion;
-        }
-
         // ─── Helpers ─────────────────────────────────────────────────────────
-
-        /// <summary>
-        /// Returns a cached SerializedObject for the given CharacterStats, recreating only when
-        /// the reference changes. Avoids allocating a new SerializedObject every OnGUI frame.
-        /// </summary>
-        private SerializedObject GetCachedBaseStatsSO(CharacterStats stats)
-        {
-            if (stats == null)
-                return null;
-
-            if (_cachedBaseStatsRef != stats)
-            {
-                _cachedBaseStatsRef = stats;
-                _cachedBaseStatsSO = new SerializedObject(stats);
-            }
-            else
-            {
-                _cachedBaseStatsSO.Update();
-            }
-
-            return _cachedBaseStatsSO;
-        }
 
         private static void DrawPanelHeader(string title)
         {
@@ -769,10 +578,10 @@ namespace RogueliteAutoBattler.Editor
             }
 
             _selectedRowStyle = new GUIStyle(GUI.skin.button);
-            _selectedRowStyle.normal.background  = _selectedRowTexture;
-            _selectedRowStyle.normal.textColor   = Color.white;
-            _selectedRowStyle.hover.background   = _selectedRowTexture;
-            _selectedRowStyle.hover.textColor    = Color.white;
+            _selectedRowStyle.normal.background = _selectedRowTexture;
+            _selectedRowStyle.normal.textColor  = Color.white;
+            _selectedRowStyle.hover.background  = _selectedRowTexture;
+            _selectedRowStyle.hover.textColor   = Color.white;
             return _selectedRowStyle;
         }
     }
