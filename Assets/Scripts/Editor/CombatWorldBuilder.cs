@@ -187,10 +187,7 @@ namespace RogueliteAutoBattler.Editor
             if (existing != null)
                 return existing;
 
-            // Ensure the directory exists.
-            string directory = System.IO.Path.GetDirectoryName(GridSpritePath);
-            if (!System.IO.Directory.Exists(directory))
-                System.IO.Directory.CreateDirectory(directory);
+            EditorUIFactory.EnsureDirectoryExists(GridSpritePath);
 
             // Build the checkerboard texture in memory.
             var tex = new Texture2D(GridTextureSize, GridTextureSize, TextureFormat.RGBA32, false);

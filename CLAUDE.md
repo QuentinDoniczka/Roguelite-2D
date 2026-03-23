@@ -72,10 +72,13 @@ Assets/
 │   │   ├── CombatHudBuilder.cs
 │   │   ├── CombatWorldBuilder.cs
 │   │   ├── EditorUIFactory.cs
+│   │   ├── LevelEditorWindow.cs
 │   │   └── SetupNavigationSceneEditor.cs
 │   ├── Items/  (empty)
 │   ├── ScriptableObjects/
-│   │   └── CharacterStats.cs
+│   │   ├── CharacterStats.cs
+│   │   ├── LevelDataTypes.cs
+│   │   └── LevelDatabase.cs
 │   ├── Services/
 │   │   └── Local/  (empty)
 │   ├── UI/

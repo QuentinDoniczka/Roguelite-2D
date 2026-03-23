@@ -93,6 +93,16 @@ namespace RogueliteAutoBattler.Editor
             if (p != null) p.colorValue = v;
         }
 
+        /// <summary>
+        /// Ensures the directory for the given asset path exists, creating it if necessary.
+        /// </summary>
+        internal static void EnsureDirectoryExists(string assetPath)
+        {
+            string dir = System.IO.Path.GetDirectoryName(assetPath);
+            if (!string.IsNullOrEmpty(dir) && !System.IO.Directory.Exists(dir))
+                System.IO.Directory.CreateDirectory(dir);
+        }
+
         internal static void WireArray(SerializedObject so, string name, Component[] items, int count)
         {
             SerializedProperty prop = FindProp(so, name);
