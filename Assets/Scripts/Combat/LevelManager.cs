@@ -30,6 +30,7 @@ namespace RogueliteAutoBattler.Combat
         private const float BaseEnemySpawnX = 1f;
 
         private int _aliveEnemyCount;
+        private int _pendingWaveCount;
         private bool _levelInProgress;
         private bool _allyRetargetWired;
 
@@ -99,6 +100,7 @@ namespace RogueliteAutoBattler.Combat
             _levelInProgress = true;
 
             var level = stage.Levels[levelIndex];
+            _pendingWaveCount = level.Waves.Count;
             Debug.Log($"[{nameof(LevelManager)}] Starting level '{level.LevelName}' with {level.Waves.Count} wave(s).");
 
             for (int i = 0; i < level.Waves.Count; i++)
@@ -121,6 +123,9 @@ namespace RogueliteAutoBattler.Combat
             {
                 SpawnEnemy(enemyData);
             }
+
+            _pendingWaveCount--;
+            CheckLevelComplete();
         }
 
         private void SpawnEnemy(EnemySpawnData data)
@@ -217,8 +222,12 @@ namespace RogueliteAutoBattler.Combat
         private void OnEnemyDied()
         {
             _aliveEnemyCount--;
+            CheckLevelComplete();
+        }
 
-            if (_aliveEnemyCount <= 0 && _levelInProgress)
+        private void CheckLevelComplete()
+        {
+            if (_levelInProgress && _pendingWaveCount <= 0 && _aliveEnemyCount <= 0)
             {
                 _levelInProgress = false;
                 OnLevelComplete();
