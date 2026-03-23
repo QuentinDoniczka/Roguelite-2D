@@ -12,6 +12,9 @@ namespace RogueliteAutoBattler.Combat
         [Tooltip("Movement speed in world units per second.")]
         [SerializeField] private float _moveSpeed = 2f;
 
+        // Characters aim for a point in front of their target (face-to-face), not on top.
+        private float _faceOffset = 0.4f;
+
         private Transform _target;
         private Animator _animator;
         private Rigidbody2D _rb;
@@ -48,7 +51,11 @@ namespace RogueliteAutoBattler.Combat
                 return;
             }
 
-            Vector2 direction = ((Vector2)_target.position - (Vector2)transform.position).normalized;
+            // Aim for a point in front of the target, not on top.
+            // Character on the left → aim for target's left side, and vice versa.
+            float side = (transform.position.x < _target.position.x) ? -_faceOffset : _faceOffset;
+            Vector2 destination = new Vector2(_target.position.x + side, _target.position.y);
+            Vector2 direction = (destination - (Vector2)transform.position).normalized;
             _rb.linearVelocity = direction * _moveSpeed;
             SetMoving(true);
         }
@@ -57,6 +64,12 @@ namespace RogueliteAutoBattler.Combat
         public void SetMoveSpeed(float speed)
         {
             _moveSpeed = speed;
+        }
+
+        /// <summary>Sets how far in front of the target this character aims to stand.</summary>
+        public void SetFaceOffset(float offset)
+        {
+            _faceOffset = offset;
         }
 
         /// <summary>Immediately zeroes velocity.</summary>
