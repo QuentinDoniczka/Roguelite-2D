@@ -69,23 +69,25 @@ namespace RogueliteAutoBattler.Combat
             EnemyInstance = Instantiate(_characterPrefab, new Vector3(_enemySpawnX, _spawnY, 0f), Quaternion.identity, _enemiesContainer);
             EnemyInstance.name = EnemyName;
 
-            // Add combat components to root (which already has Rigidbody2D from the prefab).
+            // Add components in dependency order: Stats first (CombatController reads it in Awake).
+            InitializeStats(AllyInstance, _allyStats, AllyName);
+            InitializeStats(EnemyInstance, _enemyStats, EnemyName);
+
             var allyMover = AllyInstance.AddComponent<CharacterMover>();
             var enemyMover = EnemyInstance.AddComponent<CharacterMover>();
 
+            if (_allyStats != null) allyMover.SetMoveSpeed(_allyStats.moveSpeed);
+            if (_enemyStats != null) enemyMover.SetMoveSpeed(_enemyStats.moveSpeed);
+
             AllyInstance.AddComponent<CombatController>();
             EnemyInstance.AddComponent<CombatController>();
-
-            // Initialize stats before wiring targets so CombatController can read them immediately.
-            InitializeStats(AllyInstance, allyMover, _allyStats, AllyName);
-            InitializeStats(EnemyInstance, enemyMover, _enemyStats, EnemyName);
 
             // Wire targets after both exist.
             allyMover.Target = EnemyInstance.transform;
             enemyMover.Target = AllyInstance.transform;
         }
 
-        private void InitializeStats(GameObject character, CharacterMover mover, CharacterStats stats, string label)
+        private void InitializeStats(GameObject character, CharacterStats stats, string label)
         {
             if (stats == null)
             {
@@ -95,7 +97,6 @@ namespace RogueliteAutoBattler.Combat
 
             var combatStats = character.AddComponent<CombatStats>();
             combatStats.Initialize(stats);
-            mover.SetMoveSpeed(stats.moveSpeed);
         }
 
         private void FindContainersIfNeeded()
