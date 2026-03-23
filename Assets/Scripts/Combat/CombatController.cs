@@ -184,7 +184,13 @@ namespace RogueliteAutoBattler.Combat
                 }
             }
 
-            SetState(CombatState.None);
+            // No target available — return to home anchor (CharacterMover handles it).
+            _mover.Target = null;
+            _waitingForHit = false;
+            _mover.enabled = true;
+            _state = CombatState.Moving;
+            if (_hasAnimator)
+                _animator.speed = 1f;
         }
 
         private void UnsubscribeFromTarget()
@@ -262,8 +268,12 @@ namespace RogueliteAutoBattler.Combat
 
             if (_stats != null && _targetStats != null && !_targetStats.IsDead)
             {
-                _targetStats.TakeDamage(_stats.Atk);
-                Debug.Log($"[Attack] {name} hits {_targetStats.gameObject.name} for {_stats.Atk} dmg. HP: {_targetStats.CurrentHp}/{_targetStats.MaxHp}");
+                // Capture before TakeDamage — it may kill the target, firing HandleTargetDied
+                // synchronously which nulls _targetStats.
+                string targetName = _targetStats.gameObject.name;
+                int damage = _stats.Atk;
+                _targetStats.TakeDamage(damage);
+                Debug.Log($"[Attack] {name} hits {targetName} for {damage} dmg.");
             }
 
             if (_hasAnimator)

@@ -27,16 +27,18 @@ namespace RogueliteAutoBattler.Combat
         [Tooltip("Parent transform for the ally team (used to find targets for enemies).")]
         [SerializeField] private Transform _teamContainer;
 
-        private const float BaseEnemySpawnX = 1f;
+        private const float FallbackEnemySpawnX = 1f;
 
         private int _aliveEnemyCount;
         private int _pendingWaveCount;
         private bool _levelInProgress;
         private bool _allyRetargetWired;
+        private Transform _enemiesHomeAnchor;
 
         private IEnumerator Start()
         {
             FindContainersIfNeeded();
+            FindHomeAnchors();
             ApplyStage(_currentStageIndex);
             // Wait until an ally actually exists in the team container.
             yield return new WaitUntil(() => TargetFinder.Closest(_teamContainer, Vector3.zero) != null);
@@ -136,9 +138,13 @@ namespace RogueliteAutoBattler.Combat
                 return;
             }
 
+            // Spawn position = EnemiesHomeAnchor (screen-right) + spawnOffset from level data.
+            Vector3 anchorPos = _enemiesHomeAnchor != null
+                ? _enemiesHomeAnchor.position
+                : new Vector3(FallbackEnemySpawnX, 0f, 0f);
             Vector3 spawnPosition = new Vector3(
-                BaseEnemySpawnX + data.SpawnOffset.x,
-                data.SpawnOffset.y,
+                anchorPos.x + data.SpawnOffset.x,
+                anchorPos.y + data.SpawnOffset.y,
                 0f
             );
 
@@ -156,9 +162,11 @@ namespace RogueliteAutoBattler.Combat
             // HealthBar — must be added after CombatStats (reads it in Awake).
             enemy.AddComponent<HealthBar>();
 
-            // CharacterMover — set speed and target to the first alive ally.
+            // CharacterMover — set speed, home anchor, and target to the first alive ally.
             var mover = enemy.AddComponent<CharacterMover>();
             mover.SetMoveSpeed(data.MoveSpeed);
+            if (_enemiesHomeAnchor != null)
+                mover.HomeAnchor = _enemiesHomeAnchor;
 
             var enemyTransform = enemy.transform;
             Transform allyTarget = TargetFinder.Closest(_teamContainer, enemyTransform.position);
@@ -261,6 +269,13 @@ namespace RogueliteAutoBattler.Combat
 
             var relay = animator.gameObject.AddComponent<AnimationEventRelay>();
             relay.Initialize(controller);
+        }
+
+        private void FindHomeAnchors()
+        {
+            var anchorGo = GameObject.Find(CombatSpawnManager.EnemiesHomeAnchorName);
+            if (anchorGo != null)
+                _enemiesHomeAnchor = anchorGo.transform;
         }
 
         private void FindContainersIfNeeded()

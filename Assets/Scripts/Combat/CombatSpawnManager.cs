@@ -13,13 +13,6 @@ namespace RogueliteAutoBattler.Combat
         [Tooltip("Character prefab (Root with Rigidbody2D → Visual child with Animator).")]
         [SerializeField] private GameObject _characterPrefab;
 
-        [Header("Spawn Positions")]
-        [Tooltip("World X position where the ally spawns.")]
-        [SerializeField] private float _allySpawnX = -1f;
-
-        [Tooltip("World Y position for both spawns.")]
-        [SerializeField] private float _spawnY = 0f;
-
         [Header("Stats")]
         [Tooltip("CharacterStats asset for the ally.")]
         [SerializeField] private CharacterStats _allyStats;
@@ -30,6 +23,8 @@ namespace RogueliteAutoBattler.Combat
 
         public const string TeamContainerName = "Team";
         public const string EnemiesContainerName = "Enemies";
+        public const string TeamHomeAnchorName = "TeamHomeAnchor";
+        public const string EnemiesHomeAnchorName = "EnemiesHomeAnchor";
 
         private const string AllyName = "Warrior";
         public const string EnemyName = "Enemy";
@@ -55,8 +50,15 @@ namespace RogueliteAutoBattler.Combat
             if (scrollManager != null)
                 scrollManager.enabled = false;
 
-            // Spawn ally — prefab already has Root (Rigidbody2D) → Visual (Animator) hierarchy.
-            AllyInstance = Instantiate(_characterPrefab, new Vector3(_allySpawnX, _spawnY, 0f), Quaternion.identity, _teamContainer);
+            // Resolve screen-absolute home anchor (scene root, outside CombatWorld).
+            var teamAnchorGo = GameObject.Find(TeamHomeAnchorName);
+            Transform teamAnchor = teamAnchorGo != null ? teamAnchorGo.transform : null;
+
+            // Spawn ally at TeamHomeAnchor position (screen-left).
+            Vector3 allySpawnPos = teamAnchor != null
+                ? teamAnchor.position
+                : Vector3.zero;
+            AllyInstance = Instantiate(_characterPrefab, allySpawnPos, Quaternion.identity, _teamContainer);
             AllyInstance.name = AllyName;
             AllyInstance.transform.localScale = FacingRightScale;
 
@@ -68,6 +70,10 @@ namespace RogueliteAutoBattler.Combat
 
             var allyMover = AllyInstance.AddComponent<CharacterMover>();
             if (_allyStats != null) allyMover.SetMoveSpeed(_allyStats.moveSpeed);
+
+            // Assign home anchor so the ally returns to screen-left when no target.
+            if (teamAnchor != null)
+                allyMover.HomeAnchor = teamAnchor;
 
             var allyController = AllyInstance.AddComponent<CombatController>();
             WireAnimationRelay(AllyInstance, allyController);

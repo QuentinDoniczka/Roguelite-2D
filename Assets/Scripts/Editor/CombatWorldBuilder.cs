@@ -35,18 +35,6 @@ namespace RogueliteAutoBattler.Editor
         private static readonly Color32 GridBlueColorB = new Color32(45, 85, 160, 255);  // #2d55a0
 
         // ------------------------------------------------------------------
-        // Generate terrain sprites
-        // ------------------------------------------------------------------
-
-        [MenuItem("Roguelite/Generate Terrain Sprites")]
-        private static void GenerateAllTerrainSprites()
-        {
-            CreateOrLoadGridSprite();
-            CreateOrLoadBlueGridSprite();
-            Debug.Log("[CombatWorldBuilder] Terrain sprites generated in Assets/Sprites/Environment/");
-        }
-
-        // ------------------------------------------------------------------
         // Camera
         // ------------------------------------------------------------------
 
@@ -197,7 +185,24 @@ namespace RogueliteAutoBattler.Editor
 
             soLevelManager.ApplyModifiedProperties();
 
+            // Screen-absolute home anchors at scene root (outside CombatWorld so they
+            // don't scroll). Characters return here when they have no combat target.
+            CreateHomeAnchor(CombatSpawnManager.TeamHomeAnchorName, new Vector2(0.12f, 0.70f));
+            CreateHomeAnchor(CombatSpawnManager.EnemiesHomeAnchorName, new Vector2(0.88f, 0.70f));
+
             return root;
+        }
+
+        private static void CreateHomeAnchor(string anchorName, Vector2 viewportPosition)
+        {
+            var go = new GameObject(anchorName);
+            go.transform.position = Vector3.zero;
+            Undo.RegisterCreatedObjectUndo(go, $"Create {anchorName}");
+
+            var anchor = go.AddComponent<ScreenAnchor>();
+            var so = new SerializedObject(anchor);
+            so.FindProperty("_viewportPosition").vector2Value = viewportPosition;
+            so.ApplyModifiedProperties();
         }
 
         // ------------------------------------------------------------------

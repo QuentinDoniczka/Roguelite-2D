@@ -15,7 +15,10 @@ namespace RogueliteAutoBattler.Combat
         // Characters aim for a point in front of their target (face-to-face), not on top.
         private float _faceOffset = 0.25f;
 
+        private const float HomeArrivalThreshold = 0.15f;
+
         private Transform _target;
+        private Transform _homeAnchor;
         private Animator _animator;
         private Rigidbody2D _rb;
         private bool _isMoving;
@@ -25,6 +28,16 @@ namespace RogueliteAutoBattler.Combat
         {
             get => _target;
             set => _target = value;
+        }
+
+        /// <summary>
+        /// Screen-absolute anchor to return to when Target is null.
+        /// Should be a Transform outside CombatWorld (e.g. with ScreenAnchor component).
+        /// </summary>
+        public Transform HomeAnchor
+        {
+            get => _homeAnchor;
+            set => _homeAnchor = value;
         }
 
         private void Awake()
@@ -46,8 +59,27 @@ namespace RogueliteAutoBattler.Combat
 
             if (_target == null)
             {
-                _rb.linearVelocity = Vector2.zero;
-                SetMoving(false);
+                // No combat target — return to home anchor if available.
+                if (_homeAnchor != null)
+                {
+                    float distToHome = Vector2.Distance(transform.position, _homeAnchor.position);
+                    if (distToHome > HomeArrivalThreshold)
+                    {
+                        Vector2 dir = ((Vector2)_homeAnchor.position - (Vector2)transform.position).normalized;
+                        _rb.linearVelocity = dir * _moveSpeed;
+                        SetMoving(true);
+                    }
+                    else
+                    {
+                        _rb.linearVelocity = Vector2.zero;
+                        SetMoving(false);
+                    }
+                }
+                else
+                {
+                    _rb.linearVelocity = Vector2.zero;
+                    SetMoving(false);
+                }
                 return;
             }
 
