@@ -266,9 +266,15 @@ namespace RogueliteAutoBattler.Combat
         private void FindContainersIfNeeded()
         {
             if (_teamContainer == null)
-                _teamContainer = transform.Find(CombatSpawnManager.TeamContainerName);
+            {
+                var go = GameObject.Find(CombatSpawnManager.TeamContainerName);
+                if (go != null) _teamContainer = go.transform;
+            }
             if (_enemiesContainer == null)
-                _enemiesContainer = transform.Find(CombatSpawnManager.EnemiesContainerName);
+            {
+                var go = GameObject.Find(CombatSpawnManager.EnemiesContainerName);
+                if (go != null) _enemiesContainer = go.transform;
+            }
 
             if (_teamContainer == null)
                 Debug.LogWarning($"[{nameof(LevelManager)}] '{CombatSpawnManager.TeamContainerName}' container not found!");
