@@ -29,18 +29,11 @@ namespace RogueliteAutoBattler.Combat
         {
             // Animator lives on the Visual child, not on this root GameObject.
             _animator = GetComponentInChildren<Animator>();
+            // Rigidbody2D is on the root (baked into the prefab).
             _rb = GetComponent<Rigidbody2D>();
 
             if (_animator != null)
                 _animator.applyRootMotion = false;
-
-            if (_rb != null)
-            {
-                _rb.bodyType = RigidbodyType2D.Dynamic;
-                _rb.gravityScale = 0f;
-                _rb.constraints = RigidbodyConstraints2D.FreezeRotation;
-                _rb.interpolation = RigidbodyInterpolation2D.Interpolate;
-            }
         }
 
         private void FixedUpdate()
