@@ -50,7 +50,6 @@ namespace RogueliteAutoBattler.Data
         [SerializeField] private int atk = 10;
         [SerializeField] private float attackSpeed = 1f;
         [SerializeField] private float moveSpeed = 2f;
-        [SerializeField] private float detectionRadius = 3f;
         [SerializeField] private Vector2 spawnOffset;
 
         public string EnemyName => enemyName;
@@ -59,7 +58,6 @@ namespace RogueliteAutoBattler.Data
         public int Atk => atk;
         public float AttackSpeed => attackSpeed;
         public float MoveSpeed => moveSpeed;
-        public float DetectionRadius => detectionRadius;
         public Vector2 SpawnOffset => spawnOffset;
     }
 }

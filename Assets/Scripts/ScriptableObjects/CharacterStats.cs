@@ -25,9 +25,5 @@ namespace RogueliteAutoBattler.Combat
         [Header("Movement")]
         [Tooltip("Movement speed in world units per second.")]
         public float moveSpeed = 2f;
-
-        [Header("Detection")]
-        [Tooltip("Distance at which this character detects enemies and charges.")]
-        public float detectionRadius = 3f;
     }
 }

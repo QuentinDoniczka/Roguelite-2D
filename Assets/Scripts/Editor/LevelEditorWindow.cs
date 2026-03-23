@@ -459,7 +459,6 @@ namespace RogueliteAutoBattler.Editor
                     newEnemy.FindPropertyRelative("atk").intValue            = 10;
                     newEnemy.FindPropertyRelative("attackSpeed").floatValue  = 1f;
                     newEnemy.FindPropertyRelative("moveSpeed").floatValue    = 2f;
-                    newEnemy.FindPropertyRelative("detectionRadius").floatValue = 3f;
                     newEnemy.FindPropertyRelative("spawnOffset").vector2Value = Vector2.zero;
 
                     var defaultPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(DefaultEnemyPrefabPath);
@@ -524,7 +523,6 @@ namespace RogueliteAutoBattler.Editor
             var atkProp             = enemyProp.FindPropertyRelative("atk");
             var attackSpeedProp     = enemyProp.FindPropertyRelative("attackSpeed");
             var moveSpeedProp       = enemyProp.FindPropertyRelative("moveSpeed");
-            var detectionRadiusProp = enemyProp.FindPropertyRelative("detectionRadius");
             var spawnOffsetProp     = enemyProp.FindPropertyRelative("spawnOffset");
 
             if (hpProp != null)
@@ -546,11 +544,6 @@ namespace RogueliteAutoBattler.Editor
                 moveSpeedProp.floatValue = EditorGUILayout.FloatField("Move Speed", moveSpeedProp.floatValue);
             else
                 Debug.LogError("[LevelEditor] Property 'moveSpeed' not found on EnemySpawnData.");
-
-            if (detectionRadiusProp != null)
-                detectionRadiusProp.floatValue = EditorGUILayout.FloatField("Detection Radius", detectionRadiusProp.floatValue);
-            else
-                Debug.LogError("[LevelEditor] Property 'detectionRadius' not found on EnemySpawnData.");
 
             if (spawnOffsetProp != null)
                 spawnOffsetProp.vector2Value = EditorGUILayout.Vector2Field("Spawn Offset", spawnOffsetProp.vector2Value);
