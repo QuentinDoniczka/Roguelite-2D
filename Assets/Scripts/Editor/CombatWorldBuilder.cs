@@ -132,14 +132,14 @@ namespace RogueliteAutoBattler.Editor
                 Debug.LogWarning($"[{nameof(CombatWorldBuilder)}] Shader 'Sprite-Unlit-Default' not found. Ground may render black.");
             groundGo.AddComponent<GroundFitter>();
 
-            // Team and Enemies containers are SCENE ROOT objects (not under CombatWorld).
-            // This keeps characters at fixed screen positions while the ground scrolls.
+            // Team and Enemies containers under CombatWorld (move with the conveyor).
+            // Spawn positions are computed in screen-space and converted to local coords.
             var teamGo = new GameObject(CombatSpawnManager.TeamContainerName);
-            teamGo.transform.position = Vector3.zero;
+            teamGo.transform.SetParent(root.transform, false);
             Undo.RegisterCreatedObjectUndo(teamGo, "Create CombatWorld");
 
             var enemiesGo = new GameObject(CombatSpawnManager.EnemiesContainerName);
-            enemiesGo.transform.position = Vector3.zero;
+            enemiesGo.transform.SetParent(root.transform, false);
             Undo.RegisterCreatedObjectUndo(enemiesGo, "Create CombatWorld");
 
             // Effects container — VFX, projectiles, hit-sparks, etc.

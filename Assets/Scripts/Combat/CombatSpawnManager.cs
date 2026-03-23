@@ -54,11 +54,13 @@ namespace RogueliteAutoBattler.Combat
             if (scrollManager != null)
                 scrollManager.enabled = false;
 
-            // Compute ally spawn from camera so it's always on the left side of the screen.
+            // Compute ally spawn in screen-space, convert to CombatWorld local coords.
             var cam = Camera.main;
-            float allyX = cam != null ? -(cam.orthographicSize * cam.aspect * AllyScreenRatio) : -2f;
+            float worldX = cam != null ? -(cam.orthographicSize * cam.aspect * AllyScreenRatio) : -2f;
+            float localX = worldX - transform.position.x;
 
-            AllyInstance = Instantiate(_characterPrefab, new Vector3(allyX, _spawnY, 0f), Quaternion.identity, _teamContainer);
+            AllyInstance = Instantiate(_characterPrefab, Vector3.zero, Quaternion.identity, _teamContainer);
+            AllyInstance.transform.localPosition = new Vector3(localX, _spawnY, 0f);
             AllyInstance.name = AllyName;
             AllyInstance.transform.localScale = FacingRightScale;
 
@@ -104,15 +106,9 @@ namespace RogueliteAutoBattler.Combat
         private void FindContainersIfNeeded()
         {
             if (_teamContainer == null)
-            {
-                var go = GameObject.Find(TeamContainerName);
-                if (go != null) _teamContainer = go.transform;
-            }
+                _teamContainer = transform.Find(TeamContainerName);
             if (_enemiesContainer == null)
-            {
-                var go = GameObject.Find(EnemiesContainerName);
-                if (go != null) _enemiesContainer = go.transform;
-            }
+                _enemiesContainer = transform.Find(EnemiesContainerName);
 
             if (_teamContainer == null)
                 Debug.LogWarning($"[{nameof(CombatSpawnManager)}] '{TeamContainerName}' container not found!");

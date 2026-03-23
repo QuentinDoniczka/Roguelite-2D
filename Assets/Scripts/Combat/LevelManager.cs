@@ -31,9 +31,6 @@ namespace RogueliteAutoBattler.Combat
         private const float AllyScreenRatio = 0.7f;   // 70% toward left edge
         private const float EnemyScreenRatio = 0.7f;   // 70% toward right edge
 
-        private float _allySpawnX;
-        private float _enemySpawnX;
-
         private int _aliveEnemyCount;
         private int _pendingWaveCount;
         private bool _levelInProgress;
@@ -42,7 +39,6 @@ namespace RogueliteAutoBattler.Combat
         private IEnumerator Start()
         {
             FindContainersIfNeeded();
-            ComputeScreenSpawnPositions();
             ApplyStage(_currentStageIndex);
             // Wait one frame to ensure CombatSpawnManager has spawned the ally.
             yield return null;
@@ -142,13 +138,10 @@ namespace RogueliteAutoBattler.Combat
                 return;
             }
 
-            Vector3 spawnPosition = new Vector3(
-                _enemySpawnX + data.SpawnOffset.x,
-                data.SpawnOffset.y,
-                0f
-            );
+            float localX = ScreenXToLocal(EnemyScreenRatio, false) + data.SpawnOffset.x;
 
-            GameObject enemy = Instantiate(data.Prefab, spawnPosition, Quaternion.identity, _enemiesContainer);
+            GameObject enemy = Instantiate(data.Prefab, Vector3.zero, Quaternion.identity, _enemiesContainer);
+            enemy.transform.localPosition = new Vector3(localX, data.SpawnOffset.y, 0f);
             enemy.name = data.EnemyName;
 
             // CombatStats — direct initialization from EnemySpawnData values (no SO needed).
@@ -269,33 +262,25 @@ namespace RogueliteAutoBattler.Combat
             relay.Initialize(controller);
         }
 
-        private void ComputeScreenSpawnPositions()
+        /// <summary>
+        /// Converts a screen-relative X position to CombatWorld local X.
+        /// Accounts for CombatWorld's current scroll offset.
+        /// </summary>
+        private float ScreenXToLocal(float screenRatio, bool leftSide)
         {
             var cam = Camera.main;
-            if (cam == null)
-            {
-                _allySpawnX = -2f;
-                _enemySpawnX = 2f;
-                return;
-            }
-
-            float halfWidth = cam.orthographicSize * cam.aspect;
-            _allySpawnX = -halfWidth * AllyScreenRatio;
-            _enemySpawnX = halfWidth * EnemyScreenRatio;
+            float halfWidth = cam != null ? cam.orthographicSize * cam.aspect : 3f;
+            float worldX = leftSide ? -halfWidth * screenRatio : halfWidth * screenRatio;
+            // Convert world position to CombatWorld local
+            return worldX - transform.position.x;
         }
 
         private void FindContainersIfNeeded()
         {
             if (_teamContainer == null)
-            {
-                var go = GameObject.Find(CombatSpawnManager.TeamContainerName);
-                if (go != null) _teamContainer = go.transform;
-            }
+                _teamContainer = transform.Find(CombatSpawnManager.TeamContainerName);
             if (_enemiesContainer == null)
-            {
-                var go = GameObject.Find(CombatSpawnManager.EnemiesContainerName);
-                if (go != null) _enemiesContainer = go.transform;
-            }
+                _enemiesContainer = transform.Find(CombatSpawnManager.EnemiesContainerName);
 
             if (_teamContainer == null)
                 Debug.LogWarning($"[{nameof(LevelManager)}] '{CombatSpawnManager.TeamContainerName}' container not found!");
