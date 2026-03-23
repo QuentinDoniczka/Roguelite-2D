@@ -24,8 +24,11 @@ namespace RogueliteAutoBattler.Combat
         [SerializeField] private float _spawnY = 0f;
 
         [Header("Stats")]
-        [Tooltip("Default CharacterStats asset applied to both ally and enemy at spawn.")]
-        [SerializeField] private CharacterStats _defaultStats;
+        [Tooltip("CharacterStats asset for the ally.")]
+        [SerializeField] private CharacterStats _allyStats;
+
+        [Tooltip("CharacterStats asset for the enemy.")]
+        [SerializeField] private CharacterStats _enemyStats;
 
         [Header("Containers")]
         [SerializeField] private Transform _teamContainer;
@@ -74,24 +77,25 @@ namespace RogueliteAutoBattler.Combat
             EnemyInstance.AddComponent<CombatController>();
 
             // Initialize stats before wiring targets so CombatController can read them immediately.
-            if (_defaultStats != null)
-            {
-                var allyStats = AllyInstance.AddComponent<CombatStats>();
-                allyStats.Initialize(_defaultStats);
-                allyMover.SetMoveSpeed(_defaultStats.moveSpeed);
-
-                var enemyStats = EnemyInstance.AddComponent<CombatStats>();
-                enemyStats.Initialize(_defaultStats);
-                enemyMover.SetMoveSpeed(_defaultStats.moveSpeed);
-            }
-            else
-            {
-                Debug.LogWarning($"[{nameof(CombatSpawnManager)}] No CharacterStats assigned — characters will have no stats!", this);
-            }
+            InitializeStats(AllyInstance, allyMover, _allyStats, AllyName);
+            InitializeStats(EnemyInstance, enemyMover, _enemyStats, EnemyName);
 
             // Wire targets after both exist.
             allyMover.Target = EnemyInstance.transform;
             enemyMover.Target = AllyInstance.transform;
+        }
+
+        private void InitializeStats(GameObject character, CharacterMover mover, CharacterStats stats, string label)
+        {
+            if (stats == null)
+            {
+                Debug.LogWarning($"[{nameof(CombatSpawnManager)}] No stats assigned for {label}!", this);
+                return;
+            }
+
+            var combatStats = character.AddComponent<CombatStats>();
+            combatStats.Initialize(stats);
+            mover.SetMoveSpeed(stats.moveSpeed);
         }
 
         private void FindContainersIfNeeded()
