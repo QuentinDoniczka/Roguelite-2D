@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 
 namespace RogueliteAutoBattler.Combat
@@ -81,10 +82,22 @@ namespace RogueliteAutoBattler.Combat
             );
             EnemyInstance.name = EnemyName;
 
-            var allyController = AllyInstance.AddComponent<CombatController>();
-            allyController.Target = EnemyInstance.transform;
+            // Wait one physics frame so Rigidbody2D is registered by the physics engine
+            // before wiring combat controllers and setting targets.
+            StartCoroutine(WireControllersNextFrame());
+        }
 
+        private IEnumerator WireControllersNextFrame()
+        {
+            yield return new WaitForFixedUpdate();
+
+            var allyController = AllyInstance.AddComponent<CombatController>();
             var enemyController = EnemyInstance.AddComponent<CombatController>();
+
+            // Wait another frame so CharacterMover + Rigidbody2D Awake() are fully processed.
+            yield return new WaitForFixedUpdate();
+
+            allyController.Target = EnemyInstance.transform;
             enemyController.Target = AllyInstance.transform;
         }
 
