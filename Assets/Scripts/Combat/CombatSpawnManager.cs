@@ -3,8 +3,8 @@ using UnityEngine;
 namespace RogueliteAutoBattler.Combat
 {
     /// <summary>
-    /// Spawns an ally and an enemy from a shared character prefab at the start of combat,
-    /// then wires combat controllers so they walk toward and attack each other.
+    /// Spawns the ally character at the start of combat. Enemy spawning is handled
+    /// by <see cref="LevelManager"/> via wave data.
     /// The prefab must have the Root/Visual hierarchy (Rigidbody2D on root, Animator on Visual child).
     /// </summary>
     public class CombatSpawnManager : MonoBehaviour
@@ -17,18 +17,12 @@ namespace RogueliteAutoBattler.Combat
         [Tooltip("World X position where the ally spawns.")]
         [SerializeField] private float _allySpawnX = -1f;
 
-        [Tooltip("World X position where the enemy spawns.")]
-        [SerializeField] private float _enemySpawnX = 1f;
-
         [Tooltip("World Y position for both spawns.")]
         [SerializeField] private float _spawnY = 0f;
 
         [Header("Stats")]
         [Tooltip("CharacterStats asset for the ally.")]
         [SerializeField] private CharacterStats _allyStats;
-
-        [Tooltip("CharacterStats asset for the enemy.")]
-        [SerializeField] private CharacterStats _enemyStats;
 
         [Header("Containers")]
         [SerializeField] private Transform _teamContainer;
@@ -38,13 +32,13 @@ namespace RogueliteAutoBattler.Combat
         public const string EnemiesContainerName = "Enemies";
 
         private const string AllyName = "Warrior";
-        private const string EnemyName = "Enemy";
+        public const string EnemyName = "Enemy";
 
         // The default sprite faces left. Flip X to face right.
         private static readonly Vector3 FacingRightScale = new Vector3(-1f, 1f, 1f);
 
+        /// <summary>The spawned ally instance. Used by LevelManager to wire targets.</summary>
         public GameObject AllyInstance { get; private set; }
-        public GameObject EnemyInstance { get; private set; }
 
         private void Start()
         {
@@ -61,37 +55,24 @@ namespace RogueliteAutoBattler.Combat
             if (scrollManager != null)
                 scrollManager.enabled = false;
 
-            // Spawn — prefab already has Root (Rigidbody2D) → Visual (Animator) hierarchy.
+            // Spawn ally — prefab already has Root (Rigidbody2D) → Visual (Animator) hierarchy.
             AllyInstance = Instantiate(_characterPrefab, new Vector3(_allySpawnX, _spawnY, 0f), Quaternion.identity, _teamContainer);
             AllyInstance.name = AllyName;
             AllyInstance.transform.localScale = FacingRightScale;
 
-            EnemyInstance = Instantiate(_characterPrefab, new Vector3(_enemySpawnX, _spawnY, 0f), Quaternion.identity, _enemiesContainer);
-            EnemyInstance.name = EnemyName;
-
             // Add components in dependency order: Stats first (CombatController reads it in Awake).
             InitializeStats(AllyInstance, _allyStats, AllyName);
-            InitializeStats(EnemyInstance, _enemyStats, EnemyName);
 
             // HealthBar reads CombatStats in its Awake — must be added after InitializeStats.
             AllyInstance.AddComponent<HealthBar>();
-            EnemyInstance.AddComponent<HealthBar>();
 
             var allyMover = AllyInstance.AddComponent<CharacterMover>();
-            var enemyMover = EnemyInstance.AddComponent<CharacterMover>();
-
             if (_allyStats != null) allyMover.SetMoveSpeed(_allyStats.moveSpeed);
-            if (_enemyStats != null) enemyMover.SetMoveSpeed(_enemyStats.moveSpeed);
 
             var allyController = AllyInstance.AddComponent<CombatController>();
-            var enemyController = EnemyInstance.AddComponent<CombatController>();
-
             WireAnimationRelay(AllyInstance, allyController);
-            WireAnimationRelay(EnemyInstance, enemyController);
 
-            // Wire targets after both exist.
-            allyMover.Target = EnemyInstance.transform;
-            enemyMover.Target = AllyInstance.transform;
+            // Ally starts with no target — LevelManager will assign one when enemies spawn.
         }
 
         private void InitializeStats(GameObject character, CharacterStats stats, string label)

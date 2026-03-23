@@ -29,6 +29,10 @@ namespace RogueliteAutoBattler.Combat
 
         private const float BaseEnemySpawnX = 1f;
 
+        private int _aliveEnemyCount;
+        private bool _levelInProgress;
+        private bool _allyRetargetWired;
+
         private void Start()
         {
             FindContainersIfNeeded();
@@ -89,6 +93,9 @@ namespace RogueliteAutoBattler.Combat
             }
 
             _currentLevelIndex = levelIndex;
+            _aliveEnemyCount = 0;
+            _levelInProgress = true;
+
             var level = stage.Levels[levelIndex];
             Debug.Log($"[{nameof(LevelManager)}] Starting level '{level.LevelName}' with {level.Waves.Count} wave(s).");
 
@@ -135,6 +142,10 @@ namespace RogueliteAutoBattler.Combat
             var combatStats = enemy.AddComponent<CombatStats>();
             combatStats.InitializeDirect(data.Hp, data.Atk, data.AttackSpeed);
 
+            // Track enemy death for level progression.
+            _aliveEnemyCount++;
+            combatStats.OnDied += OnEnemyDied;
+
             // HealthBar — must be added after CombatStats (reads it in Awake).
             enemy.AddComponent<HealthBar>();
 
@@ -148,12 +159,16 @@ namespace RogueliteAutoBattler.Combat
             else
                 Debug.LogWarning($"[{nameof(LevelManager)}] No alive ally found for enemy '{data.EnemyName}' to target.");
 
-            // CombatController — set attack range from EnemySpawnData.
+            // CombatController — set attack range, wire retarget delegate.
             var controller = enemy.AddComponent<CombatController>();
             controller.SetAttackRange(data.AttackRange);
+            controller.FindNewTarget = FindFirstAliveAlly;
 
             // AnimationEventRelay — wire animation events to the controller.
             WireAnimationRelay(enemy, controller);
+
+            // Wire ally to target this enemy if it has no target yet.
+            SetAllyTarget(enemy.transform);
 
             Debug.Log($"[{nameof(LevelManager)}] Spawned enemy '{data.EnemyName}' at {spawnPosition}");
         }
@@ -174,6 +189,79 @@ namespace RogueliteAutoBattler.Combat
             }
 
             return null;
+        }
+
+        /// <summary>
+        /// Finds the first alive enemy in the enemies container.
+        /// </summary>
+        private Transform FindFirstAliveEnemy()
+        {
+            if (_enemiesContainer == null)
+                return null;
+
+            foreach (Transform child in _enemiesContainer)
+            {
+                if (child.TryGetComponent<CombatStats>(out var stats) && !stats.IsDead)
+                    return child;
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Sets the ally's target to the given enemy if the ally currently has no target
+        /// or its current target is dead. Also wires the retarget delegate once.
+        /// </summary>
+        private void SetAllyTarget(Transform firstEnemy)
+        {
+            Transform allyTransform = FindFirstAliveAlly();
+            if (allyTransform == null)
+                return;
+
+            if (!allyTransform.TryGetComponent<CharacterMover>(out var allyMover))
+                return;
+
+            // Assign target if ally has none or current target is dead
+            bool needsTarget = allyMover.Target == null;
+            if (!needsTarget && allyMover.Target.TryGetComponent<CombatStats>(out var targetStats))
+                needsTarget = targetStats.IsDead;
+
+            if (needsTarget)
+                allyMover.Target = firstEnemy;
+
+            // Wire retarget delegate once
+            if (!_allyRetargetWired && allyTransform.TryGetComponent<CombatController>(out var allyController))
+            {
+                allyController.FindNewTarget = FindFirstAliveEnemy;
+                _allyRetargetWired = true;
+            }
+        }
+
+        private void OnEnemyDied()
+        {
+            _aliveEnemyCount--;
+
+            if (_aliveEnemyCount <= 0 && _levelInProgress)
+            {
+                _levelInProgress = false;
+                OnLevelComplete();
+            }
+        }
+
+        private void OnLevelComplete()
+        {
+            var stage = _levelDatabase.Stages[_currentStageIndex];
+            _currentLevelIndex++;
+
+            if (_currentLevelIndex < stage.Levels.Count)
+            {
+                Debug.Log($"[{nameof(LevelManager)}] Level {_currentLevelIndex} starting!");
+                StartLevel(_currentLevelIndex);
+            }
+            else
+            {
+                Debug.Log($"[{nameof(LevelManager)}] Stage '{stage.StageName}' complete!");
+            }
         }
 
         private void WireAnimationRelay(GameObject character, CombatController controller)

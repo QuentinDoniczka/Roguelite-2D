@@ -41,6 +41,13 @@ namespace RogueliteAutoBattler.Combat
         /// <summary>Current combat state of this character.</summary>
         public CombatState State => _state;
 
+        /// <summary>
+        /// Callback to find a new target when the current one dies.
+        /// Set by the spawning system (LevelManager or CombatSpawnManager).
+        /// Returns null if no target is available.
+        /// </summary>
+        public System.Func<Transform> FindNewTarget { get; set; }
+
         /// <summary>The Transform this character moves toward and attacks.</summary>
         public Transform Target
         {
@@ -161,6 +168,21 @@ namespace RogueliteAutoBattler.Combat
 
         private void HandleTargetDied()
         {
+            UnsubscribeFromTarget();
+            _targetStats = null;
+
+            // Try to find a new target
+            if (FindNewTarget != null)
+            {
+                Transform newTarget = FindNewTarget();
+                if (newTarget != null)
+                {
+                    _mover.Target = newTarget;
+                    SetState(CombatState.Moving);
+                    return;
+                }
+            }
+
             SetState(CombatState.None);
         }
 
