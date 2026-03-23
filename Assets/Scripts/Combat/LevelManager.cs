@@ -156,7 +156,7 @@ namespace RogueliteAutoBattler.Combat
             mover.SetMoveSpeed(data.MoveSpeed);
 
             var enemyTransform = enemy.transform;
-            Transform allyTarget = FindClosestAliveIn(_teamContainer, enemyTransform.position);
+            Transform allyTarget = TargetFinder.Closest(_teamContainer, enemyTransform.position);
             if (allyTarget != null)
                 mover.Target = allyTarget;
             else
@@ -165,7 +165,7 @@ namespace RogueliteAutoBattler.Combat
             // CombatController — set attack range, wire retarget delegate with closure on position.
             var controller = enemy.AddComponent<CombatController>();
             controller.SetAttackRange(data.AttackRange);
-            controller.FindNewTarget = () => FindClosestAliveIn(_teamContainer, enemyTransform.position);
+            controller.FindNewTarget = () => TargetFinder.Closest(_teamContainer, enemyTransform.position);
 
             // AnimationEventRelay — wire animation events to the controller.
             WireAnimationRelay(enemy, controller);
@@ -176,34 +176,7 @@ namespace RogueliteAutoBattler.Combat
             Debug.Log($"[{nameof(LevelManager)}] Spawned enemy '{data.EnemyName}' at {spawnPosition}");
         }
 
-        /// <summary>
-        /// Finds the closest alive ally to the caller.
-        /// Since FindNewTarget is a Func&lt;Transform&gt; with no parameters,
-        /// we search relative to the calling enemy's position via the enemies container.
-        /// </summary>
-        private Transform FindClosestAliveIn(Transform container, Vector3 from)
-        {
-            if (container == null)
-                return null;
 
-            Transform closest = null;
-            float closestDist = float.MaxValue;
-
-            foreach (Transform child in container)
-            {
-                if (!child.TryGetComponent<CombatStats>(out var stats) || stats.IsDead)
-                    continue;
-
-                float dist = Vector2.Distance(from, child.position);
-                if (dist < closestDist)
-                {
-                    closestDist = dist;
-                    closest = child;
-                }
-            }
-
-            return closest;
-        }
 
         /// <summary>
         /// Sets the ally's target to the given enemy if the ally currently has no target
@@ -235,7 +208,7 @@ namespace RogueliteAutoBattler.Combat
                 if (!_allyRetargetWired && allyTransform.TryGetComponent<CombatController>(out var allyController))
                 {
                     var allyRef = allyTransform;
-                    allyController.FindNewTarget = () => FindClosestAliveIn(_enemiesContainer, allyRef.position);
+                    allyController.FindNewTarget = () => TargetFinder.Closest(_enemiesContainer, allyRef.position);
                     _allyRetargetWired = true;
                 }
             }

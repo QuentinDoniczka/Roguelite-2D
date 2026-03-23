@@ -35,7 +35,7 @@ namespace RogueliteAutoBattler.Combat
         private CombatStats _stats;
         private CombatStats _targetStats;
         private CombatState _state;
-        private float _attackTimer;
+        private float _nextAttackTime;
         private bool _waitingForHit;
 
         /// <summary>Current combat state of this character.</summary>
@@ -89,11 +89,9 @@ namespace RogueliteAutoBattler.Combat
             else
                 SetState(CombatState.Moving);
 
-            if (_state == CombatState.Attacking && !_waitingForHit)
+            if (_state == CombatState.Attacking && !_waitingForHit && Time.time >= _nextAttackTime)
             {
-                _attackTimer -= Time.fixedDeltaTime;
-                if (_attackTimer <= 0f)
-                    StartAttackSwing();
+                StartAttackSwing();
             }
         }
 
@@ -268,7 +266,7 @@ namespace RogueliteAutoBattler.Combat
             }
 
             if (_stats != null && _stats.AttackSpeed > 0f)
-                _attackTimer = 1f / _stats.AttackSpeed;
+                _nextAttackTime = Time.time + (1f / _stats.AttackSpeed);
         }
     }
 }
