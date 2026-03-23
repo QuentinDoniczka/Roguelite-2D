@@ -9,6 +9,8 @@ namespace RogueliteAutoBattler.Editor
     /// </summary>
     internal static class CombatWorldBuilder
     {
+        internal const string CombatWorldPrefabPath = "Assets/Prefabs/CombatWorld.prefab";
+
         private const float CameraOrthoSize = 5.4f;
         private const float CameraZPosition = -10f;
 
@@ -169,6 +171,31 @@ namespace RogueliteAutoBattler.Editor
             soSpawnManager.ApplyModifiedProperties();
 
             return root;
+        }
+
+        // ------------------------------------------------------------------
+        // CombatWorld prefab
+        // ------------------------------------------------------------------
+
+        /// <summary>
+        /// Returns the CombatWorld prefab asset, creating and saving it if it does not exist.
+        /// When the prefab is freshly created the instance is left in the scene connected to it.
+        /// </summary>
+        internal static GameObject EnsureCombatWorldPrefab()
+        {
+            var existing = AssetDatabase.LoadAssetAtPath<GameObject>(CombatWorldPrefabPath);
+            if (existing != null)
+                return existing;
+
+            // Build the hierarchy in the scene temporarily, then save as a prefab.
+            var instance = CreateCombatWorld();
+
+            EditorUIFactory.EnsureDirectoryExists(CombatWorldPrefabPath);
+            var prefab = PrefabUtility.SaveAsPrefabAssetAndConnect(
+                instance, CombatWorldPrefabPath, InteractionMode.AutomatedAction);
+
+            Debug.Log($"[CombatWorldBuilder] Created CombatWorld prefab at {CombatWorldPrefabPath}");
+            return prefab;
         }
 
         // ------------------------------------------------------------------

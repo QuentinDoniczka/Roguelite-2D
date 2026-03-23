@@ -176,7 +176,8 @@ namespace RogueliteAutoBattler.Editor
                     stagesProp.arraySize++;
                     var newStage = stagesProp.GetArrayElementAtIndex(stagesProp.arraySize - 1);
                     newStage.FindPropertyRelative("stageName").stringValue = $"Stage {stagesProp.arraySize}";
-                    newStage.FindPropertyRelative("terrain").objectReferenceValue = null;
+                    var combatWorldPrefab = CombatWorldBuilder.EnsureCombatWorldPrefab();
+                    newStage.FindPropertyRelative("terrain").objectReferenceValue = combatWorldPrefab;
                     newStage.FindPropertyRelative("levels").arraySize = 0;
                     _selectedStageIndex = stagesProp.arraySize - 1;
                     _selectedLevelIndex = -1;
