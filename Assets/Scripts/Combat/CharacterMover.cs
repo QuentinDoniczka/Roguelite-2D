@@ -4,8 +4,7 @@ namespace RogueliteAutoBattler.Combat
 {
     /// <summary>
     /// Moves this character along the X axis toward a target Transform.
-    /// Uses Rigidbody2D velocity for physics-based movement when available,
-    /// falls back to transform.position if needed.
+    /// Uses Rigidbody2D.linearVelocity for physics-based movement.
     /// </summary>
     public class CharacterMover : MonoBehaviour
     {
@@ -27,10 +26,11 @@ namespace RogueliteAutoBattler.Combat
 
         private void Awake()
         {
-            // Animator lives on the Visual child, not on this root GameObject.
             _animator = GetComponentInChildren<Animator>();
-            // Rigidbody2D is on the root (baked into the prefab).
             _rb = GetComponent<Rigidbody2D>();
+
+            if (_rb == null)
+                Debug.LogError($"[{nameof(CharacterMover)}] Rigidbody2D not found on {name}. Movement will not work.", this);
 
             if (_animator != null)
                 _animator.applyRootMotion = false;
@@ -38,29 +38,18 @@ namespace RogueliteAutoBattler.Combat
 
         private void FixedUpdate()
         {
+            if (_rb == null)
+                return;
+
             if (_target == null)
             {
-                if (_rb != null) _rb.linearVelocity = Vector2.zero;
+                _rb.linearVelocity = Vector2.zero;
                 SetMoving(false);
                 return;
             }
 
             float deltaX = _target.position.x - transform.position.x;
-
-            if (_rb != null)
-            {
-                // Physics-based movement
-                float dirX = Mathf.Sign(deltaX);
-                _rb.linearVelocity = new Vector2(dirX * _moveSpeed, 0f);
-            }
-            else
-            {
-                // Fallback: direct transform movement
-                Vector3 pos = transform.position;
-                pos.x = Mathf.MoveTowards(pos.x, _target.position.x, _moveSpeed * Time.fixedDeltaTime);
-                transform.position = pos;
-            }
-
+            _rb.linearVelocity = new Vector2(Mathf.Sign(deltaX) * _moveSpeed, 0f);
             SetMoving(true);
         }
 

@@ -102,6 +102,45 @@ When needed later:
 - Or use world-to-screen coordinate conversion for screen-space HUD
 - Pool damage number popups for performance
 
+## Root/Visual Hierarchy for Animated Physics Characters
+
+Any character prefab that has an Animator AND a Rigidbody2D **must** use a Root/Visual split. This is a hard architectural rule — never place Animator and Rigidbody2D on the same GameObject.
+
+**Required prefab structure**:
+```
+Root (Rigidbody2D, CharacterMover, CombatController — NO Animator, NO SpriteRenderer)
+└── Visual (Animator, SpriteRenderer, all sprite children: head, hands, weapons)
+```
+
+**Why**: The Unity Animator takes full Transform ownership of any GameObject that has animation bindings on it — even sprite-swap animations that target the root path (`path: ""`). When the Animator and Rigidbody2D share the same GameObject, the Animator overrides the physics-computed position every frame, silently preventing all movement. Separating physics (root) from animation (Visual child) eliminates the conflict entirely.
+
+**YAML structure for a correctly-split character prefab** (key fields):
+```yaml
+# Root GameObject: has Rigidbody2D, movement scripts — no Animator, no SpriteRenderer
+--- !u!1 &<rootID>
+GameObject:
+  m_Name: CharacterRoot
+--- !u!54 &<rb2dID>
+Rigidbody2D:
+  m_GameObject: {fileID: <rootID>}
+
+# Visual child: has Animator and SpriteRenderer — no Rigidbody2D
+--- !u!1 &<visualID>
+GameObject:
+  m_Name: Visual
+  m_Father: {fileID: <rootTransformID>}
+--- !u!95 &<animatorID>
+Animator:
+  m_GameObject: {fileID: <visualID>}
+--- !u!212 &<spriteID>
+SpriteRenderer:
+  m_GameObject: {fileID: <visualID>}
+```
+
+**When modifying existing prefabs**: if a prefab has Animator and Rigidbody2D on the same root GameObject, restructure it — move the Animator and SpriteRenderer (plus all sprite children) to a new Visual child before wiring any movement scripts.
+
+**Sorting layers on the Visual child**: all SpriteRenderers on the Visual child and its children must use `sortingLayerName = "Characters"`, same as before the split.
+
 ## What You Build
 
 ### Pattern 1: MenuItem Setup Script (Reusable)

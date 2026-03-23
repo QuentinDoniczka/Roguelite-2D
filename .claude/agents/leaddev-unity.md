@@ -69,6 +69,24 @@ When planning movement for any character that has an Animator component, **alway
 
 **Root cause of the anti-pattern**: `transform.position` and the Animator both write to the Transform component. The Animator's WriteDefaults system will silently override position changes, causing the character to appear frozen. This is a Unity 2D engine constraint — not a code quality issue — and there is no workaround other than using Rigidbody2D.
 
+### Root/Visual Hierarchy — Mandatory for Animated Physics Characters
+
+When planning any character prefab that has an Animator AND needs physics movement, **always specify the Root/Visual split hierarchy**. Never plan Rigidbody2D and Animator on the same GameObject.
+
+**Always plan this prefab structure**:
+```
+Root (Rigidbody2D, CharacterMover, CombatController — NO Animator, NO SpriteRenderer)
+└── Visual (Animator, SpriteRenderer, all sprite children: head, hands, weapons)
+```
+
+**Why**: The Animator takes ownership of the Transform of any GameObject it has bindings on (including sprite-swap animations with `path: ""`). If Animator and Rigidbody2D share the same GameObject, the Animator overrides the physics position every frame, making movement silently fail. This is not fixable by tweaking settings — only the hierarchy split resolves it.
+
+**Planning implications**:
+- Rigidbody2D, movement scripts, and combat scripts → Root
+- Animator, SpriteRenderer, and all visual child objects → Visual child
+- Any script that needs the Animator must use `GetComponentInChildren<Animator>()` — plan this in component specs
+- When modifying existing prefabs that lack this split, plan a prefab restructure step first
+
 ## When Invoked
 
 1. **Scan** — Read `.claude/STRUCTURE.md` for project overview. If missing, use Glob on `Assets/Scripts/**/*.cs`

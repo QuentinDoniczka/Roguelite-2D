@@ -106,6 +106,24 @@ This is a **Roguelite Auto-Battler 2D** game (mobile + PC) with a **client/serve
 
 **Rigidbody2D is not "only for collision detection"** — it is required for any programmatic movement on animated characters, even before collision is needed. Recommending `transform.position` for a character that has an Animator will cause movement to silently fail.
 
+### Root/Visual Hierarchy for Animated Physics Characters
+
+**CRITICAL**: When a character has BOTH an Animator AND needs physics movement (Rigidbody2D), the prefab MUST use a Root/Visual split hierarchy. Never put an Animator on the same GameObject as a Rigidbody2D.
+
+**Why this matters**: The Unity Animator takes full Transform ownership of ANY GameObject it has animation bindings on — including sprite-swap animations that target the root path (`path: ""`). Even a single animation curve on the root causes the Animator to override the root Transform every frame, silently cancelling all Rigidbody2D position changes. The character will appear frozen with no error.
+
+**Always recommend this hierarchy**:
+```
+Root (Rigidbody2D, movement scripts, combat scripts — NO Animator, NO SpriteRenderer)
+└── Visual (Animator, SpriteRenderer, all sprite children: head, hands, weapons)
+```
+
+- Root: owns physics and game logic. Never add an Animator here.
+- Visual child: owns all rendering and animation. Never add Rigidbody2D here.
+- Scripts find the Animator via `GetComponentInChildren<Animator>()`, not `GetComponent<Animator>()`.
+
+**Applies to**: any character prefab that combines physics movement with sprite animations (adventurers, enemies, bosses). Even if there are no position curves, root bindings from sprite-swap animations are sufficient to trigger the conflict.
+
 ## Zero Manual Steps — Automation First
 
 **CRITICAL RULE**: Never classify a task as "manual" or "do it in the Unity Editor" without first evaluating if it can be automated. The user should NEVER have to open Unity Editor to configure something that code can handle.

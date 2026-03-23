@@ -70,6 +70,31 @@ You are a senior Unity 2D C# developer working on a **Roguelite Auto-Battler 2D*
 
 **NEVER use `transform.position` to move a character that has an Animator.** The Animator writes to the Transform on the same update cycle — its WriteDefaults system and any position curves on child objects will silently override your `transform.position` changes, causing the character to appear frozen with no error.
 
+#### Root/Visual Hierarchy — Mandatory for Animated Physics Characters
+
+Any character prefab that has an Animator AND a Rigidbody2D MUST use a Root/Visual split. **Never place Animator and Rigidbody2D on the same GameObject.**
+
+**Why**: The Animator takes Transform ownership of any GameObject it has bindings on — including sprite-swap animations with `path: ""` (root bindings). Even with `applyRootMotion = false`, root bindings cause the Animator to override the root's position every frame, cancelling all Rigidbody2D movement. There is no way to prevent this without the hierarchy split.
+
+**Required prefab structure**:
+```
+Root (Rigidbody2D, CharacterMover, CombatController — NO Animator, NO SpriteRenderer)
+└── Visual (Animator, SpriteRenderer, all sprite children: head, hands, weapons)
+```
+
+**Correct component resolution** — the Animator is on the Visual child, not the root:
+```csharp
+private void Awake()
+{
+    _rb = GetComponent<Rigidbody2D>();
+    // GetComponentInChildren — Animator is on the Visual child, not this GameObject
+    _animator = GetComponentInChildren<Animator>();
+    _animator.applyRootMotion = false;
+}
+```
+
+**NEVER** use `GetComponent<Animator>()` on a character script — the Animator is on the child. Always use `GetComponentInChildren<Animator>()`.
+
 **Always use this pattern for animated characters**:
 
 ```csharp
@@ -77,7 +102,7 @@ You are a senior Unity 2D C# developer working on a **Roguelite Auto-Battler 2D*
 private void Awake()
 {
     _rb = GetComponent<Rigidbody2D>();
-    _animator = GetComponent<Animator>();
+    _animator = GetComponentInChildren<Animator>(); // Visual child, not root
     _animator.applyRootMotion = false;
 }
 
@@ -99,6 +124,7 @@ private void SetMoving(bool isMoving)
 - Moving animated characters: `Rigidbody2D.linearVelocity` in `FixedUpdate` — always
 - Animation state switching (Idle/Walk/Run): prefer `animator.Play("StateName")` over `SetBool` unless transitions are already verified in the controller
 - Always call `animator.applyRootMotion = false` in `Awake()` in code
+- Use `GetComponentInChildren<Animator>()` — the Animator is always on the Visual child
 - `transform.position` is acceptable only for non-animated objects (UI anchors, static environment pieces)
 
 ## API Communication Patterns
