@@ -34,9 +34,13 @@ namespace RogueliteAutoBattler.Combat
             if (_animator != null)
                 _animator.applyRootMotion = false;
 
-            // Configure Rigidbody2D for kinematic-like movement via velocity.
+            // Configure Rigidbody2D for movement via velocity.
+            _rb.bodyType = RigidbodyType2D.Dynamic;
             _rb.gravityScale = 0f;
             _rb.constraints = RigidbodyConstraints2D.FreezeRotation;
+            _rb.interpolation = RigidbodyInterpolation2D.Interpolate;
+
+            Debug.Log($"[CharacterMover] Awake on {gameObject.name} — rb={_rb != null}, animator={_animator != null}");
         }
 
         private void FixedUpdate()
@@ -52,6 +56,8 @@ namespace RogueliteAutoBattler.Combat
             float dirX = Mathf.Sign(deltaX);
             _rb.linearVelocity = new Vector2(dirX * _moveSpeed, 0f);
             SetMoving(true);
+
+            Debug.Log($"[CharacterMover] {gameObject.name} deltaX={deltaX:F2} vel={_rb.linearVelocity} pos={transform.position}");
         }
 
         /// <summary>
