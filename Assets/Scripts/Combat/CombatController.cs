@@ -227,7 +227,9 @@ namespace RogueliteAutoBattler.Combat
 
             _waitingForHit = true;
 
+            // Set cooldown NOW, not in OnAnimationHit — survives retarget/state changes.
             float attackInterval = 1f / _stats.AttackSpeed;
+            _nextAttackTime = Time.time + attackInterval;
             float animSpeed = attackInterval < ChopAttackDuration
                 ? ChopAttackDuration / attackInterval
                 : 1f;
@@ -265,8 +267,7 @@ namespace RogueliteAutoBattler.Combat
                 _animator.Play(AnimIdle);
             }
 
-            if (_stats != null && _stats.AttackSpeed > 0f)
-                _nextAttackTime = Time.time + (1f / _stats.AttackSpeed);
+            // Cooldown already set in StartAttackSwing.
         }
     }
 }

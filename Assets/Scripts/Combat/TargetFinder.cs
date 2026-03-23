@@ -11,6 +11,9 @@ namespace RogueliteAutoBattler.Combat
         /// <summary>
         /// Finds the closest alive target to <paramref name="from"/> in the given container.
         /// </summary>
+        /// <summary>
+        /// Finds the closest alive target on the X axis (side-scroller distance).
+        /// </summary>
         public static Transform Closest(Transform container, Vector3 from)
         {
             if (container == null)
@@ -24,7 +27,7 @@ namespace RogueliteAutoBattler.Combat
                 if (!IsAlive(child))
                     continue;
 
-                float dist = Vector2.Distance(from, child.position);
+                float dist = Mathf.Abs(child.position.x - from.x);
                 if (dist < bestDist)
                 {
                     bestDist = dist;
