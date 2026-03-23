@@ -13,7 +13,7 @@ namespace RogueliteAutoBattler.Combat
         [SerializeField] private float _moveSpeed = 2f;
 
         // Characters aim for a point in front of their target (face-to-face), not on top.
-        private float _faceOffset = 0.4f;
+        private float _faceOffset = 0.27f;
 
         private Transform _target;
         private Animator _animator;
