@@ -59,6 +59,11 @@ namespace RogueliteAutoBattler.Combat
 
             FindContainersIfNeeded();
 
+            // Disable auto-scroll during combat — characters use their own movement.
+            var scrollManager = GetComponent<CombatScrollManager>();
+            if (scrollManager != null)
+                scrollManager.enabled = false;
+
             AllyInstance = Instantiate(
                 _characterPrefab,
                 new Vector3(_allySpawnX, _spawnY, 0f),

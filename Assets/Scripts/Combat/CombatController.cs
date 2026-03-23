@@ -5,6 +5,7 @@ namespace RogueliteAutoBattler.Combat
     /// <summary>Combat states a character can be in during auto-battle.</summary>
     public enum CombatState
     {
+        None,
         Moving,
         Attacking
     }
