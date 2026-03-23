@@ -27,7 +27,7 @@ namespace RogueliteAutoBattler.Combat
                 if (!IsAlive(child))
                     continue;
 
-                float dist = Mathf.Abs(child.position.x - from.x);
+                float dist = Vector2.Distance(from, child.position);
                 if (dist < bestDist)
                 {
                     bestDist = dist;

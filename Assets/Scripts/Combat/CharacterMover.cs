@@ -48,8 +48,8 @@ namespace RogueliteAutoBattler.Combat
                 return;
             }
 
-            float deltaX = _target.position.x - transform.position.x;
-            _rb.linearVelocity = new Vector2(Mathf.Sign(deltaX) * _moveSpeed, 0f);
+            Vector2 direction = ((Vector2)_target.position - (Vector2)transform.position).normalized;
+            _rb.linearVelocity = direction * _moveSpeed;
             SetMoving(true);
         }
 

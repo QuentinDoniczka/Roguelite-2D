@@ -82,7 +82,7 @@ namespace RogueliteAutoBattler.Combat
             if (_mover == null || _mover.Target == null)
                 return;
 
-            float distance = Mathf.Abs(_mover.Target.position.x - transform.position.x);
+            float distance = Vector2.Distance(transform.position, _mover.Target.position);
 
             if (distance <= _attackRange)
                 SetState(CombatState.Attacking);
