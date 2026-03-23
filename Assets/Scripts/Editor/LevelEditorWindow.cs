@@ -176,8 +176,8 @@ namespace RogueliteAutoBattler.Editor
                     stagesProp.arraySize++;
                     var newStage = stagesProp.GetArrayElementAtIndex(stagesProp.arraySize - 1);
                     newStage.FindPropertyRelative("stageName").stringValue = $"Stage {stagesProp.arraySize}";
-                    var combatWorldPrefab = CombatWorldBuilder.EnsureCombatWorldPrefab();
-                    newStage.FindPropertyRelative("terrain").objectReferenceValue = combatWorldPrefab;
+                    var defaultTerrain = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/Environment/grid_ground.png");
+                    newStage.FindPropertyRelative("terrain").objectReferenceValue = defaultTerrain;
                     newStage.FindPropertyRelative("levels").arraySize = 0;
                     _selectedStageIndex = stagesProp.arraySize - 1;
                     _selectedLevelIndex = -1;
@@ -236,7 +236,7 @@ namespace RogueliteAutoBattler.Editor
 
                     GUILayout.Label("Terrain:", EditorStyles.miniLabel);
                     terrainProp.objectReferenceValue = EditorGUILayout.ObjectField(
-                        terrainProp.objectReferenceValue, typeof(GameObject), false);
+                        terrainProp.objectReferenceValue, typeof(Sprite), false);
                 }
             }
             GUILayout.EndVertical();

@@ -8,12 +8,12 @@ namespace RogueliteAutoBattler.Data
     public class StageData
     {
         [SerializeField] private string stageName = "New Stage";
-        [Tooltip("WorldConveyor prefab for this stage's terrain")]
-        [SerializeField] private GameObject terrain;
+        [SerializeField] [Tooltip("Ground sprite for this stage's terrain.")]
+        private Sprite terrain;
         [SerializeField] private List<LevelData> levels = new List<LevelData>();
 
         public string StageName => stageName;
-        public GameObject Terrain => terrain;
+        public Sprite Terrain => terrain;
         public List<LevelData> Levels => levels;
     }
 
