@@ -21,8 +21,11 @@ namespace RogueliteAutoBattler.Combat
     public class CombatController : MonoBehaviour
     {
         [Header("Combat")]
-        [Tooltip("Distance in world units at which the character stops and attacks.")]
+        [Tooltip("Horizontal reach in world units (rectangle width).")]
         [SerializeField] private float _attackRange = 0.5f;
+
+        // Vertical reach = half of horizontal. Forces face-to-face combat in a side-scroller.
+        private const float VerticalRangeRatio = 0.5f;
 
         private const float ChopAttackDuration = 0.5f;
         private const float FadeOutDuration = 0.25f;
@@ -82,9 +85,11 @@ namespace RogueliteAutoBattler.Combat
             if (_mover == null || _mover.Target == null)
                 return;
 
-            float distance = Vector2.Distance(transform.position, _mover.Target.position);
+            float deltaX = Mathf.Abs(_mover.Target.position.x - transform.position.x);
+            float deltaY = Mathf.Abs(_mover.Target.position.y - transform.position.y);
+            bool inRange = deltaX <= _attackRange && deltaY <= _attackRange * VerticalRangeRatio;
 
-            if (distance <= _attackRange)
+            if (inRange)
                 SetState(CombatState.Attacking);
             else
                 SetState(CombatState.Moving);
