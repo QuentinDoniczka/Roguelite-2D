@@ -73,6 +73,10 @@ namespace RogueliteAutoBattler.Combat
             InitializeStats(AllyInstance, _allyStats, AllyName);
             InitializeStats(EnemyInstance, _enemyStats, EnemyName);
 
+            // HealthBar reads CombatStats in its Awake — must be added after InitializeStats.
+            AllyInstance.AddComponent<HealthBar>();
+            EnemyInstance.AddComponent<HealthBar>();
+
             var allyMover = AllyInstance.AddComponent<CharacterMover>();
             var enemyMover = EnemyInstance.AddComponent<CharacterMover>();
 

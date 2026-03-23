@@ -106,6 +106,7 @@ namespace RogueliteAutoBattler.Combat
             if (_targetStats != null && !_targetStats.IsDead)
             {
                 _targetStats.TakeDamage(_stats.BaseStats.atk);
+                Debug.Log($"[Attack] {name} hits {_targetStats.gameObject.name} for {_stats.BaseStats.atk} dmg. HP: {_targetStats.CurrentHp}/{_targetStats.MaxHp}");
                 if (_animator != null)
                     _animator.Play("ChopAttack", -1, 0f); // restart from beginning
             }
