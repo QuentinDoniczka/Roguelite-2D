@@ -196,14 +196,20 @@ namespace RogueliteAutoBattler.Combat
             Destroy(gameObject);
         }
 
+        /// <summary>Overrides the serialized attack range at runtime (set from EnemySpawnData on spawn).</summary>
+        public void SetAttackRange(float range)
+        {
+            _attackRange = range;
+        }
+
         private void StartAttackSwing()
         {
-            if (_stats == null || _stats.BaseStats == null || _stats.BaseStats.attackSpeed <= 0f)
+            if (_stats == null || _stats.AttackSpeed <= 0f)
                 return;
 
             _waitingForHit = true;
 
-            float attackInterval = 1f / _stats.BaseStats.attackSpeed;
+            float attackInterval = 1f / _stats.AttackSpeed;
             float animSpeed = attackInterval < ChopAttackDuration
                 ? ChopAttackDuration / attackInterval
                 : 1f;
@@ -231,8 +237,8 @@ namespace RogueliteAutoBattler.Combat
 
             if (_stats != null && _targetStats != null && !_targetStats.IsDead)
             {
-                _targetStats.TakeDamage(_stats.BaseStats.atk);
-                Debug.Log($"[Attack] {name} hits {_targetStats.gameObject.name} for {_stats.BaseStats.atk} dmg. HP: {_targetStats.CurrentHp}/{_targetStats.MaxHp}");
+                _targetStats.TakeDamage(_stats.Atk);
+                Debug.Log($"[Attack] {name} hits {_targetStats.gameObject.name} for {_stats.Atk} dmg. HP: {_targetStats.CurrentHp}/{_targetStats.MaxHp}");
             }
 
             if (_hasAnimator)
@@ -241,8 +247,8 @@ namespace RogueliteAutoBattler.Combat
                 _animator.Play(AnimIdle);
             }
 
-            if (_stats != null && _stats.BaseStats != null)
-                _attackTimer = 1f / _stats.BaseStats.attackSpeed;
+            if (_stats != null && _stats.AttackSpeed > 0f)
+                _attackTimer = 1f / _stats.AttackSpeed;
         }
     }
 }

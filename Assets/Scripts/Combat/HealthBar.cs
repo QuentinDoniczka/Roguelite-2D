@@ -106,7 +106,7 @@ namespace RogueliteAutoBattler.Combat
 
         private void LateUpdate()
         {
-            if (_stats == null || _stats.BaseStats == null)
+            if (_stats == null || _stats.MaxHp <= 0)
                 return;
 
             // Reapply flip compensation every frame — the parent scale can change
