@@ -25,7 +25,7 @@ namespace RogueliteAutoBattler.Combat
         [SerializeField] private float _attackRange = 0.5f;
 
         // Vertical reach = half of horizontal. Forces face-to-face combat in a side-scroller.
-        private const float VerticalRangeRatio = 0.5f;
+        private const float VerticalRangeRatio = 0.25f;
 
         private const float ChopAttackDuration = 0.5f;
         private const float FadeOutDuration = 0.25f;
