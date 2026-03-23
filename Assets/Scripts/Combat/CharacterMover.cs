@@ -3,11 +3,10 @@ using UnityEngine;
 namespace RogueliteAutoBattler.Combat
 {
     /// <summary>
-    /// Moves this character along the X axis toward a target Transform using Rigidbody2D velocity.
-    /// Drives the Animator via Play("Walk"/"Idle"). Stop decisions (e.g. attack range) are
-    /// the responsibility of the caller — use <see cref="Stop"/> or disable this component.
+    /// Moves this character along the X axis toward a target Transform.
+    /// Uses Rigidbody2D velocity for physics-based movement when available,
+    /// falls back to transform.position if needed.
     /// </summary>
-    [RequireComponent(typeof(Rigidbody2D))]
     public class CharacterMover : MonoBehaviour
     {
         [Header("Movement")]
@@ -34,39 +33,48 @@ namespace RogueliteAutoBattler.Combat
             if (_animator != null)
                 _animator.applyRootMotion = false;
 
-            // Configure Rigidbody2D for movement via velocity.
-            _rb.bodyType = RigidbodyType2D.Dynamic;
-            _rb.gravityScale = 0f;
-            _rb.constraints = RigidbodyConstraints2D.FreezeRotation;
-            _rb.interpolation = RigidbodyInterpolation2D.Interpolate;
-
-            Debug.Log($"[CharacterMover] Awake on {gameObject.name} — rb={_rb != null}, animator={_animator != null}");
+            if (_rb != null)
+            {
+                _rb.bodyType = RigidbodyType2D.Dynamic;
+                _rb.gravityScale = 0f;
+                _rb.constraints = RigidbodyConstraints2D.FreezeRotation;
+                _rb.interpolation = RigidbodyInterpolation2D.Interpolate;
+            }
         }
 
         private void FixedUpdate()
         {
             if (_target == null)
             {
-                _rb.linearVelocity = Vector2.zero;
+                if (_rb != null) _rb.linearVelocity = Vector2.zero;
                 SetMoving(false);
                 return;
             }
 
             float deltaX = _target.position.x - transform.position.x;
-            float dirX = Mathf.Sign(deltaX);
-            _rb.linearVelocity = new Vector2(dirX * _moveSpeed, 0f);
-            SetMoving(true);
 
-            Debug.Log($"[CharacterMover] {gameObject.name} deltaX={deltaX:F2} vel={_rb.linearVelocity} pos={transform.position}");
+            if (_rb != null)
+            {
+                // Physics-based movement
+                float dirX = Mathf.Sign(deltaX);
+                _rb.linearVelocity = new Vector2(dirX * _moveSpeed, 0f);
+            }
+            else
+            {
+                // Fallback: direct transform movement
+                Vector3 pos = transform.position;
+                pos.x = Mathf.MoveTowards(pos.x, _target.position.x, _moveSpeed * Time.fixedDeltaTime);
+                transform.position = pos;
+            }
+
+            SetMoving(true);
         }
 
-        /// <summary>
-        /// Immediately zeroes velocity. Does not play any animation — the caller is
-        /// responsible for driving the Animator after this point (e.g. CombatController).
-        /// </summary>
+        /// <summary>Immediately zeroes velocity.</summary>
         public void Stop()
         {
-            _rb.linearVelocity = Vector2.zero;
+            if (_rb != null)
+                _rb.linearVelocity = Vector2.zero;
         }
 
         private void SetMoving(bool moving)

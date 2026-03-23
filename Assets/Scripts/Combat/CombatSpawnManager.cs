@@ -1,11 +1,10 @@
-using System.Collections;
 using UnityEngine;
 
 namespace RogueliteAutoBattler.Combat
 {
     /// <summary>
     /// Spawns an ally and an enemy from a shared character prefab at the start of combat,
-    /// then wires a <see cref="CombatController"/> on each so they walk toward and attack each other.
+    /// then wires combat controllers so they walk toward and attack each other.
     /// </summary>
     public class CombatSpawnManager : MonoBehaviour
     {
@@ -14,8 +13,6 @@ namespace RogueliteAutoBattler.Combat
         [SerializeField] private GameObject _characterPrefab;
 
         [Header("Spawn Positions")]
-        // Spawn X values are relative to world origin (camera centered at x=0).
-        // Defaults assume portrait 9:16 layout: orthographic size 5.4, visible half-width ~3.0.
         [Tooltip("World X position where the ally spawns.")]
         [SerializeField] private float _allySpawnX = -1f;
 
@@ -26,28 +23,17 @@ namespace RogueliteAutoBattler.Combat
         [SerializeField] private float _spawnY = 0f;
 
         [Header("Containers")]
-        [Tooltip("Parent transform for ally instances. Auto-resolved to a child named 'Team' if null.")]
         [SerializeField] private Transform _teamContainer;
-
-        [Tooltip("Parent transform for enemy instances. Auto-resolved to a child named 'Enemies' if null.")]
         [SerializeField] private Transform _enemiesContainer;
 
-        // Container names are shared with CombatWorldBuilder, which creates the matching
-        // child GameObjects. Keep these in sync with the hierarchy structure.
         public const string TeamContainerName = "Team";
         public const string EnemiesContainerName = "Enemies";
 
         private const string AllyName = "Warrior";
         private const string EnemyName = "Enemy";
-
-        // The default sprite faces left. The ally needs to be flipped to face right
-        // (toward the enemy). Negating X on the root flips the entire multi-sprite rig.
         private static readonly Vector3 FacingRightScale = new Vector3(-1f, 1f, 1f);
 
-        /// <summary>The spawned ally GameObject.</summary>
         public GameObject AllyInstance { get; private set; }
-
-        /// <summary>The spawned enemy GameObject.</summary>
         public GameObject EnemyInstance { get; private set; }
 
         private void Start()
@@ -60,60 +46,56 @@ namespace RogueliteAutoBattler.Combat
 
             FindContainersIfNeeded();
 
-            // Disable auto-scroll during combat — characters use their own movement.
+            // Disable auto-scroll during combat.
             var scrollManager = GetComponent<CombatScrollManager>();
             if (scrollManager != null)
                 scrollManager.enabled = false;
 
-            AllyInstance = Instantiate(
-                _characterPrefab,
-                new Vector3(_allySpawnX, _spawnY, 0f),
-                Quaternion.identity,
-                _teamContainer
-            );
+            // Spawn ally
+            AllyInstance = Instantiate(_characterPrefab, new Vector3(_allySpawnX, _spawnY, 0f), Quaternion.identity, _teamContainer);
             AllyInstance.name = AllyName;
             AllyInstance.transform.localScale = FacingRightScale;
 
-            EnemyInstance = Instantiate(
-                _characterPrefab,
-                new Vector3(_enemySpawnX, _spawnY, 0f),
-                Quaternion.identity,
-                _enemiesContainer
-            );
+            // Spawn enemy
+            EnemyInstance = Instantiate(_characterPrefab, new Vector3(_enemySpawnX, _spawnY, 0f), Quaternion.identity, _enemiesContainer);
             EnemyInstance.name = EnemyName;
 
-            // Wait one physics frame so Rigidbody2D is registered by the physics engine
-            // before wiring combat controllers and setting targets.
-            StartCoroutine(WireControllersNextFrame());
+            // Add components manually — no RequireComponent chain
+            SetupCombatCharacter(AllyInstance, EnemyInstance.transform);
+            SetupCombatCharacter(EnemyInstance, AllyInstance.transform);
         }
 
-        private IEnumerator WireControllersNextFrame()
+        private void SetupCombatCharacter(GameObject character, Transform target)
         {
-            yield return new WaitForFixedUpdate();
+            // Add Rigidbody2D first
+            var rb = character.AddComponent<Rigidbody2D>();
+            rb.bodyType = RigidbodyType2D.Dynamic;
+            rb.gravityScale = 0f;
+            rb.constraints = RigidbodyConstraints2D.FreezeRotation;
+            rb.interpolation = RigidbodyInterpolation2D.Interpolate;
+            rb.collisionDetectionMode = CollisionDetectionMode2D.Discrete;
 
-            var allyController = AllyInstance.AddComponent<CombatController>();
-            var enemyController = EnemyInstance.AddComponent<CombatController>();
+            // Add CharacterMover
+            var mover = character.AddComponent<CharacterMover>();
+            mover.Target = target;
 
-            // Wait another frame so CharacterMover + Rigidbody2D Awake() are fully processed.
-            yield return new WaitForFixedUpdate();
+            // Add CombatController
+            character.AddComponent<CombatController>();
 
-            allyController.Target = EnemyInstance.transform;
-            enemyController.Target = AllyInstance.transform;
+            Debug.Log($"[CombatSpawnManager] Setup {character.name}: rb.simulated={rb.simulated}, rb.bodyType={rb.bodyType}, target={target.name}");
         }
 
         private void FindContainersIfNeeded()
         {
             if (_teamContainer == null)
                 _teamContainer = transform.Find(TeamContainerName);
-
             if (_enemiesContainer == null)
                 _enemiesContainer = transform.Find(EnemiesContainerName);
 
             if (_teamContainer == null)
-                Debug.LogWarning($"[{nameof(CombatSpawnManager)}] '{TeamContainerName}' container not found as child!", this);
-
+                Debug.LogWarning($"[{nameof(CombatSpawnManager)}] '{TeamContainerName}' container not found!");
             if (_enemiesContainer == null)
-                Debug.LogWarning($"[{nameof(CombatSpawnManager)}] '{EnemiesContainerName}' container not found as child!", this);
+                Debug.LogWarning($"[{nameof(CombatSpawnManager)}] '{EnemiesContainerName}' container not found!");
         }
     }
 }

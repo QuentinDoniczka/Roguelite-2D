@@ -15,7 +15,6 @@ namespace RogueliteAutoBattler.Combat
     /// each FixedUpdate and transitions between Moving and Attacking states.
     /// Delegates movement to <see cref="CharacterMover"/> and animation to the Animator.
     /// </summary>
-    [RequireComponent(typeof(CharacterMover))]
     public class CombatController : MonoBehaviour
     {
         [Header("Combat")]
@@ -44,7 +43,7 @@ namespace RogueliteAutoBattler.Combat
 
         private void FixedUpdate()
         {
-            if (_mover.Target == null)
+            if (_mover == null || _mover.Target == null)
                 return;
 
             float distance = Mathf.Abs(_mover.Target.position.x - transform.position.x);
