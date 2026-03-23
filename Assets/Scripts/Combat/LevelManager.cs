@@ -40,8 +40,8 @@ namespace RogueliteAutoBattler.Combat
         {
             FindContainersIfNeeded();
             ApplyStage(_currentStageIndex);
-            // Wait one frame to ensure CombatSpawnManager has spawned the ally.
-            yield return null;
+            // Wait until an ally actually exists in the team container.
+            yield return new WaitUntil(() => TargetFinder.Closest(_teamContainer, Vector3.zero) != null);
             StartLevel(_currentLevelIndex);
         }
 
