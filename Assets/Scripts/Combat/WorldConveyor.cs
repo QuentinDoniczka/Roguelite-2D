@@ -13,6 +13,7 @@ namespace RogueliteAutoBattler.Combat
         private float _maxSpeed;
         private float _acceleration;
         private bool _isScrolling;
+        private bool _decelerating;
 
         /// <summary>Current scroll speed in world units per second.</summary>
         public float CurrentSpeed => _currentSpeed;
@@ -22,6 +23,9 @@ namespace RogueliteAutoBattler.Combat
 
         /// <summary>Fired when a scroll reaches its target position.</summary>
         public event System.Action OnScrollComplete;
+
+        /// <summary>Fired once when the scroll enters the deceleration phase.</summary>
+        public event System.Action OnDecelerationStarted;
 
         /// <summary>
         /// Starts a scroll. The world moves <paramref name="distance"/> units to the left (negative X).
@@ -52,6 +56,7 @@ namespace RogueliteAutoBattler.Combat
             _acceleration = acceleration;
             _currentSpeed = 0f;
             _isScrolling = true;
+            _decelerating = false;
         }
 
         private void Update()
@@ -76,6 +81,12 @@ namespace RogueliteAutoBattler.Combat
             if (remaining <= brakingDist + 0.1f)
             {
                 // Decelerate
+                if (!_decelerating)
+                {
+                    _decelerating = true;
+                    OnDecelerationStarted?.Invoke();
+                }
+
                 _currentSpeed -= _acceleration * Time.deltaTime;
                 if (_currentSpeed < 0.1f)
                     _currentSpeed = 0.1f;

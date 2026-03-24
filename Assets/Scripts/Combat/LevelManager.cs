@@ -44,6 +44,9 @@ namespace RogueliteAutoBattler.Combat
         [Tooltip("Extra X offset to spawn enemies off-screen to the right of EnemiesHomeAnchor.")]
         [SerializeField] private float _enemySpawnOffscreenX = 3f;
 
+        [Tooltip("Max distance an ally will search for a target. Prevents chasing off-screen.")]
+        [SerializeField] private float _allyMaxTargetRange = 8f;
+
         private const float FallbackEnemySpawnX = 1f;
 
         private int _aliveEnemyCount;
@@ -238,7 +241,7 @@ namespace RogueliteAutoBattler.Combat
                 if (!_allyRetargetWired && allyTransform.TryGetComponent<CombatController>(out var allyController))
                 {
                     var allyRef = allyTransform;
-                    allyController.FindNewTarget = () => TargetFinder.Closest(_enemiesContainer, allyRef.position);
+                    allyController.FindNewTarget = () => TargetFinder.Closest(_enemiesContainer, allyRef.position, _allyMaxTargetRange);
                     _allyRetargetWired = true;
                 }
             }
@@ -291,21 +294,36 @@ namespace RogueliteAutoBattler.Combat
             // 1. Wait for allies to return to HomeAnchor
             yield return new WaitForSeconds(_returnDelay);
 
-            // 2. Start scroll
+            // 2. Start scroll and spawn enemies when deceleration begins
             if (_conveyor != null)
             {
+                bool enemiesSpawned = false;
+                void OnDecel()
+                {
+                    if (enemiesSpawned) return;
+                    enemiesSpawned = true;
+                    Debug.Log($"[{nameof(LevelManager)}] Deceleration started. Spawning level {_currentLevelIndex}.");
+                    StartLevel(_currentLevelIndex);
+                }
+
+                _conveyor.OnDecelerationStarted += OnDecel;
                 _conveyor.ScrollBy(_scrollDistance, _scrollMaxSpeed, _scrollAcceleration);
 
                 // 3. Wait for scroll to finish
                 yield return new WaitUntil(() => !_conveyor.IsScrolling);
+                _conveyor.OnDecelerationStarted -= OnDecel;
+
+                // If scroll was too short for deceleration phase, spawn now
+                if (!enemiesSpawned)
+                {
+                    Debug.Log($"[{nameof(LevelManager)}] Scroll ended without decel phase. Spawning level {_currentLevelIndex}.");
+                    StartLevel(_currentLevelIndex);
+                }
             }
-
-            // 4. Wait for allies to reach HomeAnchor after scroll displacement
-            yield return new WaitUntil(() => AllAlliesAtHome());
-
-            // 5. Spawn enemies for next level
-            Debug.Log($"[{nameof(LevelManager)}] Transition complete. Starting level {_currentLevelIndex}.");
-            StartLevel(_currentLevelIndex);
+            else
+            {
+                StartLevel(_currentLevelIndex);
+            }
         }
 
         private bool AllAlliesAtHome()

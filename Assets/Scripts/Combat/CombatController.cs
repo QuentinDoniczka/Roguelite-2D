@@ -85,9 +85,13 @@ namespace RogueliteAutoBattler.Combat
             if (_mover == null || _mover.Target == null)
                 return;
 
-            float deltaX = Mathf.Abs(_mover.Target.position.x - transform.position.x);
+            float signedDeltaX = _mover.Target.position.x - transform.position.x;
+            float facingSign = -Mathf.Sign(transform.localScale.x);
+            bool targetInFront = signedDeltaX * facingSign >= 0f;
+
+            float deltaX = Mathf.Abs(signedDeltaX);
             float deltaY = Mathf.Abs(_mover.Target.position.y - transform.position.y);
-            bool inRange = deltaX <= _attackRange && deltaY <= _attackRange * VerticalRangeRatio;
+            bool inRange = targetInFront && deltaX <= _attackRange && deltaY <= _attackRange * VerticalRangeRatio;
 
             if (inRange)
                 SetState(CombatState.Attacking);
