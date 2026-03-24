@@ -56,6 +56,12 @@ namespace RogueliteAutoBattler.Combat
         private Transform _enemiesHomeAnchor;
         private WorldConveyor _conveyor;
 
+        private void FixedUpdate()
+        {
+            if (!_levelInProgress) return;
+            AssignAllyTargetsInZone();
+        }
+
         private IEnumerator Start()
         {
             CombatSetupHelper.FindContainersIfNeeded(transform, ref _teamContainer, ref _enemiesContainer, nameof(LevelManager));
@@ -348,6 +354,23 @@ namespace RogueliteAutoBattler.Combat
             }
 
             return true;
+        }
+
+        private void AssignAllyTargetsInZone()
+        {
+            if (_teamContainer == null || _enemiesContainer == null) return;
+
+            for (int i = 0; i < _teamContainer.childCount; i++)
+            {
+                var ally = _teamContainer.GetChild(i);
+                if (!ally.TryGetComponent<CombatController>(out var controller)) continue;
+                if (controller.Target != null) continue;
+                if (!ally.TryGetComponent<CombatStats>(out var stats) || stats.IsDead) continue;
+
+                Transform target = TargetFinder.Closest(_enemiesContainer, ally.position, float.MaxValue, _combatZoneViewportX);
+                if (target != null)
+                    controller.Target = target;
+            }
         }
 
         private void ClearAllyTargets()
