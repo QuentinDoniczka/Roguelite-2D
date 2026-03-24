@@ -168,10 +168,6 @@ namespace RogueliteAutoBattler.Editor
             if (allyStats != null)
                 EditorUIFactory.SetObj(soSpawnManager, "_allyStats", allyStats);
 
-            var enemyStats = AssetDatabase.LoadAssetAtPath<CharacterStats>("Assets/Data/Enemies/EnemyStats.asset");
-            if (enemyStats != null)
-                EditorUIFactory.SetObj(soSpawnManager, "_enemyStats", enemyStats);
-
             soSpawnManager.ApplyModifiedProperties();
 
             // LevelManager reads the LevelDatabase at runtime and swaps the ground sprite.
@@ -185,10 +181,11 @@ namespace RogueliteAutoBattler.Editor
 
             soLevelManager.ApplyModifiedProperties();
 
-            // Screen-absolute home anchors at scene root (outside CombatWorld so they
-            // don't scroll). Characters return here when they have no combat target.
+            // Screen-absolute anchors at scene root (outside CombatWorld so they
+            // don't scroll). Home positions for characters + combat zone boundary.
             CreateHomeAnchor(CombatSpawnManager.TeamHomeAnchorName, new Vector2(0.12f, 0.70f));
             CreateHomeAnchor(CombatSpawnManager.EnemiesHomeAnchorName, new Vector2(0.88f, 0.70f));
+            CreateHomeAnchor(CombatSpawnManager.CombatTriggerZoneName, new Vector2(1f, 0.5f));
 
             return root;
         }

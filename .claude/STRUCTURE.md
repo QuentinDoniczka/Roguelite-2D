@@ -2,7 +2,7 @@
 Generated: 2026-03-24
 
 Assets/
-├── Animations/  (23 files: .anim + .controller)
+├── Animations/  (24 files: .anim + .controller)
 ├── Audio/  (empty)
 ├── Data/
 │   ├── Adventurers/
@@ -15,6 +15,8 @@ Assets/
 ├── doc/
 │   ├── MedievalFantasyCharacters/  (14 files)
 │   ├── architecture-ui.md
+│   ├── combat.jpeg
+│   ├── exemple_HUD.jpg
 │   ├── plan-issue-6.md
 │   ├── plan-issue-40.md
 │   ├── plan-level-scroll-transition.md

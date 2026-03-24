@@ -25,6 +25,7 @@ namespace RogueliteAutoBattler.Combat
         public const string EnemiesContainerName = "Enemies";
         public const string TeamHomeAnchorName = "TeamHomeAnchor";
         public const string EnemiesHomeAnchorName = "EnemiesHomeAnchor";
+        public const string CombatTriggerZoneName = "CombatTriggerZone";
 
         private const string AllyName = "Warrior";
         public const string EnemyName = "Enemy";

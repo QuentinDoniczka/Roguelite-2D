@@ -46,5 +46,13 @@ namespace RogueliteAutoBattler.Combat
             _lastOrthoSize = _camera.orthographicSize;
             _lastAspect = _camera.aspect;
         }
+
+        private void OnDrawGizmos()
+        {
+            Gizmos.color = new Color(1f, 1f, 0f, 0.5f);
+            Gizmos.DrawLine(
+                new Vector3(transform.position.x, transform.position.y - 10f, 0f),
+                new Vector3(transform.position.x, transform.position.y + 10f, 0f));
+        }
     }
 }

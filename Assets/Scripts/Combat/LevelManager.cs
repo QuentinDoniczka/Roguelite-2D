@@ -44,8 +44,8 @@ namespace RogueliteAutoBattler.Combat
         [Tooltip("Extra X offset to spawn enemies off-screen to the right of EnemiesHomeAnchor.")]
         [SerializeField] private float _enemySpawnOffscreenX = 3f;
 
-        [Tooltip("Viewport X limit for ally targeting (0.9 = 90% screen). Enemies beyond this are ignored.")]
-        [SerializeField] private float _combatZoneViewportX = 0.9f;
+        private Transform _combatTriggerZone;
+        private bool _hasCombatTriggerZone;
 
         private const float FallbackEnemySpawnX = 1f;
 
@@ -55,6 +55,8 @@ namespace RogueliteAutoBattler.Combat
         private bool _allyRetargetWired;
         private Transform _enemiesHomeAnchor;
         private WorldConveyor _conveyor;
+
+        private float CombatZoneX => _hasCombatTriggerZone ? _combatTriggerZone.position.x : float.MaxValue;
 
         private void FixedUpdate()
         {
@@ -243,19 +245,12 @@ namespace RogueliteAutoBattler.Combat
                 if (needsTarget)
                 {
                     // Only target this enemy if it's inside the combat zone
-                    var cam = Camera.main;
-                    bool inZone = cam == null || cam.WorldToViewportPoint(firstEnemy.position).x <= _combatZoneViewportX;
+                    bool inZone = firstEnemy.position.x <= CombatZoneX;
                     if (inZone)
                         allyMover.Target = firstEnemy;
                 }
 
-                // Wire retarget delegate once (closure captures ally position)
-                if (!_allyRetargetWired && allyTransform.TryGetComponent<CombatController>(out var allyController))
-                {
-                    var allyRef = allyTransform;
-                    allyController.FindNewTarget = () => TargetFinder.Closest(_enemiesContainer, allyRef.position, float.MaxValue, _combatZoneViewportX);
-                    _allyRetargetWired = true;
-                }
+                WireAllyRetarget(allyTransform);
             }
         }
 
@@ -338,23 +333,6 @@ namespace RogueliteAutoBattler.Combat
             }
         }
 
-        private bool AllAlliesAtHome()
-        {
-            if (_teamContainer == null) return true;
-
-            for (int i = 0; i < _teamContainer.childCount; i++)
-            {
-                var ally = _teamContainer.GetChild(i);
-                if (!ally.TryGetComponent<CharacterMover>(out var mover)) continue;
-                if (mover.HomeAnchor == null) continue;
-
-                float dist = Vector2.Distance(ally.position, mover.HomeAnchor.position);
-                if (dist > 0.3f) return false;
-            }
-
-            return true;
-        }
-
         private void AssignAllyTargetsInZone()
         {
             if (_teamContainer == null || _enemiesContainer == null) return;
@@ -366,20 +344,23 @@ namespace RogueliteAutoBattler.Combat
                 if (controller.Target != null) continue;
                 if (!ally.TryGetComponent<CombatStats>(out var stats) || stats.IsDead) continue;
 
-                Transform target = TargetFinder.Closest(_enemiesContainer, ally.position, float.MaxValue, _combatZoneViewportX);
+                Transform target = TargetFinder.Closest(_enemiesContainer, ally.position, float.MaxValue, CombatZoneX);
                 if (target != null)
                 {
                     controller.Target = target;
-
-                    // Wire retarget delegate if not done yet
-                    if (!_allyRetargetWired)
-                    {
-                        var allyRef = ally;
-                        controller.FindNewTarget = () => TargetFinder.Closest(_enemiesContainer, allyRef.position, float.MaxValue, _combatZoneViewportX);
-                        _allyRetargetWired = true;
-                    }
+                    WireAllyRetarget(ally);
                 }
             }
+        }
+
+        private void WireAllyRetarget(Transform ally)
+        {
+            if (_allyRetargetWired) return;
+            if (!ally.TryGetComponent<CombatController>(out var controller)) return;
+
+            var allyRef = ally;
+            controller.FindNewTarget = () => TargetFinder.Closest(_enemiesContainer, allyRef.position, float.MaxValue, CombatZoneX);
+            _allyRetargetWired = true;
         }
 
         private void ClearAllyTargets()
@@ -399,6 +380,13 @@ namespace RogueliteAutoBattler.Combat
             var anchorGo = GameObject.Find(CombatSpawnManager.EnemiesHomeAnchorName);
             if (anchorGo != null)
                 _enemiesHomeAnchor = anchorGo.transform;
+
+            var triggerZoneGo = GameObject.Find(CombatSpawnManager.CombatTriggerZoneName);
+            if (triggerZoneGo != null)
+            {
+                _combatTriggerZone = triggerZoneGo.transform;
+                _hasCombatTriggerZone = true;
+            }
         }
     }
 }
