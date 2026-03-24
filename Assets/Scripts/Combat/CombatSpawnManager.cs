@@ -43,7 +43,7 @@ namespace RogueliteAutoBattler.Combat
                 return;
             }
 
-            FindContainersIfNeeded();
+            CombatSetupHelper.FindContainersIfNeeded(transform, ref _teamContainer, ref _enemiesContainer, nameof(CombatSpawnManager));
 
             // Disable auto-scroll during combat.
             var scrollManager = GetComponent<CombatScrollManager>();
@@ -76,7 +76,7 @@ namespace RogueliteAutoBattler.Combat
                 allyMover.HomeAnchor = teamAnchor;
 
             var allyController = AllyInstance.AddComponent<CombatController>();
-            WireAnimationRelay(AllyInstance, allyController);
+            CombatSetupHelper.WireAnimationRelay(AllyInstance, allyController, nameof(CombatSpawnManager));
 
             // Ally starts with no target — LevelManager will assign one when enemies spawn.
         }
@@ -93,29 +93,5 @@ namespace RogueliteAutoBattler.Combat
             combatStats.Initialize(stats);
         }
 
-        private void WireAnimationRelay(GameObject character, CombatController controller)
-        {
-            var animator = character.GetComponentInChildren<Animator>();
-            if (animator == null)
-            {
-                Debug.LogWarning($"[{nameof(CombatSpawnManager)}] No Animator found on {character.name} — AnimationEventRelay not added.");
-                return;
-            }
-            var relay = animator.gameObject.AddComponent<AnimationEventRelay>();
-            relay.Initialize(controller);
-        }
-
-        private void FindContainersIfNeeded()
-        {
-            if (_teamContainer == null)
-                _teamContainer = transform.Find(TeamContainerName);
-            if (_enemiesContainer == null)
-                _enemiesContainer = transform.Find(EnemiesContainerName);
-
-            if (_teamContainer == null)
-                Debug.LogWarning($"[{nameof(CombatSpawnManager)}] '{TeamContainerName}' container not found!");
-            if (_enemiesContainer == null)
-                Debug.LogWarning($"[{nameof(CombatSpawnManager)}] '{EnemiesContainerName}' container not found!");
-        }
     }
 }

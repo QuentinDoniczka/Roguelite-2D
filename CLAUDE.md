@@ -25,15 +25,10 @@
 Doc detaille : `Assets/doc/premier-jet-roguelite.html`
 
 # Project Structure
-Generated: 2026-03-23
+Generated: 2026-03-24
 
 Assets/
-├── Animations/
-│   ├── Character/  (7 files: 6 .anim + 1 .controller)
-│   ├── Elk/  (4 files)
-│   ├── Horse/  (4 files)
-│   ├── Wildboar/  (4 files)
-│   └── Wolf/  (4 files)
+├── Animations/  (23 files: .anim + .controller)
 ├── Audio/  (empty)
 ├── Data/
 │   ├── Adventurers/
@@ -41,12 +36,14 @@ Assets/
 │   ├── Buildings/  (empty)
 │   ├── Enemies/
 │   │   └── EnemyStats.asset
+│   ├── LevelDatabase.asset
 │   └── LootTables/  (empty)
 ├── doc/
 │   ├── MedievalFantasyCharacters/  (14 files)
 │   ├── architecture-ui.md
 │   ├── plan-issue-6.md
 │   ├── plan-issue-40.md
+│   ├── plan-level-scroll-transition.md
 │   └── premier-jet-roguelite.html
 ├── Fonts/  (empty)
 ├── Prefabs/
@@ -62,10 +59,14 @@ Assets/
 │   │   ├── CharacterMover.cs
 │   │   ├── CombatController.cs
 │   │   ├── CombatScrollManager.cs
+│   │   ├── CombatSetupHelper.cs
 │   │   ├── CombatSpawnManager.cs
 │   │   ├── CombatStats.cs
 │   │   ├── GroundFitter.cs
 │   │   ├── HealthBar.cs
+│   │   ├── LevelManager.cs
+│   │   ├── ScreenAnchor.cs
+│   │   ├── TargetFinder.cs
 │   │   └── WorldConveyor.cs
 │   ├── Core/  (empty)
 │   ├── Editor/
@@ -110,13 +111,15 @@ Assets/
 │   ├── UniversalRenderPipelineGlobalSettings.asset
 │   └── UniversalRP.asset
 ├── Sprites/
-│   ├── Characters/  (155 files)
+│   ├── Characters/  (156 files)
 │   ├── Effects/  (25 files)
 │   ├── Environment/
 │   │   ├── grid_ground.png
+│   │   ├── grid_ground_blue.png
 │   │   └── placeholder_white.png
-│   ├── Items/  (53 files)
+│   ├── Items/  (54 files)
 │   └── UI/  (empty)
+├── _Recovery/  (1 file)
 └── TextMesh Pro/  (173 files — TMP package: fonts, shaders, examples)
 
 ProjectSettings/  (Unity defaults)

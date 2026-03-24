@@ -27,6 +27,19 @@ namespace RogueliteAutoBattler.Combat
         [Tooltip("Parent transform for the ally team (used to find targets for enemies).")]
         [SerializeField] private Transform _teamContainer;
 
+        [Header("Scroll Transition")]
+        [Tooltip("Distance in world units the world scrolls left between levels.")]
+        [SerializeField] private float _scrollDistance = 5f;
+
+        [Tooltip("Maximum scroll speed. Must be less than ally move speed to prevent drift.")]
+        [SerializeField] private float _scrollMaxSpeed = 1.5f;
+
+        [Tooltip("Scroll acceleration and deceleration in units per second squared.")]
+        [SerializeField] private float _scrollAcceleration = 2f;
+
+        [Tooltip("Delay in seconds before scrolling, to let allies return to HomeAnchor.")]
+        [SerializeField] private float _returnDelay = 1f;
+
         private const float FallbackEnemySpawnX = 1f;
 
         private int _aliveEnemyCount;
@@ -34,10 +47,12 @@ namespace RogueliteAutoBattler.Combat
         private bool _levelInProgress;
         private bool _allyRetargetWired;
         private Transform _enemiesHomeAnchor;
+        private WorldConveyor _conveyor;
 
         private IEnumerator Start()
         {
-            FindContainersIfNeeded();
+            CombatSetupHelper.FindContainersIfNeeded(transform, ref _teamContainer, ref _enemiesContainer, nameof(LevelManager));
+            _conveyor = GetComponent<WorldConveyor>();
             FindHomeAnchors();
             ApplyStage(_currentStageIndex);
             // Wait until an ally actually exists in the team container.
@@ -181,15 +196,13 @@ namespace RogueliteAutoBattler.Combat
             controller.FindNewTarget = () => TargetFinder.Closest(_teamContainer, enemyTransform.position);
 
             // AnimationEventRelay — wire animation events to the controller.
-            WireAnimationRelay(enemy, controller);
+            CombatSetupHelper.WireAnimationRelay(enemy, controller, nameof(LevelManager));
 
             // Wire ally to target this enemy if it has no target yet.
             SetAllyTarget(enemy.transform);
 
             Debug.Log($"[{nameof(LevelManager)}] Spawned enemy '{data.EnemyName}' at {spawnPosition}");
         }
-
-
 
         /// <summary>
         /// Sets the ally's target to the given enemy if the ally currently has no target
@@ -244,13 +257,24 @@ namespace RogueliteAutoBattler.Combat
 
         private void OnLevelComplete()
         {
-            var stage = _levelDatabase.Stages[_currentStageIndex];
+            Debug.Log($"[{nameof(LevelManager)}] Level complete! Starting transition...");
+
+            ClearAllyTargets();
+            _allyRetargetWired = false;
+
+            var stages = _levelDatabase.Stages;
+            if (stages == null || _currentStageIndex < 0 || _currentStageIndex >= stages.Count)
+            {
+                Debug.LogWarning($"[{nameof(LevelManager)}] Stage index {_currentStageIndex} out of range on level complete.");
+                return;
+            }
+
+            var stage = stages[_currentStageIndex];
             _currentLevelIndex++;
 
             if (_currentLevelIndex < stage.Levels.Count)
             {
-                Debug.Log($"[{nameof(LevelManager)}] Level {_currentLevelIndex} starting!");
-                StartLevel(_currentLevelIndex);
+                StartCoroutine(LevelTransitionCoroutine());
             }
             else
             {
@@ -258,17 +282,35 @@ namespace RogueliteAutoBattler.Combat
             }
         }
 
-        private void WireAnimationRelay(GameObject character, CombatController controller)
+        private IEnumerator LevelTransitionCoroutine()
         {
-            var animator = character.GetComponentInChildren<Animator>();
-            if (animator == null)
+            // 1. Wait for allies to return to HomeAnchor
+            yield return new WaitForSeconds(_returnDelay);
+
+            // 2. Start scroll
+            if (_conveyor != null)
             {
-                Debug.LogWarning($"[{nameof(LevelManager)}] No Animator found on {character.name} — AnimationEventRelay not added.");
-                return;
+                _conveyor.ScrollBy(_scrollDistance, _scrollMaxSpeed, _scrollAcceleration);
+
+                // 3. Wait for scroll to finish
+                yield return new WaitUntil(() => !_conveyor.IsScrolling);
             }
 
-            var relay = animator.gameObject.AddComponent<AnimationEventRelay>();
-            relay.Initialize(controller);
+            // 4. Spawn enemies for next level
+            Debug.Log($"[{nameof(LevelManager)}] Transition complete. Starting level {_currentLevelIndex}.");
+            StartLevel(_currentLevelIndex);
+        }
+
+        private void ClearAllyTargets()
+        {
+            if (_teamContainer == null) return;
+
+            for (int i = 0; i < _teamContainer.childCount; i++)
+            {
+                var ally = _teamContainer.GetChild(i);
+                if (ally.TryGetComponent<CombatController>(out var controller))
+                    controller.Target = null;
+            }
         }
 
         private void FindHomeAnchors()
@@ -276,19 +318,6 @@ namespace RogueliteAutoBattler.Combat
             var anchorGo = GameObject.Find(CombatSpawnManager.EnemiesHomeAnchorName);
             if (anchorGo != null)
                 _enemiesHomeAnchor = anchorGo.transform;
-        }
-
-        private void FindContainersIfNeeded()
-        {
-            if (_teamContainer == null)
-                _teamContainer = transform.Find(CombatSpawnManager.TeamContainerName);
-            if (_enemiesContainer == null)
-                _enemiesContainer = transform.Find(CombatSpawnManager.EnemiesContainerName);
-
-            if (_teamContainer == null)
-                Debug.LogWarning($"[{nameof(LevelManager)}] '{CombatSpawnManager.TeamContainerName}' container not found!");
-            if (_enemiesContainer == null)
-                Debug.LogWarning($"[{nameof(LevelManager)}] '{CombatSpawnManager.EnemiesContainerName}' container not found!");
         }
     }
 }
