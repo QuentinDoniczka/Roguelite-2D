@@ -296,9 +296,29 @@ namespace RogueliteAutoBattler.Combat
                 yield return new WaitUntil(() => !_conveyor.IsScrolling);
             }
 
-            // 4. Spawn enemies for next level
+            // 4. Wait for allies to reach HomeAnchor after scroll displacement
+            yield return new WaitUntil(() => AllAlliesAtHome());
+
+            // 5. Spawn enemies for next level
             Debug.Log($"[{nameof(LevelManager)}] Transition complete. Starting level {_currentLevelIndex}.");
             StartLevel(_currentLevelIndex);
+        }
+
+        private bool AllAlliesAtHome()
+        {
+            if (_teamContainer == null) return true;
+
+            for (int i = 0; i < _teamContainer.childCount; i++)
+            {
+                var ally = _teamContainer.GetChild(i);
+                if (!ally.TryGetComponent<CharacterMover>(out var mover)) continue;
+                if (mover.HomeAnchor == null) continue;
+
+                float dist = Vector2.Distance(ally.position, mover.HomeAnchor.position);
+                if (dist > 0.3f) return false;
+            }
+
+            return true;
         }
 
         private void ClearAllyTargets()
