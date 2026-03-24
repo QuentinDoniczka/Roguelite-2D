@@ -49,11 +49,12 @@ namespace RogueliteAutoBattler.Combat
 
             for (int i = 0; i < allies.Count; i++)
             {
-                SpawnAlly(allies[i], teamAnchor, positions[i]);
+                Vector2 offset = positions[i] - anchorPos;
+                SpawnAlly(allies[i], teamAnchor, positions[i], offset);
             }
         }
 
-        private void SpawnAlly(AllySpawnData data, Transform homeAnchor, Vector2 spawnPos)
+        private void SpawnAlly(AllySpawnData data, Transform homeAnchor, Vector2 spawnPos, Vector2 homeOffset)
         {
             if (data.Prefab == null)
             {
@@ -76,6 +77,7 @@ namespace RogueliteAutoBattler.Combat
             mover.SetMoveSpeed(data.MoveSpeed);
             if (homeAnchor != null)
                 mover.HomeAnchor = homeAnchor;
+            mover.SetHomeOffset(homeOffset);
 
             // Collider radius — set after AddComponent<CharacterMover> which auto-adds CircleCollider2D.
             var col = ally.GetComponent<CircleCollider2D>();

@@ -18,10 +18,6 @@ namespace RogueliteAutoBattler.Combat
         private const float FaceOffset = 0.25f;
 
         private const float HomeArrivalThreshold = 0.15f;
-        private const float BlockCastRadius = 0.15f;
-        private const float BlockCastDistance = 0.15f;
-
-        private static readonly RaycastHit2D[] BlockCastBuffer = new RaycastHit2D[8];
 
         // Shared low-friction material so characters slide past each other.
         private static PhysicsMaterial2D _frictionlessMaterial;
@@ -32,19 +28,13 @@ namespace RogueliteAutoBattler.Combat
         private bool _hasAnimator;
         private Rigidbody2D _rb;
         private bool _isMoving;
-        private bool _isBlocked;
+        private Vector2 _homeOffset;
 
         /// <summary>Cached Animator from GetComponentInChildren (may be null).</summary>
         public Animator Animator => _animator;
 
         /// <summary>Whether an Animator was found on this character.</summary>
         public bool HasAnimator => _hasAnimator;
-
-        /// <summary>Whether the character is blocked by another combat unit ahead.</summary>
-        public bool IsBlocked => _isBlocked;
-
-        /// <summary>Fired once when the character becomes blocked by a friendly unit.</summary>
-        public event System.Action OnBlocked;
 
         /// <summary>The Transform this character moves toward. Set to null to stop.</summary>
         public Transform Target
@@ -99,15 +89,14 @@ namespace RogueliteAutoBattler.Combat
 
             if (_target == null)
             {
-                _isBlocked = false;
-
                 // No combat target — return to home anchor if available.
                 if (_homeAnchor != null)
                 {
-                    float sqrDistToHome = ((Vector2)_homeAnchor.position - (Vector2)transform.position).sqrMagnitude;
+                    Vector2 homePos = (Vector2)_homeAnchor.position + _homeOffset;
+                    float sqrDistToHome = (homePos - (Vector2)transform.position).sqrMagnitude;
                     if (sqrDistToHome > HomeArrivalThreshold * HomeArrivalThreshold)
                     {
-                        Vector2 dir = ((Vector2)_homeAnchor.position - (Vector2)transform.position).normalized;
+                        Vector2 dir = (homePos - (Vector2)transform.position).normalized;
                         FlipToward(dir.x);
                         _rb.linearVelocity = dir * _moveSpeed;
                         SetMoving(true);
@@ -135,51 +124,20 @@ namespace RogueliteAutoBattler.Combat
 
             FlipToward(direction.x);
 
-            // CircleCastNonAlloc to detect blocking by another combat unit ahead.
-            // Uses all hits so non-CombatStats colliders (ground, triggers) are skipped.
-            int hitCount = Physics2D.CircleCastNonAlloc(
-                (Vector2)transform.position,
-                BlockCastRadius,
-                direction,
-                BlockCastBuffer,
-                BlockCastDistance
-            );
-
-            bool blocked = false;
-            for (int i = 0; i < hitCount; i++)
-            {
-                var h = BlockCastBuffer[i];
-                if (h.transform != transform
-                    && h.transform != _target
-                    && h.transform.TryGetComponent<CombatStats>(out _))
-                {
-                    blocked = true;
-                    break;
-                }
-            }
-
-            if (blocked)
-            {
-                _rb.linearVelocity = Vector2.zero;
-                SetMoving(false);
-                if (!_isBlocked)
-                {
-                    _isBlocked = true;
-                    OnBlocked?.Invoke();
-                }
-            }
-            else
-            {
-                _rb.linearVelocity = direction * _moveSpeed;
-                _isBlocked = false;
-                SetMoving(true);
-            }
+            _rb.linearVelocity = direction * _moveSpeed;
+            SetMoving(true);
         }
 
         /// <summary>Overrides the serialized move speed at runtime (set from stats on spawn).</summary>
         public void SetMoveSpeed(float speed)
         {
             _moveSpeed = speed;
+        }
+
+        /// <summary>Sets the formation offset from the home anchor for this character's home position.</summary>
+        public void SetHomeOffset(Vector2 offset)
+        {
+            _homeOffset = offset;
         }
 
         /// <summary>Immediately zeroes velocity.</summary>

@@ -66,8 +66,6 @@ namespace RogueliteAutoBattler.Combat
 
             if (_hasStats)
                 _stats.OnDied += HandleSelfDied;
-
-            _mover.OnBlocked += HandleBlocked;
         }
 
         private void OnDestroy()
@@ -75,9 +73,6 @@ namespace RogueliteAutoBattler.Combat
             // Use Unity's null check (not cached _hasStats) — the object may be destroyed at teardown.
             if (_stats != null)
                 _stats.OnDied -= HandleSelfDied;
-
-            if (_mover != null)
-                _mover.OnBlocked -= HandleBlocked;
 
             UnsubscribeFromTarget();
         }
@@ -182,22 +177,6 @@ namespace RogueliteAutoBattler.Combat
             Transform newTarget = FindNewTarget?.Invoke();
             _mover.Target = newTarget; // null if none — CharacterMover returns to home anchor.
             SetState(CombatState.Moving);
-        }
-
-        private void HandleBlocked()
-        {
-            if (_state != CombatState.Moving)
-                return;
-            if (FindNewTarget == null)
-                return;
-
-            Transform current = _mover.Target;
-            Transform alternative = FindNewTarget();
-
-            if (alternative != null && alternative != current)
-            {
-                _mover.Target = alternative;
-            }
         }
 
         private void FaceTarget()

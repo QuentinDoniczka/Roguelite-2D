@@ -150,14 +150,15 @@ namespace RogueliteAutoBattler.Combat
 
             for (int i = 0; i < wave.Enemies.Count; i++)
             {
-                SpawnEnemy(wave.Enemies[i], positions[i]);
+                Vector2 offset = positions[i] - anchorPos;
+                SpawnEnemy(wave.Enemies[i], positions[i], offset);
             }
 
             _pendingWaveCount--;
             CheckLevelComplete();
         }
 
-        private void SpawnEnemy(EnemySpawnData data, Vector2 spawnPos)
+        private void SpawnEnemy(EnemySpawnData data, Vector2 spawnPos, Vector2 homeOffset)
         {
             if (data.Prefab == null)
             {
@@ -186,6 +187,7 @@ namespace RogueliteAutoBattler.Combat
             mover.SetMoveSpeed(data.MoveSpeed);
             if (_enemiesHomeAnchor != null)
                 mover.HomeAnchor = _enemiesHomeAnchor;
+            mover.SetHomeOffset(homeOffset);
 
             var col = enemy.GetComponent<CircleCollider2D>();
             if (col != null)
