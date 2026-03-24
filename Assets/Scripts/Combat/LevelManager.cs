@@ -30,25 +30,24 @@ namespace RogueliteAutoBattler.Combat
 
         [Header("Scroll Transition")]
         [Tooltip("Distance in world units the world scrolls left between levels.")]
-        [SerializeField] private float _scrollDistance = 5f;
+        [SerializeField] private float _scrollDistance = 2f;
 
         [Header("Enemy Spawn")]
         [Tooltip("Extra X offset to spawn enemies off-screen to the right of EnemiesHomeAnchor.")]
-        [SerializeField] private float _enemySpawnOffscreenX = 3f;
+        [SerializeField] private float _enemySpawnOffscreenX = 1f;
 
-        private Transform _combatTriggerZone;
-        private bool _hasCombatTriggerZone;
+        [Header("Anchors")]
+        [SerializeField] private Transform _enemiesHomeAnchor;
+        [SerializeField] private Transform _combatTriggerZone;
 
         private const float FallbackEnemySpawnX = 1f;
 
         private int _aliveEnemyCount;
         private int _pendingWaveCount;
         private bool _levelInProgress;
-        private bool _allyRetargetWired;
-        private Transform _enemiesHomeAnchor;
         private WorldConveyor _conveyor;
 
-        private float CombatZoneX => _hasCombatTriggerZone ? _combatTriggerZone.position.x : float.MaxValue;
+        private float CombatZoneX => _combatTriggerZone != null ? _combatTriggerZone.position.x : float.MaxValue;
 
         private void FixedUpdate()
         {
@@ -60,7 +59,6 @@ namespace RogueliteAutoBattler.Combat
         {
             CombatSetupHelper.FindContainersIfNeeded(transform, ref _teamContainer, ref _enemiesContainer, nameof(LevelManager));
             _conveyor = GetComponent<WorldConveyor>();
-            FindHomeAnchors();
             ApplyStage(_currentStageIndex);
             // Wait until an ally actually exists in the team container.
             yield return new WaitUntil(() => TargetFinder.Closest(_teamContainer, Vector3.zero) != null);
@@ -143,16 +141,23 @@ namespace RogueliteAutoBattler.Combat
 
             Debug.Log($"[{nameof(LevelManager)}] Spawning wave {waveIndex} '{wave.WaveName}' ({wave.Enemies.Count} enemies).");
 
-            foreach (var enemyData in wave.Enemies)
+            // Calculate formation positions for this wave's enemies.
+            Vector2 anchorPos = _enemiesHomeAnchor != null
+                ? (Vector2)_enemiesHomeAnchor.position
+                : new Vector2(FallbackEnemySpawnX, 0f);
+            Vector2 spawnAnchor = new Vector2(anchorPos.x + _enemySpawnOffscreenX, anchorPos.y);
+            Vector2[] positions = FormationLayout.GetPositions(spawnAnchor, wave.Enemies.Count, facingRight: false);
+
+            for (int i = 0; i < wave.Enemies.Count; i++)
             {
-                SpawnEnemy(enemyData);
+                SpawnEnemy(wave.Enemies[i], positions[i]);
             }
 
             _pendingWaveCount--;
             CheckLevelComplete();
         }
 
-        private void SpawnEnemy(EnemySpawnData data)
+        private void SpawnEnemy(EnemySpawnData data, Vector2 spawnPos)
         {
             if (data.Prefab == null)
             {
@@ -160,15 +165,7 @@ namespace RogueliteAutoBattler.Combat
                 return;
             }
 
-            // Spawn position = EnemiesHomeAnchor (screen-right) + offscreen offset + spawnOffset from level data.
-            Vector3 anchorPos = _enemiesHomeAnchor != null
-                ? _enemiesHomeAnchor.position
-                : new Vector3(FallbackEnemySpawnX, 0f, 0f);
-            Vector3 spawnPosition = new Vector3(
-                anchorPos.x + _enemySpawnOffscreenX + data.SpawnOffset.x,
-                anchorPos.y + data.SpawnOffset.y,
-                0f
-            );
+            Vector3 spawnPosition = new Vector3(spawnPos.x, spawnPos.y, 0f);
 
             GameObject enemy = Instantiate(data.Prefab, spawnPosition, Quaternion.identity, _enemiesContainer);
             enemy.name = data.EnemyName;
@@ -189,6 +186,10 @@ namespace RogueliteAutoBattler.Combat
             mover.SetMoveSpeed(data.MoveSpeed);
             if (_enemiesHomeAnchor != null)
                 mover.HomeAnchor = _enemiesHomeAnchor;
+
+            var col = enemy.GetComponent<CircleCollider2D>();
+            if (col != null)
+                col.radius = data.ColliderRadius;
 
             var enemyTransform = enemy.transform;
             Transform allyTarget = TargetFinder.Closest(_teamContainer, enemyTransform.position);
@@ -266,7 +267,6 @@ namespace RogueliteAutoBattler.Combat
             Debug.Log($"[{nameof(LevelManager)}] Level complete! Starting transition...");
 
             ClearAllyTargets();
-            _allyRetargetWired = false;
 
             var stages = _levelDatabase.Stages;
             if (stages == null || _currentStageIndex < 0 || _currentStageIndex >= stages.Count)
@@ -347,12 +347,11 @@ namespace RogueliteAutoBattler.Combat
 
         private void WireAllyRetarget(Transform ally)
         {
-            if (_allyRetargetWired) return;
             if (!ally.TryGetComponent<CombatController>(out var controller)) return;
+            if (controller.FindNewTarget != null) return;
 
             var allyRef = ally;
             controller.FindNewTarget = () => TargetFinder.Closest(_enemiesContainer, allyRef.position, float.MaxValue, CombatZoneX);
-            _allyRetargetWired = true;
         }
 
         private void ClearAllyTargets()
@@ -363,22 +362,12 @@ namespace RogueliteAutoBattler.Combat
             {
                 var ally = _teamContainer.GetChild(i);
                 if (ally.TryGetComponent<CombatController>(out var controller))
+                {
                     controller.Target = null;
+                    controller.FindNewTarget = null;
+                }
             }
         }
 
-        private void FindHomeAnchors()
-        {
-            var anchorGo = GameObject.Find(CombatSpawnManager.EnemiesHomeAnchorName);
-            if (anchorGo != null)
-                _enemiesHomeAnchor = anchorGo.transform;
-
-            var triggerZoneGo = GameObject.Find(CombatSpawnManager.CombatTriggerZoneName);
-            if (triggerZoneGo != null)
-            {
-                _combatTriggerZone = triggerZoneGo.transform;
-                _hasCombatTriggerZone = true;
-            }
-        }
     }
 }

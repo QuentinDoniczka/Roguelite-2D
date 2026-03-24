@@ -31,12 +31,14 @@ Assets/
 ├── Scripts/
 │   ├── Adventurers/  (empty)
 │   ├── Combat/
+│   │   ├── AnimHashes.cs
 │   │   ├── AnimationEventRelay.cs
 │   │   ├── CharacterMover.cs
 │   │   ├── CombatController.cs
 │   │   ├── CombatSetupHelper.cs
 │   │   ├── CombatSpawnManager.cs
 │   │   ├── CombatStats.cs
+│   │   ├── FormationLayout.cs
 │   │   ├── GroundFitter.cs
 │   │   ├── HealthBar.cs
 │   │   ├── LevelManager.cs
@@ -48,13 +50,14 @@ Assets/
 │   │   ├── CombatHudBuilder.cs
 │   │   ├── CombatWorldBuilder.cs
 │   │   ├── EditorUIFactory.cs
-│   │   ├── LevelEditorWindow.cs
+│   │   ├── GameDesignerWindow.cs
 │   │   └── SetupNavigationSceneEditor.cs
 │   ├── Items/  (empty)
 │   ├── ScriptableObjects/
 │   │   ├── CharacterStats.cs
 │   │   ├── LevelDataTypes.cs
-│   │   └── LevelDatabase.cs
+│   │   ├── LevelDatabase.cs
+│   │   └── TeamDatabase.cs
 │   ├── Services/
 │   │   └── Local/  (empty)
 │   ├── UI/

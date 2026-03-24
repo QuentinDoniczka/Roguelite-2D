@@ -15,7 +15,7 @@ namespace RogueliteAutoBattler.Combat
         private float _lastOrthoSize;
         private float _lastAspect;
 
-        private void Start()
+        private void Awake()
         {
             _camera = Camera.main;
             if (_camera == null)

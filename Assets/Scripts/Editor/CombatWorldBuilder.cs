@@ -153,41 +153,69 @@ namespace RogueliteAutoBattler.Editor
             EditorUIFactory.SetObj(soSpawnManager, "_teamContainer", teamGo.transform);
             EditorUIFactory.SetObj(soSpawnManager, "_enemiesContainer", enemiesGo.transform);
 
-            // Auto-assign the default character prefab so the scene is ready to play immediately.
-            var characterPrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Characters/sampleCharacterHuman.prefab");
-            if (characterPrefab != null)
-                EditorUIFactory.SetObj(soSpawnManager, "_characterPrefab", characterPrefab);
-            else
-                Debug.LogWarning($"[{nameof(CombatWorldBuilder)}] sampleCharacterHuman.prefab not found — assign _characterPrefab manually.");
+            // Assign TeamDatabase asset — create one with a default warrior if it doesn't exist.
+            const string teamDbPath = "Assets/Data/TeamDatabase.asset";
+            var teamDb = AssetDatabase.LoadAssetAtPath<TeamDatabase>(teamDbPath);
+            if (teamDb == null)
+            {
+                teamDb = ScriptableObject.CreateInstance<TeamDatabase>();
 
-            // Auto-assign stats assets.
-            var allyStats = AssetDatabase.LoadAssetAtPath<CharacterStats>("Assets/Data/Adventurers/WarriorStats.asset");
-            if (allyStats != null)
-                EditorUIFactory.SetObj(soSpawnManager, "_allyStats", allyStats);
+                var soTeamDb = new SerializedObject(teamDb);
+                var alliesProp = soTeamDb.FindProperty("allies");
+                if (alliesProp != null)
+                {
+                    alliesProp.arraySize = 1;
+                    var defaultAlly = alliesProp.GetArrayElementAtIndex(0);
+                    defaultAlly.FindPropertyRelative("allyName").stringValue = "Warrior";
+                    var defaultPrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Characters/sampleCharacterHuman.prefab");
+                    if (defaultPrefab != null)
+                        defaultAlly.FindPropertyRelative("prefab").objectReferenceValue = defaultPrefab;
+                    else
+                        Debug.LogWarning($"[{nameof(CombatWorldBuilder)}] sampleCharacterHuman.prefab not found — assign ally prefab manually.");
+                    defaultAlly.FindPropertyRelative("maxHp").intValue             = 100;
+                    defaultAlly.FindPropertyRelative("atk").intValue               = 10;
+                    defaultAlly.FindPropertyRelative("attackSpeed").floatValue     = 1f;
+                    defaultAlly.FindPropertyRelative("moveSpeed").floatValue       = 2f;
+                    defaultAlly.FindPropertyRelative("regenHpPerSecond").floatValue = 0f;
+                    defaultAlly.FindPropertyRelative("colliderRadius").floatValue  = 0.05f;
+                    soTeamDb.ApplyModifiedPropertiesWithoutUndo();
+                }
 
-            soSpawnManager.ApplyModifiedProperties();
+                EditorUIFactory.EnsureDirectoryExists(teamDbPath);
+                AssetDatabase.CreateAsset(teamDb, teamDbPath);
+                AssetDatabase.SaveAssets();
+            }
+            EditorUIFactory.SetObj(soSpawnManager, "_teamDatabase", teamDb);
 
             // LevelManager reads the LevelDatabase at runtime and swaps the ground sprite.
             var levelManager = root.AddComponent<LevelManager>();
             var soLevelManager = new SerializedObject(levelManager);
             EditorUIFactory.SetObj(soLevelManager, "_groundRenderer", groundRenderer);
+            EditorUIFactory.SetObj(soLevelManager, "_enemiesContainer", enemiesGo.transform);
+            EditorUIFactory.SetObj(soLevelManager, "_teamContainer", teamGo.transform);
 
             var levelDb = AssetDatabase.LoadAssetAtPath<LevelDatabase>("Assets/Data/LevelDatabase.asset");
             if (levelDb != null)
                 EditorUIFactory.SetObj(soLevelManager, "_levelDatabase", levelDb);
 
-            soLevelManager.ApplyModifiedProperties();
-
             // Screen-absolute anchors at scene root (outside CombatWorld so they
             // don't scroll). Home positions for characters + combat zone boundary.
-            CreateHomeAnchor(CombatSpawnManager.TeamHomeAnchorName, new Vector2(0.12f, 0.70f));
-            CreateHomeAnchor(CombatSpawnManager.EnemiesHomeAnchorName, new Vector2(0.88f, 0.70f));
-            CreateHomeAnchor(CombatSpawnManager.CombatTriggerZoneName, new Vector2(1f, 0.5f));
+            var teamAnchor = FindOrCreateHomeAnchor(CombatSpawnManager.TeamHomeAnchorName, new Vector2(0.12f, 0.70f));
+            var enemiesAnchor = FindOrCreateHomeAnchor(CombatSpawnManager.EnemiesHomeAnchorName, new Vector2(0.88f, 0.70f));
+            var combatTrigger = FindOrCreateHomeAnchor(CombatSpawnManager.CombatTriggerZoneName, new Vector2(1f, 0.5f));
+
+            // Wire anchor references to managers.
+            EditorUIFactory.SetObj(soSpawnManager, "_teamHomeAnchor", teamAnchor);
+            soSpawnManager.ApplyModifiedProperties();
+
+            EditorUIFactory.SetObj(soLevelManager, "_enemiesHomeAnchor", enemiesAnchor);
+            EditorUIFactory.SetObj(soLevelManager, "_combatTriggerZone", combatTrigger);
+            soLevelManager.ApplyModifiedProperties();
 
             return root;
         }
 
-        private static void CreateHomeAnchor(string anchorName, Vector2 viewportPosition)
+        private static Transform FindOrCreateHomeAnchor(string anchorName, Vector2 viewportPosition)
         {
             // Reuse existing anchor if already in the scene to avoid duplicates on rebuild.
             var existing = GameObject.Find(anchorName);
@@ -201,7 +229,7 @@ namespace RogueliteAutoBattler.Editor
                     so.FindProperty("_viewportPosition").vector2Value = viewportPosition;
                     so.ApplyModifiedProperties();
                 }
-                return;
+                return existing.transform;
             }
 
             var go = new GameObject(anchorName);
@@ -212,6 +240,8 @@ namespace RogueliteAutoBattler.Editor
             var so2 = new SerializedObject(anchor);
             so2.FindProperty("_viewportPosition").vector2Value = viewportPosition;
             so2.ApplyModifiedProperties();
+
+            return go.transform;
         }
 
         // ------------------------------------------------------------------

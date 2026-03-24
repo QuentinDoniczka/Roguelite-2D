@@ -58,6 +58,7 @@ namespace RogueliteAutoBattler.Data
         [SerializeField] private float moveSpeed = 2f;
         [SerializeField] private float attackRange = 0.5f;
         [SerializeField] private AttackType attackType = AttackType.Melee;
+        [SerializeField] private float colliderRadius = 0.05f;
         [SerializeField] private Vector2 spawnOffset;
 
         public string EnemyName => enemyName;
@@ -68,6 +69,32 @@ namespace RogueliteAutoBattler.Data
         public float MoveSpeed => moveSpeed;
         public float AttackRange => attackRange;
         public AttackType AttackType => attackType;
+        public float ColliderRadius => colliderRadius;
+        public Vector2 SpawnOffset => spawnOffset;
+    }
+
+    [Serializable]
+    public class AllySpawnData
+    {
+        [SerializeField] private string allyName = "Warrior";
+        [Tooltip("Ally prefab — must have Rigidbody2D root + Animator child")]
+        [SerializeField] private GameObject prefab;
+        [SerializeField] private int maxHp = 100;
+        [SerializeField] private int atk = 10;
+        [SerializeField] private float attackSpeed = 1f;
+        [SerializeField] private float moveSpeed = 2f;
+        [SerializeField] private float regenHpPerSecond = 0f;
+        [SerializeField] private float colliderRadius = 0.05f;
+        [SerializeField] private Vector2 spawnOffset;
+
+        public string AllyName => allyName;
+        public GameObject Prefab => prefab;
+        public int MaxHp => maxHp;
+        public int Atk => atk;
+        public float AttackSpeed => attackSpeed;
+        public float MoveSpeed => moveSpeed;
+        public float RegenHpPerSecond => regenHpPerSecond;
+        public float ColliderRadius => colliderRadius;
         public Vector2 SpawnOffset => spawnOffset;
     }
 }

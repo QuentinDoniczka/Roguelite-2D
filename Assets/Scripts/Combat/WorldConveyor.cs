@@ -20,10 +20,10 @@ namespace RogueliteAutoBattler.Combat
 
         [Header("Defaults")]
         [Tooltip("Default maximum scroll speed in units per second.")]
-        [SerializeField] private float _defaultMaxSpeed = 5f;
+        [SerializeField] private float _defaultMaxSpeed = 1f;
 
         [Tooltip("Default acceleration/deceleration in units per second squared.")]
-        [SerializeField] private float _defaultAcceleration = 3f;
+        [SerializeField] private float _defaultAcceleration = 0.5f;
 
         /// <summary>Current scroll speed in world units per second.</summary>
         public float CurrentSpeed => _currentSpeed;

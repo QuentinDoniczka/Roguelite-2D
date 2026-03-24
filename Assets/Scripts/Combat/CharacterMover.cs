@@ -6,6 +6,8 @@ namespace RogueliteAutoBattler.Combat
     /// Moves this character along the X axis toward a target Transform.
     /// Uses Rigidbody2D.linearVelocity for physics-based movement.
     /// </summary>
+    [RequireComponent(typeof(Rigidbody2D))]
+    [RequireComponent(typeof(CircleCollider2D))]
     public class CharacterMover : MonoBehaviour
     {
         [Header("Movement")]
@@ -16,6 +18,9 @@ namespace RogueliteAutoBattler.Combat
         private float _faceOffset = 0.25f;
 
         private const float HomeArrivalThreshold = 0.15f;
+
+        // Shared zero-friction material so characters slide past each other.
+        private static PhysicsMaterial2D _frictionlessMaterial;
 
         private Transform _target;
         private Transform _homeAnchor;
@@ -47,6 +52,22 @@ namespace RogueliteAutoBattler.Combat
 
             if (_rb == null)
                 Debug.LogError($"[{nameof(CharacterMover)}] Rigidbody2D not found on {name}. Movement will not work.", this);
+            else
+                _rb.freezeRotation = true;
+
+            // Zero-friction material so characters push each other smoothly without gripping.
+            if (_frictionlessMaterial == null)
+            {
+                _frictionlessMaterial = new PhysicsMaterial2D("Frictionless")
+                {
+                    friction = 0f,
+                    bounciness = 0f
+                };
+            }
+
+            var col = GetComponent<CircleCollider2D>();
+            if (col != null)
+                col.sharedMaterial = _frictionlessMaterial;
 
             if (_animator != null)
                 _animator.applyRootMotion = false;
@@ -84,8 +105,10 @@ namespace RogueliteAutoBattler.Combat
             }
 
             // Aim for a point in front of the target, not on top.
-            // Character on the left → aim for target's left side, and vice versa.
-            float side = (transform.position.x < _target.position.x) ? -_faceOffset : _faceOffset;
+            // Always approach from the side matching the character's facing direction.
+            // Facing right (scale.x < 0) → stand to the target's left (-offset).
+            // Facing left  (scale.x > 0) → stand to the target's right (+offset).
+            float side = (transform.localScale.x < 0f) ? -_faceOffset : _faceOffset;
             Vector2 destination = new Vector2(_target.position.x + side, _target.position.y);
             Vector2 direction = (destination - (Vector2)transform.position).normalized;
             _rb.linearVelocity = direction * _moveSpeed;
@@ -119,7 +142,7 @@ namespace RogueliteAutoBattler.Combat
             _isMoving = moving;
 
             if (_animator != null)
-                _animator.Play(_isMoving ? "Walk" : "Idle");
+                _animator.Play(_isMoving ? AnimHashes.Walk : AnimHashes.Idle);
         }
     }
 }

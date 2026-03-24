@@ -18,6 +18,8 @@ namespace RogueliteAutoBattler.Combat
     /// Damage is dealt via animation event callback (<see cref="OnAnimationHit"/>),
     /// ensuring visual and logical synchronization.
     /// </summary>
+    [RequireComponent(typeof(CharacterMover))]
+    [RequireComponent(typeof(CombatStats))]
     public class CombatController : MonoBehaviour
     {
         [Header("Combat")]
@@ -29,8 +31,6 @@ namespace RogueliteAutoBattler.Combat
 
         private const float ChopAttackDuration = 0.5f;
         private const float FadeOutDuration = 0.25f;
-        private const string AnimChopAttack = "ChopAttack";
-        private const string AnimIdle = "Idle";
 
         private CharacterMover _mover;
         private Animator _animator;
@@ -146,7 +146,7 @@ namespace RogueliteAutoBattler.Combat
                     if (_hasAnimator)
                     {
                         _animator.speed = 1f;
-                        _animator.Play(AnimIdle);
+                        _animator.Play(AnimHashes.Idle);
                     }
                     StartCoroutine(FadeOutAndDestroy());
                     break;
@@ -160,7 +160,7 @@ namespace RogueliteAutoBattler.Combat
                     if (_hasAnimator)
                     {
                         _animator.speed = 1f;
-                        _animator.Play(AnimIdle);
+                        _animator.Play(AnimHashes.Idle);
                     }
                     break;
             }
@@ -252,7 +252,7 @@ namespace RogueliteAutoBattler.Combat
             if (_hasAnimator)
             {
                 _animator.speed = animSpeed;
-                _animator.Play(AnimChopAttack, -1, 0f);
+                _animator.Play(AnimHashes.ChopAttack, -1, 0f);
             }
         }
 
@@ -283,7 +283,7 @@ namespace RogueliteAutoBattler.Combat
             if (_hasAnimator)
             {
                 _animator.speed = 1f;
-                _animator.Play(AnimIdle);
+                _animator.Play(AnimHashes.Idle);
             }
 
             // Cooldown already set in StartAttackSwing.

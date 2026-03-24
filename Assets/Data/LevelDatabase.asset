@@ -30,15 +30,6 @@ MonoBehaviour:
           attackRange: 0.5
           attackType: 0
           spawnOffset: {x: 0, y: 0.8}
-        - enemyName: Enemy
-          prefab: {fileID: 1000000000000000001, guid: ade0afb480cc21d43ab799f99637abc6, type: 3}
-          hp: 10
-          atk: 2
-          attackSpeed: 1
-          moveSpeed: 1
-          attackRange: 0.5
-          attackType: 0
-          spawnOffset: {x: 0, y: -0.8}
       - waveName: Wave 2
         spawnDelay: 5
         enemies:
@@ -51,33 +42,6 @@ MonoBehaviour:
           attackRange: 0.5
           attackType: 0
           spawnOffset: {x: 0, y: 0.5}
-        - enemyName: Enemy
-          prefab: {fileID: 1000000000000000001, guid: ade0afb480cc21d43ab799f99637abc6, type: 3}
-          hp: 10
-          atk: 2
-          attackSpeed: 1
-          moveSpeed: 1
-          attackRange: 0.5
-          attackType: 0
-          spawnOffset: {x: 0, y: -0.5}
-        - enemyName: Enemy
-          prefab: {fileID: 1000000000000000001, guid: ade0afb480cc21d43ab799f99637abc6, type: 3}
-          hp: 12
-          atk: 5
-          attackSpeed: 1
-          moveSpeed: 2
-          attackRange: 0.5
-          attackType: 0
-          spawnOffset: {x: 0.1, y: 0}
-        - enemyName: Enemy
-          prefab: {fileID: 1000000000000000001, guid: ade0afb480cc21d43ab799f99637abc6, type: 3}
-          hp: 10
-          atk: 5
-          attackSpeed: 1
-          moveSpeed: 2
-          attackRange: 0.5
-          attackType: 0
-          spawnOffset: {x: 0, y: 0}
     - levelName: Level 2
       waves:
       - waveName: Wave 1
