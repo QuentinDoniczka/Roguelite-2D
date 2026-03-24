@@ -92,3 +92,55 @@ This is a **Roguelite Auto-Battler 2D** game (mobile + PC) with a **client/serve
 - **Reference existing project patterns** — if the project uses a certain approach, factor that in.
 - **Think about anti-cheat** — if a system is exploitable client-side, flag it.
 - If asked about something outside Unity/the game, say so and give general guidance.
+
+## Animated Character Movement — Mandatory Rules
+
+**CRITICAL**: Any animated sprite character that must be moved programmatically MUST use Rigidbody2D. Never recommend `transform.position` for moving characters that have an Animator.
+
+**Why this matters**: The Animator and `transform.position` both operate on the Transform. The Animator's WriteDefaults system and position curves on child objects will silently override or conflict with `transform.position` changes. `Rigidbody2D.linearVelocity` operates on the physics layer — separate from the Animator — so there is no interference.
+
+**The pattern to always recommend**:
+- Movement: `Rigidbody2D.linearVelocity` set in `FixedUpdate`
+- Animation state switching (Idle/Walk/Run): `animator.Play("StateName")` — more robust than `SetBool` + transitions, which require animator controller transitions to be configured correctly
+- `applyRootMotion = false` — enforce this in code (`animator.applyRootMotion = false` in `Awake`), never rely on the prefab setting alone
+
+**Rigidbody2D is not "only for collision detection"** — it is required for any programmatic movement on animated characters, even before collision is needed. Recommending `transform.position` for a character that has an Animator will cause movement to silently fail.
+
+### Root/Visual Hierarchy for Animated Physics Characters
+
+**CRITICAL**: When a character has BOTH an Animator AND needs physics movement (Rigidbody2D), the prefab MUST use a Root/Visual split hierarchy. Never put an Animator on the same GameObject as a Rigidbody2D.
+
+**Why this matters**: The Unity Animator takes full Transform ownership of ANY GameObject it has animation bindings on — including sprite-swap animations that target the root path (`path: ""`). Even a single animation curve on the root causes the Animator to override the root Transform every frame, silently cancelling all Rigidbody2D position changes. The character will appear frozen with no error.
+
+**Always recommend this hierarchy**:
+```
+Root (Rigidbody2D, movement scripts, combat scripts — NO Animator, NO SpriteRenderer)
+└── Visual (Animator, SpriteRenderer, all sprite children: head, hands, weapons)
+```
+
+- Root: owns physics and game logic. Never add an Animator here.
+- Visual child: owns all rendering and animation. Never add Rigidbody2D here.
+- Scripts find the Animator via `GetComponentInChildren<Animator>()`, not `GetComponent<Animator>()`.
+
+**Applies to**: any character prefab that combines physics movement with sprite animations (adventurers, enemies, bosses). Even if there are no position curves, root bindings from sprite-swap animations are sufficient to trigger the conflict.
+
+## Zero Manual Steps — Automation First
+
+**CRITICAL RULE**: Never classify a task as "manual" or "do it in the Unity Editor" without first evaluating if it can be automated. The user should NEVER have to open Unity Editor to configure something that code can handle.
+
+For every step you identify:
+1. **Can it be automated via code?** (Editor script, AssetDatabase API, SerializedObject wiring) → classify as **automatable**
+2. **Can it be automated via direct file editing?** (Unity YAML files: `.controller`, `.prefab`, `.asset`, `.unity`) → classify as **automatable via YAML**
+3. **Does it truly require Unity Editor GUI?** (visual tweaking, drag-and-drop that can't be expressed programmatically) → classify as **manual** and explain WHY it can't be automated
+
+**Examples of things that are NOT manual:**
+- Adding Animator parameters and transitions → edit `.controller` YAML directly
+- Wiring prefab references → `AssetDatabase.LoadAssetAtPath` + `SerializedObject`
+- Setting sorting layers on prefabs → edit `.prefab` YAML or Editor script
+- Creating scene hierarchy → Editor setup script with `[MenuItem]`
+- Assigning materials/shaders → code in Editor script
+
+**Only truly manual:**
+- Visual fine-tuning of animation curves by eye
+- Artistic decisions about sprite placement
+- Playtesting and "feel" adjustments

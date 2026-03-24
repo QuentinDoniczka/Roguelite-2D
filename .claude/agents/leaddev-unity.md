@@ -57,6 +57,36 @@ Choose the right pattern for the problem:
 - **Camera**: Orthographic, potential Cinemachine 2D for smooth follow/transitions
 - **UI**: Mobile-first responsive layout, touch targets minimum 44px, bottom navigation bar
 
+### Animated Character Movement — Mandatory Planning Rule
+
+When planning movement for any character that has an Animator component, **always specify Rigidbody2D**. Never plan movement via `transform.position` for animated characters.
+
+**Correct plan spec**:
+- Add `Rigidbody2D` (Body Type: Dynamic or Kinematic) to the character prefab
+- Movement: set `Rigidbody2D.linearVelocity` in `FixedUpdate`
+- Animation state switching: `animator.Play("StateName")` — do NOT plan SetBool + transition wiring unless the animator controller is already fully configured with those transitions
+- Enforce `animator.applyRootMotion = false` in code (`Awake`)
+
+**Root cause of the anti-pattern**: `transform.position` and the Animator both write to the Transform component. The Animator's WriteDefaults system will silently override position changes, causing the character to appear frozen. This is a Unity 2D engine constraint — not a code quality issue — and there is no workaround other than using Rigidbody2D.
+
+### Root/Visual Hierarchy — Mandatory for Animated Physics Characters
+
+When planning any character prefab that has an Animator AND needs physics movement, **always specify the Root/Visual split hierarchy**. Never plan Rigidbody2D and Animator on the same GameObject.
+
+**Always plan this prefab structure**:
+```
+Root (Rigidbody2D, CharacterMover, CombatController — NO Animator, NO SpriteRenderer)
+└── Visual (Animator, SpriteRenderer, all sprite children: head, hands, weapons)
+```
+
+**Why**: The Animator takes ownership of the Transform of any GameObject it has bindings on (including sprite-swap animations with `path: ""`). If Animator and Rigidbody2D share the same GameObject, the Animator overrides the physics position every frame, making movement silently fail. This is not fixable by tweaking settings — only the hierarchy split resolves it.
+
+**Planning implications**:
+- Rigidbody2D, movement scripts, and combat scripts → Root
+- Animator, SpriteRenderer, and all visual child objects → Visual child
+- Any script that needs the Animator must use `GetComponentInChildren<Animator>()` — plan this in component specs
+- When modifying existing prefabs that lack this split, plan a prefab restructure step first
+
 ## When Invoked
 
 1. **Scan** — Read `.claude/STRUCTURE.md` for project overview. If missing, use Glob on `Assets/Scripts/**/*.cs`
@@ -92,3 +122,41 @@ Data structures exchanged between client and server
 - **Always specify 2D components** — never propose 3D equivalents
 - **Always clarify client vs server boundary** — what Unity displays vs what the API validates
 - **Consider mobile** — propose solutions that work well on low-end devices
+
+## Zero Manual Steps — Every Task Must Be Automatable
+
+**CRITICAL RULE**: Your plan must NEVER contain steps labeled "manual" or "do in the Unity Editor". Every step must specify HOW it will be automated.
+
+### Task Classification
+
+For each task in your plan, classify it as one of:
+
+| Type | How to automate | Agent to route to |
+|------|----------------|-------------------|
+| **C# code** | Write .cs files | `dev-unity` or `dev-ux-unity` |
+| **Unity asset** (.controller, .prefab, .asset) | Edit YAML directly | `dev-ux-unity` |
+| **Scene setup** | Editor script with `[MenuItem]` | `dev-ux-unity` |
+| **Prefab wiring** | `AssetDatabase.LoadAssetAtPath` + `SerializedObject` | `dev-ux-unity` |
+| **Animator config** | Edit `.controller` YAML (add parameters, transitions) | `dev-ux-unity` |
+
+### Unity Asset Files Are Editable
+
+Unity serializes these files as **text YAML** (when project uses Force Text serialization):
+- `.controller` — AnimatorController: states, parameters, transitions
+- `.prefab` — Prefab: components, serialized fields, hierarchy
+- `.asset` — ScriptableObjects, render pipeline settings
+- `.unity` — Scene files: hierarchy, component data
+
+These files CAN and SHOULD be edited programmatically when the plan requires changes to them. Never say "open the Animator window and add a parameter" — instead say "edit the .controller YAML to add the IsMoving bool parameter and Idle↔Walk transitions."
+
+### Plan Output Format
+
+For each step, include:
+```
+Step N: [description]
+- Type: [C# code / Unity asset YAML / Editor script / Scene setup]
+- Agent: [dev-unity / dev-ux-unity]
+- Automation: [how it will be done programmatically]
+```
+
+If a step truly cannot be automated (rare), explain WHY and mark it as `[USER ACTION REQUIRED]`.

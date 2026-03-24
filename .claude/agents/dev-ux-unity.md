@@ -102,6 +102,45 @@ When needed later:
 - Or use world-to-screen coordinate conversion for screen-space HUD
 - Pool damage number popups for performance
 
+## Root/Visual Hierarchy for Animated Physics Characters
+
+Any character prefab that has an Animator AND a Rigidbody2D **must** use a Root/Visual split. This is a hard architectural rule — never place Animator and Rigidbody2D on the same GameObject.
+
+**Required prefab structure**:
+```
+Root (Rigidbody2D, CharacterMover, CombatController — NO Animator, NO SpriteRenderer)
+└── Visual (Animator, SpriteRenderer, all sprite children: head, hands, weapons)
+```
+
+**Why**: The Unity Animator takes full Transform ownership of any GameObject that has animation bindings on it — even sprite-swap animations that target the root path (`path: ""`). When the Animator and Rigidbody2D share the same GameObject, the Animator overrides the physics-computed position every frame, silently preventing all movement. Separating physics (root) from animation (Visual child) eliminates the conflict entirely.
+
+**YAML structure for a correctly-split character prefab** (key fields):
+```yaml
+# Root GameObject: has Rigidbody2D, movement scripts — no Animator, no SpriteRenderer
+--- !u!1 &<rootID>
+GameObject:
+  m_Name: CharacterRoot
+--- !u!54 &<rb2dID>
+Rigidbody2D:
+  m_GameObject: {fileID: <rootID>}
+
+# Visual child: has Animator and SpriteRenderer — no Rigidbody2D
+--- !u!1 &<visualID>
+GameObject:
+  m_Name: Visual
+  m_Father: {fileID: <rootTransformID>}
+--- !u!95 &<animatorID>
+Animator:
+  m_GameObject: {fileID: <visualID>}
+--- !u!212 &<spriteID>
+SpriteRenderer:
+  m_GameObject: {fileID: <visualID>}
+```
+
+**When modifying existing prefabs**: if a prefab has Animator and Rigidbody2D on the same root GameObject, restructure it — move the Animator and SpriteRenderer (plus all sprite children) to a new Visual child before wiring any movement scripts.
+
+**Sorting layers on the Visual child**: all SpriteRenderers on the Visual child and its children must use `sortingLayerName = "Characters"`, same as before the split.
+
 ## What You Build
 
 ### Pattern 1: MenuItem Setup Script (Reusable)
@@ -171,3 +210,65 @@ public class SetupFeatureBuilderEditor : UnityEditor.Editor
 - **ALWAYS set sortingLayerName** on SpriteRenderers: "Background" for terrain, "Characters" for character parts, "Effects" for VFX. NEVER leave on "Default"
 - **Canvas sorting**: always `sortingLayerName = "UI"` on the Canvas component (not just sortingOrder)
 - **Read wireframes and architecture docs** before creating UI
+- **Auto-wire ALL references** — never leave a SerializedField null for the user to assign manually. Use `AssetDatabase.LoadAssetAtPath` to load prefabs, materials, sprites, and wire them via `SerializedObject`.
+
+## Unity Asset YAML Editing
+
+You are capable of **directly editing Unity asset files** that are serialized as text YAML. This is a core capability — use it whenever a task requires modifying Unity assets that would otherwise need manual Editor interaction.
+
+### Editable Asset Types
+
+| File Type | Extension | What You Can Edit |
+|-----------|-----------|-------------------|
+| **Animator Controller** | `.controller` | Add/remove parameters (Bool, Float, Int, Trigger), add/remove states, create transitions with conditions, set default state |
+| **Prefab** | `.prefab` | Add/modify components, change serialized field values, modify hierarchy, set sorting layers |
+| **Scene** | `.unity` | Modify GameObject hierarchy, component values (prefer Editor scripts for scene changes) |
+| **ScriptableObject** | `.asset` | Modify serialized field values |
+
+### How to Edit Unity YAML
+
+1. **Read the file first** — understand the structure and identify fileIDs
+2. **Use the Edit tool** — make surgical changes to specific sections
+3. **Respect Unity YAML format**:
+   - `--- !u!<classID> &<fileID>` separates objects
+   - References use `{fileID: <id>}` for local, `{fileID: <id>, guid: <guid>, type: <type>}` for external
+   - Indentation is 2 spaces
+   - Arrays use `- ` prefix or `[]` for empty
+
+### Common Patterns
+
+**Add an Animator Bool parameter:**
+```yaml
+m_AnimatorParameters:
+- m_Name: IsMoving
+  m_Type: 4        # 1=Float, 3=Int, 4=Bool, 9=Trigger
+  m_DefaultFloat: 0
+  m_DefaultInt: 0
+  m_DefaultBool: 0
+```
+
+**Add an Animator transition (requires new object block):**
+```yaml
+--- !u!1101 &<unique_fileID>
+AnimatorStateTransition:
+  m_Conditions:
+  - m_ConditionMode: 1    # 1=If (true), 2=IfNot (false), 3=Greater, 4=Less
+    m_ConditionEvent: IsMoving
+    m_EventTreshold: 0
+  m_DstState: {fileID: <target_state_fileID>}
+  m_HasExitTime: 0
+  m_TransitionDuration: 0
+  # ... (see existing transitions for full template)
+```
+
+Then add the reference to the source state's `m_Transitions` array:
+```yaml
+m_Transitions:
+- {fileID: <transition_fileID>}
+```
+
+### When to Use YAML Editing vs Editor Scripts
+
+- **YAML editing**: One-time asset modifications (add parameter, set a field value, configure a prefab)
+- **Editor scripts**: Repeatable operations (scene builders, setup wizards, batch operations)
+- **Both**: When an Editor script needs to reference an asset that also needs modification

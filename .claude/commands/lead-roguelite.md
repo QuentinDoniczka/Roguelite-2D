@@ -28,6 +28,7 @@ Gameplay : recruter aventuriers → equiper → combat auto (gauche→droite) + 
 | `review-unity` | Audit COMPLET du projet entier. Utilise uniquement sur demande explicite (hors chaine principale). Read-only. |
 | `brainstorm-unity` | **TOUJOURS invoque en premier.** Challenger la demande, evaluer la pertinence, proposer des alternatives plus simples ou performantes. Prend en compte le client/serveur et le 2D. |
 | `test-play-unity` | Lancer les tests Play Mode existants apres implementation. Utilise des fake accounts a differents niveaux de progression. Aussi utilise pour ecrire de nouveaux tests (apres refacto). |
+| `agent-improver` | **Amelioration continue des agents.** Analyse les echecs du workflow (etapes manuelles, erreurs, corrections utilisateur) et modifie les prompts des agents concernes pour que le probleme ne se reproduise plus. |
 
 ## Invocation
 
@@ -112,52 +113,63 @@ L'agent doit :
 
 **Presente le resultat du brainstorm a l'utilisateur** avec ta recommandation. Si plusieurs options valides existent, laisse l'utilisateur choisir. Si une option est clairement superieure, recommande-la et avance sauf objection.
 
-### 3. Analyser
+### 3. Analyser et decomposer
 
 Delegue a `leaddev-unity` pour produire le plan technique base sur l'approche retenue. Passe les Tasks de l'Issue comme checklist a couvrir. Le plan doit clairement separer **client Unity 2D** vs **serveur API** si applicable.
 
-### 4. Implementer
+**Decomposition obligatoire en sous-taches** : le plan doit decouper l'implementation en **sous-taches simples et testables**. Chaque sous-tache :
+- Est independamment verifiable (on peut ecrire un test d'integration pour elle)
+- A un critere de succes clair (ex: "le personnage se deplace de A vers B en 0.5s")
+- Est assez petite pour debugger facilement si ca casse
+- Peut etre validee par un test AVANT de passer a la suivante
 
-**Routing conditionnel — choisir le bon agent :**
+Exemple de decomposition :
+```
+Sous-tache 1: Spawn — le prefab s'instancie a la bonne position
+  Test: position du GO == spawn position attendue
+Sous-tache 2: Mouvement — le personnage se deplace vers la cible
+  Test: apres 0.5s, position.x a change dans la bonne direction
+Sous-tache 3: Arret — le personnage s'arrete a portee
+  Test: quand distance < attackRange, velocity == 0
+```
 
-a) **Determiner si la tache est UX/scene ou runtime :**
-   - **UX/scene** = tout ce qui touche a : hierarchie de scene, Canvas, HUD, UI layout, Editor scripts (`[MenuItem]`, custom Inspector), setup scene, prefab wiring, configuration camera, world-space setup (CombatWorld, backgrounds, SpriteRenderer), anchors/RectTransform, CanvasGroup, LayoutGroups
-   - **Runtime** = tout ce qui touche a : game logic (combat, AI, state machines), classes C# (interfaces, services, SO), MonoBehaviour logic (Update, FixedUpdate), client/serveur (DTOs, API calls), systemes de jeu
+### 4. Boucle implementation par sous-tache
 
-b) **Router :**
-   - **Si UX/scene** → delegue a `dev-ux-unity`
-   - **Si runtime** → delegue a `dev-unity`
-   - **Si les deux** → delegue d'abord a `dev-ux-unity` (scene/UI), puis a `dev-unity` (logic runtime)
+**Pour CHAQUE sous-tache du plan** (dans l'ordre), repeter :
+
+**4a. Implementer la sous-tache**
+
+Routing conditionnel — choisir le bon agent :
+- **UX/scene** (hierarchie, Canvas, HUD, Editor scripts, prefab wiring, camera) → `dev-ux-unity`
+- **Runtime** (game logic, MonoBehaviour, combat, AI, DTOs) → `dev-unity`
+- **Les deux** → `dev-ux-unity` d'abord, puis `dev-unity`
 
 **Ne JAMAIS utiliser `dev-unity` pour du setup scene, UI layout, ou Editor scripts.**
 
-Delegue directement sans attendre validation, sauf si le plan implique un choix d'architecture ambigu (dans ce cas, presente les options avec pour/contre et laisse choisir).
+**4b. Ecrire le test d'integration pour la sous-tache**
 
-### 4b. Validation par tests existants
+Delegue a `test-play-unity` pour ecrire un test Play Mode qui valide le comportement de la sous-tache. Le test doit :
+- Etre dans `Assets/Tests/PlayMode/` avec un `.asmdef` test
+- Utiliser `UnityTest` (coroutine) pour les tests qui necessitent plusieurs frames
+- Instancier le prefab, executer le comportement, verifier le resultat
+- Etre autonome (pas de dependance a la scene active)
 
-**TOUJOURS apres l'implementation.** Delegue a `test-play-unity` pour lancer **uniquement les tests existants** (PAS de creation de nouveaux tests a cette etape).
+**4c. Lancer le test**
 
-- L'agent lance les tests Play Mode via Unity CLI en batch mode
-- **Si tous les tests passent** → passer a l'etape 5
-- **Si des tests echouent** → triage :
-  a) **Test obsolete/invalide** (le test verifie un comportement qui a legitimement change avec la feature) → deleguer a `test-play-unity` pour corriger le test, puis relancer
-  b) **Bug reel** (surtout physique 2D, combat, loot) → deleguer a `dev-unity` pour debugger et corriger le code source, puis relancer les tests
-  c) Repeter jusqu'a ce que tous les tests passent
+Delegue a `test-play-unity` pour lancer le test via Unity CLI batch mode.
 
-> **Regle de triage** : en cas de doute, privilegier la correction du code plutot que du test. Le test represente le comportement attendu — s'il cassait avant la feature, c'est probablement un vrai bug.
+- **Si le test passe** → la sous-tache est validee, passer a la suivante
+- **Si le test echoue** → debugger et corriger le code (PAS le test, sauf si le test est faux). Relancer jusqu'a ce que ca passe.
 
-**Ne jamais sauter cette etape. Ne jamais creer de nouveaux tests ici — la creation de tests se fait apres le refacto (etape 5b).**
+> **Principe** : on ne passe JAMAIS a la sous-tache suivante tant que les tests de la sous-tache courante ne passent pas. Cela evite d'accumuler des bugs invisibles.
+
+**4d. Sous-tache suivante**
+
+Repeter 4a-4c pour chaque sous-tache. A la fin de toutes les sous-taches, lancer TOUS les tests ensemble pour verifier qu'il n'y a pas de regression.
 
 ### 5. Refactorer (fichiers)
 
 **TOUJOURS apres l'implementation.** Delegue a `refacto-unity` sur chaque fichier cree ou modifie par `dev-unity`. L'agent analyse ET corrige directement les problemes locaux (dead code, unused usings, naming, Unity 2D anti-patterns, composants 3D errones, allocations dans Update, `is null` sur UnityEngine.Object, DRY entre scripts, public fields → `[SerializeField] private`, magic numbers → constantes, violations frontiere client/serveur, etc.). **Ne jamais sauter cette etape.**
-
-### 5b. Nouveaux tests (si applicable)
-
-**Apres le refacto.** Si la feature implique un nouveau comportement testable (nouveau systeme, nouvelle interaction, nouvelle regle de jeu), deleguer a `test-play-unity` pour **ecrire et lancer de nouveaux tests** couvrant la feature implementee. Passe en contexte les fichiers crees/modifies, le comportement attendu, et **le niveau de progression (fake account) pertinent pour le test**.
-
-- Si les nouveaux tests echouent → meme triage que 4b (corriger test ou code)
-- Si la feature est un simple refacto ou une modification mineure deja couverte par les tests existants → sauter cette etape
 
 ### 6. Audit commit
 
@@ -215,6 +227,28 @@ e) **Merge** — Delegue a `git-unity` avec la tache "merge-pr" :
    - Si conflit de merge → STOP, rapporte la situation.
 f) Delegue a `github-boards` avec "complete-issue" : ferme l'Issue, verifie si toutes les Issues de la Milestone sont fermees → si oui, ferme la Milestone.
 
+### 9. Retrospective — Amelioration continue des agents
+
+**Declenchement** : APRES que l'Issue est mergee et fermee (etape 8f terminee), SI l'une de ces situations s'est produite pendant le workflow :
+
+- L'utilisateur a du faire une action manuelle que le workflow aurait pu automatiser
+- L'utilisateur a corrige ou conteste une decision d'un agent
+- Un agent a produit un resultat qui a necessite un re-travail
+- Le lead a du contourner le plan d'un agent (ex: editer un fichier YAML au lieu de suivre "faites-le manuellement")
+
+**Alors** : delegue a `agent-improver` avec :
+- Description du probleme (ce qui a echoue ou necessite intervention manuelle)
+- Quel(s) agent(s) sont concernes
+- Ce qui aurait du se passer vs ce qui s'est passe
+- L'agent analyse la cause racine, modifie les prompts concernes, et rapporte les changements
+- Les modifications d'agents sont commitees sur `dev` (pas sur la feature branch, qui est deja mergee)
+
+**Si aucun probleme** → sauter cette etape.
+
+**Timing** : cette etape se fait TOUJOURS apres la validation utilisateur et le merge. On ne modifie pas les agents en plein workflow — on corrige d'abord le probleme, on livre, et ENSUITE on ameliore les agents pour le futur.
+
+> **Principe "Zero Etapes Manuelles"** : l'utilisateur ne devrait JAMAIS avoir a ouvrir Unity pour configurer quelque chose que le code peut gerer. Les seules actions utilisateur acceptables sont : cliquer sur un menu item pour executer un script, et faire Play pour tester.
+
 ## Agents hors chaine (manuels)
 
 Ces agents ne sont **jamais** lances automatiquement dans le workflow. L'utilisateur les demande explicitement quand il en a besoin.
@@ -226,9 +260,11 @@ Ces agents ne sont **jamais** lances automatiquement dans le workflow. L'utilisa
 ## Regles
 
 - **Ne jamais coder toi-meme** — toujours deleguer.
+- **Zero etapes manuelles** — ne JAMAIS demander a l'utilisateur de configurer quelque chose dans Unity Editor si c'est automatisable (YAML editing, AssetDatabase, SerializedObject wiring, Editor scripts). Les seules actions utilisateur = cliquer un menu item + Play pour tester.
 - **Pas de validation systematique** — avance de maniere autonome. Demande un choix uniquement quand il y a une vraie ambiguite.
 - **Un agent = une tache.**
 - **Si un agent echoue** — analyse et relance avec meilleur contexte.
+- **Si un agent propose une etape manuelle** — challenger et demander comment l'automatiser. Si c'est automatisable, router la tache au bon agent (generalement `dev-ux-unity` pour les assets Unity).
 - **Toujours passer le contexte** aux agents.
 - **Conventional Commits** — tous les commits suivent le format `<type>(<scope>): <description>`. Inclure le numero d'Issue quand applicable (ex: `(#12)`).
 - **GitHub flow** — `dev` = branche d'integration. Les feature branches sont TOUJOURS creees depuis `dev`. Les PRs ciblent `dev` avec Squash and merge. `main` = branche stable/release.
