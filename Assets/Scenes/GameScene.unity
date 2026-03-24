@@ -2790,7 +2790,6 @@ GameObject:
   m_Component:
   - component: {fileID: 944162832}
   - component: {fileID: 944162831}
-  - component: {fileID: 944162830}
   - component: {fileID: 944162829}
   - component: {fileID: 944162828}
   m_Layer: 0
@@ -2834,23 +2833,6 @@ MonoBehaviour:
   _allyStats: {fileID: 11400000, guid: e139beda981a18446b51cdcb513427a9, type: 2}
   _teamContainer: {fileID: 686735305}
   _enemiesContainer: {fileID: 652619152}
---- !u!114 &944162830
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 944162827}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: cd0f3aff2b59ac749bd538e337da686d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::RogueliteAutoBattler.Combat.CombatScrollManager
-  _scrollDistance: 10
-  _maxSpeed: 5
-  _acceleration: 3
-  _pauseBetweenScrolls: 5
-  _conveyor: {fileID: 944162831}
 --- !u!114 &944162831
 MonoBehaviour:
   m_ObjectHideFlags: 0

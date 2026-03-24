@@ -76,8 +76,7 @@ namespace RogueliteAutoBattler.Editor
 
         /// <summary>
         /// Creates a CombatWorld container with a tiled ground and containers for characters/effects.
-        /// Attaches WorldConveyor (side-scroll motion), CombatScrollManager (phase controller),
-        /// and CombatSpawnManager (spawn orchestrator) to the root.
+        /// Attaches WorldConveyor (side-scroll motion) and CombatSpawnManager (spawn orchestrator) to the root.
         /// GroundFitter is attached to the Ground child.
         /// </summary>
         internal static GameObject CreateCombatWorld()
@@ -139,15 +138,13 @@ namespace RogueliteAutoBattler.Editor
             fxGo.transform.SetParent(root.transform, false);
             Undo.RegisterCreatedObjectUndo(fxGo, "Create CombatWorld");
 
-            // Runtime scroll components on the CombatWorld root.
-            // WorldConveyor drives the physical side-scroll motion.
-            // CombatScrollManager orchestrates scroll phases and references the conveyor.
-            root.AddComponent<WorldConveyor>();
-            var scrollManager = root.AddComponent<CombatScrollManager>();
+            // Kinematic Rigidbody2D on CombatWorld root so WorldConveyor can use
+            // MovePosition — this keeps child dynamic Rigidbody2Ds in sync with physics.
+            var rootRb = root.AddComponent<Rigidbody2D>();
+            rootRb.bodyType = RigidbodyType2D.Kinematic;
 
-            var soScrollManager = new SerializedObject(scrollManager);
-            EditorUIFactory.SetObj(soScrollManager, "_conveyor", root.GetComponent<WorldConveyor>());
-            soScrollManager.ApplyModifiedProperties();
+            // WorldConveyor drives the physical side-scroll motion.
+            root.AddComponent<WorldConveyor>();
 
             // CombatSpawnManager handles spawning adventurers and enemies into their containers.
             var spawnManager = root.AddComponent<CombatSpawnManager>();
@@ -192,14 +189,29 @@ namespace RogueliteAutoBattler.Editor
 
         private static void CreateHomeAnchor(string anchorName, Vector2 viewportPosition)
         {
+            // Reuse existing anchor if already in the scene to avoid duplicates on rebuild.
+            var existing = GameObject.Find(anchorName);
+            if (existing != null)
+            {
+                var existingAnchor = existing.GetComponent<ScreenAnchor>();
+                if (existingAnchor != null)
+                {
+                    Undo.RecordObject(existingAnchor, $"Update {anchorName}");
+                    var so = new SerializedObject(existingAnchor);
+                    so.FindProperty("_viewportPosition").vector2Value = viewportPosition;
+                    so.ApplyModifiedProperties();
+                }
+                return;
+            }
+
             var go = new GameObject(anchorName);
             go.transform.position = Vector3.zero;
             Undo.RegisterCreatedObjectUndo(go, $"Create {anchorName}");
 
             var anchor = go.AddComponent<ScreenAnchor>();
-            var so = new SerializedObject(anchor);
-            so.FindProperty("_viewportPosition").vector2Value = viewportPosition;
-            so.ApplyModifiedProperties();
+            var so2 = new SerializedObject(anchor);
+            so2.FindProperty("_viewportPosition").vector2Value = viewportPosition;
+            so2.ApplyModifiedProperties();
         }
 
         // ------------------------------------------------------------------

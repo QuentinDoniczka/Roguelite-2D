@@ -2,7 +2,7 @@
 Generated: 2026-03-24
 
 Assets/
-├── Animations/  (24 files: .anim + .controller)
+├── Animations/  (23 files: .anim + .controller)
 ├── Audio/  (empty)
 ├── Data/
 │   ├── Adventurers/
@@ -34,7 +34,6 @@ Assets/
 │   │   ├── AnimationEventRelay.cs
 │   │   ├── CharacterMover.cs
 │   │   ├── CombatController.cs
-│   │   ├── CombatScrollManager.cs
 │   │   ├── CombatSetupHelper.cs
 │   │   ├── CombatSpawnManager.cs
 │   │   ├── CombatStats.cs
@@ -87,15 +86,15 @@ Assets/
 │   ├── UniversalRenderPipelineGlobalSettings.asset
 │   └── UniversalRP.asset
 ├── Sprites/
-│   ├── Characters/  (156 files)
+│   ├── Characters/  (155 files)
 │   ├── Effects/  (25 files)
 │   ├── Environment/
 │   │   ├── grid_ground.png
 │   │   ├── grid_ground_blue.png
 │   │   └── placeholder_white.png
-│   ├── Items/  (54 files)
+│   ├── Items/  (53 files)
 │   └── UI/  (empty)
 ├── _Recovery/  (1 file)
-└── TextMesh Pro/  (173 files — TMP package: fonts, shaders, examples)
+└── TextMesh Pro/  (366 files — TMP package: fonts, shaders, examples)
 
 ProjectSettings/  (Unity defaults)

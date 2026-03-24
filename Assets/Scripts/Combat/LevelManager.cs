@@ -8,6 +8,7 @@ namespace RogueliteAutoBattler.Combat
     /// Reads the LevelDatabase at runtime, applies the current stage's terrain sprite,
     /// and spawns enemy waves for the current level. Attach to the CombatWorld root.
     /// </summary>
+    [RequireComponent(typeof(WorldConveyor))]
     public class LevelManager : MonoBehaviour
     {
         [Header("Database")]
@@ -30,15 +31,6 @@ namespace RogueliteAutoBattler.Combat
         [Header("Scroll Transition")]
         [Tooltip("Distance in world units the world scrolls left between levels.")]
         [SerializeField] private float _scrollDistance = 5f;
-
-        [Tooltip("Maximum scroll speed. Should match ally move speed for a natural walk effect.")]
-        [SerializeField] private float _scrollMaxSpeed = 2f;
-
-        [Tooltip("Scroll acceleration and deceleration in units per second squared.")]
-        [SerializeField] private float _scrollAcceleration = 2f;
-
-        [Tooltip("Delay in seconds before scrolling, to let allies return to HomeAnchor.")]
-        [SerializeField] private float _returnDelay = 1f;
 
         [Header("Enemy Spawn")]
         [Tooltip("Extra X offset to spawn enemies off-screen to the right of EnemiesHomeAnchor.")]
@@ -298,10 +290,10 @@ namespace RogueliteAutoBattler.Combat
 
         private IEnumerator LevelTransitionCoroutine()
         {
-            // 1. Wait for allies to return to HomeAnchor
-            yield return new WaitForSeconds(_returnDelay);
+            // Scroll starts immediately — allies walk back to HomeAnchor
+            // while the world scrolls; the slow conveyor lets them catch up naturally.
 
-            // 2. Start scroll and spawn enemies when deceleration begins
+            // Start scroll and spawn enemies when deceleration begins
             if (_conveyor != null)
             {
                 bool enemiesSpawned = false;
@@ -314,9 +306,9 @@ namespace RogueliteAutoBattler.Combat
                 }
 
                 _conveyor.OnDecelerationStarted += OnDecel;
-                _conveyor.ScrollBy(_scrollDistance, _scrollMaxSpeed, _scrollAcceleration);
+                _conveyor.ScrollBy(_scrollDistance);
 
-                // 3. Wait for scroll to finish
+                // Wait for scroll to finish
                 yield return new WaitUntil(() => !_conveyor.IsScrolling);
                 _conveyor.OnDecelerationStarted -= OnDecel;
 

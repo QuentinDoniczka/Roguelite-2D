@@ -46,11 +46,6 @@ namespace RogueliteAutoBattler.Combat
 
             CombatSetupHelper.FindContainersIfNeeded(transform, ref _teamContainer, ref _enemiesContainer, nameof(CombatSpawnManager));
 
-            // Disable auto-scroll during combat.
-            var scrollManager = GetComponent<CombatScrollManager>();
-            if (scrollManager != null)
-                scrollManager.enabled = false;
-
             // Resolve screen-absolute home anchor (scene root, outside CombatWorld).
             var teamAnchorGo = GameObject.Find(TeamHomeAnchorName);
             Transform teamAnchor = teamAnchorGo != null ? teamAnchorGo.transform : null;
