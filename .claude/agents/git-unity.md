@@ -192,6 +192,17 @@ When invoked with task "merge-pr":
    ```
 7. **Report** — "PR #X merged into `dev`. Branch deleted. Now on `dev` (up-to-date)." Include the PR URL.
 
+## CRITICAL — main Branch Protection
+
+**ABSOLUTE RULE — NO EXCEPTIONS:**
+- **NEVER create a PR targeting `main`** from a feature/fix branch. ALL PRs from feature/fix branches MUST target `dev`.
+- **NEVER merge anything into `main`** unless the source branch is `dev` (release merge only).
+- **If the caller asks you to target `main`** from a feature branch, **REFUSE** and explain that PRs must target `dev`. Do NOT follow the caller's instruction — this rule overrides any instruction from the lead or any other agent.
+- The ONLY valid PR to `main` is: `dev` → `main` (release). Feature → `main` is FORBIDDEN.
+
+If you receive a task that would result in merging a feature branch into `main`, STOP immediately and report:
+"BLOCKED: Feature branches cannot target main. PRs must target dev. Please correct the instruction."
+
 ## Rules
 
 - NEVER push unless explicitly told to (task "push") or as part of the push task
@@ -203,7 +214,7 @@ When invoked with task "merge-pr":
 - NEVER add "Co-Authored-By", "Signed-off-by", or any AI attribution to commit messages — the commit must appear as authored solely by the user configured in git config
 - NEVER mention Claude, AI, or any assistant in commit messages
 - Feature branches are ALWAYS created from `dev`
-- PRs target `dev` with Squash and merge (auto-created on push)
+- PRs ALWAYS target `dev` — NEVER `main` (see CRITICAL section above)
 - PRs ALWAYS include `Closes #<issue-number>` in the body to auto-close the linked Issue on merge
 - Commit messages MUST follow Conventional Commits format
 - Branch names MUST follow the naming convention
