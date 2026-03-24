@@ -29,6 +29,7 @@ namespace RogueliteAutoBattler.Combat
         private Rigidbody2D _rb;
         private bool _isMoving;
         private Vector2 _homeOffset;
+        private float _homeFacingX;
 
         /// <summary>Cached Animator from GetComponentInChildren (may be null).</summary>
         public Animator Animator => _animator;
@@ -80,6 +81,9 @@ namespace RogueliteAutoBattler.Combat
 
             if (_hasAnimator)
                 _animator.applyRootMotion = false;
+
+            // Store initial facing direction to restore on home arrival.
+            _homeFacingX = transform.localScale.x < 0f ? 1f : -1f;
         }
 
         private void FixedUpdate()
@@ -105,6 +109,7 @@ namespace RogueliteAutoBattler.Combat
                     {
                         _rb.linearVelocity = Vector2.zero;
                         SetMoving(false);
+                        FlipToward(_homeFacingX);
                     }
                 }
                 else
