@@ -244,10 +244,9 @@ namespace RogueliteAutoBattler.Combat
                 {
                     // Only target this enemy if it's inside the combat zone
                     var cam = Camera.main;
-                    if (cam != null && cam.WorldToViewportPoint(firstEnemy.position).x > _combatZoneViewportX)
-                        continue;
-
-                    allyMover.Target = firstEnemy;
+                    bool inZone = cam == null || cam.WorldToViewportPoint(firstEnemy.position).x <= _combatZoneViewportX;
+                    if (inZone)
+                        allyMover.Target = firstEnemy;
                 }
 
                 // Wire retarget delegate once (closure captures ally position)
@@ -369,7 +368,17 @@ namespace RogueliteAutoBattler.Combat
 
                 Transform target = TargetFinder.Closest(_enemiesContainer, ally.position, float.MaxValue, _combatZoneViewportX);
                 if (target != null)
+                {
                     controller.Target = target;
+
+                    // Wire retarget delegate if not done yet
+                    if (!_allyRetargetWired)
+                    {
+                        var allyRef = ally;
+                        controller.FindNewTarget = () => TargetFinder.Closest(_enemiesContainer, allyRef.position, float.MaxValue, _combatZoneViewportX);
+                        _allyRetargetWired = true;
+                    }
+                }
             }
         }
 
