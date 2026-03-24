@@ -14,10 +14,12 @@ namespace RogueliteAutoBattler.Combat
         /// <summary>
         /// Finds the closest alive target on the X axis (side-scroller distance).
         /// </summary>
-        public static Transform Closest(Transform container, Vector3 from, float maxRange = float.MaxValue)
+        public static Transform Closest(Transform container, Vector3 from, float maxRange = float.MaxValue, float maxViewportX = 1f)
         {
             if (container == null)
                 return null;
+
+            Camera cam = (maxViewportX < 1f) ? Camera.main : null;
 
             Transform best = null;
             float bestDist = float.MaxValue;
@@ -25,6 +27,9 @@ namespace RogueliteAutoBattler.Combat
             foreach (Transform child in container)
             {
                 if (!IsAlive(child))
+                    continue;
+
+                if (cam != null && cam.WorldToViewportPoint(child.position).x > maxViewportX)
                     continue;
 
                 float dist = Vector2.Distance(from, child.position);

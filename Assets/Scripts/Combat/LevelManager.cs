@@ -44,8 +44,8 @@ namespace RogueliteAutoBattler.Combat
         [Tooltip("Extra X offset to spawn enemies off-screen to the right of EnemiesHomeAnchor.")]
         [SerializeField] private float _enemySpawnOffscreenX = 3f;
 
-        [Tooltip("Max distance an ally will search for a target. Prevents chasing off-screen.")]
-        [SerializeField] private float _allyMaxTargetRange = 8f;
+        [Tooltip("Viewport X limit for ally targeting (0.9 = 90% screen). Enemies beyond this are ignored.")]
+        [SerializeField] private float _combatZoneViewportX = 0.9f;
 
         private const float FallbackEnemySpawnX = 1f;
 
@@ -235,13 +235,20 @@ namespace RogueliteAutoBattler.Combat
                     needsTarget = targetStats.IsDead;
 
                 if (needsTarget)
+                {
+                    // Only target this enemy if it's inside the combat zone
+                    var cam = Camera.main;
+                    if (cam != null && cam.WorldToViewportPoint(firstEnemy.position).x > _combatZoneViewportX)
+                        continue;
+
                     allyMover.Target = firstEnemy;
+                }
 
                 // Wire retarget delegate once (closure captures ally position)
                 if (!_allyRetargetWired && allyTransform.TryGetComponent<CombatController>(out var allyController))
                 {
                     var allyRef = allyTransform;
-                    allyController.FindNewTarget = () => TargetFinder.Closest(_enemiesContainer, allyRef.position, _allyMaxTargetRange);
+                    allyController.FindNewTarget = () => TargetFinder.Closest(_enemiesContainer, allyRef.position, float.MaxValue, _combatZoneViewportX);
                     _allyRetargetWired = true;
                 }
             }
