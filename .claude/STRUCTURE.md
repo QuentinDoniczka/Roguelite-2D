@@ -11,14 +11,16 @@ Assets/
 │   ├── Enemies/
 │   │   └── EnemyStats.asset
 │   ├── LevelDatabase.asset
-│   └── LootTables/  (empty)
+│   ├── LootTables/  (empty)
+│   └── TeamDatabase.asset
 ├── doc/
-│   ├── MedievalFantasyCharacters/  (14 files)
+│   ├── MedievalFantasyCharacters/  (28 files)
 │   ├── architecture-ui.md
 │   ├── combat.jpeg
 │   ├── exemple_HUD.jpg
 │   ├── plan-issue-6.md
 │   ├── plan-issue-40.md
+│   ├── plan-issue-59.md
 │   ├── plan-level-scroll-transition.md
 │   └── premier-jet-roguelite.html
 ├── Fonts/  (empty)
@@ -98,6 +100,6 @@ Assets/
 │   ├── Items/  (53 files)
 │   └── UI/  (empty)
 ├── _Recovery/  (1 file)
-└── TextMesh Pro/  (366 files — TMP package: fonts, shaders, examples)
+└── TextMesh Pro/  (173 files — TMP package: fonts, shaders, examples)
 
 ProjectSettings/  (Unity defaults)

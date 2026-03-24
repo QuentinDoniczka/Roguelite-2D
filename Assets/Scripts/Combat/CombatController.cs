@@ -23,11 +23,8 @@ namespace RogueliteAutoBattler.Combat
     public class CombatController : MonoBehaviour
     {
         [Header("Combat")]
-        [Tooltip("Horizontal reach in world units (rectangle width).")]
+        [Tooltip("Attack reach in world units (distance check).")]
         [SerializeField] private float _attackRange = 0.5f;
-
-        // Vertical reach = half of horizontal. Forces face-to-face combat in a side-scroller.
-        private const float VerticalRangeRatio = 0.25f;
 
         private const float ChopAttackDuration = 0.5f;
         private const float FadeOutDuration = 0.25f;
@@ -36,6 +33,7 @@ namespace RogueliteAutoBattler.Combat
         private Animator _animator;
         private bool _hasAnimator;
         private CombatStats _stats;
+        private bool _hasStats;
         private CombatStats _targetStats;
         private CombatState _state;
         private float _nextAttackTime;
@@ -61,37 +59,39 @@ namespace RogueliteAutoBattler.Combat
         private void Awake()
         {
             _mover = GetComponent<CharacterMover>();
-            _animator = GetComponentInChildren<Animator>();
-            _hasAnimator = _animator != null;
+            _animator = _mover.Animator;
+            _hasAnimator = _mover.HasAnimator;
             _stats = GetComponent<CombatStats>();
+            _hasStats = _stats != null;
 
-            if (_stats != null)
+            if (_hasStats)
                 _stats.OnDied += HandleSelfDied;
+
+            _mover.OnBlocked += HandleBlocked;
         }
 
         private void OnDestroy()
         {
+            // Use Unity's null check (not cached _hasStats) — the object may be destroyed at teardown.
             if (_stats != null)
                 _stats.OnDied -= HandleSelfDied;
+
+            if (_mover != null)
+                _mover.OnBlocked -= HandleBlocked;
 
             UnsubscribeFromTarget();
         }
 
         private void FixedUpdate()
         {
-            if (_state == CombatState.Dead || (_stats != null && _stats.IsDead))
+            if (_state == CombatState.Dead || (_hasStats && _stats.IsDead))
                 return;
 
             if (_mover == null || _mover.Target == null)
                 return;
 
-            float signedDeltaX = _mover.Target.position.x - transform.position.x;
-            float facingSign = -Mathf.Sign(transform.localScale.x);
-            bool targetInFront = signedDeltaX * facingSign >= 0f;
-
-            float deltaX = Mathf.Abs(signedDeltaX);
-            float deltaY = Mathf.Abs(_mover.Target.position.y - transform.position.y);
-            bool inRange = targetInFront && deltaX <= _attackRange && deltaY <= _attackRange * VerticalRangeRatio;
+            float dist = Vector2.Distance(transform.position, _mover.Target.position);
+            bool inRange = dist <= _attackRange;
 
             if (inRange)
                 SetState(CombatState.Attacking);
@@ -129,8 +129,10 @@ namespace RogueliteAutoBattler.Combat
                 case CombatState.Attacking:
                     _mover.Stop();
                     _mover.enabled = false;
+                    FaceTarget();
 
                     UnsubscribeFromTarget();
+                    // Runs only on state transition, not per-frame.
                     _targetStats = _mover.Target != null
                         ? _mover.Target.GetComponent<CombatStats>()
                         : null;
@@ -176,25 +178,34 @@ namespace RogueliteAutoBattler.Combat
             UnsubscribeFromTarget();
             _targetStats = null;
 
-            // Try to find a new target
-            if (FindNewTarget != null)
-            {
-                Transform newTarget = FindNewTarget();
-                if (newTarget != null)
-                {
-                    _mover.Target = newTarget;
-                    SetState(CombatState.Moving);
-                    return;
-                }
-            }
+            // Try to find a new target.
+            Transform newTarget = FindNewTarget?.Invoke();
+            _mover.Target = newTarget; // null if none — CharacterMover returns to home anchor.
+            SetState(CombatState.Moving);
+        }
 
-            // No target available — return to home anchor (CharacterMover handles it).
-            _mover.Target = null;
-            _waitingForHit = false;
-            _mover.enabled = true;
-            _state = CombatState.Moving;
-            if (_hasAnimator)
-                _animator.speed = 1f;
+        private void HandleBlocked()
+        {
+            if (_state != CombatState.Moving)
+                return;
+            if (FindNewTarget == null)
+                return;
+
+            Transform current = _mover.Target;
+            Transform alternative = FindNewTarget();
+
+            if (alternative != null && alternative != current)
+            {
+                _mover.Target = alternative;
+            }
+        }
+
+        private void FaceTarget()
+        {
+            if (_mover.Target == null) return;
+
+            float dirX = _mover.Target.position.x - transform.position.x;
+            _mover.FlipToward(dirX);
         }
 
         private void UnsubscribeFromTarget()
@@ -237,7 +248,9 @@ namespace RogueliteAutoBattler.Combat
 
         private void StartAttackSwing()
         {
-            if (_stats == null || _stats.AttackSpeed <= 0f)
+            FaceTarget();
+
+            if (!_hasStats || _stats.AttackSpeed <= 0f)
                 return;
 
             _waitingForHit = true;
@@ -265,19 +278,23 @@ namespace RogueliteAutoBattler.Combat
             if (!_waitingForHit)
                 return;
 
-            if (_stats != null && _stats.IsDead)
+            if (_hasStats && _stats.IsDead)
                 return;
 
             _waitingForHit = false;
 
-            if (_stats != null && _targetStats != null && !_targetStats.IsDead)
+            if (_hasStats && _targetStats != null && !_targetStats.IsDead)
             {
-                // Capture before TakeDamage — it may kill the target, firing HandleTargetDied
-                // synchronously which nulls _targetStats.
-                string targetName = _targetStats.gameObject.name;
                 int damage = _stats.Atk;
+#if UNITY_EDITOR
+                // Capture name before TakeDamage — it may kill the target, firing
+                // HandleTargetDied synchronously which nulls _targetStats.
+                string targetName = _targetStats.gameObject.name;
+#endif
                 _targetStats.TakeDamage(damage);
+#if UNITY_EDITOR
                 Debug.Log($"[Attack] {name} hits {targetName} for {damage} dmg.");
+#endif
             }
 
             if (_hasAnimator)
