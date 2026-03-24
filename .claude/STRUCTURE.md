@@ -1,13 +1,8 @@
 # Project Structure
-Generated: 2026-03-23
+Generated: 2026-03-24
 
 Assets/
-├── Animations/
-│   ├── Character/  (7 files: 6 .anim + 1 .controller)
-│   ├── Elk/  (4 files)
-│   ├── Horse/  (4 files)
-│   ├── Wildboar/  (4 files)
-│   └── Wolf/  (4 files)
+├── Animations/  (23 files: .anim + .controller)
 ├── Audio/  (empty)
 ├── Data/
 │   ├── Adventurers/
@@ -15,12 +10,16 @@ Assets/
 │   ├── Buildings/  (empty)
 │   ├── Enemies/
 │   │   └── EnemyStats.asset
+│   ├── LevelDatabase.asset
 │   └── LootTables/  (empty)
 ├── doc/
 │   ├── MedievalFantasyCharacters/  (14 files)
 │   ├── architecture-ui.md
+│   ├── combat.jpeg
+│   ├── exemple_HUD.jpg
 │   ├── plan-issue-6.md
 │   ├── plan-issue-40.md
+│   ├── plan-level-scroll-transition.md
 │   └── premier-jet-roguelite.html
 ├── Fonts/  (empty)
 ├── Prefabs/
@@ -32,24 +31,33 @@ Assets/
 ├── Scripts/
 │   ├── Adventurers/  (empty)
 │   ├── Combat/
+│   │   ├── AnimHashes.cs
 │   │   ├── AnimationEventRelay.cs
 │   │   ├── CharacterMover.cs
 │   │   ├── CombatController.cs
-│   │   ├── CombatScrollManager.cs
+│   │   ├── CombatSetupHelper.cs
 │   │   ├── CombatSpawnManager.cs
 │   │   ├── CombatStats.cs
+│   │   ├── FormationLayout.cs
 │   │   ├── GroundFitter.cs
 │   │   ├── HealthBar.cs
+│   │   ├── LevelManager.cs
+│   │   ├── ScreenAnchor.cs
+│   │   ├── TargetFinder.cs
 │   │   └── WorldConveyor.cs
 │   ├── Core/  (empty)
 │   ├── Editor/
 │   │   ├── CombatHudBuilder.cs
 │   │   ├── CombatWorldBuilder.cs
 │   │   ├── EditorUIFactory.cs
+│   │   ├── GameDesignerWindow.cs
 │   │   └── SetupNavigationSceneEditor.cs
 │   ├── Items/  (empty)
 │   ├── ScriptableObjects/
-│   │   └── CharacterStats.cs
+│   │   ├── CharacterStats.cs
+│   │   ├── LevelDataTypes.cs
+│   │   ├── LevelDatabase.cs
+│   │   └── TeamDatabase.cs
 │   ├── Services/
 │   │   └── Local/  (empty)
 │   ├── UI/
@@ -85,9 +93,11 @@ Assets/
 │   ├── Effects/  (25 files)
 │   ├── Environment/
 │   │   ├── grid_ground.png
+│   │   ├── grid_ground_blue.png
 │   │   └── placeholder_white.png
 │   ├── Items/  (53 files)
 │   └── UI/  (empty)
-└── TextMesh Pro/  (173 files — TMP package: fonts, shaders, examples)
+├── _Recovery/  (1 file)
+└── TextMesh Pro/  (366 files — TMP package: fonts, shaders, examples)
 
 ProjectSettings/  (Unity defaults)

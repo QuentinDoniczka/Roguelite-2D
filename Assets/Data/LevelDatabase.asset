@@ -1,0 +1,58 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 71370ef8728639c42a7ecb8ba083b87e, type: 3}
+  m_Name: LevelDatabase
+  m_EditorClassIdentifier: Assembly-CSharp::RogueliteAutoBattler.Data.LevelDatabase
+  stages:
+  - stageName: Stage 1
+    terrain: {fileID: 21300000, guid: 28cf6f51b09c7824891f02d1056ea4f8, type: 3}
+    levels:
+    - levelName: Level 1
+      waves:
+      - waveName: Wave
+        spawnDelay: 0
+        enemies:
+        - enemyName: Enemy
+          prefab: {fileID: 1000000000000000001, guid: ade0afb480cc21d43ab799f99637abc6, type: 3}
+          hp: 10
+          atk: 2
+          attackSpeed: 1
+          moveSpeed: 1
+          attackRange: 0.5
+          attackType: 0
+          spawnOffset: {x: 0, y: 0.8}
+      - waveName: Wave 2
+        spawnDelay: 5
+        enemies:
+        - enemyName: Enemy
+          prefab: {fileID: 1000000000000000001, guid: ade0afb480cc21d43ab799f99637abc6, type: 3}
+          hp: 10
+          atk: 2
+          attackSpeed: 1
+          moveSpeed: 1
+          attackRange: 0.5
+          attackType: 0
+          spawnOffset: {x: 0, y: 0.5}
+    - levelName: Level 2
+      waves:
+      - waveName: Wave 1
+        spawnDelay: 0
+        enemies:
+        - enemyName: Enemy
+          prefab: {fileID: 1000000000000000001, guid: ade0afb480cc21d43ab799f99637abc6, type: 3}
+          hp: 50
+          atk: 3
+          attackSpeed: 3
+          moveSpeed: 2
+          attackRange: 0.5
+          attackType: 0
+          spawnOffset: {x: 0, y: 0}

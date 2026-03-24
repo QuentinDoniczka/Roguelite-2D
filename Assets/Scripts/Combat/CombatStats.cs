@@ -10,15 +10,26 @@ namespace RogueliteAutoBattler.Combat
     {
         private CharacterStats _baseStats;
         private int _currentHp;
+        private int _maxHp;
+        private int _atk;
+        private float _attackSpeed;
+        private float _regenHpPerSecond;
+        private float _regenAccumulator;
 
-        /// <summary>The base stats ScriptableObject this character was initialized with.</summary>
+        /// <summary>The base stats ScriptableObject this character was initialized with (null if direct init).</summary>
         public CharacterStats BaseStats => _baseStats;
 
         /// <summary>Current health points.</summary>
         public int CurrentHp => _currentHp;
 
-        /// <summary>Maximum health points, derived from base stats.</summary>
-        public int MaxHp => _baseStats.maxHp;
+        /// <summary>Maximum health points.</summary>
+        public int MaxHp => _maxHp;
+
+        /// <summary>Damage dealt per attack.</summary>
+        public int Atk => _atk;
+
+        /// <summary>Attacks per second.</summary>
+        public float AttackSpeed => _attackSpeed;
 
         /// <summary>True when CurrentHp has reached zero.</summary>
         public bool IsDead => _currentHp <= 0;
@@ -28,6 +39,23 @@ namespace RogueliteAutoBattler.Combat
         {
             _baseStats = stats;
             _currentHp = stats.maxHp;
+            _maxHp = stats.maxHp;
+            _atk = stats.atk;
+            _attackSpeed = stats.attackSpeed;
+            _regenHpPerSecond = stats.regenHpPerSecond;
+            _regenAccumulator = 0f;
+        }
+
+        /// <summary>Initializes stats directly from values (used by wave-spawned enemies without a SO).</summary>
+        public void InitializeDirect(int maxHp, int atk, float attackSpeed, float regenHpPerSecond = 0f)
+        {
+            _baseStats = null;
+            _maxHp = maxHp;
+            _currentHp = maxHp;
+            _atk = atk;
+            _attackSpeed = attackSpeed;
+            _regenHpPerSecond = regenHpPerSecond;
+            _regenAccumulator = 0f;
         }
 
         /// <summary>Fired once when CurrentHp reaches zero.</summary>
@@ -48,15 +76,18 @@ namespace RogueliteAutoBattler.Combat
 
         private void FixedUpdate()
         {
-            if (_baseStats == null || IsDead)
+            if (IsDead)
                 return;
 
-            if (_baseStats.regenHpPerSecond > 0f && _currentHp < _baseStats.maxHp)
+            if (_regenHpPerSecond > 0f && _currentHp < _maxHp)
             {
-                _currentHp = Mathf.Min(
-                    _baseStats.maxHp,
-                    _currentHp + Mathf.RoundToInt(_baseStats.regenHpPerSecond * Time.fixedDeltaTime)
-                );
+                _regenAccumulator += _regenHpPerSecond * Time.fixedDeltaTime;
+                int heal = (int)_regenAccumulator;
+                if (heal > 0)
+                {
+                    _regenAccumulator -= heal;
+                    _currentHp = Mathf.Min(_maxHp, _currentHp + heal);
+                }
             }
         }
     }

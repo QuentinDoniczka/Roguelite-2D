@@ -14,6 +14,7 @@ namespace RogueliteAutoBattler.Combat
     /// URP 2D uses Lit sprites by default: without a Light2D the bar would appear
     /// black. Both renderers are explicitly set to Sprite-Unlit-Default.
     /// </summary>
+    [RequireComponent(typeof(CombatStats))]
     public class HealthBar : MonoBehaviour
     {
         [Header("Bar Dimensions")]
@@ -35,6 +36,10 @@ namespace RogueliteAutoBattler.Combat
         // Shared Unlit material — created once, reused by all HealthBar instances.
         private static Material _unlitMaterial;
 
+        // Shared sprites — created once, reused by all HealthBar instances.
+        private static Sprite _centeredSprite;
+        private static Sprite _leftAlignedSprite;
+
         private CombatStats _stats;
         private Transform   _pivotTransform;
         private Transform   _fillTransform;
@@ -55,10 +60,10 @@ namespace RogueliteAutoBattler.Combat
         {
             // Sprites —————————————————————————————————————————————————————
             // Centered sprite (pivot 0.5, 0.5) — used for BG.
-            var bgSprite = CreateWhiteSprite(new Vector2(0.5f, 0.5f));
+            var bgSprite = GetOrCreateSprite(ref _centeredSprite, new Vector2(0.5f, 0.5f));
             // Left-aligned sprite (pivot 0, 0.5) — used for Fill so scaling X
             // from 0 grows toward the right from the left edge.
-            var fillSprite = CreateWhiteSprite(new Vector2(0f, 0.5f));
+            var fillSprite = GetOrCreateSprite(ref _leftAlignedSprite, new Vector2(0f, 0.5f));
 
             // Pivot ———————————————————————————————————————————————————————
             // An empty intermediary absorbs the parent's X flip.
@@ -106,7 +111,7 @@ namespace RogueliteAutoBattler.Combat
 
         private void LateUpdate()
         {
-            if (_stats == null || _stats.BaseStats == null)
+            if (_stats == null || _stats.MaxHp <= 0)
                 return;
 
             // Reapply flip compensation every frame — the parent scale can change
@@ -142,18 +147,17 @@ namespace RogueliteAutoBattler.Combat
         }
 
         /// <summary>
-        /// Creates a 1×1 white sprite from Texture2D.whiteTexture with the given UV pivot.
-        /// No external asset dependency — works at runtime and in Editor.
+        /// Returns a cached 1x1 white sprite with the given pivot, creating it on first call.
+        /// Shared across all HealthBar instances to avoid per-instance sprite allocations.
         /// </summary>
-        private static Sprite CreateWhiteSprite(Vector2 pivot)
+        private static Sprite GetOrCreateSprite(ref Sprite cached, Vector2 pivot)
         {
+            if (cached != null)
+                return cached;
+
             var tex = Texture2D.whiteTexture;
-            return Sprite.Create(
-                tex,
-                new Rect(0, 0, tex.width, tex.height),
-                pivot,
-                tex.width
-            );
+            cached = Sprite.Create(tex, new Rect(0, 0, tex.width, tex.height), pivot, tex.width);
+            return cached;
         }
 
         /// <summary>

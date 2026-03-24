@@ -18,16 +18,19 @@ namespace RogueliteAutoBattler.Combat
     /// Damage is dealt via animation event callback (<see cref="OnAnimationHit"/>),
     /// ensuring visual and logical synchronization.
     /// </summary>
+    [RequireComponent(typeof(CharacterMover))]
+    [RequireComponent(typeof(CombatStats))]
     public class CombatController : MonoBehaviour
     {
         [Header("Combat")]
-        [Tooltip("Distance in world units at which the character stops and attacks.")]
+        [Tooltip("Horizontal reach in world units (rectangle width).")]
         [SerializeField] private float _attackRange = 0.5f;
+
+        // Vertical reach = half of horizontal. Forces face-to-face combat in a side-scroller.
+        private const float VerticalRangeRatio = 0.25f;
 
         private const float ChopAttackDuration = 0.5f;
         private const float FadeOutDuration = 0.25f;
-        private const string AnimChopAttack = "ChopAttack";
-        private const string AnimIdle = "Idle";
 
         private CharacterMover _mover;
         private Animator _animator;
@@ -35,11 +38,18 @@ namespace RogueliteAutoBattler.Combat
         private CombatStats _stats;
         private CombatStats _targetStats;
         private CombatState _state;
-        private float _attackTimer;
+        private float _nextAttackTime;
         private bool _waitingForHit;
 
         /// <summary>Current combat state of this character.</summary>
         public CombatState State => _state;
+
+        /// <summary>
+        /// Callback to find a new target when the current one dies.
+        /// Set by the spawning system (LevelManager or CombatSpawnManager).
+        /// Returns null if no target is available.
+        /// </summary>
+        public System.Func<Transform> FindNewTarget { get; set; }
 
         /// <summary>The Transform this character moves toward and attacks.</summary>
         public Transform Target
@@ -75,18 +85,22 @@ namespace RogueliteAutoBattler.Combat
             if (_mover == null || _mover.Target == null)
                 return;
 
-            float distance = Mathf.Abs(_mover.Target.position.x - transform.position.x);
+            float signedDeltaX = _mover.Target.position.x - transform.position.x;
+            float facingSign = -Mathf.Sign(transform.localScale.x);
+            bool targetInFront = signedDeltaX * facingSign >= 0f;
 
-            if (distance <= _attackRange)
+            float deltaX = Mathf.Abs(signedDeltaX);
+            float deltaY = Mathf.Abs(_mover.Target.position.y - transform.position.y);
+            bool inRange = targetInFront && deltaX <= _attackRange && deltaY <= _attackRange * VerticalRangeRatio;
+
+            if (inRange)
                 SetState(CombatState.Attacking);
             else
                 SetState(CombatState.Moving);
 
-            if (_state == CombatState.Attacking && !_waitingForHit)
+            if (_state == CombatState.Attacking && !_waitingForHit && Time.time >= _nextAttackTime)
             {
-                _attackTimer -= Time.fixedDeltaTime;
-                if (_attackTimer <= 0f)
-                    StartAttackSwing();
+                StartAttackSwing();
             }
         }
 
@@ -122,8 +136,6 @@ namespace RogueliteAutoBattler.Combat
                         : null;
                     if (_targetStats != null)
                         _targetStats.OnDied += HandleTargetDied;
-
-                    _attackTimer = 0f; // attack immediately on first transition
                     break;
 
                 case CombatState.Dead:
@@ -134,7 +146,7 @@ namespace RogueliteAutoBattler.Combat
                     if (_hasAnimator)
                     {
                         _animator.speed = 1f;
-                        _animator.Play(AnimIdle);
+                        _animator.Play(AnimHashes.Idle);
                     }
                     StartCoroutine(FadeOutAndDestroy());
                     break;
@@ -148,7 +160,7 @@ namespace RogueliteAutoBattler.Combat
                     if (_hasAnimator)
                     {
                         _animator.speed = 1f;
-                        _animator.Play(AnimIdle);
+                        _animator.Play(AnimHashes.Idle);
                     }
                     break;
             }
@@ -161,7 +173,28 @@ namespace RogueliteAutoBattler.Combat
 
         private void HandleTargetDied()
         {
-            SetState(CombatState.None);
+            UnsubscribeFromTarget();
+            _targetStats = null;
+
+            // Try to find a new target
+            if (FindNewTarget != null)
+            {
+                Transform newTarget = FindNewTarget();
+                if (newTarget != null)
+                {
+                    _mover.Target = newTarget;
+                    SetState(CombatState.Moving);
+                    return;
+                }
+            }
+
+            // No target available — return to home anchor (CharacterMover handles it).
+            _mover.Target = null;
+            _waitingForHit = false;
+            _mover.enabled = true;
+            _state = CombatState.Moving;
+            if (_hasAnimator)
+                _animator.speed = 1f;
         }
 
         private void UnsubscribeFromTarget()
@@ -196,14 +229,22 @@ namespace RogueliteAutoBattler.Combat
             Destroy(gameObject);
         }
 
+        /// <summary>Overrides the serialized attack range at runtime (set from EnemySpawnData on spawn).</summary>
+        public void SetAttackRange(float range)
+        {
+            _attackRange = range;
+        }
+
         private void StartAttackSwing()
         {
-            if (_stats == null || _stats.BaseStats == null || _stats.BaseStats.attackSpeed <= 0f)
+            if (_stats == null || _stats.AttackSpeed <= 0f)
                 return;
 
             _waitingForHit = true;
 
-            float attackInterval = 1f / _stats.BaseStats.attackSpeed;
+            // Set cooldown NOW, not in OnAnimationHit — survives retarget/state changes.
+            float attackInterval = 1f / _stats.AttackSpeed;
+            _nextAttackTime = Time.time + attackInterval;
             float animSpeed = attackInterval < ChopAttackDuration
                 ? ChopAttackDuration / attackInterval
                 : 1f;
@@ -211,7 +252,7 @@ namespace RogueliteAutoBattler.Combat
             if (_hasAnimator)
             {
                 _animator.speed = animSpeed;
-                _animator.Play(AnimChopAttack, -1, 0f);
+                _animator.Play(AnimHashes.ChopAttack, -1, 0f);
             }
         }
 
@@ -231,18 +272,21 @@ namespace RogueliteAutoBattler.Combat
 
             if (_stats != null && _targetStats != null && !_targetStats.IsDead)
             {
-                _targetStats.TakeDamage(_stats.BaseStats.atk);
-                Debug.Log($"[Attack] {name} hits {_targetStats.gameObject.name} for {_stats.BaseStats.atk} dmg. HP: {_targetStats.CurrentHp}/{_targetStats.MaxHp}");
+                // Capture before TakeDamage — it may kill the target, firing HandleTargetDied
+                // synchronously which nulls _targetStats.
+                string targetName = _targetStats.gameObject.name;
+                int damage = _stats.Atk;
+                _targetStats.TakeDamage(damage);
+                Debug.Log($"[Attack] {name} hits {targetName} for {damage} dmg.");
             }
 
             if (_hasAnimator)
             {
                 _animator.speed = 1f;
-                _animator.Play(AnimIdle);
+                _animator.Play(AnimHashes.Idle);
             }
 
-            if (_stats != null && _stats.BaseStats != null)
-                _attackTimer = 1f / _stats.BaseStats.attackSpeed;
+            // Cooldown already set in StartAttackSwing.
         }
     }
 }
