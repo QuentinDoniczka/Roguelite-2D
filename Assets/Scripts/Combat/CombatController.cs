@@ -219,6 +219,32 @@ namespace RogueliteAutoBattler.Combat
             Destroy(gameObject);
         }
 
+        /// <summary>
+        /// Clears the current target and returns the character to idle/moving state.
+        /// Used by LevelManager when clearing targets between levels.
+        /// </summary>
+        public void Disengage()
+        {
+            UnsubscribeFromTarget();
+            _targetStats = null;
+            _mover.Target = null;
+            FindNewTarget = null;
+
+            if (_state == CombatState.Dead)
+                return;
+
+            // Set state directly — SetState(Moving) would work but SetState(None)
+            // disables the mover. We need the mover enabled so CharacterMover
+            // walks the character back to HomeAnchor during scroll transition.
+            _state = CombatState.Moving;
+            _mover.enabled = true;
+            _waitingForHit = false;
+            if (_hasAnimator)
+            {
+                _animator.speed = 1f;
+            }
+        }
+
         /// <summary>Overrides the serialized attack range at runtime (set from EnemySpawnData on spawn).</summary>
         public void SetAttackRange(float range)
         {

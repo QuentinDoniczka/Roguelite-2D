@@ -365,8 +365,7 @@ namespace RogueliteAutoBattler.Combat
                 var ally = _teamContainer.GetChild(i);
                 if (ally.TryGetComponent<CombatController>(out var controller))
                 {
-                    controller.Target = null;
-                    controller.FindNewTarget = null;
+                    controller.Disengage();
                 }
             }
         }
