@@ -31,14 +31,18 @@ namespace RogueliteAutoBattler.Combat
         [Tooltip("Distance in world units the world scrolls left between levels.")]
         [SerializeField] private float _scrollDistance = 5f;
 
-        [Tooltip("Maximum scroll speed. Must be less than ally move speed to prevent drift.")]
-        [SerializeField] private float _scrollMaxSpeed = 1.5f;
+        [Tooltip("Maximum scroll speed. Should match ally move speed for a natural walk effect.")]
+        [SerializeField] private float _scrollMaxSpeed = 2f;
 
         [Tooltip("Scroll acceleration and deceleration in units per second squared.")]
         [SerializeField] private float _scrollAcceleration = 2f;
 
         [Tooltip("Delay in seconds before scrolling, to let allies return to HomeAnchor.")]
         [SerializeField] private float _returnDelay = 1f;
+
+        [Header("Enemy Spawn")]
+        [Tooltip("Extra X offset to spawn enemies off-screen to the right of EnemiesHomeAnchor.")]
+        [SerializeField] private float _enemySpawnOffscreenX = 3f;
 
         private const float FallbackEnemySpawnX = 1f;
 
@@ -153,12 +157,12 @@ namespace RogueliteAutoBattler.Combat
                 return;
             }
 
-            // Spawn position = EnemiesHomeAnchor (screen-right) + spawnOffset from level data.
+            // Spawn position = EnemiesHomeAnchor (screen-right) + offscreen offset + spawnOffset from level data.
             Vector3 anchorPos = _enemiesHomeAnchor != null
                 ? _enemiesHomeAnchor.position
                 : new Vector3(FallbackEnemySpawnX, 0f, 0f);
             Vector3 spawnPosition = new Vector3(
-                anchorPos.x + data.SpawnOffset.x,
+                anchorPos.x + _enemySpawnOffscreenX + data.SpawnOffset.x,
                 anchorPos.y + data.SpawnOffset.y,
                 0f
             );
