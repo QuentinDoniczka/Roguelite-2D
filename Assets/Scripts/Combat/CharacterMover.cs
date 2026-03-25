@@ -28,6 +28,7 @@ namespace RogueliteAutoBattler.Combat
         private bool _hasAnimator;
         private Rigidbody2D _rb;
         private bool _isMoving;
+        private bool _isCharge;
         private Vector2 _homeOffset;
         private float _homeFacingX;
 
@@ -97,25 +98,26 @@ namespace RogueliteAutoBattler.Combat
                 if (_homeAnchor != null)
                 {
                     Vector2 homePos = (Vector2)_homeAnchor.position + _homeOffset;
-                    float sqrDistToHome = (homePos - (Vector2)transform.position).sqrMagnitude;
+                    Vector2 currentPos = (Vector2)transform.position;
+                    float sqrDistToHome = (homePos - currentPos).sqrMagnitude;
                     if (sqrDistToHome > HomeArrivalThreshold * HomeArrivalThreshold)
                     {
-                        Vector2 dir = (homePos - (Vector2)transform.position).normalized;
+                        Vector2 dir = (homePos - currentPos).normalized;
                         FlipToward(dir.x);
                         _rb.linearVelocity = dir * _moveSpeed;
-                        SetMoving(true);
+                        SetMoving(true, false);
                     }
                     else
                     {
                         _rb.linearVelocity = Vector2.zero;
-                        SetMoving(false);
+                        SetMoving(false, false);
                         FlipToward(_homeFacingX);
                     }
                 }
                 else
                 {
                     _rb.linearVelocity = Vector2.zero;
-                    SetMoving(false);
+                    SetMoving(false, false);
                 }
                 return;
             }
@@ -130,7 +132,7 @@ namespace RogueliteAutoBattler.Combat
             FlipToward(direction.x);
 
             _rb.linearVelocity = direction * _moveSpeed;
-            SetMoving(true);
+            SetMoving(true, true);
         }
 
         /// <summary>Overrides the serialized move speed at runtime (set from stats on spawn).</summary>
@@ -166,15 +168,24 @@ namespace RogueliteAutoBattler.Combat
             transform.localScale = s;
         }
 
-        private void SetMoving(bool moving)
+        private void SetMoving(bool moving, bool isCharge)
         {
-            if (_isMoving == moving)
+            if (_isMoving == moving && _isCharge == isCharge)
                 return;
 
             _isMoving = moving;
+            _isCharge = isCharge;
 
-            if (_hasAnimator)
-                _animator.Play(_isMoving ? AnimHashes.Walk : AnimHashes.Idle);
+            if (!_hasAnimator)
+                return;
+
+            if (!_isMoving)
+            {
+                _animator.Play(AnimHashes.Idle);
+                return;
+            }
+
+            _animator.Play(_isCharge ? AnimHashes.Run : AnimHashes.Walk);
         }
     }
 }

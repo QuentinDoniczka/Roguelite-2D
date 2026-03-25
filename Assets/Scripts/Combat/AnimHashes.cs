@@ -10,6 +10,7 @@ namespace RogueliteAutoBattler.Combat
     {
         public static readonly int Idle = Animator.StringToHash("Idle");
         public static readonly int Walk = Animator.StringToHash("Walk");
+        public static readonly int Run = Animator.StringToHash("Run");
         public static readonly int ChopAttack = Animator.StringToHash("ChopAttack");
     }
 }
