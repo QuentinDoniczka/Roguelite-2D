@@ -93,6 +93,47 @@ namespace RogueliteAutoBattler.Tests
         }
 
         /// <summary>
+        /// Creates a character with CharacterMover + CombatController + CombatStats,
+        /// suitable for testing combat state machine behavior (retarget, state transitions).
+        /// CombatController auto-adds CharacterMover and CombatStats via RequireComponent.
+        /// </summary>
+        public static GameObject CreateFullCombatCharacter(
+            string name = "TestFighter",
+            int maxHp = 100,
+            int atk = 10,
+            float attackSpeed = 1f,
+            float moveSpeed = 2f,
+            Vector2? position = null)
+        {
+            var go = new GameObject(name);
+
+            if (position.HasValue)
+                go.transform.position = position.Value;
+
+            // Visual child — CharacterMover.Awake() looks for SpriteRenderer in children.
+            var visual = new GameObject("Visual");
+            visual.transform.SetParent(go.transform, false);
+            visual.AddComponent<SpriteRenderer>();
+
+            // Rigidbody2D first (required by CharacterMover).
+            var rb = go.AddComponent<Rigidbody2D>();
+            rb.gravityScale = 0f;
+            rb.freezeRotation = true;
+
+            // CombatController auto-adds CharacterMover + CombatStats via RequireComponent.
+            go.AddComponent<CombatController>();
+
+            // Initialize components after they exist.
+            var stats = go.GetComponent<CombatStats>();
+            stats.InitializeDirect(maxHp, atk, attackSpeed);
+
+            var mover = go.GetComponent<CharacterMover>();
+            mover.SetMoveSpeed(moveSpeed);
+
+            return go;
+        }
+
+        /// <summary>
         /// Creates a simple anchor Transform at the given position.
         /// </summary>
         public static GameObject CreateAnchor(string name = "Anchor", Vector2? position = null)
