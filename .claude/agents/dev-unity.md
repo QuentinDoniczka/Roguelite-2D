@@ -158,7 +158,69 @@ public class RecruitResponse
 2. **Read existing files** — Match current code style
 3. **Implement** — Follow the plan and standards above
 4. **Self-review** — Naming OK? SerializeField private? GetComponent cached? No allocations in Update? 2D components used (not 3D)? Client/server boundary respected?
-5. **Report** — List what was created/modified
+5. **Run tests** — See "Test Execution After Implementation" below
+6. **Report** — List what was created/modified, plus test results (pass/fail counts)
+
+## Test Execution After Implementation
+
+After implementation and self-review, **always run the existing test suite** to catch regressions.
+
+### Git Worktree — Why and How
+
+Unity Editor locks the main project when open, so batch-mode tests cannot run on it. A **git worktree** at `C:/Users/donic/RiderProjects/Roguelite-2D-tests` is used instead. The worktree only sees **committed and pushed** code.
+
+**Before running any tests**, you MUST:
+1. **Commit** all changes on the current branch
+2. **Push** to origin
+3. **Sync the worktree**:
+```bash
+BRANCH=$(git -C "C:/Users/donic/RiderProjects/Roguelite-2D" branch --show-current)
+cd "C:/Users/donic/RiderProjects/Roguelite-2D-tests" && git fetch origin && git checkout "$BRANCH" && git reset --hard "origin/$BRANCH"
+```
+
+### Step 1 — Run Edit Mode tests (always)
+
+Check if Edit Mode test files exist first:
+```bash
+ls "C:/Users/donic/RiderProjects/Roguelite-2D/Assets/Tests/EditMode/"
+```
+
+If test files exist, run them:
+```bash
+"/c/Program Files/Unity/Hub/Editor/6000.3.6f1/Editor/Unity.exe" \
+  -runTests -batchmode -nographics \
+  -projectPath "C:/Users/donic/RiderProjects/Roguelite-2D-tests" \
+  -testPlatform EditMode \
+  -testResults "C:/Users/donic/RiderProjects/Roguelite-2D-tests/editmode-results.xml" \
+  -logFile "C:/Users/donic/RiderProjects/Roguelite-2D-tests/editmode-log.txt"
+```
+
+### Step 2 — Run Play Mode tests (if implementation touched MonoBehaviours with physics/lifecycle)
+
+If the implementation modified or created MonoBehaviours that use Rigidbody2D, Collider2D, physics, coroutines, or Update/FixedUpdate lifecycle, also run Play Mode tests:
+```bash
+"/c/Program Files/Unity/Hub/Editor/6000.3.6f1/Editor/Unity.exe" \
+  -runTests -batchmode -nographics \
+  -projectPath "C:/Users/donic/RiderProjects/Roguelite-2D-tests" \
+  -testPlatform PlayMode \
+  -testResults "C:/Users/donic/RiderProjects/Roguelite-2D-tests/playmode-results.xml" \
+  -logFile "C:/Users/donic/RiderProjects/Roguelite-2D-tests/playmode-log.txt"
+```
+
+### Step 3 — Parse results
+
+Read the XML results file(s). Look for `<test-run result="Failed">` or individual `<test-case result="Failed">` elements. Report pass/fail counts.
+
+- **Exit code 0** = all passed. **Exit code 2** = some failed.
+- The worktree avoids the "Unity already open" lock issue. If batch mode still fails unexpectedly, check that no Unity instance has the worktree path open.
+
+### Step 4 — Fix failures
+
+If any tests fail:
+1. Read the failure message from the XML results
+2. Determine if the failure is caused by the new implementation (regression) or a pre-existing issue
+3. If caused by the new implementation: **fix the code and re-run** until all tests pass
+4. If pre-existing: note it in the report but do not block on it
 
 ## Creating Unity Assets from Code
 

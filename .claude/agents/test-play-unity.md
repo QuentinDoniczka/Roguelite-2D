@@ -249,28 +249,131 @@ For testing input → handler → game state. Use fake accounts + InputTestFixtu
 
 **Write API-level tests first (faster, more stable), then add input-level tests for critical flows.**
 
+## Writing Tests for New Features
+
+When a new feature is implemented, write tests covering it. Use the appropriate test level:
+
+### Decide: Edit Mode vs Play Mode
+
+| Use Edit Mode (`Assets/Tests/EditMode/`) | Use Play Mode (`Assets/Tests/PlayMode/`) |
+|---|---|
+| Pure logic (math, data, state machines) | Physics (Rigidbody2D, Collider2D movement) |
+| ScriptableObject validation | MonoBehaviour lifecycle (Awake, Update, coroutines) |
+| Method input/output | Multi-frame behavior (animations, timers) |
+| No Unity lifecycle needed | Input simulation (InputTestFixture) |
+
+### Use TestCharacterFactory for Combat Tests
+
+`Assets/Tests/PlayMode/TestUtils/TestCharacterFactory.cs` provides lightweight GameObjects for testing. Always use it instead of building GameObjects from scratch:
+
+```csharp
+// Combat character with stats (Rigidbody2D + CombatStats + Visual child)
+var unit = TestCharacterFactory.CreateCombatCharacter("Warrior", maxHp: 100, atk: 20);
+
+// Character with CharacterMover, optionally parented under a conveyor
+var conveyor = TestCharacterFactory.CreateConveyor();
+var mover = TestCharacterFactory.CreateMoverCharacter("Runner", moveSpeed: 3f, parent: conveyor.transform);
+
+// Simple anchor Transform
+var anchor = TestCharacterFactory.CreateAnchor("SpawnPoint", position: new Vector2(5, 0));
+```
+
+If the new feature needs a component not yet covered by TestCharacterFactory, **add a new factory method** to it rather than duplicating setup code across tests.
+
+### Edit Mode Test Pattern
+
+Edit Mode tests use `[Test]` (not `[UnityTest]`), run synchronously, and use `Object.DestroyImmediate` in TearDown:
+
+```csharp
+namespace RogueliteAutoBattler.Tests.EditMode
+{
+    public class NewFeatureTests
+    {
+        private GameObject _go;
+
+        [SetUp]
+        public void SetUp()
+        {
+            _go = new GameObject("Test");
+            // Add components, initialize...
+        }
+
+        [TearDown]
+        public void TearDown()
+        {
+            if (_go != null) Object.DestroyImmediate(_go);
+        }
+
+        [Test]
+        public void Method_Condition_ExpectedResult()
+        {
+            // Arrange, Act, Assert
+        }
+    }
+}
+```
+
+### Running Both Test Suites
+
+After writing tests, sync the worktree (see above), then run the appropriate suite. If you wrote Edit Mode tests, also run them:
+```bash
+"/c/Program Files/Unity/Hub/Editor/6000.3.6f1/Editor/Unity.exe" \
+  -runTests -batchmode -nographics \
+  -projectPath "C:/Users/donic/RiderProjects/Roguelite-2D-tests" \
+  -testPlatform EditMode \
+  -testResults "C:/Users/donic/RiderProjects/Roguelite-2D-tests/editmode-results.xml" \
+  -logFile "C:/Users/donic/RiderProjects/Roguelite-2D-tests/editmode-log.txt"
+```
+
 ## Naming Convention
 
 - Test files: `<Feature>Tests.cs` or `<Feature>ScenarioTests.cs`
 - Test methods: `Scenario_Action_ExpectedResult` or `Feature_Condition_ExpectedResult`
 
+## Git Worktree for Test Execution
+
+Unity Editor locks the main project directory when open, which prevents batch-mode test runs. To solve this, a **git worktree** is set up at a separate path dedicated to running tests. The worktree shares the same git history but has its own working directory and Library folder.
+
+| | Path |
+|---|---|
+| **Main project** (Editor open here) | `C:/Users/donic/RiderProjects/Roguelite-2D` |
+| **Test worktree** (batch mode runs here) | `C:/Users/donic/RiderProjects/Roguelite-2D-tests` |
+
+**The worktree only sees committed and pushed code.** Before running any tests, you MUST ensure:
+1. All changes are **committed** on the current branch
+2. The branch is **pushed** to origin
+3. The worktree is **synced** to the latest pushed code
+
+### Syncing the worktree
+
+Before every test run, execute this to sync the worktree with the current branch:
+```bash
+cd "C:/Users/donic/RiderProjects/Roguelite-2D-tests" && git fetch origin && git checkout <branch> && git reset --hard origin/<branch>
+```
+Replace `<branch>` with the current feature branch name (e.g., `feature/12-combat-flow`).
+
+To find the current branch name from the main project:
+```bash
+git -C "C:/Users/donic/RiderProjects/Roguelite-2D" branch --show-current
+```
+
 ## Running Tests — MANDATORY
 
-**ALWAYS run tests via Unity CLI after writing them.**
+**ALWAYS run tests via Unity CLI after writing them.** Tests run on the **worktree** path, not the main project.
 
 ```bash
 "/c/Program Files/Unity/Hub/Editor/6000.3.6f1/Editor/Unity.exe" \
   -runTests -batchmode -nographics \
-  -projectPath "<project-path>" \
+  -projectPath "C:/Users/donic/RiderProjects/Roguelite-2D-tests" \
   -testPlatform PlayMode \
-  -testResults "<project-path>/playmode-results.xml" \
-  -logFile "<project-path>/playmode-log.txt"
+  -testResults "C:/Users/donic/RiderProjects/Roguelite-2D-tests/playmode-results.xml" \
+  -logFile "C:/Users/donic/RiderProjects/Roguelite-2D-tests/playmode-log.txt"
 ```
 
 - **Exit code 0** = all passed. **Exit code 2** = some failed.
 - Parse the XML results file to report pass/fail counts and failure details.
-- If tests fail, fix them and re-run until all pass.
-- **Important:** Unity must NOT be open when running batch mode. If the command exits immediately with a very short log (~23 lines), Unity was likely already open. Report this to the user.
+- If tests fail, fix the code **in the main project**, commit, push, sync worktree, and re-run until all pass.
+- **Important:** The worktree eliminates the "Unity already open" problem for the main project. If batch mode still fails, check that no other Unity instance has the worktree path open.
 
 ## When Invoked
 
@@ -279,8 +382,10 @@ For testing input → handler → game state. Use fake accounts + InputTestFixtu
 3. **Check asmdef** — Ensure InputSystem references are present for input tests
 4. **Determine progression level** — Pick the right fake account preset for the scenario
 5. **Write tests** — API-level first, then input-level for critical flows
-6. **Run tests via CLI** — ALWAYS run and verify they pass
-7. **Report** — List what was tested, pass/fail results, any issues
+6. **Ensure changes are committed and pushed** — The worktree only sees pushed code
+7. **Sync the worktree** — `cd "C:/Users/donic/RiderProjects/Roguelite-2D-tests" && git fetch origin && git checkout <branch> && git reset --hard origin/<branch>`
+8. **Run tests via CLI on the worktree** — ALWAYS run and verify they pass
+9. **Report** — List what was tested, pass/fail results, any issues
 
 ## Rules
 
