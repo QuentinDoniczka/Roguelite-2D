@@ -315,7 +315,7 @@ namespace RogueliteAutoBattler.Tests.EditMode
 
 ### Running Both Test Suites
 
-After writing tests, sync the worktree (see above), then run the appropriate suite. If you wrote Edit Mode tests, also run them:
+After writing tests, run the appropriate suite on the worktree. For Edit Mode tests:
 ```bash
 "/c/Program Files/Unity/Hub/Editor/6000.3.6f1/Editor/Unity.exe" \
   -runTests -batchmode -nographics \
@@ -330,37 +330,29 @@ After writing tests, sync the worktree (see above), then run the appropriate sui
 - Test files: `<Feature>Tests.cs` or `<Feature>ScenarioTests.cs`
 - Test methods: `Scenario_Action_ExpectedResult` or `Feature_Condition_ExpectedResult`
 
-## Git Worktree for Test Execution
+## Running Tests — MANDATORY
 
-Unity Editor locks the main project directory when open, which prevents batch-mode test runs. To solve this, a **git worktree** is set up at a separate path dedicated to running tests. The worktree shares the same git history but has its own working directory and Library folder.
+**ALWAYS run tests via Unity CLI after writing them.** Use the two-step strategy below.
+
+### Strategy: Always use the git worktree
+
+Unity Editor is typically open on the main project, which locks it for batch mode. **Always run tests on the worktree.**
 
 | | Path |
 |---|---|
-| **Main project** (Editor open here) | `C:/Users/donic/RiderProjects/Roguelite-2D` |
-| **Test worktree** (batch mode runs here) | `C:/Users/donic/RiderProjects/Roguelite-2D-tests` |
+| **Main project** (Editor open) | `C:/Users/donic/RiderProjects/Roguelite-2D` |
+| **Test worktree** (batch mode) | `C:/Users/donic/RiderProjects/Roguelite-2D-tests` |
 
-**The worktree only sees committed and pushed code.** Before running any tests, you MUST ensure:
-1. All changes are **committed** on the current branch
-2. The branch is **pushed** to origin
-3. The worktree is **synced** to the latest pushed code
+Both share the same `.git` — no push needed. Commits in the main project are instantly visible.
 
-### Syncing the worktree
-
-Before every test run, execute this to sync the worktree with the current branch:
+**Before running tests:**
+1. **Commit** all changes in the main project (worktree only sees committed code)
+2. **Sync** the worktree to the latest commit (detached HEAD — avoids branch conflict):
 ```bash
-cd "C:/Users/donic/RiderProjects/Roguelite-2D-tests" && git fetch origin && git checkout <branch> && git reset --hard origin/<branch>
+COMMIT=$(git -C "C:/Users/donic/RiderProjects/Roguelite-2D" rev-parse HEAD)
+cd "C:/Users/donic/RiderProjects/Roguelite-2D-tests" && git checkout --detach "$COMMIT"
 ```
-Replace `<branch>` with the current feature branch name (e.g., `feature/12-combat-flow`).
-
-To find the current branch name from the main project:
-```bash
-git -C "C:/Users/donic/RiderProjects/Roguelite-2D" branch --show-current
-```
-
-## Running Tests — MANDATORY
-
-**ALWAYS run tests via Unity CLI after writing them.** Tests run on the **worktree** path, not the main project.
-
+3. **Run tests:**
 ```bash
 "/c/Program Files/Unity/Hub/Editor/6000.3.6f1/Editor/Unity.exe" \
   -runTests -batchmode -nographics \
@@ -370,10 +362,17 @@ git -C "C:/Users/donic/RiderProjects/Roguelite-2D" branch --show-current
   -logFile "C:/Users/donic/RiderProjects/Roguelite-2D-tests/playmode-log.txt"
 ```
 
+**If the worktree does not exist yet**, create it:
+```bash
+cd "C:/Users/donic/RiderProjects/Roguelite-2D" && git worktree add --detach "../Roguelite-2D-tests"
+```
+The first run on a fresh worktree requires Unity to import assets (Library generation) — this can take several minutes.
+
+### Reading results
+
 - **Exit code 0** = all passed. **Exit code 2** = some failed.
 - Parse the XML results file to report pass/fail counts and failure details.
-- If tests fail, fix the code **in the main project**, commit, push, sync worktree, and re-run until all pass.
-- **Important:** The worktree eliminates the "Unity already open" problem for the main project. If batch mode still fails, check that no other Unity instance has the worktree path open.
+- If tests fail, fix the code in the main project, then re-run (Step 1 or Step 2 depending on editor state).
 
 ## When Invoked
 
@@ -382,10 +381,8 @@ git -C "C:/Users/donic/RiderProjects/Roguelite-2D" branch --show-current
 3. **Check asmdef** — Ensure InputSystem references are present for input tests
 4. **Determine progression level** — Pick the right fake account preset for the scenario
 5. **Write tests** — API-level first, then input-level for critical flows
-6. **Ensure changes are committed and pushed** — The worktree only sees pushed code
-7. **Sync the worktree** — `cd "C:/Users/donic/RiderProjects/Roguelite-2D-tests" && git fetch origin && git checkout <branch> && git reset --hard origin/<branch>`
-8. **Run tests via CLI on the worktree** — ALWAYS run and verify they pass
-9. **Report** — List what was tested, pass/fail results, any issues
+6. **Run tests via CLI** — Commit changes, sync worktree, run on worktree
+7. **Report** — List what was tested, pass/fail results, any issues
 
 ## Rules
 

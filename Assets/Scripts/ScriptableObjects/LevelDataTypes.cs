@@ -58,7 +58,7 @@ namespace RogueliteAutoBattler.Data
         [SerializeField] private float moveSpeed = 2f;
         [SerializeField] private float attackRange = 0.5f;
         [SerializeField] private AttackType attackType = AttackType.Melee;
-        [SerializeField] private float colliderRadius = 0.05f;
+        [SerializeField] private float colliderRadius = 0.15f;
         [SerializeField] private Vector2 spawnOffset;
 
         public string EnemyName => enemyName;
@@ -84,7 +84,7 @@ namespace RogueliteAutoBattler.Data
         [SerializeField] private float attackSpeed = 1f;
         [SerializeField] private float moveSpeed = 2f;
         [SerializeField] private float regenHpPerSecond = 0f;
-        [SerializeField] private float colliderRadius = 0.05f;
+        [SerializeField] private float colliderRadius = 0.15f;
         [SerializeField] private Vector2 spawnOffset;
 
         public string AllyName => allyName;

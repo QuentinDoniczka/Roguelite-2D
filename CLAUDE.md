@@ -40,7 +40,7 @@ Assets/
 │   ├── LootTables/  (empty)
 │   └── TeamDatabase.asset
 ├── doc/
-│   ├── MedievalFantasyCharacters/  (14 files)
+│   ├── MedievalFantasyCharacters/  (28 files)
 │   ├── architecture-ui.md
 │   ├── combat.jpeg
 │   ├── exemple_HUD.jpg
@@ -138,10 +138,15 @@ Assets/
 │   └── PlayMode/
 │       ├── Tests.PlayMode.asmdef
 │       ├── TestUtils/
+│       │   ├── NavigationTestBase.cs
 │       │   ├── PlayModeTestBase.cs
 │       │   └── TestCharacterFactory.cs
+│       ├── CancelActionTests.cs
 │       ├── CharacterMoverTests.cs
+│       ├── CombatFlowTests.cs
 │       ├── CombatStatsRegenTests.cs
+│       ├── MovementScenarioTests.cs
+│       ├── NavigationManagerTests.cs
 │       └── WorldConveyorTests.cs
 ├── _Recovery/  (1 file)
 └── TextMesh Pro/  (173 files — TMP package: fonts, shaders, examples)
