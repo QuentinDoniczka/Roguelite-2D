@@ -163,7 +163,20 @@ public class RecruitResponse
 
 ## Test Execution After Implementation
 
-After implementation and self-review, **always run the existing test suite** to catch regressions. Unity must NOT be open during batch-mode test runs.
+After implementation and self-review, **always run the existing test suite** to catch regressions.
+
+### Git Worktree — Why and How
+
+Unity Editor locks the main project when open, so batch-mode tests cannot run on it. A **git worktree** at `C:/Users/donic/RiderProjects/Roguelite-2D-tests` is used instead. The worktree only sees **committed and pushed** code.
+
+**Before running any tests**, you MUST:
+1. **Commit** all changes on the current branch
+2. **Push** to origin
+3. **Sync the worktree**:
+```bash
+BRANCH=$(git -C "C:/Users/donic/RiderProjects/Roguelite-2D" branch --show-current)
+cd "C:/Users/donic/RiderProjects/Roguelite-2D-tests" && git fetch origin && git checkout "$BRANCH" && git reset --hard "origin/$BRANCH"
+```
 
 ### Step 1 — Run Edit Mode tests (always)
 
@@ -176,10 +189,10 @@ If test files exist, run them:
 ```bash
 "/c/Program Files/Unity/Hub/Editor/6000.3.6f1/Editor/Unity.exe" \
   -runTests -batchmode -nographics \
-  -projectPath "C:/Users/donic/RiderProjects/Roguelite-2D" \
+  -projectPath "C:/Users/donic/RiderProjects/Roguelite-2D-tests" \
   -testPlatform EditMode \
-  -testResults "C:/Users/donic/RiderProjects/Roguelite-2D/editmode-results.xml" \
-  -logFile "C:/Users/donic/RiderProjects/Roguelite-2D/editmode-log.txt"
+  -testResults "C:/Users/donic/RiderProjects/Roguelite-2D-tests/editmode-results.xml" \
+  -logFile "C:/Users/donic/RiderProjects/Roguelite-2D-tests/editmode-log.txt"
 ```
 
 ### Step 2 — Run Play Mode tests (if implementation touched MonoBehaviours with physics/lifecycle)
@@ -188,10 +201,10 @@ If the implementation modified or created MonoBehaviours that use Rigidbody2D, C
 ```bash
 "/c/Program Files/Unity/Hub/Editor/6000.3.6f1/Editor/Unity.exe" \
   -runTests -batchmode -nographics \
-  -projectPath "C:/Users/donic/RiderProjects/Roguelite-2D" \
+  -projectPath "C:/Users/donic/RiderProjects/Roguelite-2D-tests" \
   -testPlatform PlayMode \
-  -testResults "C:/Users/donic/RiderProjects/Roguelite-2D/playmode-results.xml" \
-  -logFile "C:/Users/donic/RiderProjects/Roguelite-2D/playmode-log.txt"
+  -testResults "C:/Users/donic/RiderProjects/Roguelite-2D-tests/playmode-results.xml" \
+  -logFile "C:/Users/donic/RiderProjects/Roguelite-2D-tests/playmode-log.txt"
 ```
 
 ### Step 3 — Parse results
@@ -199,7 +212,7 @@ If the implementation modified or created MonoBehaviours that use Rigidbody2D, C
 Read the XML results file(s). Look for `<test-run result="Failed">` or individual `<test-case result="Failed">` elements. Report pass/fail counts.
 
 - **Exit code 0** = all passed. **Exit code 2** = some failed.
-- If the command exits immediately with a very short log (~23 lines), Unity was likely already open. Tell the user to close Unity and retry.
+- The worktree avoids the "Unity already open" lock issue. If batch mode still fails unexpectedly, check that no Unity instance has the worktree path open.
 
 ### Step 4 — Fix failures
 
