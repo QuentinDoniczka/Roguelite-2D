@@ -27,6 +27,7 @@ namespace RogueliteAutoBattler.Combat
         private Animator _animator;
         private bool _hasAnimator;
         private Rigidbody2D _rb;
+        private WorldConveyor _conveyor;
         private bool _isMoving;
         private bool _isCharge;
         private Vector2 _homeOffset;
@@ -60,6 +61,7 @@ namespace RogueliteAutoBattler.Combat
             _animator = GetComponentInChildren<Animator>();
             _hasAnimator = _animator != null;
             _rb = GetComponent<Rigidbody2D>();
+            _conveyor = GetComponentInParent<WorldConveyor>();
 
             if (_rb == null)
                 Debug.LogError($"[{nameof(CharacterMover)}] Rigidbody2D not found on {name}. Movement will not work.", this);
@@ -100,16 +102,21 @@ namespace RogueliteAutoBattler.Combat
                     Vector2 homePos = (Vector2)_homeAnchor.position + _homeOffset;
                     Vector2 currentPos = (Vector2)transform.position;
                     float sqrDistToHome = (homePos - currentPos).sqrMagnitude;
-                    if (sqrDistToHome > HomeArrivalThreshold * HomeArrivalThreshold)
+                    bool scrolling = _conveyor != null && _conveyor.IsScrolling;
+                    if (sqrDistToHome > HomeArrivalThreshold * HomeArrivalThreshold || scrolling)
                     {
                         Vector2 dir = (homePos - currentPos).normalized;
                         FlipToward(dir.x);
                         _rb.linearVelocity = dir * _moveSpeed;
+                        if (_conveyor != null)
+                            _rb.linearVelocity += _conveyor.ScrollVelocity;
                         SetMoving(true, false);
                     }
                     else
                     {
                         _rb.linearVelocity = Vector2.zero;
+                        if (_conveyor != null)
+                            _rb.linearVelocity += _conveyor.ScrollVelocity;
                         SetMoving(false, false);
                         FlipToward(_homeFacingX);
                     }
@@ -117,6 +124,8 @@ namespace RogueliteAutoBattler.Combat
                 else
                 {
                     _rb.linearVelocity = Vector2.zero;
+                    if (_conveyor != null)
+                        _rb.linearVelocity += _conveyor.ScrollVelocity;
                     SetMoving(false, false);
                 }
                 return;
@@ -132,6 +141,8 @@ namespace RogueliteAutoBattler.Combat
             FlipToward(direction.x);
 
             _rb.linearVelocity = direction * _moveSpeed;
+            if (_conveyor != null)
+                _rb.linearVelocity += _conveyor.ScrollVelocity;
             SetMoving(true, true);
         }
 
