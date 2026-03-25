@@ -98,8 +98,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
 
             float endX = charGo.transform.position.x;
 
-            // The character, as a child of the conveyor, moves with it. Additionally,
-            // CharacterMover adds ScrollVelocity to its own linearVelocity.
+            // The character, as a child of the kinematic conveyor, moves with it.
             // The character's world position should have shifted left.
             Assert.That(endX, Is.LessThan(startX - 1f),
                 "Character should have moved leftward with the conveyor scroll.");

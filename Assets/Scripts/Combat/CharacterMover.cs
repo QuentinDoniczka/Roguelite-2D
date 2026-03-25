@@ -19,6 +19,7 @@ namespace RogueliteAutoBattler.Combat
 
         private const float HomeArrivalThreshold = 0.15f;
         private const float HomeDampingFactor = 8f;
+        private const float WalkAnimationThreshold = 0.05f;
 
         // Shared low-friction material so characters slide past each other.
         private static PhysicsMaterial2D _frictionlessMaterial;
@@ -111,15 +112,11 @@ namespace RogueliteAutoBattler.Combat
                         FlipToward(dir.x);
                         float correctionSpeed = Mathf.Min(distToHome * HomeDampingFactor, _moveSpeed);
                         _rb.linearVelocity = dir * correctionSpeed;
-                        if (_conveyor != null)
-                            _rb.linearVelocity += _conveyor.ScrollVelocity;
-                        SetMoving(true, false);
+                        SetMoving(correctionSpeed > WalkAnimationThreshold, false);
                     }
                     else
                     {
                         _rb.linearVelocity = Vector2.zero;
-                        if (_conveyor != null)
-                            _rb.linearVelocity += _conveyor.ScrollVelocity;
                         SetMoving(false, false);
                         FlipToward(_homeFacingX);
                     }
@@ -127,8 +124,6 @@ namespace RogueliteAutoBattler.Combat
                 else
                 {
                     _rb.linearVelocity = Vector2.zero;
-                    if (_conveyor != null)
-                        _rb.linearVelocity += _conveyor.ScrollVelocity;
                     SetMoving(false, false);
                 }
                 return;
@@ -144,8 +139,6 @@ namespace RogueliteAutoBattler.Combat
             FlipToward(direction.x);
 
             _rb.linearVelocity = direction * _moveSpeed;
-            if (_conveyor != null)
-                _rb.linearVelocity += _conveyor.ScrollVelocity;
             SetMoving(true, true);
         }
 
