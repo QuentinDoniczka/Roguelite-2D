@@ -75,6 +75,7 @@ Assets/
 │   │   ├── LevelManager.cs
 │   │   ├── ScreenAnchor.cs
 │   │   ├── TargetFinder.cs
+│   │   ├── VisualEquipmentTestLoop.cs
 │   │   └── WorldConveyor.cs
 │   ├── Core/  (empty)
 │   ├── Editor/
@@ -144,6 +145,7 @@ Assets/
 │       ├── CharacterAppearanceTests.cs
 │       ├── CharacterMoverTests.cs
 │       ├── CombatStatsRegenTests.cs
+│       ├── VisualEquipmentTestLoopTests.cs
 │       └── WorldConveyorTests.cs
 ├── _Recovery/  (1 file)
 └── TextMesh Pro/  (173 files — TMP package: fonts, shaders, examples)

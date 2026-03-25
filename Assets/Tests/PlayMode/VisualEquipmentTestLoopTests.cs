@@ -1,6 +1,5 @@
 using System.Collections;
 using System.Collections.Generic;
-using System.Reflection;
 using NUnit.Framework;
 using RogueliteAutoBattler.Combat;
 using UnityEditor;
@@ -14,10 +13,6 @@ namespace RogueliteAutoBattler.Tests.PlayMode
         private const string PrefabPath = "Assets/Prefabs/Characters/sampleCharacterHuman.prefab";
 
         private readonly List<Object> _disposableAssets = new List<Object>();
-
-        private static readonly FieldInfo CycleIntervalField =
-            typeof(VisualEquipmentTestLoop).GetField("_cycleInterval",
-                BindingFlags.NonPublic | BindingFlags.Instance);
 
         private GameObject InstantiatePrefab()
         {
@@ -64,7 +59,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             var loop = go.AddComponent<VisualEquipmentTestLoop>();
             loop.enabled = false;
 
-            CycleIntervalField.SetValue(loop, interval);
+            loop.CycleInterval = interval;
             loop.WeaponSprites = weapons;
             loop.HatSprites = hats;
             loop.ShieldSprites = shields;
@@ -82,7 +77,8 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             }
             _disposableAssets.Clear();
 
-            base.TearDown();
+            // NUnit calls [TearDown] in reverse hierarchy order (derived first, then base),
+            // so base.TearDown() is already invoked automatically. No explicit call needed.
         }
 
         // ----------------------------------------------------------------

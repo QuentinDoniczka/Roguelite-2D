@@ -38,6 +38,9 @@ namespace RogueliteAutoBattler.Combat
         /// <summary>Shield sprite pool (for editor wiring).</summary>
         public Sprite[] ShieldSprites { get => _shieldSprites; set => _shieldSprites = value; }
 
+        /// <summary>Seconds between each equipment swap cycle (for testing).</summary>
+        public float CycleInterval { get => _cycleInterval; set => _cycleInterval = value; }
+
         private void Start()
         {
             StartCoroutine(CycleEquipmentLoop());
@@ -52,18 +55,20 @@ namespace RogueliteAutoBattler.Combat
                 yield return wait;
 
                 var characters = FindObjectsByType<CharacterAppearance>(FindObjectsSortMode.None);
+                int count = characters.Length;
 
-                for (int i = 0; i < characters.Length; i++)
+                for (int i = 0; i < count; i++)
                 {
                     Sprite hat = PickRandom(_hatSprites);
                     Sprite weapon = PickRandom(_weaponSprites);
                     Sprite shield = PickRandom(_shieldSprites);
 
+                    // Head sprite is not cycled (null keeps the prefab default).
                     characters[i].ApplyAppearance(null, hat, weapon, shield);
                 }
 
                 if (_logCycles)
-                    Debug.Log($"[VisualEquipmentTestLoop] Cycled equipment on {characters.Length} character(s).");
+                    Debug.Log($"[VisualEquipmentTestLoop] Cycled equipment on {count} character(s).");
             }
         }
 
