@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using NUnit.Framework;
 using RogueliteAutoBattler.Combat;
 using UnityEditor;
@@ -11,6 +12,8 @@ namespace RogueliteAutoBattler.Tests.PlayMode
     {
         private const string PrefabPath = "Assets/Prefabs/Characters/sampleCharacterHuman.prefab";
 
+        private readonly List<Object> _disposableAssets = new List<Object>();
+
         private GameObject InstantiatePrefab()
         {
             var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(PrefabPath);
@@ -19,10 +22,26 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             return Track(instance);
         }
 
-        private static Sprite CreateTestSprite()
+        private Sprite CreateTestSprite()
         {
             var tex = new Texture2D(4, 4);
-            return Sprite.Create(tex, new Rect(0, 0, 4, 4), Vector2.zero);
+            _disposableAssets.Add(tex);
+            var sprite = Sprite.Create(tex, new Rect(0, 0, 4, 4), Vector2.zero);
+            _disposableAssets.Add(sprite);
+            return sprite;
+        }
+
+        [TearDown]
+        public new void TearDown()
+        {
+            foreach (var asset in _disposableAssets)
+            {
+                if (asset != null)
+                    Object.DestroyImmediate(asset);
+            }
+            _disposableAssets.Clear();
+
+            base.TearDown();
         }
 
         [UnityTest]

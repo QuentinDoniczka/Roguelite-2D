@@ -1,3 +1,4 @@
+using RogueliteAutoBattler.Data;
 using UnityEngine;
 
 namespace RogueliteAutoBattler.Combat
@@ -15,10 +16,10 @@ namespace RogueliteAutoBattler.Combat
     /// </remarks>
     public class CharacterAppearance : MonoBehaviour
     {
-        private const string HEAD_PATH = "human_head_skin_1_0";
-        private const string HAT_PATH = "human_head_skin_1_0/metal_15";
-        private const string WEAPON_PATH = "human_hand_0/polearm_8";
-        private const string SHIELD_PATH = "shield_42";
+        private const string HeadPath = "human_head_skin_1_0";
+        private const string HatPath = "human_head_skin_1_0/metal_15";
+        private const string WeaponPath = "human_hand_0/polearm_8";
+        private const string ShieldPath = "shield_42";
 
         private SpriteRenderer _headRenderer;
         private SpriteRenderer _hatRenderer;
@@ -48,10 +49,10 @@ namespace RogueliteAutoBattler.Combat
 
             Transform visual = animator.transform;
 
-            _headRenderer = FindSlotRenderer(visual, HEAD_PATH, "Head");
-            _hatRenderer = FindSlotRenderer(visual, HAT_PATH, "Hat");
-            _weaponRenderer = FindSlotRenderer(visual, WEAPON_PATH, "Weapon");
-            _shieldRenderer = FindSlotRenderer(visual, SHIELD_PATH, "Shield");
+            _headRenderer = FindSlotRenderer(visual, HeadPath, "Head");
+            _hatRenderer = FindSlotRenderer(visual, HatPath, "Hat");
+            _weaponRenderer = FindSlotRenderer(visual, WeaponPath, "Weapon");
+            _shieldRenderer = FindSlotRenderer(visual, ShieldPath, "Shield");
         }
 
         /// <summary>
@@ -75,6 +76,16 @@ namespace RogueliteAutoBattler.Combat
 
             if (shield != null && _shieldRenderer != null)
                 _shieldRenderer.sprite = shield;
+        }
+
+        /// <summary>
+        /// Convenience overload that unpacks an <see cref="AppearanceData"/> and applies its sprites.
+        /// </summary>
+        public void ApplyAppearance(AppearanceData appearance)
+        {
+            if (appearance == null) return;
+            ApplyAppearance(appearance.HeadSprite, appearance.HatSprite,
+                appearance.WeaponSprite, appearance.ShieldSprite);
         }
 
         private static SpriteRenderer FindSlotRenderer(Transform visual, string path, string slotName)
