@@ -18,6 +18,7 @@ namespace RogueliteAutoBattler.Combat
         private const float FaceOffset = 0.25f;
 
         private const float HomeArrivalThreshold = 0.15f;
+        private const float HomeDampingFactor = 8f;
 
         // Shared low-friction material so characters slide past each other.
         private static PhysicsMaterial2D _frictionlessMaterial;
@@ -27,7 +28,9 @@ namespace RogueliteAutoBattler.Combat
         private Animator _animator;
         private bool _hasAnimator;
         private Rigidbody2D _rb;
+        private WorldConveyor _conveyor;
         private bool _isMoving;
+        private bool _isCharge;
         private Vector2 _homeOffset;
         private float _homeFacingX;
 
@@ -59,6 +62,7 @@ namespace RogueliteAutoBattler.Combat
             _animator = GetComponentInChildren<Animator>();
             _hasAnimator = _animator != null;
             _rb = GetComponent<Rigidbody2D>();
+            _conveyor = GetComponentInParent<WorldConveyor>();
 
             if (_rb == null)
                 Debug.LogError($"[{nameof(CharacterMover)}] Rigidbody2D not found on {name}. Movement will not work.", this);
@@ -97,25 +101,35 @@ namespace RogueliteAutoBattler.Combat
                 if (_homeAnchor != null)
                 {
                     Vector2 homePos = (Vector2)_homeAnchor.position + _homeOffset;
-                    float sqrDistToHome = (homePos - (Vector2)transform.position).sqrMagnitude;
-                    if (sqrDistToHome > HomeArrivalThreshold * HomeArrivalThreshold)
+                    Vector2 currentPos = (Vector2)transform.position;
+                    float sqrDistToHome = (homePos - currentPos).sqrMagnitude;
+                    bool scrolling = _conveyor != null && _conveyor.IsScrolling;
+                    float distToHome = Mathf.Sqrt(sqrDistToHome);
+                    if (distToHome > HomeArrivalThreshold || scrolling)
                     {
-                        Vector2 dir = (homePos - (Vector2)transform.position).normalized;
+                        Vector2 dir = (homePos - currentPos).normalized;
                         FlipToward(dir.x);
-                        _rb.linearVelocity = dir * _moveSpeed;
-                        SetMoving(true);
+                        float correctionSpeed = Mathf.Min(distToHome * HomeDampingFactor, _moveSpeed);
+                        _rb.linearVelocity = dir * correctionSpeed;
+                        if (_conveyor != null)
+                            _rb.linearVelocity += _conveyor.ScrollVelocity;
+                        SetMoving(true, false);
                     }
                     else
                     {
                         _rb.linearVelocity = Vector2.zero;
-                        SetMoving(false);
+                        if (_conveyor != null)
+                            _rb.linearVelocity += _conveyor.ScrollVelocity;
+                        SetMoving(false, false);
                         FlipToward(_homeFacingX);
                     }
                 }
                 else
                 {
                     _rb.linearVelocity = Vector2.zero;
-                    SetMoving(false);
+                    if (_conveyor != null)
+                        _rb.linearVelocity += _conveyor.ScrollVelocity;
+                    SetMoving(false, false);
                 }
                 return;
             }
@@ -130,7 +144,9 @@ namespace RogueliteAutoBattler.Combat
             FlipToward(direction.x);
 
             _rb.linearVelocity = direction * _moveSpeed;
-            SetMoving(true);
+            if (_conveyor != null)
+                _rb.linearVelocity += _conveyor.ScrollVelocity;
+            SetMoving(true, true);
         }
 
         /// <summary>Overrides the serialized move speed at runtime (set from stats on spawn).</summary>
@@ -166,15 +182,24 @@ namespace RogueliteAutoBattler.Combat
             transform.localScale = s;
         }
 
-        private void SetMoving(bool moving)
+        private void SetMoving(bool moving, bool isCharge)
         {
-            if (_isMoving == moving)
+            if (_isMoving == moving && _isCharge == isCharge)
                 return;
 
             _isMoving = moving;
+            _isCharge = isCharge;
 
-            if (_hasAnimator)
-                _animator.Play(_isMoving ? AnimHashes.Walk : AnimHashes.Idle);
+            if (!_hasAnimator)
+                return;
+
+            if (!_isMoving)
+            {
+                _animator.Play(AnimHashes.Idle);
+                return;
+            }
+
+            _animator.Play(_isCharge ? AnimHashes.Run : AnimHashes.Walk);
         }
     }
 }

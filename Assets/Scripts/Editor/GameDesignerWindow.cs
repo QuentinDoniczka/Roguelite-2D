@@ -169,7 +169,8 @@ namespace RogueliteAutoBattler.Editor
             }
             EditorGUILayout.EndScrollView();
 
-            _teamSerializedDatabase.ApplyModifiedProperties();
+            if (_teamSerializedDatabase.ApplyModifiedProperties())
+                AssetDatabase.SaveAssets();
         }
 
         // ─── Toolbar ─────────────────────────────────────────────────────────
@@ -432,7 +433,8 @@ namespace RogueliteAutoBattler.Editor
             }
             GUILayout.EndHorizontal();
 
-            _levelSerializedDatabase.ApplyModifiedProperties();
+            if (_levelSerializedDatabase.ApplyModifiedProperties())
+                AssetDatabase.SaveAssets();
         }
 
         // ─── Toolbar ─────────────────────────────────────────────────────────
