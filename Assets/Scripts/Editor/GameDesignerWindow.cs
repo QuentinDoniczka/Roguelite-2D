@@ -331,6 +331,8 @@ namespace RogueliteAutoBattler.Editor
             else
                 Debug.LogError("[TeamBuilder] Property 'colliderRadius' not found on AllySpawnData.");
 
+            DrawAppearanceFields(allyProp);
+
             EditorGUI.indentLevel--;
             GUILayout.Space(2f);
 
@@ -368,6 +370,15 @@ namespace RogueliteAutoBattler.Editor
         private const float LevelWaveHeaderHeight   = 26f;
         private const string LevelDatabaseDefaultPath   = "Assets/Data/LevelDatabase.asset";
         private const string LevelDefaultEnemyPrefabPath = "Assets/Prefabs/Characters/sampleCharacterHuman.prefab";
+
+        // ─── Default values for new enemies ────────────────────────────────
+        private const string LevelDefaultEnemyName       = "Enemy";
+        private const int    LevelDefaultEnemyHp         = 50;
+        private const int    LevelDefaultEnemyAtk        = 10;
+        private const float  LevelDefaultEnemyAttackSpeed = 1f;
+        private const float  LevelDefaultEnemyMoveSpeed  = 2f;
+        private const float  LevelDefaultEnemyAttackRange = 0.5f;
+        private const float  LevelDefaultEnemyColliderRadius = 0.15f;
 
         // ─── State ───────────────────────────────────────────────────────────
         private LevelDatabase    _levelDatabase;
@@ -849,33 +860,45 @@ namespace RogueliteAutoBattler.Editor
 
             var colRadius = target.FindPropertyRelative("colliderRadius");
             if (colRadius != null) colRadius.floatValue = source.FindPropertyRelative("colliderRadius").floatValue;
+
+            var headSprite = target.FindPropertyRelative("appearance.headSprite");
+            if (headSprite != null) headSprite.objectReferenceValue = source.FindPropertyRelative("appearance.headSprite").objectReferenceValue;
+
+            var hatSprite = target.FindPropertyRelative("appearance.hatSprite");
+            if (hatSprite != null) hatSprite.objectReferenceValue = source.FindPropertyRelative("appearance.hatSprite").objectReferenceValue;
+
+            var weaponSprite = target.FindPropertyRelative("appearance.weaponSprite");
+            if (weaponSprite != null) weaponSprite.objectReferenceValue = source.FindPropertyRelative("appearance.weaponSprite").objectReferenceValue;
+
+            var shieldSprite = target.FindPropertyRelative("appearance.shieldSprite");
+            if (shieldSprite != null) shieldSprite.objectReferenceValue = source.FindPropertyRelative("appearance.shieldSprite").objectReferenceValue;
         }
 
         private void InitEnemyDefaults(SerializedProperty newEnemy)
         {
             var enemyName = newEnemy.FindPropertyRelative("enemyName");
-            if (enemyName != null) enemyName.stringValue = "Enemy";
+            if (enemyName != null) enemyName.stringValue = LevelDefaultEnemyName;
 
             var hp = newEnemy.FindPropertyRelative("hp");
-            if (hp != null) hp.intValue = 50;
+            if (hp != null) hp.intValue = LevelDefaultEnemyHp;
 
             var atk = newEnemy.FindPropertyRelative("atk");
-            if (atk != null) atk.intValue = 10;
+            if (atk != null) atk.intValue = LevelDefaultEnemyAtk;
 
             var attackSpeed = newEnemy.FindPropertyRelative("attackSpeed");
-            if (attackSpeed != null) attackSpeed.floatValue = 1f;
+            if (attackSpeed != null) attackSpeed.floatValue = LevelDefaultEnemyAttackSpeed;
 
             var moveSpeed = newEnemy.FindPropertyRelative("moveSpeed");
-            if (moveSpeed != null) moveSpeed.floatValue = 2f;
+            if (moveSpeed != null) moveSpeed.floatValue = LevelDefaultEnemyMoveSpeed;
 
             var attackRange = newEnemy.FindPropertyRelative("attackRange");
-            if (attackRange != null) attackRange.floatValue = 0.5f;
+            if (attackRange != null) attackRange.floatValue = LevelDefaultEnemyAttackRange;
 
             var attackType = newEnemy.FindPropertyRelative("attackType");
             if (attackType != null) attackType.enumValueIndex = 0;
 
             var colRadius = newEnemy.FindPropertyRelative("colliderRadius");
-            if (colRadius != null) colRadius.floatValue = 0.15f;
+            if (colRadius != null) colRadius.floatValue = LevelDefaultEnemyColliderRadius;
 
             var prefab = newEnemy.FindPropertyRelative("prefab");
             if (prefab != null)
@@ -973,10 +996,40 @@ namespace RogueliteAutoBattler.Editor
             else
                 Debug.LogError("[LevelDesigner] Property 'colliderRadius' not found on EnemySpawnData.");
 
+            DrawAppearanceFields(enemyProp);
+
             EditorGUI.indentLevel--;
             GUILayout.Space(2f);
 
             return false;
+        }
+
+        // ─── Shared appearance drawer ─────────────────────────────────────────
+
+        /// <summary>
+        /// Draws the 4 appearance sprite fields for any parent property that contains
+        /// an <c>AppearanceData appearance</c> sub-property (e.g. EnemySpawnData, AllySpawnData).
+        /// </summary>
+        private static void DrawAppearanceFields(SerializedProperty parentProp)
+        {
+            var appearanceProp = parentProp.FindPropertyRelative("appearance");
+            if (appearanceProp == null)
+            {
+                Debug.LogError("[GameDesigner] Property 'appearance' not found.");
+                return;
+            }
+
+            EditorGUILayout.Space(4f);
+            EditorGUILayout.LabelField("Appearance", EditorStyles.boldLabel);
+
+            EditorGUILayout.PropertyField(
+                appearanceProp.FindPropertyRelative("headSprite"), new GUIContent("Head"));
+            EditorGUILayout.PropertyField(
+                appearanceProp.FindPropertyRelative("hatSprite"), new GUIContent("Hat / Armor"));
+            EditorGUILayout.PropertyField(
+                appearanceProp.FindPropertyRelative("weaponSprite"), new GUIContent("Weapon"));
+            EditorGUILayout.PropertyField(
+                appearanceProp.FindPropertyRelative("shieldSprite"), new GUIContent("Shield"));
         }
 
         // ─── Shared layout helpers ────────────────────────────────────────────

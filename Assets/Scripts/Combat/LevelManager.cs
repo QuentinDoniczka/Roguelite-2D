@@ -208,6 +208,9 @@ namespace RogueliteAutoBattler.Combat
             // AnimationEventRelay — wire animation events to the controller.
             CombatSetupHelper.WireAnimationRelay(enemy, controller, nameof(LevelManager));
 
+            var appearance = enemy.AddComponent<CharacterAppearance>();
+            appearance.ApplyAppearance(data.Appearance);
+
             // Wire ally to target this enemy if it has no target yet.
             SetAllyTarget(enemy.transform);
 

@@ -25,7 +25,7 @@
 Doc detaille : `Assets/doc/premier-jet-roguelite.html`
 
 # Project Structure
-Generated: 2026-03-25
+Generated: 2026-03-25 (updated)
 
 Assets/
 ├── Animations/  (23 files: .anim + .controller)
@@ -62,6 +62,7 @@ Assets/
 │   ├── Combat/
 │   │   ├── AnimHashes.cs
 │   │   ├── AnimationEventRelay.cs
+│   │   ├── CharacterAppearance.cs
 │   │   ├── CharacterMover.cs
 │   │   ├── CombatController.cs
 │   │   ├── CombatScrollManager.cs
@@ -74,6 +75,7 @@ Assets/
 │   │   ├── LevelManager.cs
 │   │   ├── ScreenAnchor.cs
 │   │   ├── TargetFinder.cs
+│   │   ├── VisualEquipmentTestLoop.cs
 │   │   └── WorldConveyor.cs
 │   ├── Core/  (empty)
 │   ├── Editor/
@@ -120,13 +122,13 @@ Assets/
 │   ├── UniversalRenderPipelineGlobalSettings.asset
 │   └── UniversalRP.asset
 ├── Sprites/
-│   ├── Characters/  (155 files)
+│   ├── Characters/  (156 files)
 │   ├── Effects/  (25 files)
 │   ├── Environment/
 │   │   ├── grid_ground.png
 │   │   ├── grid_ground_blue.png
 │   │   └── placeholder_white.png
-│   ├── Items/  (53 files)
+│   ├── Items/  (54 files)
 │   └── UI/  (empty)
 ├── Tests/
 │   ├── EditMode/
@@ -140,8 +142,10 @@ Assets/
 │       ├── TestUtils/
 │       │   ├── PlayModeTestBase.cs
 │       │   └── TestCharacterFactory.cs
+│       ├── CharacterAppearanceTests.cs
 │       ├── CharacterMoverTests.cs
 │       ├── CombatStatsRegenTests.cs
+│       ├── VisualEquipmentTestLoopTests.cs
 │       └── WorldConveyorTests.cs
 ├── _Recovery/  (1 file)
 └── TextMesh Pro/  (173 files — TMP package: fonts, shaders, examples)

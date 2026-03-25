@@ -86,6 +86,9 @@ namespace RogueliteAutoBattler.Combat
 
             var controller = ally.AddComponent<CombatController>();
             CombatSetupHelper.WireAnimationRelay(ally, controller, nameof(CombatSpawnManager));
+
+            var appearance = ally.AddComponent<CharacterAppearance>();
+            appearance.ApplyAppearance(data.Appearance);
         }
     }
 }

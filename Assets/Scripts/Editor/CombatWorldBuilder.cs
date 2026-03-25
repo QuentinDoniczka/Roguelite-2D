@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Linq;
 using RogueliteAutoBattler.Combat;
 using RogueliteAutoBattler.Data;
 using UnityEditor;
@@ -19,6 +21,18 @@ namespace RogueliteAutoBattler.Editor
 
         // Must match GroundFitter._gameAreaBottomRatio default (0.40f).
         private const float GameAreaBottomRatio = 0.40f;
+
+        private const string WeaponSpritesFolder = "Assets/Sprites/Items/melee weapons";
+        private const string HatSpritesFolder    = "Assets/Sprites/Items/Wardrobe/cloth";
+        private const string ShieldSpritePath    = "Assets/Sprites/Items/melee weapons/shield.png";
+
+        private static readonly string[] HeadSpriteFolders = new[]
+        {
+            "Assets/Sprites/Characters/human/head",
+            "Assets/Sprites/Characters/elf/head",
+            "Assets/Sprites/Characters/goblin/head",
+            "Assets/Sprites/Characters/orc/head"
+        };
 
         private const string GridSpritePath = "Assets/Sprites/Environment/grid_ground.png";
         private const int GridTextureSize = 64;   // pixels per tile
@@ -212,7 +226,90 @@ namespace RogueliteAutoBattler.Editor
             EditorUIFactory.SetObj(soLevelManager, "_combatTriggerZone", combatTrigger);
             soLevelManager.ApplyModifiedProperties();
 
+            // VisualEquipmentTestLoop — cycles through weapon/hat/shield sprites at runtime.
+            AddVisualEquipmentTestLoop(root);
+
             return root;
+        }
+
+        // ------------------------------------------------------------------
+        // VisualEquipmentTestLoop setup
+        // ------------------------------------------------------------------
+
+        private static void AddVisualEquipmentTestLoop(GameObject combatWorld)
+        {
+            var equipmentLoop = combatWorld.AddComponent<VisualEquipmentTestLoop>();
+            var so = new SerializedObject(equipmentLoop);
+
+            // Heads: all head sprites from all races.
+            var headSprites = new List<Sprite>();
+            foreach (var folder in HeadSpriteFolders)
+                headSprites.AddRange(LoadSpritesFromFolder(folder));
+            SetSpriteArray(so, "_headSprites", headSprites.ToArray());
+
+            // Weapons: all sprites in the melee weapons folder, excluding shield.
+            var weaponSprites = LoadSpritesFromFolder(
+                WeaponSpritesFolder,
+                excludePathContaining: "shield");
+            SetSpriteArray(so, "_weaponSprites", weaponSprites);
+
+            // Hats: all sprites in the cloth wardrobe folder.
+            var hatSprites = LoadSpritesFromFolder(HatSpritesFolder);
+            SetSpriteArray(so, "_hatSprites", hatSprites);
+
+            // Shields: all sub-sprites from the shield sprite sheet.
+            var shieldSprites = LoadSpritesFromFile(ShieldSpritePath);
+            SetSpriteArray(so, "_shieldSprites", shieldSprites);
+
+            so.ApplyModifiedProperties();
+
+            Debug.Log($"[{nameof(CombatWorldBuilder)}] VisualEquipmentTestLoop wired — " +
+                      $"heads:{headSprites.Count}, weapons:{weaponSprites.Length}, hats:{hatSprites.Length}, shields:{shieldSprites.Length}");
+        }
+
+        /// <summary>
+        /// Loads all Sprite objects found in a folder via AssetDatabase.FindAssets.
+        /// Each PNG may be a sprite sheet — LoadAllAssetsAtPath is used to capture all sub-sprites.
+        /// </summary>
+        private static Sprite[] LoadSpritesFromFolder(string folder, string excludePathContaining = null)
+        {
+            var guids = AssetDatabase.FindAssets("t:Sprite", new[] { folder });
+            var result = new List<Sprite>();
+            foreach (var guid in guids)
+            {
+                var path = AssetDatabase.GUIDToAssetPath(guid);
+                if (excludePathContaining != null &&
+                    path.Replace('\\', '/').ToLowerInvariant().Contains(excludePathContaining.ToLowerInvariant()))
+                    continue;
+
+                result.AddRange(AssetDatabase.LoadAllAssetsAtPath(path).OfType<Sprite>());
+            }
+            return result.ToArray();
+        }
+
+        /// <summary>
+        /// Loads all Sprite objects from a single asset file (handles sprite sheets).
+        /// </summary>
+        private static Sprite[] LoadSpritesFromFile(string assetPath)
+        {
+            return AssetDatabase.LoadAllAssetsAtPath(assetPath).OfType<Sprite>().ToArray();
+        }
+
+        /// <summary>
+        /// Populates a SerializedProperty sprite array by name.
+        /// </summary>
+        private static void SetSpriteArray(SerializedObject so, string propertyName, Sprite[] sprites)
+        {
+            var prop = so.FindProperty(propertyName);
+            if (prop == null)
+            {
+                Debug.LogError($"[{nameof(CombatWorldBuilder)}] SerializedProperty '{propertyName}' not found on {so.targetObject.GetType().Name}.");
+                return;
+            }
+
+            prop.arraySize = sprites.Length;
+            for (int i = 0; i < sprites.Length; i++)
+                prop.GetArrayElementAtIndex(i).objectReferenceValue = sprites[i];
         }
 
         private static Transform FindOrCreateHomeAnchor(string anchorName, Vector2 viewportPosition)
@@ -249,11 +346,6 @@ namespace RogueliteAutoBattler.Editor
         // ------------------------------------------------------------------
 
         /// <summary>
-        /// Creates a 64x64 checkerboard PNG in Assets/Sprites/Environment/ and imports it
-        /// as a Sprite with Repeat wrap mode and FullRect mesh so SpriteDrawMode.Tiled works.
-        /// Returns the imported Sprite asset.
-        /// </summary>
-        /// <summary>
         /// Creates or loads the blue checkerboard grid sprite (alternate terrain).
         /// </summary>
         internal static Sprite CreateOrLoadBlueGridSprite()
@@ -261,6 +353,11 @@ namespace RogueliteAutoBattler.Editor
             return CreateOrLoadCheckerboardSprite(GridBlueSpritePath, GridBlueColorA, GridBlueColorB);
         }
 
+        /// <summary>
+        /// Creates or loads the green checkerboard grid sprite used as the default ground tile.
+        /// The sprite is a 64x64 PNG with Repeat wrap mode and FullRect mesh so
+        /// <see cref="SpriteDrawMode.Tiled"/> works correctly.
+        /// </summary>
         internal static Sprite CreateOrLoadGridSprite()
         {
             return CreateOrLoadCheckerboardSprite(GridSpritePath, GridColorA, GridColorB);

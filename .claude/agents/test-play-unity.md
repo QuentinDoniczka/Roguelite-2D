@@ -387,6 +387,60 @@ git -C "C:/Users/donic/RiderProjects/Roguelite-2D" branch --show-current
 8. **Run tests via CLI on the worktree** — ALWAYS run and verify they pass
 9. **Report** — List what was tested, pass/fail results, any issues
 
+## Component-Disabled Tests Require a Companion Integration Test
+
+**CRITICAL RULE**: When a test disables a Unity component (Animator, Rigidbody2D, Collider2D, etc.) to isolate a behavior, you MUST ALSO write a companion test that keeps that component **active** to validate the behavior under real conditions.
+
+**Why this matters**: Disabling components to "avoid interference" masks real bugs instead of catching them. The Animator, physics engine, and other systems interact with game logic every frame at runtime. A test that passes only with the Animator disabled is not testing real gameplay -- it is testing a fantasy scenario that never occurs in the actual game.
+
+**The pattern that causes bugs** (NEVER do this alone):
+```csharp
+// BAD: This test passes but hides a real bug
+[UnityTest]
+public IEnumerator WeaponSprite_Changes_WhenEquipped()
+{
+    var unit = CreateUnit();
+    unit.GetComponentInChildren<Animator>().enabled = false; // "avoid interference"
+    unit.ApplyWeaponSprite(newSprite);
+    yield return null;
+    Assert.AreEqual(newSprite, unit.WeaponRenderer.sprite); // PASSES -- but in-game the Animator overwrites this every frame
+}
+```
+
+**The correct approach** (isolation test + integration test):
+```csharp
+// Test 1: Isolation -- verify the assignment logic works
+[UnityTest]
+public IEnumerator WeaponSprite_Changes_WhenEquipped_Isolated()
+{
+    var unit = CreateUnit();
+    unit.GetComponentInChildren<Animator>().enabled = false;
+    unit.ApplyWeaponSprite(newSprite);
+    yield return null;
+    Assert.AreEqual(newSprite, unit.WeaponRenderer.sprite);
+}
+
+// Test 2: Integration -- verify it SURVIVES the Animator (the real scenario)
+[UnityTest]
+public IEnumerator WeaponSprite_SurvivesAnimatorFrames()
+{
+    var unit = CreateUnit();
+    // Animator stays ACTIVE -- this is the real condition
+    unit.ApplyWeaponSprite(newSprite);
+    yield return null; // Let Animator run at least one frame
+    yield return null; // Second frame to confirm persistence
+    Assert.AreEqual(newSprite, unit.WeaponRenderer.sprite,
+        "Sprite was overwritten by Animator PPtrCurve -- need LateUpdate re-apply");
+}
+```
+
+**When you disable any component in a test, ask yourself**: "Does the game ever run with this component disabled?" If the answer is no, you MUST add a companion test with the component active.
+
+**Specific high-risk components to watch for**:
+- **Animator** -- PPtrCurves override SpriteRenderer.sprite every frame; animation clips override Transform values
+- **Rigidbody2D** -- physics velocity, gravity, and collision responses affect position
+- **Canvas / CanvasGroup** -- UI visibility and raycasting depend on these being active
+
 ## Rules
 
 - Always clean up spawned GameObjects in TearDown

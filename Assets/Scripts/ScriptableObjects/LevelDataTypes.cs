@@ -11,6 +11,27 @@ namespace RogueliteAutoBattler.Data
     }
 
     [Serializable]
+    public class AppearanceData
+    {
+        [Tooltip("Sprite for the head slot. Null keeps prefab default.")]
+        [SerializeField] private Sprite headSprite;
+
+        [Tooltip("Sprite for the hat/armor slot. Null keeps prefab default.")]
+        [SerializeField] private Sprite hatSprite;
+
+        [Tooltip("Sprite for the weapon slot. Null keeps prefab default.")]
+        [SerializeField] private Sprite weaponSprite;
+
+        [Tooltip("Sprite for the shield slot. Null keeps prefab default.")]
+        [SerializeField] private Sprite shieldSprite;
+
+        public Sprite HeadSprite => headSprite;
+        public Sprite HatSprite => hatSprite;
+        public Sprite WeaponSprite => weaponSprite;
+        public Sprite ShieldSprite => shieldSprite;
+    }
+
+    [Serializable]
     public class StageData
     {
         [SerializeField] private string stageName = "New Stage";
@@ -61,6 +82,9 @@ namespace RogueliteAutoBattler.Data
         [SerializeField] private float colliderRadius = 0.05f;
         [SerializeField] private Vector2 spawnOffset;
 
+        [Header("Appearance")]
+        [SerializeField] private AppearanceData appearance = new AppearanceData();
+
         public string EnemyName => enemyName;
         public GameObject Prefab => prefab;
         public int Hp => hp;
@@ -71,6 +95,7 @@ namespace RogueliteAutoBattler.Data
         public AttackType AttackType => attackType;
         public float ColliderRadius => colliderRadius;
         public Vector2 SpawnOffset => spawnOffset;
+        public AppearanceData Appearance => appearance;
     }
 
     [Serializable]
@@ -87,6 +112,9 @@ namespace RogueliteAutoBattler.Data
         [SerializeField] private float colliderRadius = 0.05f;
         [SerializeField] private Vector2 spawnOffset;
 
+        [Header("Appearance")]
+        [SerializeField] private AppearanceData appearance = new AppearanceData();
+
         public string AllyName => allyName;
         public GameObject Prefab => prefab;
         public int MaxHp => maxHp;
@@ -96,5 +124,6 @@ namespace RogueliteAutoBattler.Data
         public float RegenHpPerSecond => regenHpPerSecond;
         public float ColliderRadius => colliderRadius;
         public Vector2 SpawnOffset => spawnOffset;
+        public AppearanceData Appearance => appearance;
     }
 }
