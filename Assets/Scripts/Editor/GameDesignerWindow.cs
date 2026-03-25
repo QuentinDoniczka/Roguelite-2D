@@ -331,6 +331,21 @@ namespace RogueliteAutoBattler.Editor
             else
                 Debug.LogError("[TeamBuilder] Property 'colliderRadius' not found on AllySpawnData.");
 
+            EditorGUILayout.Space(4f);
+            EditorGUILayout.LabelField("Appearance", EditorStyles.boldLabel);
+
+            var headSpriteProp = allyProp.FindPropertyRelative("headSprite");
+            EditorGUILayout.PropertyField(headSpriteProp, new GUIContent("Head"));
+
+            var hatSpriteProp = allyProp.FindPropertyRelative("hatSprite");
+            EditorGUILayout.PropertyField(hatSpriteProp, new GUIContent("Hat / Armor"));
+
+            var weaponSpriteProp = allyProp.FindPropertyRelative("weaponSprite");
+            EditorGUILayout.PropertyField(weaponSpriteProp, new GUIContent("Weapon"));
+
+            var shieldSpriteProp = allyProp.FindPropertyRelative("shieldSprite");
+            EditorGUILayout.PropertyField(shieldSpriteProp, new GUIContent("Shield"));
+
             EditorGUI.indentLevel--;
             GUILayout.Space(2f);
 
@@ -849,6 +864,18 @@ namespace RogueliteAutoBattler.Editor
 
             var colRadius = target.FindPropertyRelative("colliderRadius");
             if (colRadius != null) colRadius.floatValue = source.FindPropertyRelative("colliderRadius").floatValue;
+
+            var headSprite = target.FindPropertyRelative("headSprite");
+            if (headSprite != null) headSprite.objectReferenceValue = source.FindPropertyRelative("headSprite").objectReferenceValue;
+
+            var hatSprite = target.FindPropertyRelative("hatSprite");
+            if (hatSprite != null) hatSprite.objectReferenceValue = source.FindPropertyRelative("hatSprite").objectReferenceValue;
+
+            var weaponSprite = target.FindPropertyRelative("weaponSprite");
+            if (weaponSprite != null) weaponSprite.objectReferenceValue = source.FindPropertyRelative("weaponSprite").objectReferenceValue;
+
+            var shieldSprite = target.FindPropertyRelative("shieldSprite");
+            if (shieldSprite != null) shieldSprite.objectReferenceValue = source.FindPropertyRelative("shieldSprite").objectReferenceValue;
         }
 
         private void InitEnemyDefaults(SerializedProperty newEnemy)
@@ -972,6 +999,21 @@ namespace RogueliteAutoBattler.Editor
                 colRadiusProp.floatValue = EditorGUILayout.FloatField("Collider Radius", colRadiusProp.floatValue);
             else
                 Debug.LogError("[LevelDesigner] Property 'colliderRadius' not found on EnemySpawnData.");
+
+            EditorGUILayout.Space(4f);
+            EditorGUILayout.LabelField("Appearance", EditorStyles.boldLabel);
+
+            var headSpriteProp = enemyProp.FindPropertyRelative("headSprite");
+            EditorGUILayout.PropertyField(headSpriteProp, new GUIContent("Head"));
+
+            var hatSpriteProp = enemyProp.FindPropertyRelative("hatSprite");
+            EditorGUILayout.PropertyField(hatSpriteProp, new GUIContent("Hat / Armor"));
+
+            var weaponSpriteProp = enemyProp.FindPropertyRelative("weaponSprite");
+            EditorGUILayout.PropertyField(weaponSpriteProp, new GUIContent("Weapon"));
+
+            var shieldSpriteProp = enemyProp.FindPropertyRelative("shieldSprite");
+            EditorGUILayout.PropertyField(shieldSpriteProp, new GUIContent("Shield"));
 
             EditorGUI.indentLevel--;
             GUILayout.Space(2f);
