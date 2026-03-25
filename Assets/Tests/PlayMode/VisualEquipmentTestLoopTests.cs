@@ -49,7 +49,8 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             float interval,
             Sprite[] weapons,
             Sprite[] hats,
-            Sprite[] shields)
+            Sprite[] shields,
+            Sprite[] heads = null)
         {
             var go = new GameObject("VisualEquipmentTestLoop");
             Track(go);
@@ -60,6 +61,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             loop.enabled = false;
 
             loop.CycleInterval = interval;
+            loop.HeadSprites = heads ?? new Sprite[0];
             loop.WeaponSprites = weapons;
             loop.HatSprites = hats;
             loop.ShieldSprites = shields;
@@ -238,6 +240,47 @@ namespace RogueliteAutoBattler.Tests.PlayMode
                 Assert.AreEqual(testShield, appearances[i].ShieldRenderer.sprite,
                     $"Character {i}: shield sprite should have been changed.");
             }
+        }
+
+        // ----------------------------------------------------------------
+        // Test 4: Head sprites are cycled
+        // ----------------------------------------------------------------
+        [UnityTest]
+        public IEnumerator VisualEquipmentTestLoop_CyclesHeadSprites()
+        {
+            // Arrange -- instantiate character, let Awake resolve slots
+            var character = InstantiatePrefab();
+            character.AddComponent<CharacterAppearance>();
+            yield return null; // Awake runs
+
+            var appearance = character.GetComponent<CharacterAppearance>();
+            Assert.IsNotNull(appearance.HeadRenderer, "HeadRenderer must be resolved.");
+
+            // Record original head sprite
+            var origHead = appearance.HeadRenderer.sprite;
+
+            // Create test head sprite
+            var testHead = CreateTestSprite();
+
+            var loop = CreateLoop(
+                interval: 0.1f,
+                weapons: new Sprite[0],
+                hats: new Sprite[0],
+                shields: new Sprite[0],
+                heads: new[] { testHead });
+
+            // Enable component so Start runs
+            loop.enabled = true;
+            yield return null;
+
+            // Act -- wait for at least one cycle
+            yield return new WaitForSeconds(0.2f);
+
+            // Assert -- head should have changed to the test sprite
+            Assert.AreEqual(testHead, appearance.HeadRenderer.sprite,
+                "Head sprite should have been cycled by VisualEquipmentTestLoop.");
+            Assert.AreNotEqual(origHead, appearance.HeadRenderer.sprite,
+                "Head sprite should differ from the original prefab sprite.");
         }
     }
 }

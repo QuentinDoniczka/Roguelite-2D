@@ -26,6 +26,14 @@ namespace RogueliteAutoBattler.Editor
         private const string HatSpritesFolder    = "Assets/Sprites/Items/Wardrobe/cloth";
         private const string ShieldSpritePath    = "Assets/Sprites/Items/melee weapons/shield.png";
 
+        private static readonly string[] HeadSpriteFolders = new[]
+        {
+            "Assets/Sprites/Characters/human/head",
+            "Assets/Sprites/Characters/elf/head",
+            "Assets/Sprites/Characters/goblin/head",
+            "Assets/Sprites/Characters/orc/head"
+        };
+
         private const string GridSpritePath = "Assets/Sprites/Environment/grid_ground.png";
         private const int GridTextureSize = 64;   // pixels per tile
         private const int GridCellSize = 8;        // pixels per checkerboard cell
@@ -233,6 +241,12 @@ namespace RogueliteAutoBattler.Editor
             var equipmentLoop = combatWorld.AddComponent<VisualEquipmentTestLoop>();
             var so = new SerializedObject(equipmentLoop);
 
+            // Heads: all head sprites from all races.
+            var headSprites = new List<Sprite>();
+            foreach (var folder in HeadSpriteFolders)
+                headSprites.AddRange(LoadSpritesFromFolder(folder));
+            SetSpriteArray(so, "_headSprites", headSprites.ToArray());
+
             // Weapons: all sprites in the melee weapons folder, excluding shield.
             var weaponSprites = LoadSpritesFromFolder(
                 WeaponSpritesFolder,
@@ -250,7 +264,7 @@ namespace RogueliteAutoBattler.Editor
             so.ApplyModifiedProperties();
 
             Debug.Log($"[{nameof(CombatWorldBuilder)}] VisualEquipmentTestLoop wired — " +
-                      $"weapons:{weaponSprites.Length}, hats:{hatSprites.Length}, shields:{shieldSprites.Length}");
+                      $"heads:{headSprites.Count}, weapons:{weaponSprites.Length}, hats:{hatSprites.Length}, shields:{shieldSprites.Length}");
         }
 
         /// <summary>

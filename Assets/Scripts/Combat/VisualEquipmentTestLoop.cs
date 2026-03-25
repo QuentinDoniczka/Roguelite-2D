@@ -4,7 +4,7 @@ using UnityEngine;
 namespace RogueliteAutoBattler.Combat
 {
     /// <summary>
-    /// Debug component that randomly cycles weapon, hat, and shield sprites on all
+    /// Debug component that randomly cycles head, weapon, hat, and shield sprites on all
     /// <see cref="CharacterAppearance"/> instances every <see cref="_cycleInterval"/> seconds.
     /// Sprite arrays must be populated at editor time (e.g. by CombatWorldBuilder)
     /// because AssetDatabase is unavailable at runtime.
@@ -12,6 +12,9 @@ namespace RogueliteAutoBattler.Combat
     public class VisualEquipmentTestLoop : MonoBehaviour
     {
         [Header("Sprite Pools")]
+        [Tooltip("Available head sprites to cycle through.")]
+        [SerializeField] private Sprite[] _headSprites;
+
         [Tooltip("Available weapon sprites to cycle through.")]
         [SerializeField] private Sprite[] _weaponSprites;
 
@@ -28,6 +31,9 @@ namespace RogueliteAutoBattler.Combat
         [Header("Debug")]
         [Tooltip("Log each cycle with the number of characters affected.")]
         [SerializeField] private bool _logCycles;
+
+        /// <summary>Head sprite pool (for editor wiring).</summary>
+        public Sprite[] HeadSprites { get => _headSprites; set => _headSprites = value; }
 
         /// <summary>Weapon sprite pool (for editor wiring).</summary>
         public Sprite[] WeaponSprites { get => _weaponSprites; set => _weaponSprites = value; }
@@ -59,12 +65,12 @@ namespace RogueliteAutoBattler.Combat
 
                 for (int i = 0; i < count; i++)
                 {
+                    Sprite head = PickRandom(_headSprites);
                     Sprite hat = PickRandom(_hatSprites);
                     Sprite weapon = PickRandom(_weaponSprites);
                     Sprite shield = PickRandom(_shieldSprites);
 
-                    // Head sprite is not cycled (null keeps the prefab default).
-                    characters[i].ApplyAppearance(null, hat, weapon, shield);
+                    characters[i].ApplyAppearance(head, hat, weapon, shield);
                 }
 
                 if (_logCycles)
