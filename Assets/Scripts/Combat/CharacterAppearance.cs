@@ -9,7 +9,10 @@ namespace RogueliteAutoBattler.Combat
     /// on the character root (same level as Rigidbody2D).
     /// </summary>
     /// <remarks>
-    /// Safe slots (not driven by Animator PPtrCurves): head, hat, weapon, shield.
+    /// Equipment slots: head, hat, weapon, shield. Some animation clips (e.g.
+    /// ChopAttack) contain PPtrCurves that override weapon/shield sprites.
+    /// <see cref="LateUpdate"/> re-applies any explicitly set sprites every frame
+    /// so they always win over Animator overrides.
     /// Body and hand sprites are controlled by Animator curves — do NOT swap them.
     /// Child names must match the prefab hierarchy exactly because animation clips
     /// reference children by path name.
@@ -25,6 +28,11 @@ namespace RogueliteAutoBattler.Combat
         private SpriteRenderer _hatRenderer;
         private SpriteRenderer _weaponRenderer;
         private SpriteRenderer _shieldRenderer;
+
+        private Sprite _appliedHead;
+        private Sprite _appliedHat;
+        private Sprite _appliedWeapon;
+        private Sprite _appliedShield;
 
         /// <summary>SpriteRenderer for the head slot (may be null if not found).</summary>
         public SpriteRenderer HeadRenderer => _headRenderer;
@@ -66,16 +74,28 @@ namespace RogueliteAutoBattler.Combat
         public void ApplyAppearance(Sprite head, Sprite hat, Sprite weapon, Sprite shield)
         {
             if (head != null && _headRenderer != null)
+            {
+                _appliedHead = head;
                 _headRenderer.sprite = head;
+            }
 
             if (hat != null && _hatRenderer != null)
+            {
+                _appliedHat = hat;
                 _hatRenderer.sprite = hat;
+            }
 
             if (weapon != null && _weaponRenderer != null)
+            {
+                _appliedWeapon = weapon;
                 _weaponRenderer.sprite = weapon;
+            }
 
             if (shield != null && _shieldRenderer != null)
+            {
+                _appliedShield = shield;
                 _shieldRenderer.sprite = shield;
+            }
         }
 
         /// <summary>
@@ -86,6 +106,26 @@ namespace RogueliteAutoBattler.Combat
             if (appearance == null) return;
             ApplyAppearance(appearance.HeadSprite, appearance.HatSprite,
                 appearance.WeaponSprite, appearance.ShieldSprite);
+        }
+
+        /// <summary>
+        /// Re-applies tracked sprites after the Animator has written its PPtrCurve
+        /// changes. This ensures custom equipment sprites always win over animation
+        /// defaults.
+        /// </summary>
+        private void LateUpdate()
+        {
+            if (_appliedHead != null && _headRenderer != null)
+                _headRenderer.sprite = _appliedHead;
+
+            if (_appliedHat != null && _hatRenderer != null)
+                _hatRenderer.sprite = _appliedHat;
+
+            if (_appliedWeapon != null && _weaponRenderer != null)
+                _weaponRenderer.sprite = _appliedWeapon;
+
+            if (_appliedShield != null && _shieldRenderer != null)
+                _shieldRenderer.sprite = _appliedShield;
         }
 
         private static SpriteRenderer FindSlotRenderer(Transform visual, string path, string slotName)

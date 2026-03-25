@@ -162,5 +162,31 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             Assert.AreEqual(origShield, appearance.ShieldRenderer.sprite,
                 "Shield sprite should remain the original when null is passed.");
         }
+
+        [UnityTest]
+        public IEnumerator CharacterAppearance_ApplyAppearance_WeaponSurvivesAnimatorFrames()
+        {
+            // Instantiate prefab WITH Animator enabled (real-world scenario)
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(PrefabPath);
+            var go = Object.Instantiate(prefab);
+            Track(go);
+
+            var appearance = go.AddComponent<CharacterAppearance>();
+            yield return null; // Awake runs
+
+            // DO NOT disable the Animator — this is the real-world test
+
+            var testSprite = CreateTestSprite();
+            appearance.ApplyAppearance(null, null, testSprite, null); // weapon only
+
+            // Wait several frames for the Animator to potentially override
+            yield return null;
+            yield return null;
+            yield return null;
+
+            // The weapon should STILL show our test sprite, not the animation's default
+            Assert.AreEqual(testSprite, appearance.WeaponRenderer.sprite,
+                "Weapon sprite was overridden by Animator — ApplyAppearance must survive animation frames");
+        }
     }
 }
