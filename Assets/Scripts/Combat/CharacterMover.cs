@@ -18,6 +18,7 @@ namespace RogueliteAutoBattler.Combat
         private const float FaceOffset = 0.25f;
 
         private const float HomeArrivalThreshold = 0.15f;
+        private const float HomeDampingFactor = 8f;
 
         // Shared low-friction material so characters slide past each other.
         private static PhysicsMaterial2D _frictionlessMaterial;
@@ -103,11 +104,13 @@ namespace RogueliteAutoBattler.Combat
                     Vector2 currentPos = (Vector2)transform.position;
                     float sqrDistToHome = (homePos - currentPos).sqrMagnitude;
                     bool scrolling = _conveyor != null && _conveyor.IsScrolling;
-                    if (sqrDistToHome > HomeArrivalThreshold * HomeArrivalThreshold || scrolling)
+                    float distToHome = Mathf.Sqrt(sqrDistToHome);
+                    if (distToHome > HomeArrivalThreshold || scrolling)
                     {
                         Vector2 dir = (homePos - currentPos).normalized;
                         FlipToward(dir.x);
-                        _rb.linearVelocity = dir * _moveSpeed;
+                        float correctionSpeed = Mathf.Min(distToHome * HomeDampingFactor, _moveSpeed);
+                        _rb.linearVelocity = dir * correctionSpeed;
                         if (_conveyor != null)
                             _rb.linearVelocity += _conveyor.ScrollVelocity;
                         SetMoving(true, false);
