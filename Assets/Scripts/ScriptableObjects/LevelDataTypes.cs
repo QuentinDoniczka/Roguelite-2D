@@ -61,6 +61,12 @@ namespace RogueliteAutoBattler.Data
         [SerializeField] private float colliderRadius = 0.05f;
         [SerializeField] private Vector2 spawnOffset;
 
+        [Header("Appearance")]
+        [SerializeField] private Sprite headSprite;
+        [SerializeField] private Sprite hatSprite;
+        [SerializeField] private Sprite weaponSprite;
+        [SerializeField] private Sprite shieldSprite;
+
         public string EnemyName => enemyName;
         public GameObject Prefab => prefab;
         public int Hp => hp;
@@ -71,6 +77,10 @@ namespace RogueliteAutoBattler.Data
         public AttackType AttackType => attackType;
         public float ColliderRadius => colliderRadius;
         public Vector2 SpawnOffset => spawnOffset;
+        public Sprite HeadSprite => headSprite;
+        public Sprite HatSprite => hatSprite;
+        public Sprite WeaponSprite => weaponSprite;
+        public Sprite ShieldSprite => shieldSprite;
     }
 
     [Serializable]
@@ -87,6 +97,12 @@ namespace RogueliteAutoBattler.Data
         [SerializeField] private float colliderRadius = 0.05f;
         [SerializeField] private Vector2 spawnOffset;
 
+        [Header("Appearance")]
+        [SerializeField] private Sprite headSprite;
+        [SerializeField] private Sprite hatSprite;
+        [SerializeField] private Sprite weaponSprite;
+        [SerializeField] private Sprite shieldSprite;
+
         public string AllyName => allyName;
         public GameObject Prefab => prefab;
         public int MaxHp => maxHp;
@@ -96,5 +112,9 @@ namespace RogueliteAutoBattler.Data
         public float RegenHpPerSecond => regenHpPerSecond;
         public float ColliderRadius => colliderRadius;
         public Vector2 SpawnOffset => spawnOffset;
+        public Sprite HeadSprite => headSprite;
+        public Sprite HatSprite => hatSprite;
+        public Sprite WeaponSprite => weaponSprite;
+        public Sprite ShieldSprite => shieldSprite;
     }
 }
