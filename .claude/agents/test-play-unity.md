@@ -249,6 +249,82 @@ For testing input → handler → game state. Use fake accounts + InputTestFixtu
 
 **Write API-level tests first (faster, more stable), then add input-level tests for critical flows.**
 
+## Writing Tests for New Features
+
+When a new feature is implemented, write tests covering it. Use the appropriate test level:
+
+### Decide: Edit Mode vs Play Mode
+
+| Use Edit Mode (`Assets/Tests/EditMode/`) | Use Play Mode (`Assets/Tests/PlayMode/`) |
+|---|---|
+| Pure logic (math, data, state machines) | Physics (Rigidbody2D, Collider2D movement) |
+| ScriptableObject validation | MonoBehaviour lifecycle (Awake, Update, coroutines) |
+| Method input/output | Multi-frame behavior (animations, timers) |
+| No Unity lifecycle needed | Input simulation (InputTestFixture) |
+
+### Use TestCharacterFactory for Combat Tests
+
+`Assets/Tests/PlayMode/TestUtils/TestCharacterFactory.cs` provides lightweight GameObjects for testing. Always use it instead of building GameObjects from scratch:
+
+```csharp
+// Combat character with stats (Rigidbody2D + CombatStats + Visual child)
+var unit = TestCharacterFactory.CreateCombatCharacter("Warrior", maxHp: 100, atk: 20);
+
+// Character with CharacterMover, optionally parented under a conveyor
+var conveyor = TestCharacterFactory.CreateConveyor();
+var mover = TestCharacterFactory.CreateMoverCharacter("Runner", moveSpeed: 3f, parent: conveyor.transform);
+
+// Simple anchor Transform
+var anchor = TestCharacterFactory.CreateAnchor("SpawnPoint", position: new Vector2(5, 0));
+```
+
+If the new feature needs a component not yet covered by TestCharacterFactory, **add a new factory method** to it rather than duplicating setup code across tests.
+
+### Edit Mode Test Pattern
+
+Edit Mode tests use `[Test]` (not `[UnityTest]`), run synchronously, and use `Object.DestroyImmediate` in TearDown:
+
+```csharp
+namespace RogueliteAutoBattler.Tests.EditMode
+{
+    public class NewFeatureTests
+    {
+        private GameObject _go;
+
+        [SetUp]
+        public void SetUp()
+        {
+            _go = new GameObject("Test");
+            // Add components, initialize...
+        }
+
+        [TearDown]
+        public void TearDown()
+        {
+            if (_go != null) Object.DestroyImmediate(_go);
+        }
+
+        [Test]
+        public void Method_Condition_ExpectedResult()
+        {
+            // Arrange, Act, Assert
+        }
+    }
+}
+```
+
+### Running Both Test Suites
+
+After writing tests, run the appropriate suite. If you wrote Edit Mode tests, also run them:
+```bash
+"/c/Program Files/Unity/Hub/Editor/6000.3.6f1/Editor/Unity.exe" \
+  -runTests -batchmode -nographics \
+  -projectPath "C:/Users/donic/RiderProjects/Roguelite-2D" \
+  -testPlatform EditMode \
+  -testResults "C:/Users/donic/RiderProjects/Roguelite-2D/editmode-results.xml" \
+  -logFile "C:/Users/donic/RiderProjects/Roguelite-2D/editmode-log.txt"
+```
+
 ## Naming Convention
 
 - Test files: `<Feature>Tests.cs` or `<Feature>ScenarioTests.cs`

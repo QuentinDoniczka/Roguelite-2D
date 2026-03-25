@@ -91,6 +91,21 @@ For each changed `.cs` file (excluding Editor/ and test files), verify:
 3. **Are modified methods still tested?** If method behavior changed, do existing tests still cover it?
 4. **Are new gameplay behaviors tested?** If a new gameplay feature was added (combat, recruitment, loot), is there a Play Mode test?
 
+### Combat Files Require Tests
+
+Files in `Assets/Scripts/Combat/` are high-priority for test coverage. The convention is:
+- Pure logic classes (e.g., `CombatStats.cs`, `FormationLayout.cs`, `TargetFinder.cs`) should have Edit Mode tests in `Assets/Tests/EditMode/<ClassName>Tests.cs`
+- MonoBehaviours with physics/lifecycle (e.g., `CharacterMover.cs`, `WorldConveyor.cs`) should have Play Mode tests in `Assets/Tests/PlayMode/<ClassName>Tests.cs`
+
+If a new or modified combat file has no corresponding test file, flag it as **HIGH** severity.
+
+### Test File Naming Convention
+
+| Source file | Expected test file(s) |
+|---|---|
+| `Assets/Scripts/Combat/Foo.cs` | `Assets/Tests/EditMode/FooTests.cs` and/or `Assets/Tests/PlayMode/FooTests.cs` |
+| `Assets/Scripts/ScriptableObjects/Bar.cs` | `Assets/Tests/EditMode/BarTests.cs` |
+
 Report missing test coverage in a dedicated section:
 
 ```

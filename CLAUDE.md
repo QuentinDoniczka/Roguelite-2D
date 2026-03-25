@@ -25,7 +25,7 @@
 Doc detaille : `Assets/doc/premier-jet-roguelite.html`
 
 # Project Structure
-Generated: 2026-03-24
+Generated: 2026-03-25
 
 Assets/
 ├── Animations/  (23 files: .anim + .controller)
@@ -40,7 +40,7 @@ Assets/
 │   ├── LootTables/  (empty)
 │   └── TeamDatabase.asset
 ├── doc/
-│   ├── MedievalFantasyCharacters/  (28 files)
+│   ├── MedievalFantasyCharacters/  (14 files)
 │   ├── architecture-ui.md
 │   ├── combat.jpeg
 │   ├── exemple_HUD.jpg
@@ -57,12 +57,14 @@ Assets/
 ├── Scenes/
 │   └── GameScene.unity
 ├── Scripts/
+│   ├── RogueliteAutoBattler.Runtime.asmdef
 │   ├── Adventurers/  (empty)
 │   ├── Combat/
 │   │   ├── AnimHashes.cs
 │   │   ├── AnimationEventRelay.cs
 │   │   ├── CharacterMover.cs
 │   │   ├── CombatController.cs
+│   │   ├── CombatScrollManager.cs
 │   │   ├── CombatSetupHelper.cs
 │   │   ├── CombatSpawnManager.cs
 │   │   ├── CombatStats.cs
@@ -75,6 +77,7 @@ Assets/
 │   │   └── WorldConveyor.cs
 │   ├── Core/  (empty)
 │   ├── Editor/
+│   │   ├── RogueliteAutoBattler.Editor.asmdef
 │   │   ├── CombatHudBuilder.cs
 │   │   ├── CombatWorldBuilder.cs
 │   │   ├── EditorUIFactory.cs
@@ -125,6 +128,21 @@ Assets/
 │   │   └── placeholder_white.png
 │   ├── Items/  (53 files)
 │   └── UI/  (empty)
+├── Tests/
+│   ├── EditMode/
+│   │   ├── Tests.EditMode.asmdef
+│   │   ├── EditModeTestBase.cs
+│   │   ├── CombatStatsTests.cs
+│   │   ├── FormationLayoutTests.cs
+│   │   └── TargetFinderTests.cs
+│   └── PlayMode/
+│       ├── Tests.PlayMode.asmdef
+│       ├── TestUtils/
+│       │   ├── PlayModeTestBase.cs
+│       │   └── TestCharacterFactory.cs
+│       ├── CharacterMoverTests.cs
+│       ├── CombatStatsRegenTests.cs
+│       └── WorldConveyorTests.cs
 ├── _Recovery/  (1 file)
 └── TextMesh Pro/  (173 files — TMP package: fonts, shaders, examples)
 
