@@ -386,28 +386,18 @@ namespace RogueliteAutoBattler.Combat
             controller.FindNewTarget = () => TargetFinder.Closest(_enemiesContainer, allyRef.position, float.MaxValue, CombatZoneX);
         }
 
-        private void ClearAllyTargets()
+        private void ClearAllyTargets() => DisengageAll(_teamContainer);
+
+        private void ClearEnemyTargets() => DisengageAll(_enemiesContainer);
+
+        private static void DisengageAll(Transform container)
         {
-            if (_teamContainer == null) return;
+            if (container == null) return;
 
-            for (int i = 0; i < _teamContainer.childCount; i++)
+            for (int i = 0; i < container.childCount; i++)
             {
-                var ally = _teamContainer.GetChild(i);
-                if (ally.TryGetComponent<CombatController>(out var controller))
-                {
-                    controller.Disengage();
-                }
-            }
-        }
-
-        private void ClearEnemyTargets()
-        {
-            if (_enemiesContainer == null) return;
-
-            for (int i = 0; i < _enemiesContainer.childCount; i++)
-            {
-                var enemy = _enemiesContainer.GetChild(i);
-                if (enemy.TryGetComponent<CombatController>(out var controller))
+                var child = container.GetChild(i);
+                if (child.TryGetComponent<CombatController>(out var controller))
                 {
                     controller.Disengage();
                 }
@@ -449,6 +439,7 @@ namespace RogueliteAutoBattler.Combat
                 if (!ally.TryGetComponent<CombatStats>(out var stats) || stats.IsDead)
                     continue;
 
+                stats.OnDied -= OnAllyDied; // Prevent double-subscription
                 stats.OnDied += OnAllyDied;
                 _aliveAllyCount++;
             }
@@ -467,6 +458,7 @@ namespace RogueliteAutoBattler.Combat
         }
 
         internal void WireAllyDeathTrackingForTest() => WireAllyDeathTracking();
+        internal void ClearAllyTargetsForTest() => ClearAllyTargets();
         internal void ClearEnemyTargetsForTest() => ClearEnemyTargets();
 
     }

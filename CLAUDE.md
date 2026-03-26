@@ -25,10 +25,10 @@
 Doc detaille : `Assets/doc/premier-jet-roguelite.html`
 
 # Project Structure
-Generated: 2026-03-26 (refacto cleanup)
+Generated: 2026-03-26
 
 Assets/
-├── Animations/  (24 files: .anim + .controller)
+├── Animations/  (23 files: .anim + .controller)
 ├── Audio/  (empty)
 ├── Data/
 │   ├── Adventurers/
@@ -50,6 +50,7 @@ Assets/
 │   ├── plan-level-scroll-transition.md
 │   └── premier-jet-roguelite.html
 ├── Fonts/  (empty)
+├── MedievalFantasyCharacters/  (empty)
 ├── Prefabs/
 │   ├── Characters/  (5 prefabs: Elk, Horse, Wildboar, Wolf, sampleCharacterHuman)
 │   ├── Effects/  (empty)
@@ -58,6 +59,7 @@ Assets/
 │   └── GameScene.unity
 ├── Scripts/
 │   ├── RogueliteAutoBattler.Runtime.asmdef
+│   ├── AssemblyInfo.cs
 │   ├── Adventurers/  (empty)
 │   ├── Combat/
 │   │   ├── AnimHashes.cs
@@ -121,13 +123,13 @@ Assets/
 │   ├── UniversalRenderPipelineGlobalSettings.asset
 │   └── UniversalRP.asset
 ├── Sprites/
-│   ├── Characters/  (156 files)
+│   ├── Characters/  (155 files)
 │   ├── Effects/  (25 files)
 │   ├── Environment/
 │   │   ├── grid_ground.png
 │   │   ├── grid_ground_blue.png
 │   │   └── placeholder_white.png
-│   ├── Items/  (54 files)
+│   ├── Items/  (53 files)
 │   └── UI/  (empty)
 ├── Tests/
 │   ├── EditMode/
@@ -145,6 +147,7 @@ Assets/
 │       ├── CharacterMoverTests.cs
 │       ├── CombatControllerTests.cs
 │       ├── CombatStatsRegenTests.cs
+│       ├── LevelManagerDefeatTests.cs
 │       ├── VisualEquipmentTestLoopTests.cs
 │       └── WorldConveyorTests.cs
 ├── _Recovery/  (1 file)
