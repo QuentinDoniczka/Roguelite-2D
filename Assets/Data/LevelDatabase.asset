@@ -30,7 +30,20 @@ MonoBehaviour:
           attackRange: 0.5
           attackType: 0
           colliderRadius: 0.05
-          spawnOffset: {x: 0, y: 0.8}
+          appearance:
+            headSprite: {fileID: 0}
+            hatSprite: {fileID: 0}
+            weaponSprite: {fileID: 0}
+            shieldSprite: {fileID: -1923565897381245631, guid: 63a452c17808953418f593d311c905c0, type: 3}
+        - enemyName: Enemy
+          prefab: {fileID: 1000000000000000001, guid: ade0afb480cc21d43ab799f99637abc6, type: 3}
+          hp: 100
+          atk: 5
+          attackSpeed: 1
+          moveSpeed: 1
+          attackRange: 0.5
+          attackType: 0
+          colliderRadius: 0.05
           appearance:
             headSprite: {fileID: 0}
             hatSprite: {fileID: 0}
@@ -48,7 +61,6 @@ MonoBehaviour:
           attackRange: 0.5
           attackType: 0
           colliderRadius: 0.05
-          spawnOffset: {x: 0, y: 0.5}
           appearance:
             headSprite: {fileID: 0}
             hatSprite: {fileID: 0}
@@ -68,7 +80,6 @@ MonoBehaviour:
           attackRange: 0.5
           attackType: 0
           colliderRadius: 0.05
-          spawnOffset: {x: 0, y: 0}
           appearance:
             headSprite: {fileID: 0}
             hatSprite: {fileID: 0}
