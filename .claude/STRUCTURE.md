@@ -1,5 +1,5 @@
 # Project Structure
-Generated: 2026-03-25
+Generated: 2026-03-26
 
 Assets/
 ├── Animations/  (23 files: .anim + .controller)
@@ -24,6 +24,7 @@ Assets/
 │   ├── plan-level-scroll-transition.md
 │   └── premier-jet-roguelite.html
 ├── Fonts/  (empty)
+├── MedievalFantasyCharacters/  (empty)
 ├── Prefabs/
 │   ├── Characters/  (5 prefabs: Elk, Horse, Wildboar, Wolf, sampleCharacterHuman)
 │   ├── Effects/  (empty)
@@ -32,13 +33,14 @@ Assets/
 │   └── GameScene.unity
 ├── Scripts/
 │   ├── RogueliteAutoBattler.Runtime.asmdef
+│   ├── AssemblyInfo.cs
 │   ├── Adventurers/  (empty)
 │   ├── Combat/
 │   │   ├── AnimHashes.cs
 │   │   ├── AnimationEventRelay.cs
+│   │   ├── CharacterAppearance.cs
 │   │   ├── CharacterMover.cs
 │   │   ├── CombatController.cs
-│   │   ├── CombatScrollManager.cs
 │   │   ├── CombatSetupHelper.cs
 │   │   ├── CombatSpawnManager.cs
 │   │   ├── CombatStats.cs
@@ -48,6 +50,7 @@ Assets/
 │   │   ├── LevelManager.cs
 │   │   ├── ScreenAnchor.cs
 │   │   ├── TargetFinder.cs
+│   │   ├── VisualEquipmentTestLoop.cs
 │   │   └── WorldConveyor.cs
 │   ├── Core/  (empty)
 │   ├── Editor/
@@ -114,8 +117,12 @@ Assets/
 │       ├── TestUtils/
 │       │   ├── PlayModeTestBase.cs
 │       │   └── TestCharacterFactory.cs
+│       ├── CharacterAppearanceTests.cs
 │       ├── CharacterMoverTests.cs
+│       ├── CombatControllerTests.cs
 │       ├── CombatStatsRegenTests.cs
+│       ├── LevelManagerDefeatTests.cs
+│       ├── VisualEquipmentTestLoopTests.cs
 │       └── WorldConveyorTests.cs
 ├── _Recovery/  (1 file)
 └── TextMesh Pro/  (173 files — TMP package: fonts, shaders, examples)
