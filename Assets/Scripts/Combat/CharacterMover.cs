@@ -100,11 +100,12 @@ namespace RogueliteAutoBattler.Combat
             {
                 bool scrolling = _conveyor != null && _conveyor.IsScrolling;
 
-                // During scroll: let the kinematic parent carry the character.
-                // Do NOT home toward the anchor — the conveyor drift IS the desired motion.
+                // During scroll: character is "carried" forward (rightward) through
+                // the world. Apply inverse scroll velocity so the character drifts in
+                // the progression direction. Homing is suspended — it resumes after scroll.
                 if (scrolling)
                 {
-                    _rb.linearVelocity = Vector2.zero;
+                    _rb.linearVelocity = -_conveyor.ScrollVelocity;
                     SetMoving(true, false);
                     return;
                 }
