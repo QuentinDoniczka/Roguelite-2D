@@ -10,6 +10,43 @@ namespace RogueliteAutoBattler.Tests.PlayMode
     public class CombatControllerTests : PlayModeTestBase
     {
         [UnityTest]
+        public IEnumerator EnteringAttackState_StopsMovementAndGoesIdle()
+        {
+            // Arrange — enemy close enough to enter Attacking immediately.
+            var enemyGo = Track(TestCharacterFactory.CreateFullCombatCharacter(
+                "Enemy", maxHp: 100, position: new Vector2(0.3f, 0f)));
+            var heroGo = Track(TestCharacterFactory.CreateFullCombatCharacter(
+                "Hero", maxHp: 100, atk: 10, attackSpeed: 1f, moveSpeed: 2f,
+                position: new Vector2(0f, 0f)));
+
+            yield return null;
+
+            var heroController = heroGo.GetComponent<CombatController>();
+            var heroMover = heroGo.GetComponent<CharacterMover>();
+            var heroRb = heroGo.GetComponent<Rigidbody2D>();
+            heroController.SetAttackRange(0.5f);
+            heroController.Target = enemyGo.transform;
+
+            // Wait for hero to enter Attacking state.
+            float timeout = 2f;
+            float elapsed = 0f;
+            while (heroController.State != CombatState.Attacking && elapsed < timeout)
+            {
+                yield return new WaitForFixedUpdate();
+                elapsed += Time.fixedDeltaTime;
+            }
+
+            Assert.AreEqual(CombatState.Attacking, heroController.State,
+                "Hero should be in Attacking state (enemy within attack range).");
+
+            // Assert — mover is disabled and velocity is zero (character stopped).
+            Assert.IsFalse(heroMover.enabled,
+                "CharacterMover should be disabled in Attacking state.");
+            Assert.That(heroRb.linearVelocity.magnitude, Is.LessThan(0.1f),
+                "Character velocity should be near zero in Attacking state.");
+        }
+
+        [UnityTest]
         public IEnumerator MovingState_SharedTargetDies_Retargets()
         {
             // Arrange — hero far from enemy A, so state will be Moving.

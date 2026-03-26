@@ -70,7 +70,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
         }
 
         [UnityTest]
-        public IEnumerator Scroll_CharacterStaysAtWorldPosition()
+        public IEnumerator Scroll_NoAnchor_CharacterMovesWithScroll()
         {
             var conveyorGo = Track(TestCharacterFactory.CreateConveyor("ConveyorParent"));
             var charGo = Track(TestCharacterFactory.CreateMoverCharacter(
@@ -85,8 +85,8 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             // Wait a frame so Awake runs.
             yield return null;
 
-            // No target, no home anchor — character stays at its world position
-            // while the conveyor scrolls underneath (no scroll velocity compensation).
+            // No target, no home anchor — character receives scroll velocity
+            // (dynamic Rigidbody2D children are NOT carried by kinematic parent).
             mover.Target = null;
             mover.HomeAnchor = null;
 
@@ -99,10 +99,9 @@ namespace RogueliteAutoBattler.Tests.PlayMode
 
             float endX = charGo.transform.position.x;
 
-            // The character's Rigidbody2D stays at its world position.
-            // No scroll compensation — the world scrolls under the character.
-            Assert.That(Mathf.Abs(endX - startX), Is.LessThan(0.5f),
-                "Character should stay near its starting world position during scroll.");
+            // The character moves with the scroll velocity (leftward = negative X).
+            Assert.That(endX, Is.LessThan(startX - 1f),
+                "Character should move with scroll when no home anchor is set.");
         }
 
         [UnityTest]
@@ -137,12 +136,12 @@ namespace RogueliteAutoBattler.Tests.PlayMode
         }
 
         [UnityTest]
-        public IEnumerator ScrollSuspendsHoming_CharacterDriftsFromAnchor()
+        public IEnumerator Scroll_WithAnchor_CharacterWalksTowardHome()
         {
             var conveyorGo = Track(TestCharacterFactory.CreateConveyor("ScrollAnchorConveyor"));
             var anchor = Track(TestCharacterFactory.CreateAnchor("HomeAnchor", new Vector2(0f, 0f)));
             var charGo = Track(TestCharacterFactory.CreateMoverCharacter(
-                name: "DriftRider",
+                name: "HomingRider",
                 moveSpeed: 3f,
                 parent: conveyorGo.transform,
                 position: new Vector2(0f, 0f)));
@@ -159,14 +158,15 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             // Start scroll: conveyor moves 4 units left.
             conveyor.ScrollBy(4f, 8f, 16f);
 
-            // Wait mid-scroll — homing is suspended, character should have drifted.
+            // Wait mid-scroll — homing is active, character walks toward anchor
+            // while scroll velocity is applied underneath.
             yield return new WaitForSeconds(0.5f);
 
             float midDrift = Mathf.Abs(charGo.transform.position.x - anchor.transform.position.x);
 
-            // Character should have drifted away from anchor during scroll (carried by conveyor).
-            Assert.That(midDrift, Is.GreaterThan(0.5f),
-                $"Character should drift from anchor during scroll (drift was {midDrift:F2}).");
+            // Character should stay near anchor because walkVel compensates scroll.
+            Assert.That(midDrift, Is.LessThan(2f),
+                $"Character should stay near anchor during scroll thanks to homing (drift was {midDrift:F2}).");
         }
 
         [UnityTest]

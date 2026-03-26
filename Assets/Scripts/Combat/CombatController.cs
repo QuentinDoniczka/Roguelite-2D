@@ -141,6 +141,12 @@ namespace RogueliteAutoBattler.Combat
                     _mover.Stop();
                     _mover.enabled = false;
                     FaceTarget();
+                    if (_hasAnimator)
+                    {
+                        _animator.speed = 1f;
+                        _animator.SetBool(AnimHashes.IsMoving, false);
+                        _animator.Play(AnimHashes.Idle);
+                    }
                     break;
 
                 case CombatState.Dead:
