@@ -137,12 +137,12 @@ namespace RogueliteAutoBattler.Tests.PlayMode
         }
 
         [UnityTest]
-        public IEnumerator ScrollWithHomeAnchor_CharacterStaysNearAnchor()
+        public IEnumerator ScrollSuspendsHoming_CharacterDriftsFromAnchor()
         {
             var conveyorGo = Track(TestCharacterFactory.CreateConveyor("ScrollAnchorConveyor"));
             var anchor = Track(TestCharacterFactory.CreateAnchor("HomeAnchor", new Vector2(0f, 0f)));
             var charGo = Track(TestCharacterFactory.CreateMoverCharacter(
-                name: "AnchorFollower",
+                name: "DriftRider",
                 moveSpeed: 3f,
                 parent: conveyorGo.transform,
                 position: new Vector2(0f, 0f)));
@@ -159,23 +159,23 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             // Start scroll: conveyor moves 4 units left.
             conveyor.ScrollBy(4f, 8f, 16f);
 
-            // Wait for scroll to complete plus settling time.
-            yield return new WaitForSeconds(2f);
+            // Wait mid-scroll — homing is suspended, character should have drifted.
+            yield return new WaitForSeconds(0.5f);
 
-            float drift = Mathf.Abs(charGo.transform.position.x - anchor.transform.position.x);
+            float midDrift = Mathf.Abs(charGo.transform.position.x - anchor.transform.position.x);
 
-            // Character should stay near anchor — before the fix it would drift ~4 units away.
-            Assert.That(drift, Is.LessThan(1.0f),
-                $"Character should stay near its anchor during scroll (drift was {drift:F2}).");
+            // Character should have drifted away from anchor during scroll (carried by conveyor).
+            Assert.That(midDrift, Is.GreaterThan(0.5f),
+                $"Character should drift from anchor during scroll (drift was {midDrift:F2}).");
         }
 
         [UnityTest]
-        public IEnumerator ScrollAtAnchor_CorrectionVelocityIsSmall()
+        public IEnumerator ScrollEnds_CharacterWalksBackToAnchor()
         {
-            var conveyorGo = Track(TestCharacterFactory.CreateConveyor("SlowScrollConveyor"));
+            var conveyorGo = Track(TestCharacterFactory.CreateConveyor("ReturnConveyor"));
             var anchor = Track(TestCharacterFactory.CreateAnchor("HomeAnchor", new Vector2(0f, 0f)));
             var charGo = Track(TestCharacterFactory.CreateMoverCharacter(
-                name: "SmallCorrection",
+                name: "WalkBack",
                 moveSpeed: 5f,
                 parent: conveyorGo.transform,
                 position: new Vector2(0f, 0f)));
@@ -189,20 +189,17 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             mover.HomeAnchor = anchor.transform;
             mover.Target = null;
 
-            // Start a slow scroll so the drift per frame is tiny.
-            conveyor.ScrollBy(2f, 2f, 1f);
+            // Short fast scroll.
+            conveyor.ScrollBy(2f, 8f, 16f);
 
-            // Let physics run a few steps.
-            yield return new WaitForFixedUpdate();
-            yield return new WaitForFixedUpdate();
-            yield return new WaitForFixedUpdate();
-            yield return new WaitForFixedUpdate();
+            // Wait for scroll to complete plus walk-back time.
+            yield return new WaitForSeconds(3f);
 
-            var rb = charGo.GetComponent<Rigidbody2D>();
+            float endDrift = Mathf.Abs(charGo.transform.position.x - anchor.transform.position.x);
 
-            // Correction speed is proportional to tiny drift (dist * 8), not full moveSpeed of 5.
-            Assert.That(rb.linearVelocity.magnitude, Is.LessThan(1.0f),
-                $"Correction velocity should be small when character is near anchor (was {rb.linearVelocity.magnitude:F2}).");
+            // After scroll ends, character should have walked back near anchor.
+            Assert.That(endDrift, Is.LessThan(0.5f),
+                $"Character should return near anchor after scroll (drift was {endDrift:F2}).");
         }
 
         [UnityTest]

@@ -98,20 +98,30 @@ namespace RogueliteAutoBattler.Combat
 
             if (_target == null)
             {
+                bool scrolling = _conveyor != null && _conveyor.IsScrolling;
+
+                // During scroll: let the kinematic parent carry the character.
+                // Do NOT home toward the anchor — the conveyor drift IS the desired motion.
+                if (scrolling)
+                {
+                    _rb.linearVelocity = Vector2.zero;
+                    SetMoving(true, false);
+                    return;
+                }
+
                 // No combat target — return to home anchor if available.
                 if (_homeAnchor != null)
                 {
                     Vector2 homePos = (Vector2)_homeAnchor.position + _homeOffset;
                     Vector2 currentPos = (Vector2)transform.position;
-                    bool scrolling = _conveyor != null && _conveyor.IsScrolling;
                     float distToHome = Vector2.Distance(homePos, currentPos);
-                    if (distToHome > HomeArrivalThreshold || scrolling)
+                    if (distToHome > HomeArrivalThreshold)
                     {
                         Vector2 dir = (homePos - currentPos).normalized;
                         FlipToward(dir.x);
                         float correctionSpeed = Mathf.Min(distToHome * HomeDampingFactor, _moveSpeed);
                         _rb.linearVelocity = dir * correctionSpeed;
-                        SetMoving(correctionSpeed > WalkAnimationThreshold || scrolling, false);
+                        SetMoving(true, false);
                     }
                     else
                     {
