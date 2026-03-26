@@ -134,6 +134,42 @@ namespace RogueliteAutoBattler.Tests
         }
 
         /// <summary>
+        /// Creates a character with CombatStats + CharacterMover (no CombatController).
+        /// Suitable for testing formation recalculation and other logic that needs
+        /// both stats (alive/dead check) and mover (home offset).
+        /// </summary>
+        public static GameObject CreateFormationCharacter(
+            string name = "TestFormationChar",
+            int maxHp = 100,
+            int atk = 10,
+            float attackSpeed = 1f,
+            float moveSpeed = 2f,
+            Vector2? position = null)
+        {
+            var go = new GameObject(name);
+
+            if (position.HasValue)
+                go.transform.position = position.Value;
+
+            // Rigidbody2D first (required by CharacterMover).
+            var rb = go.AddComponent<Rigidbody2D>();
+            rb.gravityScale = 0f;
+            rb.freezeRotation = true;
+
+            AddVisualChild(go);
+
+            // CombatStats for alive/dead checks.
+            var stats = go.AddComponent<CombatStats>();
+            stats.InitializeDirect(maxHp, atk, attackSpeed);
+
+            // CharacterMover for home offset management (auto-adds CircleCollider2D).
+            var mover = go.AddComponent<CharacterMover>();
+            mover.SetMoveSpeed(moveSpeed);
+
+            return go;
+        }
+
+        /// <summary>
         /// Creates a simple anchor Transform at the given position.
         /// </summary>
         public static GameObject CreateAnchor(string name = "Anchor", Vector2? position = null)
