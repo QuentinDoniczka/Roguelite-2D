@@ -29,6 +29,11 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             // LevelManager has [RequireComponent(typeof(WorldConveyor))], already satisfied.
             _levelManager = _levelManagerGo.AddComponent<LevelManager>();
 
+            // Disable LevelManager immediately so its Start() coroutine does not run.
+            // Start() tries to find containers by child name and reads a LevelDatabase,
+            // which are not set up in tests. We use InitializeForTest() instead.
+            _levelManager.enabled = false;
+
             Track(_levelManagerGo);
 
             _teamContainer = Track(new GameObject("Team"));
