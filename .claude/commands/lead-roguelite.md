@@ -159,7 +159,7 @@ Delegue a `test-play-unity` pour ecrire un test Play Mode qui valide le comporte
 Delegue a `test-play-unity` pour lancer le test via Unity CLI batch mode.
 
 - **Si le test passe** → la sous-tache est validee, passer a la suivante
-- **Si le test echoue** → debugger et corriger le code (PAS le test, sauf si le test est faux). Relancer jusqu'a ce que ca passe.
+- **Si le test echoue** → debugger et corriger le code, JAMAIS le test. Si l'agent pense que le test est obsolete/faux, il doit expliquer pourquoi et attendre la validation utilisateur avant de modifier le test. Relancer jusqu'a ce que ca passe.
 
 > **Principe** : on ne passe JAMAIS a la sous-tache suivante tant que les tests de la sous-tache courante ne passent pas. Cela evite d'accumuler des bugs invisibles.
 
@@ -214,7 +214,7 @@ Si une section est vide (ex: aucun fichier supprime), ne pas l'afficher.
 
 **Apres le rapport** :
 a) Delegue a `git-unity` avec la tache "commit" pour commiter tous les changements avec un message Conventional Commits qui reference l'Issue (ex: `feat(combat): add auto-battle flow (#12)`).
-b) Delegue a `git-unity` avec la tache "push" (sync auto avec dev avant de push).
+b) Delegue a `git-unity` avec la tache "push" pour pusher la **branche feature** (sync auto avec dev avant de push). Le push cible toujours la branche feature courante, JAMAIS `dev` ni `main` directement.
    - Si le sync detecte des conflits, delegue a `dev-unity` pour les resoudre, puis relance le push.
 c) **STOP — Demande de validation a l'utilisateur.** Affiche :
    - "Branche pushee. Teste dans Unity et confirme que tout fonctionne. Dis 'ok' pour creer la PR et merger."
@@ -241,7 +241,7 @@ f) Delegue a `github-boards` avec "complete-issue" : ferme l'Issue, verifie si t
 - Quel(s) agent(s) sont concernes
 - Ce qui aurait du se passer vs ce qui s'est passe
 - L'agent analyse la cause racine, modifie les prompts concernes, et rapporte les changements
-- Les modifications d'agents sont commitees sur `dev` (pas sur la feature branch, qui est deja mergee)
+- Les modifications d'agents passent par une branche `chore/<issue-number>-agent-improvements` + PR vers `dev` (JAMAIS de commit direct sur `dev`). Creer l'Issue via `github-boards` si necessaire.
 
 **Si aucun probleme** → sauter cette etape.
 
@@ -268,7 +268,8 @@ Ces agents ne sont **jamais** lances automatiquement dans le workflow. L'utilisa
 - **Toujours passer le contexte** aux agents.
 - **Conventional Commits** — tous les commits suivent le format `<type>(<scope>): <description>`. Inclure le numero d'Issue quand applicable (ex: `(#12)`).
 - **GitHub flow** — `dev` = branche d'integration. Les feature branches sont TOUJOURS creees depuis `dev`. Les PRs ciblent `dev` avec Squash and merge. `main` = branche stable/release.
-- **Push + merge automatique** — apres commit, le lead enchaine push → PR → merge sans demander. Si CI echoue ou conflit, on s'arrete et on corrige.
+- **Branches protegees** — `dev` et `main` sont des branches protegees. JAMAIS de commit ni de push direct dessus. Toutes les modifications passent par une branche feature/fix/refactor/chore + PR. Cela s'applique aussi aux modifications d'agents (etape 9) et aux taches de refactoring sans Issue.
+- **Push + merge automatique** — apres commit sur la **branche feature**, le lead enchaine push → PR → merge sans demander. Si CI echoue ou conflit, on s'arrete et on corrige.
 - **Merge strategy** — pour sync avec dev, toujours `git merge origin/dev` (jamais rebase). Les merge commits sur la feature branch disparaissent au squash merge de la PR.
 - **GitHub Boards** — chaque Issue travaillee doit etre tracee : In Progress au debut, Done au push.
 - **2D uniquement** — tous les agents doivent utiliser des composants 2D (Rigidbody2D, Collider2D, SpriteRenderer, etc.)

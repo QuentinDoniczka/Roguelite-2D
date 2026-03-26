@@ -443,6 +443,37 @@ public IEnumerator WeaponSprite_SurvivesAnimatorFrames()
 
 ## Rules
 
+### CRITICAL — Tests Are Safety Nets, Not Obstacles
+
+Tests verify that the app behaves correctly. The goal is that **the final test suite produces the same results** — same behaviors validated, same coverage. Never weaken tests just to make them green.
+
+**When a test fails after code changes, follow this process:**
+
+1. **REPORT** the failure clearly (test name, expected vs actual)
+2. **ANALYZE** the cause — is this:
+   - **A regression?** → Fix the code, not the test. Report the issue.
+   - **A signature change?** (e.g., method went from 1 to 2 arguments) → Adapt the test to call the new API. This is fine — the test still validates the same behavior.
+   - **A removed feature?** → The test is obsolete. Remove it. No point testing something that no longer exists.
+   - **A stale test assumption?** (e.g., test expected behavior X, but behavior was deliberately changed to Y) → Explain your reasoning, then update the test to validate the NEW intended behavior.
+3. **The key question:** Does the updated test suite still validate the same (or better) coverage of real behavior? If yes → proceed. If the change REDUCES coverage or hides a bug → STOP and report.
+
+**What you MAY do without approval:**
+- Write **new** tests
+- Adapt test setup for API changes (renamed classes, changed signatures, new parameters) — as long as the test still validates the same behavior
+- Remove tests for features that were deliberately removed
+- Fix test **compilation errors** caused by refactoring
+- Modify test **infrastructure** (imports, SetUp, TearDown, helper methods)
+
+**What you must NEVER do:**
+- Change an assertion's expected value JUST to make it green without understanding why it changed
+- Weaken a tolerance (e.g., `delta: 0.01f` to `delta: 1.0f`) without justification
+- Add `[Ignore]` to a failing test
+- Remove a test for a feature that still exists
+
+**Why this rule exists:** The goal is coherence. The final test suite must validate the same real behaviors. Adapting tests to match legitimate changes is pragmatic. Blindly changing tests to pass is catastrophic.
+
+---
+
 - Always clean up spawned GameObjects in TearDown
 - Always create an **orthographic Camera** for 2D visual observation
 - Use `WaitForSeconds` for time-based behavior, not frame counting
