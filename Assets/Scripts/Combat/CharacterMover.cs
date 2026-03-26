@@ -122,10 +122,7 @@ namespace RogueliteAutoBattler.Combat
                 }
                 else
                 {
-                    // No anchor — follow the world scroll if active, otherwise stand still.
-                    _rb.linearVelocity = (_conveyor != null && _conveyor.IsScrolling)
-                        ? _conveyor.ScrollVelocity
-                        : Vector2.zero;
+                    _rb.linearVelocity = Vector2.zero;
                     SetMoving(false, false);
                 }
                 return;

@@ -70,7 +70,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
         }
 
         [UnityTest]
-        public IEnumerator ScrollCompensation_CarriesCharacterWithConveyor()
+        public IEnumerator Scroll_CharacterStaysAtWorldPosition()
         {
             var conveyorGo = Track(TestCharacterFactory.CreateConveyor("ConveyorParent"));
             var charGo = Track(TestCharacterFactory.CreateMoverCharacter(
@@ -82,10 +82,11 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             var mover = charGo.GetComponent<CharacterMover>();
             var conveyor = conveyorGo.GetComponent<WorldConveyor>();
 
-            // Wait a frame so Awake runs (CharacterMover caches _conveyor in Awake via GetComponentInParent).
+            // Wait a frame so Awake runs.
             yield return null;
 
-            // No target, no home anchor — character should just follow conveyor scroll velocity.
+            // No target, no home anchor — character stays at its world position
+            // while the conveyor scrolls underneath (no scroll velocity compensation).
             mover.Target = null;
             mover.HomeAnchor = null;
 
@@ -98,10 +99,10 @@ namespace RogueliteAutoBattler.Tests.PlayMode
 
             float endX = charGo.transform.position.x;
 
-            // The character, as a child of the kinematic conveyor, moves with it.
-            // The character's world position should have shifted left.
-            Assert.That(endX, Is.LessThan(startX - 1f),
-                "Character should have moved leftward with the conveyor scroll.");
+            // The character's Rigidbody2D stays at its world position.
+            // No scroll compensation — the world scrolls under the character.
+            Assert.That(Mathf.Abs(endX - startX), Is.LessThan(0.5f),
+                "Character should stay near its starting world position during scroll.");
         }
 
         [UnityTest]
