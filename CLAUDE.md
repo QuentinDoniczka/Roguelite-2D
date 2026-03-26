@@ -25,10 +25,10 @@
 Doc detaille : `Assets/doc/premier-jet-roguelite.html`
 
 # Project Structure
-Generated: 2026-03-25 (updated)
+Generated: 2026-03-26 (updated)
 
 Assets/
-├── Animations/  (23 files: .anim + .controller)
+├── Animations/  (24 files: .anim + .controller)
 ├── Audio/  (empty)
 ├── Data/
 │   ├── Adventurers/
@@ -144,6 +144,7 @@ Assets/
 │       │   └── TestCharacterFactory.cs
 │       ├── CharacterAppearanceTests.cs
 │       ├── CharacterMoverTests.cs
+│       ├── CombatControllerTests.cs
 │       ├── CombatStatsRegenTests.cs
 │       ├── VisualEquipmentTestLoopTests.cs
 │       └── WorldConveyorTests.cs
