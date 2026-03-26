@@ -112,7 +112,7 @@ namespace RogueliteAutoBattler.Combat
                         FlipToward(dir.x);
                         float correctionSpeed = Mathf.Min(distToHome * HomeDampingFactor, _moveSpeed);
                         _rb.linearVelocity = dir * correctionSpeed;
-                        SetMoving(correctionSpeed > WalkAnimationThreshold, false);
+                        SetMoving(correctionSpeed > WalkAnimationThreshold || scrolling, false);
                     }
                     else
                     {
@@ -123,7 +123,10 @@ namespace RogueliteAutoBattler.Combat
                 }
                 else
                 {
-                    _rb.linearVelocity = Vector2.zero;
+                    // No anchor — follow the world scroll if active, otherwise stand still.
+                    _rb.linearVelocity = (_conveyor != null && _conveyor.IsScrolling)
+                        ? _conveyor.ScrollVelocity
+                        : Vector2.zero;
                     SetMoving(false, false);
                 }
                 return;
