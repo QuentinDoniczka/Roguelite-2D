@@ -19,7 +19,11 @@ namespace RogueliteAutoBattler.Combat
 
         private const float HomeArrivalThreshold = 0.15f;
         private const float HomeDampingFactor = 8f;
-        private const float WalkAnimationThreshold = 0.05f;
+
+        // During scroll, walk at 90 % of scroll max speed so the conveyor
+        // "distances" the characters slightly at peak speed, then they catch up
+        // as it decelerates.
+        private const float ScrollWalkRatio = 0.9f;
 
         // Shared low-friction material so characters slide past each other.
         private static PhysicsMaterial2D _frictionlessMaterial;
@@ -100,17 +104,34 @@ namespace RogueliteAutoBattler.Combat
             {
                 bool scrolling = _conveyor != null && _conveyor.IsScrolling;
 
-                // During scroll: character is "carried" forward (rightward) through
-                // the world. Apply inverse scroll velocity so the character drifts in
-                // the progression direction. Homing is suspended — it resumes after scroll.
                 if (scrolling)
                 {
-                    _rb.linearVelocity = -_conveyor.ScrollVelocity;
-                    SetMoving(true, false);
+                    // Dynamic Rigidbody2D children are NOT carried by the
+                    // kinematic parent — apply scroll velocity explicitly.
+                    // Walk toward the screen-anchored home at a constant speed
+                    // slightly below scroll max so characters visibly drift
+                    // during peak speed, then catch up during deceleration.
+                    Vector2 scroll = _conveyor.ScrollVelocity;
+                    float walkSpeed = _conveyor.MaxSpeed * ScrollWalkRatio;
+
+                    Vector2 walkVel = Vector2.zero;
+                    if (_homeAnchor != null)
+                    {
+                        Vector2 toHome = (Vector2)_homeAnchor.position + _homeOffset
+                                       - (Vector2)transform.position;
+                        if (toHome.sqrMagnitude > 0.0001f)
+                        {
+                            walkVel = toHome.normalized * walkSpeed;
+                            FlipToward(toHome.x);
+                        }
+                    }
+
+                    _rb.linearVelocity = scroll + walkVel;
+                    SetMoving(true, false); // Walk animation always on during scroll
                     return;
                 }
 
-                // No combat target — return to home anchor if available.
+                // --- Not scrolling: normal damped homing ---
                 if (_homeAnchor != null)
                 {
                     Vector2 homePos = (Vector2)_homeAnchor.position + _homeOffset;
@@ -195,6 +216,10 @@ namespace RogueliteAutoBattler.Combat
 
             if (!_hasAnimator)
                 return;
+
+            // Sync the bool parameter so Idle↔Walk transitions
+            // don't fight against Play() calls.
+            _animator.SetBool(AnimHashes.IsMoving, _isMoving);
 
             if (!_isMoving)
             {

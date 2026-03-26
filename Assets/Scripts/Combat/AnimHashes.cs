@@ -12,5 +12,8 @@ namespace RogueliteAutoBattler.Combat
         public static readonly int Walk = Animator.StringToHash("Walk");
         public static readonly int Run = Animator.StringToHash("Run");
         public static readonly int ChopAttack = Animator.StringToHash("ChopAttack");
+
+        // Bool parameter used by Idle↔Walk transitions in the animator controller.
+        public static readonly int IsMoving = Animator.StringToHash("IsMoving");
     }
 }

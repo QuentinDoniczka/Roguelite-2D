@@ -28,6 +28,9 @@ namespace RogueliteAutoBattler.Combat
         /// <summary>Current scroll speed in world units per second.</summary>
         public float CurrentSpeed => _currentSpeed;
 
+        /// <summary>Max speed of the current (or last) scroll segment.</summary>
+        public float MaxSpeed => _maxSpeed;
+
         /// <summary>Current scroll velocity vector (negative X when scrolling left).</summary>
         public Vector2 ScrollVelocity => _isScrolling
             ? new Vector2(Mathf.Sign(_targetX - _rb.position.x) * _currentSpeed, 0f)
