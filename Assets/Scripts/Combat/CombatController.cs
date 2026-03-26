@@ -143,27 +143,26 @@ namespace RogueliteAutoBattler.Combat
                     break;
 
                 case CombatState.Dead:
-                    _mover.Stop();
-                    _mover.enabled = false;
-                    _waitingForHit = false;
-                    if (_hasAnimator)
-                    {
-                        _animator.speed = 1f;
-                        _animator.Play(AnimHashes.Idle);
-                    }
+                    EnterInactiveState();
                     StartCoroutine(FadeOutAndDestroy());
                     break;
 
                 case CombatState.None:
-                    _mover.Stop();
-                    _mover.enabled = false;
-                    _waitingForHit = false;
-                    if (_hasAnimator)
-                    {
-                        _animator.speed = 1f;
-                        _animator.Play(AnimHashes.Idle);
-                    }
+                    EnterInactiveState();
                     break;
+            }
+        }
+
+        /// <summary>Shared setup for Dead and None states: stop movement, reset animation.</summary>
+        private void EnterInactiveState()
+        {
+            _mover.Stop();
+            _mover.enabled = false;
+            _waitingForHit = false;
+            if (_hasAnimator)
+            {
+                _animator.speed = 1f;
+                _animator.Play(AnimHashes.Idle);
             }
         }
 

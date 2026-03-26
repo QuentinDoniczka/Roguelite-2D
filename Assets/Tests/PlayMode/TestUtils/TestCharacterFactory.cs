@@ -30,10 +30,7 @@ namespace RogueliteAutoBattler.Tests
             rb.gravityScale = 0f;
             rb.freezeRotation = true;
 
-            // Visual child — CharacterMover.Awake() looks for SpriteRenderer in children.
-            var visual = new GameObject("Visual");
-            visual.transform.SetParent(go.transform, false);
-            visual.AddComponent<SpriteRenderer>();
+            AddVisualChild(go);
 
             var stats = go.AddComponent<CombatStats>();
             stats.InitializeDirect(maxHp, atk, attackSpeed, regenHpPerSecond);
@@ -75,11 +72,7 @@ namespace RogueliteAutoBattler.Tests
             if (position.HasValue)
                 go.transform.position = position.Value;
 
-            // Visual child — CharacterMover.Awake() calls GetComponentInChildren<Animator>()
-            // and looks for SpriteRenderer for flipping.
-            var visual = new GameObject("Visual");
-            visual.transform.SetParent(go.transform, false);
-            visual.AddComponent<SpriteRenderer>();
+            AddVisualChild(go);
 
             // CharacterMover auto-adds Rigidbody2D and CircleCollider2D via RequireComponent.
             var mover = go.AddComponent<CharacterMover>();
@@ -110,10 +103,7 @@ namespace RogueliteAutoBattler.Tests
             if (position.HasValue)
                 go.transform.position = position.Value;
 
-            // Visual child — CharacterMover.Awake() looks for SpriteRenderer in children.
-            var visual = new GameObject("Visual");
-            visual.transform.SetParent(go.transform, false);
-            visual.AddComponent<SpriteRenderer>();
+            AddVisualChild(go);
 
             // Rigidbody2D first (required by CharacterMover).
             var rb = go.AddComponent<Rigidbody2D>();
@@ -131,6 +121,16 @@ namespace RogueliteAutoBattler.Tests
             mover.SetMoveSpeed(moveSpeed);
 
             return go;
+        }
+
+        /// <summary>
+        /// Adds a child "Visual" with SpriteRenderer (required by CharacterMover / CombatStats tests).
+        /// </summary>
+        private static void AddVisualChild(GameObject parent)
+        {
+            var visual = new GameObject("Visual");
+            visual.transform.SetParent(parent.transform, false);
+            visual.AddComponent<SpriteRenderer>();
         }
 
         /// <summary>

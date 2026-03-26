@@ -103,9 +103,8 @@ namespace RogueliteAutoBattler.Combat
                 {
                     Vector2 homePos = (Vector2)_homeAnchor.position + _homeOffset;
                     Vector2 currentPos = (Vector2)transform.position;
-                    float sqrDistToHome = (homePos - currentPos).sqrMagnitude;
                     bool scrolling = _conveyor != null && _conveyor.IsScrolling;
-                    float distToHome = Mathf.Sqrt(sqrDistToHome);
+                    float distToHome = Vector2.Distance(homePos, currentPos);
                     if (distToHome > HomeArrivalThreshold || scrolling)
                     {
                         Vector2 dir = (homePos - currentPos).normalized;
