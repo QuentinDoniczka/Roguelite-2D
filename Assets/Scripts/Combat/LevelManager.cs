@@ -166,12 +166,13 @@ namespace RogueliteAutoBattler.Combat
                 ? (Vector2)_enemiesHomeAnchor.position
                 : new Vector2(FallbackEnemySpawnX, 0f);
             Vector2 spawnAnchor = new Vector2(anchorPos.x + _enemySpawnOffscreenX, anchorPos.y);
-            Vector2[] positions = FormationLayout.GetPositions(spawnAnchor, wave.Enemies.Count, facingRight: false);
+            Vector2[] spawnPositions = FormationLayout.GetPositions(spawnAnchor, wave.Enemies.Count, facingRight: false);
+            Vector2[] homePositions = FormationLayout.GetPositions(anchorPos, wave.Enemies.Count, facingRight: false);
 
             for (int i = 0; i < wave.Enemies.Count; i++)
             {
-                Vector2 offset = positions[i] - anchorPos;
-                SpawnEnemy(wave.Enemies[i], positions[i], offset);
+                Vector2 offset = homePositions[i] - anchorPos;
+                SpawnEnemy(wave.Enemies[i], spawnPositions[i], offset);
             }
 
             _pendingWaveCount--;
