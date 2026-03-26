@@ -43,6 +43,7 @@ namespace RogueliteAutoBattler.Combat
         private const float FallbackEnemySpawnX = 1f;
 
         private int _aliveEnemyCount;
+        private int _aliveAllyCount;
         private int _pendingWaveCount;
         private bool _levelInProgress;
         private WorldConveyor _conveyor;
@@ -62,6 +63,7 @@ namespace RogueliteAutoBattler.Combat
             ApplyStage(_currentStageIndex);
             // Wait until an ally actually exists in the team container.
             yield return new WaitUntil(() => TargetFinder.Closest(_teamContainer, Vector3.zero) != null);
+            WireAllyDeathTracking();
             StartLevel(_currentLevelIndex);
         }
 
@@ -397,6 +399,75 @@ namespace RogueliteAutoBattler.Combat
                 }
             }
         }
+
+        private void ClearEnemyTargets()
+        {
+            if (_enemiesContainer == null) return;
+
+            for (int i = 0; i < _enemiesContainer.childCount; i++)
+            {
+                var enemy = _enemiesContainer.GetChild(i);
+                if (enemy.TryGetComponent<CombatController>(out var controller))
+                {
+                    controller.Disengage();
+                }
+            }
+        }
+
+        private void OnAllyDied()
+        {
+            _aliveAllyCount--;
+            CheckLevelLost();
+        }
+
+        private void CheckLevelLost()
+        {
+            if (_levelInProgress && _aliveAllyCount <= 0)
+            {
+                _levelInProgress = false;
+                OnLevelLost();
+            }
+        }
+
+        private void OnLevelLost()
+        {
+#if UNITY_EDITOR
+            Debug.Log($"[{nameof(LevelManager)}] Level lost! All allies defeated.");
+#endif
+            ClearEnemyTargets();
+        }
+
+        private void WireAllyDeathTracking()
+        {
+            _aliveAllyCount = 0;
+
+            if (_teamContainer == null) return;
+
+            for (int i = 0; i < _teamContainer.childCount; i++)
+            {
+                var ally = _teamContainer.GetChild(i);
+                if (!ally.TryGetComponent<CombatStats>(out var stats) || stats.IsDead)
+                    continue;
+
+                stats.OnDied += OnAllyDied;
+                _aliveAllyCount++;
+            }
+        }
+
+        // ---- Test helpers (internal, visible to Tests.PlayMode via InternalsVisibleTo) ----
+
+        internal int AliveAllyCount => _aliveAllyCount;
+        internal bool LevelInProgress => _levelInProgress;
+
+        internal void InitializeForTest(Transform teamContainer, Transform enemiesContainer)
+        {
+            _teamContainer = teamContainer;
+            _enemiesContainer = enemiesContainer;
+            _levelInProgress = true;
+        }
+
+        internal void WireAllyDeathTrackingForTest() => WireAllyDeathTracking();
+        internal void ClearEnemyTargetsForTest() => ClearEnemyTargets();
 
     }
 }
