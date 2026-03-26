@@ -194,16 +194,18 @@ namespace RogueliteAutoBattler.Combat
                 col.radius = data.ColliderRadius;
 
             var enemyTransform = enemy.transform;
-            Transform allyTarget = TargetFinder.Closest(_teamContainer, enemyTransform.position);
-            if (allyTarget != null)
-                mover.Target = allyTarget;
-            else
-                Debug.LogWarning($"[{nameof(LevelManager)}] No alive ally found for enemy '{data.EnemyName}' to target.");
 
             // CombatController — set attack range, wire retarget delegate with closure on position.
             var controller = enemy.AddComponent<CombatController>();
             controller.SetAttackRange(data.AttackRange);
             controller.FindNewTarget = () => TargetFinder.Closest(_teamContainer, enemyTransform.position);
+
+            // Set target through CombatController.Target so OnDied subscription is wired.
+            Transform allyTarget = TargetFinder.Closest(_teamContainer, enemyTransform.position);
+            if (allyTarget != null)
+                controller.Target = allyTarget;
+            else
+                Debug.LogWarning($"[{nameof(LevelManager)}] No alive ally found for enemy '{data.EnemyName}' to target.");
 
             // AnimationEventRelay — wire animation events to the controller.
             CombatSetupHelper.WireAnimationRelay(enemy, controller, nameof(LevelManager));
@@ -242,10 +244,11 @@ namespace RogueliteAutoBattler.Combat
 
                 if (needsTarget)
                 {
-                    // Only target this enemy if it's inside the combat zone
+                    // Only target this enemy if it's inside the combat zone.
+                    // Use CombatController.Target so OnDied subscription is wired.
                     bool inZone = firstEnemy.position.x <= CombatZoneX;
-                    if (inZone)
-                        allyMover.Target = firstEnemy;
+                    if (inZone && allyTransform.TryGetComponent<CombatController>(out var allyController))
+                        allyController.Target = firstEnemy;
                 }
 
                 WireAllyRetarget(allyTransform);

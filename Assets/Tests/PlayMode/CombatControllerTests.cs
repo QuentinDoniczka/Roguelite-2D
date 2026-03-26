@@ -67,9 +67,15 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             heroController.Target = enemyA.transform;
             heroController.FindNewTarget = () => enemyB.transform;
 
-            // Let FixedUpdate run so CombatController transitions to Attacking (distance 0.3 <= 0.5).
-            yield return new WaitForFixedUpdate();
-            yield return null;
+            // Wait for hero to enter Attacking state. May take several physics frames
+            // because CircleCollider2D pushback can temporarily separate the characters.
+            float timeout = 2f;
+            float elapsed = 0f;
+            while (heroController.State != CombatState.Attacking && elapsed < timeout)
+            {
+                yield return new WaitForFixedUpdate();
+                elapsed += Time.fixedDeltaTime;
+            }
 
             Assert.AreEqual(CombatState.Attacking, heroController.State,
                 "Sanity: hero should be in Attacking state (enemy A within attack range).");
