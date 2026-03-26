@@ -62,6 +62,9 @@ namespace RogueliteAutoBattler.Combat
             set => _homeAnchor = value;
         }
 
+        /// <summary>The formation offset from the home anchor assigned to this character.</summary>
+        public Vector2 HomeOffset => _homeOffset;
+
         private void Awake()
         {
             _animator = GetComponentInChildren<Animator>();

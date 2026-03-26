@@ -37,6 +37,7 @@ namespace RogueliteAutoBattler.Combat
         [SerializeField] private float _enemySpawnOffscreenX = 1f;
 
         [Header("Anchors")]
+        [SerializeField] private Transform _teamHomeAnchor;
         [SerializeField] private Transform _enemiesHomeAnchor;
         [SerializeField] private Transform _combatTriggerZone;
 
@@ -59,6 +60,8 @@ namespace RogueliteAutoBattler.Combat
         private IEnumerator Start()
         {
             CombatSetupHelper.FindContainersIfNeeded(transform, ref _teamContainer, ref _enemiesContainer, nameof(LevelManager));
+            if (_teamHomeAnchor == null)
+                _teamHomeAnchor = GameObject.Find(CombatSetupHelper.TeamHomeAnchorName)?.transform;
             _conveyor = GetComponent<WorldConveyor>();
             ApplyStage(_currentStageIndex);
             // Wait until an ally actually exists in the team container.
@@ -451,10 +454,12 @@ namespace RogueliteAutoBattler.Combat
         internal int AliveAllyCount => _aliveAllyCount;
         internal bool LevelInProgress => _levelInProgress;
 
-        internal void InitializeForTest(Transform teamContainer, Transform enemiesContainer)
+        internal void InitializeForTest(Transform teamContainer, Transform enemiesContainer, Transform teamHomeAnchor = null, Transform enemiesHomeAnchor = null)
         {
             _teamContainer = teamContainer;
             _enemiesContainer = enemiesContainer;
+            if (teamHomeAnchor != null) _teamHomeAnchor = teamHomeAnchor;
+            if (enemiesHomeAnchor != null) _enemiesHomeAnchor = enemiesHomeAnchor;
             _levelInProgress = true;
         }
 
