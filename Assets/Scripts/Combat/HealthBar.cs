@@ -17,6 +17,9 @@ namespace RogueliteAutoBattler.Combat
     [RequireComponent(typeof(CombatStats))]
     public class HealthBar : MonoBehaviour
     {
+        private const string EffectsSortingLayer = "Effects";
+        private const string DefaultSpriteMaterial = "Universal Render Pipeline/2D/Sprite-Unlit-Default";
+
         [Header("Bar Dimensions")]
         [Tooltip("Total width of the health bar in world units.")]
         [SerializeField] private float _barWidth = 0.3f;
@@ -85,7 +88,7 @@ namespace RogueliteAutoBattler.Combat
             var bgRenderer = bgGo.AddComponent<SpriteRenderer>();
             bgRenderer.sprite           = bgSprite;
             bgRenderer.color            = ColorBg;
-            bgRenderer.sortingLayerName = "Effects";
+            bgRenderer.sortingLayerName = EffectsSortingLayer;
             bgRenderer.sortingOrder     = 10;
             bgRenderer.material         = _unlitMaterial;
 
@@ -99,7 +102,7 @@ namespace RogueliteAutoBattler.Combat
             _fillRenderer = fillGo.AddComponent<SpriteRenderer>();
             _fillRenderer.sprite           = fillSprite;
             _fillRenderer.color            = ColorHealthy;
-            _fillRenderer.sortingLayerName = "Effects";
+            _fillRenderer.sortingLayerName = EffectsSortingLayer;
             _fillRenderer.sortingOrder     = 11;
             _fillRenderer.material         = _unlitMaterial;
             _fillTransform = fillGo.transform;
@@ -118,7 +121,7 @@ namespace RogueliteAutoBattler.Combat
             // (e.g. character reverses direction mid-combat).
             ApplyFlipCompensation(_pivotTransform);
 
-            float ratio = _stats.MaxHp > 0 ? (float)_stats.CurrentHp / _stats.MaxHp : 0f;
+            float ratio = (float)_stats.CurrentHp / _stats.MaxHp;
 
             // Fill width represents HP ratio; height and Z stay unchanged.
             var scale = _fillTransform.localScale;
@@ -169,7 +172,7 @@ namespace RogueliteAutoBattler.Combat
             if (_unlitMaterial != null)
                 return;
 
-            var shader = Shader.Find("Universal Render Pipeline/2D/Sprite-Unlit-Default");
+            var shader = Shader.Find(DefaultSpriteMaterial);
             if (shader != null)
             {
                 _unlitMaterial = new Material(shader);

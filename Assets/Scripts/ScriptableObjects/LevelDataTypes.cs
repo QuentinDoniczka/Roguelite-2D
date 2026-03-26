@@ -80,7 +80,6 @@ namespace RogueliteAutoBattler.Data
         [SerializeField] private float attackRange = 0.5f;
         [SerializeField] private AttackType attackType = AttackType.Melee;
         [SerializeField] private float colliderRadius = 0.05f;
-        [SerializeField] private Vector2 spawnOffset;
 
         [Header("Appearance")]
         [SerializeField] private AppearanceData appearance = new AppearanceData();
@@ -94,7 +93,6 @@ namespace RogueliteAutoBattler.Data
         public float AttackRange => attackRange;
         public AttackType AttackType => attackType;
         public float ColliderRadius => colliderRadius;
-        public Vector2 SpawnOffset => spawnOffset;
         public AppearanceData Appearance => appearance;
     }
 
@@ -110,7 +108,6 @@ namespace RogueliteAutoBattler.Data
         [SerializeField] private float moveSpeed = 2f;
         [SerializeField] private float regenHpPerSecond = 0f;
         [SerializeField] private float colliderRadius = 0.05f;
-        [SerializeField] private Vector2 spawnOffset;
 
         [Header("Appearance")]
         [SerializeField] private AppearanceData appearance = new AppearanceData();
@@ -123,7 +120,6 @@ namespace RogueliteAutoBattler.Data
         public float MoveSpeed => moveSpeed;
         public float RegenHpPerSecond => regenHpPerSecond;
         public float ColliderRadius => colliderRadius;
-        public Vector2 SpawnOffset => spawnOffset;
         public AppearanceData Appearance => appearance;
     }
 }

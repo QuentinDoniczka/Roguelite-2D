@@ -72,13 +72,17 @@ namespace RogueliteAutoBattler.Combat
         {
             if (_levelDatabase == null)
             {
+#if UNITY_EDITOR
                 Debug.LogWarning($"[{nameof(LevelManager)}] No LevelDatabase assigned.");
+#endif
                 return;
             }
 
             if (_levelDatabase.Stages == null || stageIndex < 0 || stageIndex >= _levelDatabase.Stages.Count)
             {
+#if UNITY_EDITOR
                 Debug.LogWarning($"[{nameof(LevelManager)}] Stage index {stageIndex} out of range.");
+#endif
                 return;
             }
 
@@ -88,7 +92,9 @@ namespace RogueliteAutoBattler.Combat
             if (stage.Terrain != null && _groundRenderer != null)
             {
                 _groundRenderer.sprite = stage.Terrain;
+#if UNITY_EDITOR
                 Debug.Log($"[{nameof(LevelManager)}] Applied terrain '{stage.Terrain.name}' for stage '{stage.StageName}'");
+#endif
             }
         }
 
@@ -99,21 +105,27 @@ namespace RogueliteAutoBattler.Combat
         {
             if (_levelDatabase == null)
             {
+#if UNITY_EDITOR
                 Debug.LogWarning($"[{nameof(LevelManager)}] No LevelDatabase assigned.");
+#endif
                 return;
             }
 
             var stages = _levelDatabase.Stages;
             if (stages == null || _currentStageIndex < 0 || _currentStageIndex >= stages.Count)
             {
+#if UNITY_EDITOR
                 Debug.LogWarning($"[{nameof(LevelManager)}] Current stage index {_currentStageIndex} out of range.");
+#endif
                 return;
             }
 
             var stage = stages[_currentStageIndex];
             if (stage.Levels == null || levelIndex < 0 || levelIndex >= stage.Levels.Count)
             {
+#if UNITY_EDITOR
                 Debug.LogWarning($"[{nameof(LevelManager)}] Level index {levelIndex} out of range for stage '{stage.StageName}'.");
+#endif
                 return;
             }
 
@@ -123,7 +135,9 @@ namespace RogueliteAutoBattler.Combat
 
             var level = stage.Levels[levelIndex];
             _pendingWaveCount = level.Waves.Count;
+#if UNITY_EDITOR
             Debug.Log($"[{nameof(LevelManager)}] Starting level '{level.LevelName}' with {level.Waves.Count} wave(s).");
+#endif
 
             for (int i = 0; i < level.Waves.Count; i++)
             {
@@ -135,11 +149,15 @@ namespace RogueliteAutoBattler.Combat
         {
             if (wave.SpawnDelay > 0f)
             {
+#if UNITY_EDITOR
                 Debug.Log($"[{nameof(LevelManager)}] Wave {waveIndex} '{wave.WaveName}' waiting {wave.SpawnDelay}s...");
+#endif
                 yield return new WaitForSeconds(wave.SpawnDelay);
             }
 
+#if UNITY_EDITOR
             Debug.Log($"[{nameof(LevelManager)}] Spawning wave {waveIndex} '{wave.WaveName}' ({wave.Enemies.Count} enemies).");
+#endif
 
             // Calculate formation positions for this wave's enemies.
             Vector2 anchorPos = _enemiesHomeAnchor != null
@@ -162,7 +180,9 @@ namespace RogueliteAutoBattler.Combat
         {
             if (data.Prefab == null)
             {
+#if UNITY_EDITOR
                 Debug.LogWarning($"[{nameof(LevelManager)}] EnemySpawnData '{data.EnemyName}' has no prefab assigned.");
+#endif
                 return;
             }
 
@@ -171,52 +191,44 @@ namespace RogueliteAutoBattler.Combat
             GameObject enemy = Instantiate(data.Prefab, spawnPosition, Quaternion.identity, _enemiesContainer);
             enemy.name = data.EnemyName;
 
-            // CombatStats — direct initialization from EnemySpawnData values (no SO needed).
-            var combatStats = enemy.AddComponent<CombatStats>();
-            combatStats.InitializeDirect(data.Hp, data.Atk, data.AttackSpeed);
+            var components = CombatSetupHelper.AssembleCharacter(
+                enemy,
+                data.Hp,
+                data.Atk,
+                data.AttackSpeed,
+                0f,
+                data.MoveSpeed,
+                _enemiesHomeAnchor,
+                homeOffset,
+                data.ColliderRadius,
+                data.Appearance,
+                nameof(LevelManager));
 
             // Track enemy death for level progression.
             _aliveEnemyCount++;
-            combatStats.OnDied += OnEnemyDied;
-
-            // HealthBar — must be added after CombatStats (reads it in Awake).
-            enemy.AddComponent<HealthBar>();
-
-            // CharacterMover — set speed, home anchor, and target to the first alive ally.
-            var mover = enemy.AddComponent<CharacterMover>();
-            mover.SetMoveSpeed(data.MoveSpeed);
-            if (_enemiesHomeAnchor != null)
-                mover.HomeAnchor = _enemiesHomeAnchor;
-            mover.SetHomeOffset(homeOffset);
-
-            var col = enemy.GetComponent<CircleCollider2D>();
-            if (col != null)
-                col.radius = data.ColliderRadius;
+            components.Stats.OnDied += OnEnemyDied;
 
             var enemyTransform = enemy.transform;
 
             // CombatController — set attack range, wire retarget delegate with closure on position.
-            var controller = enemy.AddComponent<CombatController>();
-            controller.SetAttackRange(data.AttackRange);
-            controller.FindNewTarget = () => TargetFinder.Closest(_teamContainer, enemyTransform.position);
+            components.Controller.SetAttackRange(data.AttackRange);
+            components.Controller.FindNewTarget = () => TargetFinder.Closest(_teamContainer, enemyTransform.position);
 
             // Set target through CombatController.Target so OnDied subscription is wired.
             Transform allyTarget = TargetFinder.Closest(_teamContainer, enemyTransform.position);
             if (allyTarget != null)
-                controller.Target = allyTarget;
+                components.Controller.Target = allyTarget;
+#if UNITY_EDITOR
             else
                 Debug.LogWarning($"[{nameof(LevelManager)}] No alive ally found for enemy '{data.EnemyName}' to target.");
-
-            // AnimationEventRelay — wire animation events to the controller.
-            CombatSetupHelper.WireAnimationRelay(enemy, controller, nameof(LevelManager));
-
-            var appearance = enemy.AddComponent<CharacterAppearance>();
-            appearance.ApplyAppearance(data.Appearance);
+#endif
 
             // Wire ally to target this enemy if it has no target yet.
             SetAllyTarget(enemy.transform);
 
+#if UNITY_EDITOR
             Debug.Log($"[{nameof(LevelManager)}] Spawned enemy '{data.EnemyName}' at {spawnPosition}");
+#endif
         }
 
         /// <summary>
@@ -272,14 +284,18 @@ namespace RogueliteAutoBattler.Combat
 
         private void OnLevelComplete()
         {
+#if UNITY_EDITOR
             Debug.Log($"[{nameof(LevelManager)}] Level complete! Starting transition...");
+#endif
 
             ClearAllyTargets();
 
             var stages = _levelDatabase.Stages;
             if (stages == null || _currentStageIndex < 0 || _currentStageIndex >= stages.Count)
             {
+#if UNITY_EDITOR
                 Debug.LogWarning($"[{nameof(LevelManager)}] Stage index {_currentStageIndex} out of range on level complete.");
+#endif
                 return;
             }
 
@@ -292,7 +308,9 @@ namespace RogueliteAutoBattler.Combat
             }
             else
             {
+#if UNITY_EDITOR
                 Debug.Log($"[{nameof(LevelManager)}] Stage '{stage.StageName}' complete!");
+#endif
             }
         }
 
@@ -309,7 +327,9 @@ namespace RogueliteAutoBattler.Combat
                 {
                     if (enemiesSpawned) return;
                     enemiesSpawned = true;
+#if UNITY_EDITOR
                     Debug.Log($"[{nameof(LevelManager)}] Deceleration started. Spawning level {_currentLevelIndex}.");
+#endif
                     StartLevel(_currentLevelIndex);
                 }
 
@@ -323,7 +343,9 @@ namespace RogueliteAutoBattler.Combat
                 // If scroll was too short for deceleration phase, spawn now
                 if (!enemiesSpawned)
                 {
+#if UNITY_EDITOR
                     Debug.Log($"[{nameof(LevelManager)}] Scroll ended without decel phase. Spawning level {_currentLevelIndex}.");
+#endif
                     StartLevel(_currentLevelIndex);
                 }
             }

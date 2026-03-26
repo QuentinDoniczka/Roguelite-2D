@@ -26,6 +26,7 @@ namespace RogueliteAutoBattler.Combat
         [Tooltip("Attack reach in world units (distance check).")]
         [SerializeField] private float _attackRange = 0.5f;
 
+        // Must match the Chop animation clip length.
         private const float ChopAttackDuration = 0.5f;
         private const float FadeOutDuration = 0.25f;
 

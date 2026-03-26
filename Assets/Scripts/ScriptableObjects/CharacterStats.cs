@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace RogueliteAutoBattler.Combat
+namespace RogueliteAutoBattler.Data
 {
     /// <summary>
     /// ScriptableObject holding base stats for a character type.
@@ -11,19 +11,25 @@ namespace RogueliteAutoBattler.Combat
     {
         [Header("Combat")]
         [Tooltip("Damage dealt per attack.")]
-        public int atk = 10;
+        [SerializeField] private int atk = 10;
 
         [Tooltip("Maximum health points.")]
-        public int maxHp = 100;
+        [SerializeField] private int maxHp = 100;
 
         [Tooltip("HP regenerated per second.")]
-        public float regenHpPerSecond = 0f;
+        [SerializeField] private float regenHpPerSecond = 0f;
 
         [Tooltip("Attacks per second. Also scales animation speed.")]
-        public float attackSpeed = 1f;
+        [SerializeField] private float attackSpeed = 1f;
 
         [Header("Movement")]
         [Tooltip("Movement speed in world units per second.")]
-        public float moveSpeed = 2f;
+        [SerializeField] private float moveSpeed = 2f;
+
+        public int Atk => atk;
+        public int MaxHp => maxHp;
+        public float RegenHpPerSecond => regenHpPerSecond;
+        public float AttackSpeed => attackSpeed;
+        public float MoveSpeed => moveSpeed;
     }
 }

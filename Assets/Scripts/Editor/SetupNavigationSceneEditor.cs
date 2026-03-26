@@ -164,8 +164,8 @@ namespace RogueliteAutoBattler.Editor
                 new PanelCfg("VillagePanel", "VILLAGE", "2D6A4F", typeof(VillageScreen)),
                 new PanelCfg("SkillTreePanel", "ARBRE", "7B2D8E", typeof(SkillTreeScreen)),
                 new PanelCfg("AutrePanel", "AUTRE", "555555", typeof(GuildScreen)), // placeholder — replace with AutreScreen when created
-                new PanelCfg("GuildePanel", "GUILDE", "1D3557", typeof(ShopScreen)), // placeholder — replace with GuildScreen when created
-                new PanelCfg("ShopPanel", "SHOP", "E9C46A", typeof(VillageScreen)), // placeholder — replace with ShopScreen when created
+                new PanelCfg("GuildePanel", "GUILDE", "1D3557", typeof(GuildScreen)),
+                new PanelCfg("ShopPanel", "SHOP", "E9C46A", typeof(ShopScreen)),
             };
 
             var screens = new UIScreen[TabCount];

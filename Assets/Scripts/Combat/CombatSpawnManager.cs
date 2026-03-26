@@ -20,13 +20,11 @@ namespace RogueliteAutoBattler.Combat
         [Header("Anchors")]
         [SerializeField] private Transform _teamHomeAnchor;
 
-        public const string TeamContainerName = "Team";
-        public const string EnemiesContainerName = "Enemies";
-        public const string TeamHomeAnchorName = "TeamHomeAnchor";
-        public const string EnemiesHomeAnchorName = "EnemiesHomeAnchor";
-        public const string CombatTriggerZoneName = "CombatTriggerZone";
-
-        public const string EnemyName = "Enemy";
+        public const string TeamContainerName = CombatSetupHelper.TeamContainerName;
+        public const string EnemiesContainerName = CombatSetupHelper.EnemiesContainerName;
+        public const string TeamHomeAnchorName = CombatSetupHelper.TeamHomeAnchorName;
+        public const string EnemiesHomeAnchorName = CombatSetupHelper.EnemiesHomeAnchorName;
+        public const string CombatTriggerZoneName = CombatSetupHelper.CombatTriggerZoneName;
 
         // The default sprite faces left. Flip X to face right.
         private static readonly Vector3 FacingRightScale = new Vector3(-1f, 1f, 1f);
@@ -66,29 +64,18 @@ namespace RogueliteAutoBattler.Combat
             ally.name = data.AllyName;
             ally.transform.localScale = FacingRightScale;
 
-            // CombatStats — direct initialization from AllySpawnData values.
-            var combatStats = ally.AddComponent<CombatStats>();
-            combatStats.InitializeDirect(data.MaxHp, data.Atk, data.AttackSpeed, data.RegenHpPerSecond);
-
-            // HealthBar — must be added after CombatStats.
-            ally.AddComponent<HealthBar>();
-
-            var mover = ally.AddComponent<CharacterMover>();
-            mover.SetMoveSpeed(data.MoveSpeed);
-            if (homeAnchor != null)
-                mover.HomeAnchor = homeAnchor;
-            mover.SetHomeOffset(homeOffset);
-
-            // Collider radius — set after AddComponent<CharacterMover> which auto-adds CircleCollider2D.
-            var col = ally.GetComponent<CircleCollider2D>();
-            if (col != null)
-                col.radius = data.ColliderRadius;
-
-            var controller = ally.AddComponent<CombatController>();
-            CombatSetupHelper.WireAnimationRelay(ally, controller, nameof(CombatSpawnManager));
-
-            var appearance = ally.AddComponent<CharacterAppearance>();
-            appearance.ApplyAppearance(data.Appearance);
+            CombatSetupHelper.AssembleCharacter(
+                ally,
+                data.MaxHp,
+                data.Atk,
+                data.AttackSpeed,
+                data.RegenHpPerSecond,
+                data.MoveSpeed,
+                homeAnchor,
+                homeOffset,
+                data.ColliderRadius,
+                data.Appearance,
+                nameof(CombatSpawnManager));
         }
     }
 }

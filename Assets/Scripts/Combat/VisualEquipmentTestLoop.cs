@@ -11,6 +11,7 @@ namespace RogueliteAutoBattler.Combat
     /// </summary>
     public class VisualEquipmentTestLoop : MonoBehaviour
     {
+#if UNITY_EDITOR
         [Header("Sprite Pools")]
         [Tooltip("Available head sprites to cycle through.")]
         [SerializeField] private Sprite[] _headSprites;
@@ -85,5 +86,6 @@ namespace RogueliteAutoBattler.Combat
 
             return sprites[Random.Range(0, sprites.Length)];
         }
+#endif
     }
 }

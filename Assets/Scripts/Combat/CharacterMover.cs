@@ -77,7 +77,7 @@ namespace RogueliteAutoBattler.Combat
             // Low-friction material so characters push each other smoothly without gripping.
             if (_frictionlessMaterial == null)
             {
-                _frictionlessMaterial = new PhysicsMaterial2D("Frictionless")
+                _frictionlessMaterial = new PhysicsMaterial2D("LowFriction")
                 {
                     friction = 0.15f,
                     bounciness = 0f

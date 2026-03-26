@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using System.Collections;
 using System.Collections.Generic;
 using NUnit.Framework;
@@ -70,7 +71,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
         }
 
         [TearDown]
-        public new void TearDown()
+        public override void TearDown()
         {
             foreach (var asset in _disposableAssets)
             {
@@ -79,8 +80,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             }
             _disposableAssets.Clear();
 
-            // NUnit calls [TearDown] in reverse hierarchy order (derived first, then base),
-            // so base.TearDown() is already invoked automatically. No explicit call needed.
+            base.TearDown();
         }
 
         // ----------------------------------------------------------------
@@ -284,3 +284,4 @@ namespace RogueliteAutoBattler.Tests.PlayMode
         }
     }
 }
+#endif

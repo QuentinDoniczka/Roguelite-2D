@@ -23,7 +23,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
         }
 
         [TearDown]
-        public void TearDown()
+        public virtual void TearDown()
         {
             foreach (var go in _created)
             {
