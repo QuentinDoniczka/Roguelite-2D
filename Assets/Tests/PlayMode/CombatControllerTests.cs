@@ -88,11 +88,14 @@ namespace RogueliteAutoBattler.Tests.PlayMode
         [UnityTest]
         public IEnumerator AttackingState_SharedTargetDies_Retargets()
         {
-            // Arrange — enemy A very close to hero so state will be Attacking.
+            // Arrange — enemy A close to hero so state will be Attacking.
+            // Attack range must exceed collider separation (~1.0 for two default
+            // CircleCollider2D radius 0.5), otherwise physics pushback prevents
+            // the hero from ever reaching Attacking state.
             var enemyA = Track(TestCharacterFactory.CreateFullCombatCharacter(
                 "EnemyA", maxHp: 1, position: new Vector2(0.3f, 0f)));
             var enemyB = Track(TestCharacterFactory.CreateFullCombatCharacter(
-                "EnemyB", maxHp: 100, position: new Vector2(3f, 0f)));
+                "EnemyB", maxHp: 100, position: new Vector2(5f, 0f)));
             var heroGo = Track(TestCharacterFactory.CreateFullCombatCharacter(
                 "Hero", maxHp: 100, atk: 10, moveSpeed: 2f, position: new Vector2(0f, 0f)));
 
@@ -100,7 +103,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             yield return null;
 
             var heroController = heroGo.GetComponent<CombatController>();
-            heroController.SetAttackRange(0.5f);
+            heroController.SetAttackRange(1.5f);
             heroController.Target = enemyA.transform;
             heroController.FindNewTarget = () => enemyB.transform;
 
