@@ -295,6 +295,7 @@ namespace RogueliteAutoBattler.Combat
 #endif
 
             ClearAllyTargets();
+            CombatSetupHelper.RecalculateFormation(_teamContainer, _teamHomeAnchor, facingRight: true);
 
             var stages = _levelDatabase.Stages;
             if (stages == null || _currentStageIndex < 0 || _currentStageIndex >= stages.Count)
@@ -429,6 +430,7 @@ namespace RogueliteAutoBattler.Combat
             Debug.Log($"[{nameof(LevelManager)}] Level lost! All allies defeated.");
 #endif
             ClearEnemyTargets();
+            CombatSetupHelper.RecalculateFormation(_enemiesContainer, _enemiesHomeAnchor, facingRight: false);
         }
 
         private void WireAllyDeathTracking()
@@ -466,6 +468,12 @@ namespace RogueliteAutoBattler.Combat
         internal void WireAllyDeathTrackingForTest() => WireAllyDeathTracking();
         internal void ClearAllyTargetsForTest() => ClearAllyTargets();
         internal void ClearEnemyTargetsForTest() => ClearEnemyTargets();
+
+        internal void RecalculateAllyFormationForTest() =>
+            CombatSetupHelper.RecalculateFormation(_teamContainer, _teamHomeAnchor, facingRight: true);
+
+        internal void RecalculateEnemyFormationForTest() =>
+            CombatSetupHelper.RecalculateFormation(_enemiesContainer, _enemiesHomeAnchor, facingRight: false);
 
     }
 }
