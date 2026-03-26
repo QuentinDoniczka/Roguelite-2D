@@ -53,7 +53,18 @@ namespace RogueliteAutoBattler.Combat
         public Transform Target
         {
             get => _mover.Target;
-            set => _mover.Target = value;
+            set
+            {
+                UnsubscribeFromTarget();
+                _targetStats = null;
+                _mover.Target = value;
+                if (value != null)
+                {
+                    _targetStats = value.GetComponent<CombatStats>();
+                    if (_targetStats != null)
+                        _targetStats.OnDied += HandleTargetDied;
+                }
+            }
         }
 
         private void Awake()
@@ -85,6 +96,12 @@ namespace RogueliteAutoBattler.Combat
             if (_mover == null || _mover.Target == null)
                 return;
 
+            if (_targetStats != null && _targetStats.IsDead)
+            {
+                HandleTargetDied();
+                return;
+            }
+
             float dist = Vector2.Distance(transform.position, _mover.Target.position);
             bool inRange = dist <= _attackRange;
 
@@ -113,8 +130,6 @@ namespace RogueliteAutoBattler.Combat
             switch (_state)
             {
                 case CombatState.Moving:
-                    UnsubscribeFromTarget();
-                    _targetStats = null;
                     _mover.enabled = true;
                     _waitingForHit = false;
                     if (_hasAnimator)
@@ -125,41 +140,29 @@ namespace RogueliteAutoBattler.Combat
                     _mover.Stop();
                     _mover.enabled = false;
                     FaceTarget();
-
-                    UnsubscribeFromTarget();
-                    // Runs only on state transition, not per-frame.
-                    _targetStats = _mover.Target != null
-                        ? _mover.Target.GetComponent<CombatStats>()
-                        : null;
-                    if (_targetStats != null)
-                        _targetStats.OnDied += HandleTargetDied;
                     break;
 
                 case CombatState.Dead:
-                    UnsubscribeFromTarget();
-                    _mover.Stop();
-                    _mover.enabled = false;
-                    _waitingForHit = false;
-                    if (_hasAnimator)
-                    {
-                        _animator.speed = 1f;
-                        _animator.Play(AnimHashes.Idle);
-                    }
+                    EnterInactiveState();
                     StartCoroutine(FadeOutAndDestroy());
                     break;
 
                 case CombatState.None:
-                    UnsubscribeFromTarget();
-                    _targetStats = null;
-                    _mover.Stop();
-                    _mover.enabled = false;
-                    _waitingForHit = false;
-                    if (_hasAnimator)
-                    {
-                        _animator.speed = 1f;
-                        _animator.Play(AnimHashes.Idle);
-                    }
+                    EnterInactiveState();
                     break;
+            }
+        }
+
+        /// <summary>Shared setup for Dead and None states: stop movement, reset animation.</summary>
+        private void EnterInactiveState()
+        {
+            _mover.Stop();
+            _mover.enabled = false;
+            _waitingForHit = false;
+            if (_hasAnimator)
+            {
+                _animator.speed = 1f;
+                _animator.Play(AnimHashes.Idle);
             }
         }
 
@@ -170,12 +173,11 @@ namespace RogueliteAutoBattler.Combat
 
         private void HandleTargetDied()
         {
-            UnsubscribeFromTarget();
-            _targetStats = null;
+            if (_state == CombatState.Dead)
+                return;
 
-            // Try to find a new target.
             Transform newTarget = FindNewTarget?.Invoke();
-            _mover.Target = newTarget; // null if none — CharacterMover returns to home anchor.
+            Target = newTarget;
             SetState(CombatState.Moving);
         }
 
@@ -225,9 +227,7 @@ namespace RogueliteAutoBattler.Combat
         /// </summary>
         public void Disengage()
         {
-            UnsubscribeFromTarget();
-            _targetStats = null;
-            _mover.Target = null;
+            Target = null;
             FindNewTarget = null;
 
             if (_state == CombatState.Dead)

@@ -70,7 +70,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
         }
 
         [UnityTest]
-        public IEnumerator ScrollCompensation_CarriesCharacterWithConveyor()
+        public IEnumerator Scroll_CharacterStaysAtWorldPosition()
         {
             var conveyorGo = Track(TestCharacterFactory.CreateConveyor("ConveyorParent"));
             var charGo = Track(TestCharacterFactory.CreateMoverCharacter(
@@ -82,10 +82,11 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             var mover = charGo.GetComponent<CharacterMover>();
             var conveyor = conveyorGo.GetComponent<WorldConveyor>();
 
-            // Wait a frame so Awake runs (CharacterMover caches _conveyor in Awake via GetComponentInParent).
+            // Wait a frame so Awake runs.
             yield return null;
 
-            // No target, no home anchor — character should just follow conveyor scroll velocity.
+            // No target, no home anchor — character stays at its world position
+            // while the conveyor scrolls underneath (no scroll velocity compensation).
             mover.Target = null;
             mover.HomeAnchor = null;
 
@@ -98,11 +99,10 @@ namespace RogueliteAutoBattler.Tests.PlayMode
 
             float endX = charGo.transform.position.x;
 
-            // The character, as a child of the conveyor, moves with it. Additionally,
-            // CharacterMover adds ScrollVelocity to its own linearVelocity.
-            // The character's world position should have shifted left.
-            Assert.That(endX, Is.LessThan(startX - 1f),
-                "Character should have moved leftward with the conveyor scroll.");
+            // The character's Rigidbody2D stays at its world position.
+            // No scroll compensation — the world scrolls under the character.
+            Assert.That(Mathf.Abs(endX - startX), Is.LessThan(0.5f),
+                "Character should stay near its starting world position during scroll.");
         }
 
         [UnityTest]
@@ -134,6 +134,72 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             // At distance 0.05, correctionSpeed = min(0.05 * 8, 5) = 0.4 — well below moveSpeed of 5.
             Assert.That(velocity, Is.LessThan(2f),
                 "Velocity near home should be proportionally damped (much less than moveSpeed).");
+        }
+
+        [UnityTest]
+        public IEnumerator ScrollSuspendsHoming_CharacterDriftsFromAnchor()
+        {
+            var conveyorGo = Track(TestCharacterFactory.CreateConveyor("ScrollAnchorConveyor"));
+            var anchor = Track(TestCharacterFactory.CreateAnchor("HomeAnchor", new Vector2(0f, 0f)));
+            var charGo = Track(TestCharacterFactory.CreateMoverCharacter(
+                name: "DriftRider",
+                moveSpeed: 3f,
+                parent: conveyorGo.transform,
+                position: new Vector2(0f, 0f)));
+
+            var mover = charGo.GetComponent<CharacterMover>();
+            var conveyor = conveyorGo.GetComponent<WorldConveyor>();
+
+            // Wait a frame so Awake runs.
+            yield return null;
+
+            mover.HomeAnchor = anchor.transform;
+            mover.Target = null;
+
+            // Start scroll: conveyor moves 4 units left.
+            conveyor.ScrollBy(4f, 8f, 16f);
+
+            // Wait mid-scroll — homing is suspended, character should have drifted.
+            yield return new WaitForSeconds(0.5f);
+
+            float midDrift = Mathf.Abs(charGo.transform.position.x - anchor.transform.position.x);
+
+            // Character should have drifted away from anchor during scroll (carried by conveyor).
+            Assert.That(midDrift, Is.GreaterThan(0.5f),
+                $"Character should drift from anchor during scroll (drift was {midDrift:F2}).");
+        }
+
+        [UnityTest]
+        public IEnumerator ScrollEnds_CharacterWalksBackToAnchor()
+        {
+            var conveyorGo = Track(TestCharacterFactory.CreateConveyor("ReturnConveyor"));
+            var anchor = Track(TestCharacterFactory.CreateAnchor("HomeAnchor", new Vector2(0f, 0f)));
+            var charGo = Track(TestCharacterFactory.CreateMoverCharacter(
+                name: "WalkBack",
+                moveSpeed: 5f,
+                parent: conveyorGo.transform,
+                position: new Vector2(0f, 0f)));
+
+            var mover = charGo.GetComponent<CharacterMover>();
+            var conveyor = conveyorGo.GetComponent<WorldConveyor>();
+
+            // Wait a frame so Awake runs.
+            yield return null;
+
+            mover.HomeAnchor = anchor.transform;
+            mover.Target = null;
+
+            // Short fast scroll.
+            conveyor.ScrollBy(2f, 8f, 16f);
+
+            // Wait for scroll to complete plus walk-back time.
+            yield return new WaitForSeconds(3f);
+
+            float endDrift = Mathf.Abs(charGo.transform.position.x - anchor.transform.position.x);
+
+            // After scroll ends, character should have walked back near anchor.
+            Assert.That(endDrift, Is.LessThan(0.5f),
+                $"Character should return near anchor after scroll (drift was {endDrift:F2}).");
         }
 
         [UnityTest]
