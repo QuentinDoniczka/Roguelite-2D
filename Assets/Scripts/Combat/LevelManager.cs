@@ -62,6 +62,8 @@ namespace RogueliteAutoBattler.Combat
             CombatSetupHelper.FindContainersIfNeeded(transform, ref _teamContainer, ref _enemiesContainer, nameof(LevelManager));
             if (_teamHomeAnchor == null)
                 _teamHomeAnchor = GameObject.Find(CombatSetupHelper.TeamHomeAnchorName)?.transform;
+            if (_enemiesHomeAnchor == null)
+                _enemiesHomeAnchor = GameObject.Find(CombatSetupHelper.EnemiesHomeAnchorName)?.transform;
             _conveyor = GetComponent<WorldConveyor>();
             ApplyStage(_currentStageIndex);
             // Wait until an ally actually exists in the team container.
