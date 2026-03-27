@@ -39,7 +39,6 @@ namespace RogueliteAutoBattler.Combat
         private CombatState _state;
         private float _nextAttackTime;
         private bool _waitingForHit;
-        private Vector2 _slotOffset;
         private bool _attackerFacesRight;
 
         /// <summary>Current combat state of this character.</summary>
@@ -74,17 +73,12 @@ namespace RogueliteAutoBattler.Combat
 
                 if (value != null)
                 {
-                    _slotOffset = AttackSlotRegistry.Acquire(value, transform, _attackerFacesRight);
-                    _mover.SetSlotOffset(_slotOffset);
+                    // Register for attacker counting (used by LeastContested targeting).
+                    AttackSlotRegistry.Acquire(value, transform, _attackerFacesRight);
 
                     _targetStats = value.GetComponent<CombatStats>();
                     if (_targetStats != null)
                         _targetStats.OnDied += HandleTargetDied;
-                }
-                else
-                {
-                    _slotOffset = Vector2.zero;
-                    _mover.SetSlotOffset(Vector2.zero);
                 }
             }
         }
@@ -127,8 +121,7 @@ namespace RogueliteAutoBattler.Combat
                 return;
             }
 
-            Vector2 slotPosition = (Vector2)_mover.Target.position + _slotOffset;
-            float dist = Vector2.Distance(transform.position, slotPosition);
+            float dist = Vector2.Distance(transform.position, _mover.Target.position);
             bool inRange = dist <= _attackRange;
 
             if (inRange)

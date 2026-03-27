@@ -34,7 +34,6 @@ namespace RogueliteAutoBattler.Combat
         private bool _isMoving;
         private bool _isCharge;
         private Vector2 _homeOffset;
-        private Vector2 _slotOffset;
         private float _homeFacingX;
 
         /// <summary>Cached Animator from GetComponentInChildren (may be null).</summary>
@@ -161,7 +160,7 @@ namespace RogueliteAutoBattler.Combat
                 return;
             }
 
-            Vector2 destination = (Vector2)_target.position + _slotOffset;
+            Vector2 destination = (Vector2)_target.position;
             Vector2 direction = (destination - (Vector2)transform.position).normalized;
 
             FlipToward(direction.x);
@@ -174,12 +173,6 @@ namespace RogueliteAutoBattler.Combat
         public void SetMoveSpeed(float speed)
         {
             _moveSpeed = speed;
-        }
-
-        /// <summary>Sets the attack slot offset from the target center.</summary>
-        public void SetSlotOffset(Vector2 offset)
-        {
-            _slotOffset = offset;
         }
 
         /// <summary>Sets the formation offset from the home anchor for this character's home position.</summary>
