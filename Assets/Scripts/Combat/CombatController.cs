@@ -39,6 +39,7 @@ namespace RogueliteAutoBattler.Combat
         private CombatState _state;
         private float _nextAttackTime;
         private bool _waitingForHit;
+        private bool _attackerFacesRight;
 
         /// <summary>Current combat state of this character.</summary>
         public CombatState State => _state;
@@ -50,17 +51,31 @@ namespace RogueliteAutoBattler.Combat
         /// </summary>
         public System.Func<Transform> FindNewTarget { get; set; }
 
+        /// <summary>Sets whether this attacker approaches from the left (true) or right (false).</summary>
+        public void SetAttackerFacing(bool facesRight)
+        {
+            _attackerFacesRight = facesRight;
+        }
+
         /// <summary>The Transform this character moves toward and attacks.</summary>
         public Transform Target
         {
             get => _mover.Target;
             set
             {
+                // Release slot on old target before unsubscribing
+                if (_mover != null && _mover.Target != null)
+                    AttackSlotRegistry.Release(_mover.Target, transform);
+
                 UnsubscribeFromTarget();
                 _targetStats = null;
                 _mover.Target = value;
+
                 if (value != null)
                 {
+                    // Register for attacker counting (used by LeastContested targeting).
+                    AttackSlotRegistry.Acquire(value, transform, _attackerFacesRight);
+
                     _targetStats = value.GetComponent<CombatStats>();
                     if (_targetStats != null)
                         _targetStats.OnDied += HandleTargetDied;
@@ -82,6 +97,9 @@ namespace RogueliteAutoBattler.Combat
 
         private void OnDestroy()
         {
+            if (_mover != null && _mover.Target != null)
+                AttackSlotRegistry.Release(_mover.Target, transform);
+
             // Use Unity's null check (not cached _hasStats) — the object may be destroyed at teardown.
             if (_stats != null)
                 _stats.OnDied -= HandleSelfDied;

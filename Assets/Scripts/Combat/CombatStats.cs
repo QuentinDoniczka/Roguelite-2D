@@ -53,6 +53,10 @@ namespace RogueliteAutoBattler.Combat
             _currentHp = Mathf.Max(0, _currentHp - damage);
             if (IsDead)
             {
+                // Safety net: free all slots pointing to this target before OnDied fires.
+                // Attackers will also individually release via HandleTargetDied -> Target setter,
+                // but this ensures no stale slots if an attacker is destroyed simultaneously.
+                AttackSlotRegistry.ReleaseAll(transform);
 #if UNITY_EDITOR
                 Debug.Log($"[CombatStats] {gameObject.name} died!");
 #endif

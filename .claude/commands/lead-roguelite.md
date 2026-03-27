@@ -218,6 +218,7 @@ b) Delegue a `git-unity` avec la tache "push" pour pusher la **branche feature**
    - Si le sync detecte des conflits, delegue a `dev-unity` pour les resoudre, puis relance le push.
 c) **STOP — Demande de validation a l'utilisateur.** Affiche :
    - "Branche pushee. Teste dans Unity et confirme que tout fonctionne. Dis 'ok' pour creer la PR et merger."
+   - **Liste concrete de ce qu'il faut tester** : basee sur les changements de l'Issue, decrire 3-5 scenarios de test manuels que l'utilisateur doit verifier dans Unity (ex: "Lance Play, verifie que les allies ne se stackent pas sur le meme ennemi"). Etre specifique au contexte de l'Issue, pas generique.
    - **Ne PAS creer de PR ni merger avant la validation.**
 d) **Apres validation utilisateur** — Delegue a `git-unity` avec la tache "create-pr" pour creer la PR.
 e) **Merge** — Delegue a `git-unity` avec la tache "merge-pr" :

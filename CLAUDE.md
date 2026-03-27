@@ -25,7 +25,7 @@
 Doc detaille : `Assets/doc/premier-jet-roguelite.html`
 
 # Project Structure
-Generated: 2026-03-26
+Generated: 2026-03-27
 
 Assets/
 ├── Animations/  (23 files: .anim + .controller)
@@ -47,6 +47,7 @@ Assets/
 │   ├── plan-issue-6.md
 │   ├── plan-issue-40.md
 │   ├── plan-issue-59.md
+│   ├── plan-issue-80.md
 │   ├── plan-level-scroll-transition.md
 │   └── premier-jet-roguelite.html
 ├── Fonts/  (empty)
@@ -64,6 +65,7 @@ Assets/
 │   ├── Combat/
 │   │   ├── AnimHashes.cs
 │   │   ├── AnimationEventRelay.cs
+│   │   ├── AttackSlotRegistry.cs
 │   │   ├── CharacterAppearance.cs
 │   │   ├── CharacterMover.cs
 │   │   ├── CombatController.cs

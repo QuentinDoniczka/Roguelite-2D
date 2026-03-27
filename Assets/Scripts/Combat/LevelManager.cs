@@ -212,6 +212,9 @@ namespace RogueliteAutoBattler.Combat
                 data.Appearance,
                 nameof(LevelManager));
 
+            // Prevent allies and enemies from pushing each other physically.
+            IgnoreCollisionWithOppositeTeam(enemy, _teamContainer);
+
             // Track enemy death for level progression.
             _aliveEnemyCount++;
             components.Stats.OnDied += OnEnemyDied;
@@ -220,10 +223,11 @@ namespace RogueliteAutoBattler.Combat
 
             // CombatController — set attack range, wire retarget delegate with closure on position.
             components.Controller.SetAttackRange(data.AttackRange);
-            components.Controller.FindNewTarget = () => TargetFinder.Closest(_teamContainer, enemyTransform.position);
+            components.Controller.SetAttackerFacing(false);
+            components.Controller.FindNewTarget = () => TargetFinder.LeastContested(_teamContainer, enemyTransform.position);
 
             // Set target through CombatController.Target so OnDied subscription is wired.
-            Transform allyTarget = TargetFinder.Closest(_teamContainer, enemyTransform.position);
+            Transform allyTarget = TargetFinder.LeastContested(_teamContainer, enemyTransform.position);
             if (allyTarget != null)
                 components.Controller.Target = allyTarget;
 #if UNITY_EDITOR
@@ -297,6 +301,7 @@ namespace RogueliteAutoBattler.Combat
 #endif
 
             ClearAllyTargets();
+            AttackSlotRegistry.Clear();
             CombatSetupHelper.RecalculateFormation(_teamContainer, _teamHomeAnchor, facingRight: true);
 
             var stages = _levelDatabase.Stages;
@@ -375,7 +380,7 @@ namespace RogueliteAutoBattler.Combat
                 if (controller.Target != null) continue;
                 if (!ally.TryGetComponent<CombatStats>(out var stats) || stats.IsDead) continue;
 
-                Transform target = TargetFinder.Closest(_enemiesContainer, ally.position, float.MaxValue, CombatZoneX);
+                Transform target = TargetFinder.LeastContested(_enemiesContainer, ally.position, float.MaxValue, CombatZoneX);
                 if (target != null)
                 {
                     controller.Target = target;
@@ -390,7 +395,7 @@ namespace RogueliteAutoBattler.Combat
             if (controller.FindNewTarget != null) return;
 
             var allyRef = ally;
-            controller.FindNewTarget = () => TargetFinder.Closest(_enemiesContainer, allyRef.position, float.MaxValue, CombatZoneX);
+            controller.FindNewTarget = () => TargetFinder.LeastContested(_enemiesContainer, allyRef.position, float.MaxValue, CombatZoneX);
         }
 
         private void ClearAllyTargets() => DisengageAll(_teamContainer);
@@ -432,6 +437,7 @@ namespace RogueliteAutoBattler.Combat
             Debug.Log($"[{nameof(LevelManager)}] Level lost! All allies defeated.");
 #endif
             ClearEnemyTargets();
+            AttackSlotRegistry.Clear();
             CombatSetupHelper.RecalculateFormation(_enemiesContainer, _enemiesHomeAnchor, facingRight: false);
         }
 
@@ -476,6 +482,25 @@ namespace RogueliteAutoBattler.Combat
 
         internal void RecalculateEnemyFormationForTest() =>
             CombatSetupHelper.RecalculateFormation(_enemiesContainer, _enemiesHomeAnchor, facingRight: false);
+
+        /// <summary>
+        /// Disables physics collision between a newly spawned character and all
+        /// characters in the opposite team container. Bidirectional (A ignores B = B ignores A).
+        /// </summary>
+        private static void IgnoreCollisionWithOppositeTeam(GameObject character, Transform oppositeContainer)
+        {
+            if (oppositeContainer == null) return;
+
+            var col = character.GetComponent<Collider2D>();
+            if (col == null) return;
+
+            for (int i = 0; i < oppositeContainer.childCount; i++)
+            {
+                var otherCol = oppositeContainer.GetChild(i).GetComponent<Collider2D>();
+                if (otherCol != null)
+                    Physics2D.IgnoreCollision(col, otherCol, true);
+            }
+        }
 
     }
 }

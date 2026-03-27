@@ -64,7 +64,7 @@ namespace RogueliteAutoBattler.Combat
             ally.name = data.AllyName;
             ally.transform.localScale = FacingRightScale;
 
-            CombatSetupHelper.AssembleCharacter(
+            var components = CombatSetupHelper.AssembleCharacter(
                 ally,
                 data.MaxHp,
                 data.Atk,
@@ -76,6 +76,7 @@ namespace RogueliteAutoBattler.Combat
                 data.ColliderRadius,
                 data.Appearance,
                 nameof(CombatSpawnManager));
+            components.Controller.SetAttackerFacing(true);
         }
     }
 }
