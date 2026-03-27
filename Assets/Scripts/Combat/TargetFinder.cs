@@ -8,6 +8,8 @@ namespace RogueliteAutoBattler.Combat
     /// </summary>
     public static class TargetFinder
     {
+        private const float ContestPenalty = 1.0f;
+
         /// <summary>
         /// Finds the closest alive target on the X axis (side-scroller distance).
         /// <paramref name="maxWorldX"/> filters out targets whose world X position exceeds the limit.
@@ -32,6 +34,45 @@ namespace RogueliteAutoBattler.Combat
                 if (dist < bestDist && dist <= maxRange)
                 {
                     bestDist = dist;
+                    best = child;
+                }
+            }
+
+            return best;
+        }
+
+        /// <summary>
+        /// Finds the least contested alive target, weighting by distance and attacker count.
+        /// Prefers targets with fewer attackers. Falls back to closest when attacker counts are equal.
+        /// </summary>
+        public static Transform LeastContested(
+            Transform container,
+            Vector3 from,
+            float maxRange = float.MaxValue,
+            float maxWorldX = float.MaxValue)
+        {
+            if (container == null)
+                return null;
+
+            Transform best = null;
+            float bestScore = float.MaxValue;
+
+            foreach (Transform child in container)
+            {
+                if (!IsAlive(child))
+                    continue;
+
+                if (child.position.x > maxWorldX)
+                    continue;
+
+                float dist = Vector2.Distance(from, child.position);
+                if (dist > maxRange)
+                    continue;
+
+                float score = dist + AttackSlotRegistry.AttackerCount(child) * ContestPenalty;
+                if (score < bestScore)
+                {
+                    bestScore = score;
                     best = child;
                 }
             }

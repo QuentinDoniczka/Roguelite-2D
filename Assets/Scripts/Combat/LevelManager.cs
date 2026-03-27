@@ -215,10 +215,11 @@ namespace RogueliteAutoBattler.Combat
 
             // CombatController — set attack range, wire retarget delegate with closure on position.
             components.Controller.SetAttackRange(data.AttackRange);
-            components.Controller.FindNewTarget = () => TargetFinder.Closest(_teamContainer, enemyTransform.position);
+            components.Controller.SetAttackerFacing(false);
+            components.Controller.FindNewTarget = () => TargetFinder.LeastContested(_teamContainer, enemyTransform.position);
 
             // Set target through CombatController.Target so OnDied subscription is wired.
-            Transform allyTarget = TargetFinder.Closest(_teamContainer, enemyTransform.position);
+            Transform allyTarget = TargetFinder.LeastContested(_teamContainer, enemyTransform.position);
             if (allyTarget != null)
                 components.Controller.Target = allyTarget;
 #if UNITY_EDITOR
@@ -292,6 +293,7 @@ namespace RogueliteAutoBattler.Combat
 #endif
 
             ClearAllyTargets();
+            AttackSlotRegistry.Clear();
 
             var stages = _levelDatabase.Stages;
             if (stages == null || _currentStageIndex < 0 || _currentStageIndex >= stages.Count)
@@ -369,7 +371,7 @@ namespace RogueliteAutoBattler.Combat
                 if (controller.Target != null) continue;
                 if (!ally.TryGetComponent<CombatStats>(out var stats) || stats.IsDead) continue;
 
-                Transform target = TargetFinder.Closest(_enemiesContainer, ally.position, float.MaxValue, CombatZoneX);
+                Transform target = TargetFinder.LeastContested(_enemiesContainer, ally.position, float.MaxValue, CombatZoneX);
                 if (target != null)
                 {
                     controller.Target = target;
@@ -384,7 +386,7 @@ namespace RogueliteAutoBattler.Combat
             if (controller.FindNewTarget != null) return;
 
             var allyRef = ally;
-            controller.FindNewTarget = () => TargetFinder.Closest(_enemiesContainer, allyRef.position, float.MaxValue, CombatZoneX);
+            controller.FindNewTarget = () => TargetFinder.LeastContested(_enemiesContainer, allyRef.position, float.MaxValue, CombatZoneX);
         }
 
         private void ClearAllyTargets() => DisengageAll(_teamContainer);
@@ -426,6 +428,7 @@ namespace RogueliteAutoBattler.Combat
             Debug.Log($"[{nameof(LevelManager)}] Level lost! All allies defeated.");
 #endif
             ClearEnemyTargets();
+            AttackSlotRegistry.Clear();
         }
 
         private void WireAllyDeathTracking()

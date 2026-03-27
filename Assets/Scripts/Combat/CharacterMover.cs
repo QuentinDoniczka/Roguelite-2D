@@ -14,9 +14,6 @@ namespace RogueliteAutoBattler.Combat
         [Tooltip("Movement speed in world units per second.")]
         [SerializeField] private float _moveSpeed = 2f;
 
-        // Characters aim for a point in front of their target (face-to-face), not on top.
-        private const float FaceOffset = 0.25f;
-
         private const float HomeArrivalThreshold = 0.15f;
         private const float HomeDampingFactor = 8f;
 
@@ -37,6 +34,7 @@ namespace RogueliteAutoBattler.Combat
         private bool _isMoving;
         private bool _isCharge;
         private Vector2 _homeOffset;
+        private Vector2 _slotOffset;
         private float _homeFacingX;
 
         /// <summary>Cached Animator from GetComponentInChildren (may be null).</summary>
@@ -160,11 +158,7 @@ namespace RogueliteAutoBattler.Combat
                 return;
             }
 
-            // Aim for a point in front of the target, not on top.
-            // Use raw direction to target so offset is immune to flip changes.
-            float rawDirX = _target.position.x - transform.position.x;
-            float side = rawDirX > 0f ? -FaceOffset : FaceOffset;
-            Vector2 destination = new Vector2(_target.position.x + side, _target.position.y);
+            Vector2 destination = (Vector2)_target.position + _slotOffset;
             Vector2 direction = (destination - (Vector2)transform.position).normalized;
 
             FlipToward(direction.x);
@@ -177,6 +171,12 @@ namespace RogueliteAutoBattler.Combat
         public void SetMoveSpeed(float speed)
         {
             _moveSpeed = speed;
+        }
+
+        /// <summary>Sets the attack slot offset from the target center.</summary>
+        public void SetSlotOffset(Vector2 offset)
+        {
+            _slotOffset = offset;
         }
 
         /// <summary>Sets the formation offset from the home anchor for this character's home position.</summary>
