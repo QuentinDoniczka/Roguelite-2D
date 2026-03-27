@@ -179,6 +179,22 @@ namespace RogueliteAutoBattler.Editor
 
             AddVisualEquipmentTestLoop(root);
 
+            const string damageNumberConfigPath = "Assets/Data/DamageNumberConfig.asset";
+            var damageNumberConfig = AssetDatabase.LoadAssetAtPath<DamageNumberConfig>(damageNumberConfigPath);
+            if (damageNumberConfig == null)
+            {
+                damageNumberConfig = ScriptableObject.CreateInstance<DamageNumberConfig>();
+                EditorUIFactory.EnsureDirectoryExists(damageNumberConfigPath);
+                AssetDatabase.CreateAsset(damageNumberConfig, damageNumberConfigPath);
+                AssetDatabase.SaveAssets();
+            }
+
+            var damageNumberBootstrap = root.AddComponent<DamageNumberBootstrap>();
+            var soDamageNumberBootstrap = new SerializedObject(damageNumberBootstrap);
+            EditorUIFactory.SetObj(soDamageNumberBootstrap, "_config", damageNumberConfig);
+            EditorUIFactory.SetObj(soDamageNumberBootstrap, "_effectsContainer", fxGo.transform);
+            soDamageNumberBootstrap.ApplyModifiedProperties();
+
             return root;
         }
 

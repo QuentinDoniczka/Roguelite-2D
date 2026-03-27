@@ -32,7 +32,8 @@ namespace RogueliteAutoBattler.Combat
             AppearanceData appearance,
             string callerName,
             Color? healthBarFillColor = null,
-            Color? healthBarTrailColor = null)
+            Color? healthBarTrailColor = null,
+            bool isAlly = true)
         {
             var combatStats = character.AddComponent<CombatStats>();
             combatStats.InitializeDirect(maxHp, atk, attackSpeed, regenHpPerSecond);
@@ -60,6 +61,11 @@ namespace RogueliteAutoBattler.Combat
 
             var appearanceComp = character.AddComponent<CharacterAppearance>();
             appearanceComp.ApplyAppearance(appearance);
+
+            var characterTransform = character.transform;
+            bool ally = isAlly;
+            combatStats.OnDamageTaken += (damage, _) =>
+                DamageNumberService.Show(characterTransform.position, damage, ally);
 
             return new CharacterComponents
             {

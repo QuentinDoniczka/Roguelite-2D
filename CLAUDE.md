@@ -25,7 +25,7 @@
 Doc detaille : `Assets/doc/premier-jet-roguelite.html`
 
 # Project Structure
-Generated: 2026-03-27 (updated)
+Generated: 2026-03-27 (updated #86)
 
 Assets/
 ├── Animations/  (23 files: .anim + .controller)
@@ -37,6 +37,7 @@ Assets/
 │   ├── Enemies/
 │   │   └── EnemyStats.asset
 │   ├── LevelDatabase.asset
+│   ├── DamageNumberConfig.asset
 │   ├── LootTables/  (empty)
 │   └── TeamDatabase.asset
 ├── doc/
@@ -72,11 +73,15 @@ Assets/
 │   │   ├── CombatSetupHelper.cs
 │   │   ├── CombatSpawnManager.cs
 │   │   ├── CombatStats.cs
+│   │   ├── DamageNumber.cs
+│   │   ├── DamageNumberBootstrap.cs
+│   │   ├── DamageNumberService.cs
 │   │   ├── FormationLayout.cs
 │   │   ├── GroundFitter.cs
 │   │   ├── HealthBar.cs
 │   │   ├── LevelManager.cs
 │   │   ├── ScreenAnchor.cs
+│   │   ├── SortingLayers.cs
 │   │   ├── TargetFinder.cs
 │   │   ├── VisualEquipmentTestLoop.cs
 │   │   └── WorldConveyor.cs
@@ -91,6 +96,7 @@ Assets/
 │   ├── Items/  (empty)
 │   ├── ScriptableObjects/
 │   │   ├── CharacterStats.cs
+│   │   ├── DamageNumberConfig.cs
 │   │   ├── LevelDataTypes.cs
 │   │   ├── LevelDatabase.cs
 │   │   └── TeamDatabase.cs
@@ -151,6 +157,8 @@ Assets/
 │       ├── CharacterMoverTests.cs
 │       ├── CombatControllerTests.cs
 │       ├── CombatStatsRegenTests.cs
+│       ├── DamageNumberServiceTests.cs
+│       ├── DamageNumberTests.cs
 │       ├── FormationRecalculationTests.cs
 │       ├── HealthBarTrailTests.cs
 │       ├── LevelManagerDefeatTests.cs
