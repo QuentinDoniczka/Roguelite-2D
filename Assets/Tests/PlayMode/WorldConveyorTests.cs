@@ -21,7 +21,6 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             var conveyor = go.GetComponent<WorldConveyor>();
             float startX = go.transform.position.x;
 
-            // Wait one frame so Awake runs and Rigidbody2D is configured.
             yield return null;
 
             float distance = 5f;
@@ -30,7 +29,6 @@ namespace RogueliteAutoBattler.Tests.PlayMode
 
             conveyor.ScrollBy(distance, maxSpeed, acceleration);
 
-            // Wait enough time for the scroll to complete.
             yield return new WaitForSeconds(ScrollTimeout);
 
             float endX = go.transform.position.x;
@@ -68,7 +66,6 @@ namespace RogueliteAutoBattler.Tests.PlayMode
 
             conveyor.OnDecelerationStarted += () => fired = true;
 
-            // Use a longer distance with moderate acceleration to ensure deceleration phase occurs.
             conveyor.ScrollBy(5f, 4f, 2f);
 
             yield return new WaitForSeconds(LongScrollTimeout);
@@ -84,7 +81,6 @@ namespace RogueliteAutoBattler.Tests.PlayMode
 
             yield return null;
 
-            // Use moderate values so the profile has clear acceleration and deceleration phases.
             conveyor.ScrollBy(8f, 4f, 2f);
 
             float peakSpeed = 0f;
@@ -92,7 +88,6 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             bool sawDeceleration = false;
             float previousSpeed = 0f;
 
-            // Sample speed over time.
             for (int i = 0; i < MaxSampleFrames; i++)
             {
                 yield return new WaitForFixedUpdate();
@@ -118,7 +113,6 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             Assert.IsTrue(sawDeceleration, "Speed should have decreased during deceleration phase.");
             Assert.That(peakSpeed, Is.GreaterThan(0.5f), "Peak speed should be meaningfully above zero.");
 
-            // After completion, speed should be zero.
             Assert.That(conveyor.CurrentSpeed, Is.EqualTo(0f).Within(0.01f),
                 "Speed should be zero after scroll completes.");
         }
@@ -133,7 +127,6 @@ namespace RogueliteAutoBattler.Tests.PlayMode
 
             float startX = go.transform.position.x;
 
-            // ScrollBy with distance=0 logs a warning and does nothing.
             LogAssert.Expect(LogType.Warning, new Regex("distance must be > 0"));
 
             conveyor.ScrollBy(0f, 10f, 5f);

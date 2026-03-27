@@ -2,20 +2,12 @@ using UnityEngine;
 
 namespace RogueliteAutoBattler.Combat
 {
-    /// <summary>
-    /// Calculates formation positions for a group of units.
-    /// Returns offsets relative to an anchor point.
-    /// </summary>
     public static class FormationLayout
     {
         private const float DefaultYSpacing = 0.5f;
         private const float DefaultColumnSpacing = 0.5f;
         private const int MaxPerColumn = 5;
 
-        /// <summary>
-        /// Returns world-space positions for <paramref name="count"/> units.
-        /// <paramref name="facingRight"/>: true for allies (back column at -X), false for enemies (back column at +X).
-        /// </summary>
         public static Vector2[] GetPositions(
             Vector2 anchor,
             int count,
@@ -29,20 +21,16 @@ namespace RogueliteAutoBattler.Combat
 
             if (count <= MaxPerColumn)
             {
-                // Single column
                 FillColumn(positions, 0, count, anchor.x, anchor.y, ySpacing);
             }
             else
             {
-                // Two columns
                 int frontCount = Mathf.CeilToInt(count / 2f);
                 int backCount = count - frontCount;
 
                 float backOffsetX = facingRight ? -columnSpacing : columnSpacing;
 
-                // Front column at anchor.x
                 FillColumn(positions, 0, frontCount, anchor.x, anchor.y, ySpacing);
-                // Back column offset on X
                 FillColumn(positions, frontCount, backCount, anchor.x + backOffsetX, anchor.y, ySpacing);
             }
 

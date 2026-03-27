@@ -2,9 +2,6 @@ using UnityEngine;
 
 namespace RogueliteAutoBattler.UI.Core
 {
-    /// <summary>
-    /// Base class for all UI screens. Uses CanvasGroup for visibility control.
-    /// </summary>
     [RequireComponent(typeof(CanvasGroup))]
     public class UIScreen : MonoBehaviour
     {
@@ -15,9 +12,6 @@ namespace RogueliteAutoBattler.UI.Core
             EnsureCanvasGroup();
         }
 
-        /// <summary>
-        /// Called when this screen becomes visible.
-        /// </summary>
         public virtual void OnShow()
         {
             EnsureCanvasGroup();
@@ -26,9 +20,6 @@ namespace RogueliteAutoBattler.UI.Core
             _canvasGroup.interactable = true;
         }
 
-        /// <summary>
-        /// Called when this screen is hidden.
-        /// </summary>
         public virtual void OnHide()
         {
             EnsureCanvasGroup();
@@ -37,17 +28,11 @@ namespace RogueliteAutoBattler.UI.Core
             _canvasGroup.interactable = false;
         }
 
-        /// <summary>
-        /// Called when another screen is pushed on top of this one.
-        /// </summary>
         public virtual void OnPush()
         {
             OnHide();
         }
 
-        /// <summary>
-        /// Called when this screen returns to the front after the one above is popped.
-        /// </summary>
         public virtual void OnPop()
         {
             OnShow();

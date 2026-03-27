@@ -84,6 +84,8 @@ This is the key question. Examples:
 
 ### LOW — Naming, conventions, cleanup
 
+- **Comments in code** — Any `//`, `/* */`, `/// <summary>`, XML doc comments should be removed. Use verbose names instead. Only `// TODO:` for critical issues is acceptable.
+- **`[Tooltip]` attributes** that duplicate the field name
 - **File name doesn't match class name** — Required for MonoBehaviours
 - **Inconsistent naming conventions**
 - **Empty folders** with only `.meta` files

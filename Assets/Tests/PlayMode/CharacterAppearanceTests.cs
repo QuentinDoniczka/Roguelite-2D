@@ -71,13 +71,11 @@ namespace RogueliteAutoBattler.Tests.PlayMode
 
             var appearance = go.GetComponent<CharacterAppearance>();
 
-            // Record originals
             var origHead = appearance.HeadRenderer.sprite;
             var origHat = appearance.HatRenderer.sprite;
             var origWeapon = appearance.WeaponRenderer.sprite;
             var origShield = appearance.ShieldRenderer.sprite;
 
-            // Create test sprites
             var testHead = CreateTestSprite();
             var testHat = CreateTestSprite();
             var testWeapon = CreateTestSprite();
@@ -94,7 +92,6 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             Assert.AreEqual(testShield, appearance.ShieldRenderer.sprite,
                 "Shield sprite should be the test sprite after ApplyAppearance.");
 
-            // Verify they are not the originals
             Assert.AreNotEqual(origHead, appearance.HeadRenderer.sprite,
                 "Head sprite should differ from the original.");
             Assert.AreNotEqual(origHat, appearance.HatRenderer.sprite,
@@ -115,13 +112,11 @@ namespace RogueliteAutoBattler.Tests.PlayMode
 
             var appearance = go.GetComponent<CharacterAppearance>();
 
-            // Record originals
             var origHead = appearance.HeadRenderer.sprite;
             var origHat = appearance.HatRenderer.sprite;
             var origWeapon = appearance.WeaponRenderer.sprite;
             var origShield = appearance.ShieldRenderer.sprite;
 
-            // Apply all nulls
             appearance.ApplyAppearance(null, null, null, null);
 
             Assert.AreEqual(origHead, appearance.HeadRenderer.sprite,
@@ -144,12 +139,10 @@ namespace RogueliteAutoBattler.Tests.PlayMode
 
             var appearance = go.GetComponent<CharacterAppearance>();
 
-            // Record originals
             var origHat = appearance.HatRenderer.sprite;
             var origWeapon = appearance.WeaponRenderer.sprite;
             var origShield = appearance.ShieldRenderer.sprite;
 
-            // Create one test sprite for head only
             var testHead = CreateTestSprite();
 
             appearance.ApplyAppearance(testHead, null, null, null);
@@ -167,25 +160,20 @@ namespace RogueliteAutoBattler.Tests.PlayMode
         [UnityTest]
         public IEnumerator CharacterAppearance_ApplyAppearance_WeaponSurvivesAnimatorFrames()
         {
-            // Instantiate prefab WITH Animator enabled (real-world scenario)
             var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(PrefabPath);
             var go = Object.Instantiate(prefab);
             Track(go);
 
             var appearance = go.AddComponent<CharacterAppearance>();
-            yield return null; // Awake runs
-
-            // DO NOT disable the Animator — this is the real-world test
+            yield return null;
 
             var testSprite = CreateTestSprite();
-            appearance.ApplyAppearance(null, null, testSprite, null); // weapon only
+            appearance.ApplyAppearance(null, null, testSprite, null);
 
-            // Wait several frames for the Animator to potentially override
             yield return null;
             yield return null;
             yield return null;
 
-            // The weapon should STILL show our test sprite, not the animation's default
             Assert.AreEqual(testSprite, appearance.WeaponRenderer.sprite,
                 "Weapon sprite was overridden by Animator — ApplyAppearance must survive animation frames");
         }

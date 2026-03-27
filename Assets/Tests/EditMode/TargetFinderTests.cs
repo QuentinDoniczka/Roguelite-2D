@@ -38,7 +38,7 @@ namespace RogueliteAutoBattler.Tests.EditMode
             _container = Track(new GameObject("Container"));
 
             var nearest = CreateChild("Nearest_Dead", new Vector3(1f, 0f, 0f));
-            nearest.GetComponent<CombatStats>().TakeDamage(100); // Kill it
+            nearest.GetComponent<CombatStats>().TakeDamage(100);
 
             var secondNearest = CreateChild("Second", new Vector3(3f, 0f, 0f));
             CreateChild("Farthest", new Vector3(8f, 0f, 0f));
@@ -56,10 +56,10 @@ namespace RogueliteAutoBattler.Tests.EditMode
 
             CreateChild("HighHp", Vector3.zero);
             var low = CreateChild("LowHp", Vector3.zero);
-            low.GetComponent<CombatStats>().TakeDamage(70); // CurrentHp = 30
+            low.GetComponent<CombatStats>().TakeDamage(70);
 
             var mid = CreateChild("MidHp", Vector3.zero);
-            mid.GetComponent<CombatStats>().TakeDamage(40); // CurrentHp = 60
+            mid.GetComponent<CombatStats>().TakeDamage(40);
 
             Transform result = TargetFinder.LowestHp(_container.transform);
 
@@ -74,10 +74,10 @@ namespace RogueliteAutoBattler.Tests.EditMode
 
             var full = CreateChild("FullHp", Vector3.zero);
             var damaged = CreateChild("DamagedHp", Vector3.zero);
-            damaged.GetComponent<CombatStats>().TakeDamage(50); // CurrentHp = 50
+            damaged.GetComponent<CombatStats>().TakeDamage(50);
 
             var lowHp = CreateChild("LowHp", Vector3.zero);
-            lowHp.GetComponent<CombatStats>().TakeDamage(80); // CurrentHp = 20
+            lowHp.GetComponent<CombatStats>().TakeDamage(80);
 
             Transform result = TargetFinder.HighestHp(_container.transform);
 

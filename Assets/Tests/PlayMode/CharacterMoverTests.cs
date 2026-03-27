@@ -23,7 +23,6 @@ namespace RogueliteAutoBattler.Tests.PlayMode
 
             var mover = charGo.GetComponent<CharacterMover>();
 
-            // Wait a frame so Awake runs.
             yield return null;
 
             mover.HomeAnchor = anchor.transform;
@@ -52,7 +51,6 @@ namespace RogueliteAutoBattler.Tests.PlayMode
 
             var mover = charGo.GetComponent<CharacterMover>();
 
-            // Wait a frame so Awake runs.
             yield return null;
 
             mover.Target = targetGo.transform;
@@ -82,24 +80,19 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             var mover = charGo.GetComponent<CharacterMover>();
             var conveyor = conveyorGo.GetComponent<WorldConveyor>();
 
-            // Wait a frame so Awake runs.
             yield return null;
 
-            // No target, no home anchor — character receives scroll velocity
-            // (dynamic Rigidbody2D children are NOT carried by kinematic parent).
             mover.Target = null;
             mover.HomeAnchor = null;
 
             float startX = charGo.transform.position.x;
 
-            // Start scrolling the conveyor.
             conveyor.ScrollBy(4f, 8f, 16f);
 
             yield return new WaitForSeconds(ScrollTestTimeout);
 
             float endX = charGo.transform.position.x;
 
-            // The character moves with the scroll velocity (leftward = negative X).
             Assert.That(endX, Is.LessThan(startX - 1f),
                 "Character should move with scroll when no home anchor is set.");
         }
@@ -109,7 +102,6 @@ namespace RogueliteAutoBattler.Tests.PlayMode
         {
             var anchor = Track(TestCharacterFactory.CreateAnchor("HomeAnchor", new Vector2(0f, 0f)));
 
-            // Place character very close to anchor — damping should result in very low velocity.
             var charGo = Track(TestCharacterFactory.CreateMoverCharacter(
                 name: "DampedChar",
                 moveSpeed: 5f,
@@ -122,7 +114,6 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             mover.HomeAnchor = anchor.transform;
             mover.Target = null;
 
-            // Let physics run a few steps.
             yield return new WaitForFixedUpdate();
             yield return new WaitForFixedUpdate();
             yield return new WaitForFixedUpdate();
@@ -130,7 +121,6 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             var rb = charGo.GetComponent<Rigidbody2D>();
             float velocity = Mathf.Abs(rb.linearVelocity.x);
 
-            // At distance 0.05, correctionSpeed = min(0.05 * 8, 5) = 0.4 — well below moveSpeed of 5.
             Assert.That(velocity, Is.LessThan(2f),
                 "Velocity near home should be proportionally damped (much less than moveSpeed).");
         }
@@ -149,22 +139,17 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             var mover = charGo.GetComponent<CharacterMover>();
             var conveyor = conveyorGo.GetComponent<WorldConveyor>();
 
-            // Wait a frame so Awake runs.
             yield return null;
 
             mover.HomeAnchor = anchor.transform;
             mover.Target = null;
 
-            // Start scroll: conveyor moves 4 units left.
             conveyor.ScrollBy(4f, 8f, 16f);
 
-            // Wait mid-scroll — homing is active, character walks toward anchor
-            // while scroll velocity is applied underneath.
             yield return new WaitForSeconds(0.5f);
 
             float midDrift = Mathf.Abs(charGo.transform.position.x - anchor.transform.position.x);
 
-            // Character should stay near anchor because walkVel compensates scroll.
             Assert.That(midDrift, Is.LessThan(2f),
                 $"Character should stay near anchor during scroll thanks to homing (drift was {midDrift:F2}).");
         }
@@ -183,21 +168,17 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             var mover = charGo.GetComponent<CharacterMover>();
             var conveyor = conveyorGo.GetComponent<WorldConveyor>();
 
-            // Wait a frame so Awake runs.
             yield return null;
 
             mover.HomeAnchor = anchor.transform;
             mover.Target = null;
 
-            // Short fast scroll.
             conveyor.ScrollBy(2f, 8f, 16f);
 
-            // Wait for scroll to complete plus walk-back time.
             yield return new WaitForSeconds(3f);
 
             float endDrift = Mathf.Abs(charGo.transform.position.x - anchor.transform.position.x);
 
-            // After scroll ends, character should have walked back near anchor.
             Assert.That(endDrift, Is.LessThan(0.5f),
                 $"Character should return near anchor after scroll (drift was {endDrift:F2}).");
         }
@@ -212,12 +193,8 @@ namespace RogueliteAutoBattler.Tests.PlayMode
 
             var mover = charGo.GetComponent<CharacterMover>();
 
-            // Wait a frame so Awake runs.
             yield return null;
 
-            // FlipToward sets transform.localScale.x on the root.
-            // directionX > 0 => localScale.x = -1 (face right, since sprites face LEFT natively)
-            // directionX < 0 => localScale.x = 1 (face left, native)
             mover.FlipToward(1f);
             yield return null;
 

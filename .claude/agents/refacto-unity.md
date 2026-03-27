@@ -51,6 +51,8 @@ You are a senior Unity 2D refactoring specialist working on a **Roguelite Auto-B
 - **Sensitive data in client code** — API keys, secret formulas, drop tables that should be server-only
 
 ### LOW — Dead Code & Cleanup
+- **All comments** (`//`, `/* */`, `/// <summary>`, XML doc) → remove. Use verbose self-documenting names instead. The only acceptable comments are `// TODO:` for critical unresolved issues.
+- `[Tooltip("...")]` attributes that duplicate the field name → remove (keep `[Header]` for field groups)
 - Unused variables/methods, commented code, stale TODOs, unused usings → remove
 - **Unused files** — Grep the entire project for references. If a `.cs` file is never referenced (no `using`, no `GetComponent`, no serialized field, no menu attribute), flag it for deletion
 - **Unused functions** — If a public/internal method has zero callers across the project, remove it (unless it's a Unity callback like `Awake`, `Update`, `OnEnable`, etc.)

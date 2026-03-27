@@ -35,14 +35,10 @@ namespace RogueliteAutoBattler.Tests.EditMode
 
             Assert.AreEqual(3, positions.Length);
 
-            // totalHeight = (3-1) * 0.5 = 1.0
-            // startY = 0 + 1.0 * 0.5 = 0.5
-            // positions: 0.5, 0.0, -0.5
             Assert.That(positions[0].y, Is.EqualTo(0.5f).Within(0.01f));
             Assert.That(positions[1].y, Is.EqualTo(0.0f).Within(0.01f));
             Assert.That(positions[2].y, Is.EqualTo(-0.5f).Within(0.01f));
 
-            // All same X at anchor
             Assert.That(positions[0].x, Is.EqualTo(0f).Within(0.01f));
             Assert.That(positions[1].x, Is.EqualTo(0f).Within(0.01f));
             Assert.That(positions[2].x, Is.EqualTo(0f).Within(0.01f));
@@ -57,16 +53,12 @@ namespace RogueliteAutoBattler.Tests.EditMode
 
             Assert.AreEqual(5, positions.Length);
 
-            // totalHeight = (5-1) * 0.5 = 2.0
-            // startY = 1.0 + 2.0 * 0.5 = 2.0
-            // positions Y: 2.0, 1.5, 1.0, 0.5, 0.0
             Assert.That(positions[0].y, Is.EqualTo(2.0f).Within(0.01f));
             Assert.That(positions[1].y, Is.EqualTo(1.5f).Within(0.01f));
             Assert.That(positions[2].y, Is.EqualTo(1.0f).Within(0.01f));
             Assert.That(positions[3].y, Is.EqualTo(0.5f).Within(0.01f));
             Assert.That(positions[4].y, Is.EqualTo(0.0f).Within(0.01f));
 
-            // All same X at anchor
             for (int i = 0; i < 5; i++)
             {
                 Assert.That(positions[i].x, Is.EqualTo(2f).Within(0.01f));
@@ -82,9 +74,6 @@ namespace RogueliteAutoBattler.Tests.EditMode
 
             Assert.AreEqual(6, positions.Length);
 
-            // frontCount = Ceil(6/2) = 3, backCount = 3
-            // Front column (indices 0-2): X = anchor.x = 1.0
-            // Back column  (indices 3-5): X = anchor.x + (-0.5) = 0.5  (facingRight => -columnSpacing)
             for (int i = 0; i < 3; i++)
             {
                 Assert.That(positions[i].x, Is.EqualTo(1.0f).Within(0.01f));
@@ -105,9 +94,6 @@ namespace RogueliteAutoBattler.Tests.EditMode
 
             Assert.AreEqual(6, positions.Length);
 
-            // frontCount = Ceil(6/2) = 3, backCount = 3
-            // Front column (indices 0-2): X = anchor.x = 1.0
-            // Back column  (indices 3-5): X = anchor.x + (+0.5) = 1.5  (facingLeft => +columnSpacing)
             for (int i = 0; i < 3; i++)
             {
                 Assert.That(positions[i].x, Is.EqualTo(1.0f).Within(0.01f));

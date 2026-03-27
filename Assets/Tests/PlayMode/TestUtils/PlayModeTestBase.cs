@@ -4,18 +4,10 @@ using UnityEngine;
 
 namespace RogueliteAutoBattler.Tests.PlayMode
 {
-    /// <summary>
-    /// Base class for Play Mode tests that create GameObjects.
-    /// Tracks all created objects and destroys them in TearDown.
-    /// </summary>
     public abstract class PlayModeTestBase
     {
         private readonly List<GameObject> _created = new List<GameObject>();
 
-        /// <summary>
-        /// Registers a GameObject for automatic cleanup in TearDown.
-        /// Returns the same object for inline use.
-        /// </summary>
         protected GameObject Track(GameObject go)
         {
             _created.Add(go);

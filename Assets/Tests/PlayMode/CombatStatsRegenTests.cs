@@ -21,14 +21,11 @@ namespace RogueliteAutoBattler.Tests.PlayMode
 
             var stats = charGo.GetComponent<CombatStats>();
 
-            // Wait a frame so Awake runs.
             yield return null;
 
-            // Deal 50 damage, bringing HP to 50.
             stats.TakeDamage(50);
             Assert.AreEqual(50, stats.CurrentHp, "HP should be 50 after taking 50 damage.");
 
-            // Wait for regen to heal. At 20 HP/s, after 1.5s, ~30 HP should be healed.
             yield return new WaitForSeconds(1.5f);
 
             Assert.That(stats.CurrentHp, Is.GreaterThan(50),
@@ -49,10 +46,8 @@ namespace RogueliteAutoBattler.Tests.PlayMode
 
             var stats = charGo.GetComponent<CombatStats>();
 
-            // Wait a frame so Awake runs.
             yield return null;
 
-            // Deal only 10 damage. At 50 HP/s regen, the 10 HP gap should be filled in ~0.2s.
             stats.TakeDamage(10);
             Assert.AreEqual(90, stats.CurrentHp, "HP should be 90 after taking 10 damage.");
 

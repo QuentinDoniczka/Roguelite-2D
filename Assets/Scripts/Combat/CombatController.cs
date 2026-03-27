@@ -11,22 +11,13 @@ namespace RogueliteAutoBattler.Combat
         Dead
     }
 
-    /// <summary>
-    /// Manages auto-battle state for a single character. Reads distance to the target
-    /// each FixedUpdate and transitions between Moving and Attacking states.
-    /// Delegates movement to <see cref="CharacterMover"/> and animation to the Animator.
-    /// Damage is dealt via animation event callback (<see cref="OnAnimationHit"/>),
-    /// ensuring visual and logical synchronization.
-    /// </summary>
     [RequireComponent(typeof(CharacterMover))]
     [RequireComponent(typeof(CombatStats))]
     public class CombatController : MonoBehaviour
     {
         [Header("Combat")]
-        [Tooltip("Attack reach in world units (distance check).")]
         [SerializeField] private float _attackRange = 0.5f;
 
-        // Must match the Chop animation clip length.
         private const float ChopAttackDuration = 0.5f;
         private const float FadeOutDuration = 0.25f;
 
@@ -41,29 +32,20 @@ namespace RogueliteAutoBattler.Combat
         private bool _waitingForHit;
         private bool _attackerFacesRight;
 
-        /// <summary>Current combat state of this character.</summary>
         public CombatState State => _state;
 
-        /// <summary>
-        /// Callback to find a new target when the current one dies.
-        /// Set by the spawning system (LevelManager or CombatSpawnManager).
-        /// Returns null if no target is available.
-        /// </summary>
         public System.Func<Transform> FindNewTarget { get; set; }
 
-        /// <summary>Sets whether this attacker approaches from the left (true) or right (false).</summary>
         public void SetAttackerFacing(bool facesRight)
         {
             _attackerFacesRight = facesRight;
         }
 
-        /// <summary>The Transform this character moves toward and attacks.</summary>
         public Transform Target
         {
             get => _mover.Target;
             set
             {
-                // Release slot on old target before unsubscribing
                 if (_mover != null && _mover.Target != null)
                     AttackSlotRegistry.Release(_mover.Target, transform);
 
@@ -73,7 +55,6 @@ namespace RogueliteAutoBattler.Combat
 
                 if (value != null)
                 {
-                    // Register for attacker counting (used by LeastContested targeting).
                     AttackSlotRegistry.Acquire(value, transform, _attackerFacesRight);
 
                     _targetStats = value.GetComponent<CombatStats>();
@@ -100,7 +81,6 @@ namespace RogueliteAutoBattler.Combat
             if (_mover != null && _mover.Target != null)
                 AttackSlotRegistry.Release(_mover.Target, transform);
 
-            // Use Unity's null check (not cached _hasStats) — the object may be destroyed at teardown.
             if (_stats != null)
                 _stats.OnDied -= HandleSelfDied;
 
@@ -140,7 +120,6 @@ namespace RogueliteAutoBattler.Combat
             if (_state == newState)
                 return;
 
-            // Cannot transition out of Dead
             if (_state == CombatState.Dead)
                 return;
 
@@ -178,7 +157,6 @@ namespace RogueliteAutoBattler.Combat
             }
         }
 
-        /// <summary>Shared setup for Dead and None states: stop movement, reset animation.</summary>
         private void EnterInactiveState()
         {
             _mover.Stop();
@@ -246,10 +224,6 @@ namespace RogueliteAutoBattler.Combat
             Destroy(gameObject);
         }
 
-        /// <summary>
-        /// Clears the current target and returns the character to idle/moving state.
-        /// Used by LevelManager when clearing targets between levels.
-        /// </summary>
         public void Disengage()
         {
             Target = null;
@@ -258,9 +232,6 @@ namespace RogueliteAutoBattler.Combat
             if (_state == CombatState.Dead)
                 return;
 
-            // Set state directly — SetState(Moving) would work but SetState(None)
-            // disables the mover. We need the mover enabled so CharacterMover
-            // walks the character back to HomeAnchor during scroll transition.
             _state = CombatState.Moving;
             _mover.enabled = true;
             _waitingForHit = false;
@@ -270,7 +241,6 @@ namespace RogueliteAutoBattler.Combat
             }
         }
 
-        /// <summary>Overrides the serialized attack range at runtime (set from EnemySpawnData on spawn).</summary>
         public void SetAttackRange(float range)
         {
             _attackRange = range;
@@ -285,7 +255,6 @@ namespace RogueliteAutoBattler.Combat
 
             _waitingForHit = true;
 
-            // Set cooldown NOW, not in OnAnimationHit — survives retarget/state changes.
             float attackInterval = 1f / _stats.AttackSpeed;
             _nextAttackTime = Time.time + attackInterval;
             float animSpeed = attackInterval < ChopAttackDuration
@@ -299,10 +268,6 @@ namespace RogueliteAutoBattler.Combat
             }
         }
 
-        /// <summary>
-        /// Called by <see cref="AnimationEventRelay"/> when the attack animation
-        /// reaches the hit frame. Deals damage and returns to idle.
-        /// </summary>
         public void OnAnimationHit()
         {
             if (!_waitingForHit)
@@ -317,8 +282,6 @@ namespace RogueliteAutoBattler.Combat
             {
                 int damage = _stats.Atk;
 #if UNITY_EDITOR
-                // Capture name before TakeDamage — it may kill the target, firing
-                // HandleTargetDied synchronously which nulls _targetStats.
                 string targetName = _targetStats.gameObject.name;
 #endif
                 _targetStats.TakeDamage(damage);
@@ -332,8 +295,6 @@ namespace RogueliteAutoBattler.Combat
                 _animator.speed = 1f;
                 _animator.Play(AnimHashes.Idle);
             }
-
-            // Cooldown already set in StartAttackSwing.
         }
     }
 }

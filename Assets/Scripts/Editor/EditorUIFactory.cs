@@ -5,9 +5,6 @@ using UnityEngine.UI;
 
 namespace RogueliteAutoBattler.Editor
 {
-    /// <summary>
-    /// Generic, reusable UI helpers for Editor setup scripts.
-    /// </summary>
     internal static class EditorUIFactory
     {
         internal static void Stretch(RectTransform r)
@@ -18,7 +15,6 @@ namespace RogueliteAutoBattler.Editor
             r.offsetMax = Vector2.zero;
         }
 
-        /// <summary>Creates a rectangular area between two vertical anchor ratios.</summary>
         internal static GameObject CreateArea(Transform parent, string name, float anchorBottom, float anchorTop, Color bg)
         {
             var go = new GameObject(name);
@@ -93,9 +89,6 @@ namespace RogueliteAutoBattler.Editor
             if (p != null) p.colorValue = v;
         }
 
-        /// <summary>
-        /// Ensures the directory for the given asset path exists, creating it if necessary.
-        /// </summary>
         internal static void EnsureDirectoryExists(string assetPath)
         {
             string dir = System.IO.Path.GetDirectoryName(assetPath);

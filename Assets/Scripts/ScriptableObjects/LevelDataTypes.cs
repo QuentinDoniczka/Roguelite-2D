@@ -13,16 +13,9 @@ namespace RogueliteAutoBattler.Data
     [Serializable]
     public class AppearanceData
     {
-        [Tooltip("Sprite for the head slot. Null keeps prefab default.")]
         [SerializeField] private Sprite headSprite;
-
-        [Tooltip("Sprite for the hat/armor slot. Null keeps prefab default.")]
         [SerializeField] private Sprite hatSprite;
-
-        [Tooltip("Sprite for the weapon slot. Null keeps prefab default.")]
         [SerializeField] private Sprite weaponSprite;
-
-        [Tooltip("Sprite for the shield slot. Null keeps prefab default.")]
         [SerializeField] private Sprite shieldSprite;
 
         public Sprite HeadSprite => headSprite;
@@ -35,8 +28,7 @@ namespace RogueliteAutoBattler.Data
     public class StageData
     {
         [SerializeField] private string stageName = "New Stage";
-        [SerializeField] [Tooltip("Ground sprite for this stage's terrain.")]
-        private Sprite terrain;
+        [SerializeField] private Sprite terrain;
         [SerializeField] private List<LevelData> levels = new List<LevelData>();
 
         public string StageName => stageName;
@@ -58,8 +50,7 @@ namespace RogueliteAutoBattler.Data
     public class WaveData
     {
         [SerializeField] private string waveName = "Wave";
-        [SerializeField] [Tooltip("Delay in seconds before this wave spawns (Wave 1 is always 0).")]
-        private float spawnDelay;
+        [SerializeField] private float spawnDelay;
         [SerializeField] private List<EnemySpawnData> enemies = new List<EnemySpawnData>();
 
         public string WaveName => waveName;
@@ -71,7 +62,6 @@ namespace RogueliteAutoBattler.Data
     public class EnemySpawnData
     {
         [SerializeField] private string enemyName = "Enemy";
-        [Tooltip("Enemy prefab — must have Rigidbody2D root + Animator child")]
         [SerializeField] private GameObject prefab;
         [SerializeField] private int hp = 50;
         [SerializeField] private int atk = 10;
@@ -100,7 +90,6 @@ namespace RogueliteAutoBattler.Data
     public class AllySpawnData
     {
         [SerializeField] private string allyName = "Warrior";
-        [Tooltip("Ally prefab — must have Rigidbody2D root + Animator child")]
         [SerializeField] private GameObject prefab;
         [SerializeField] private int maxHp = 100;
         [SerializeField] private int atk = 10;
