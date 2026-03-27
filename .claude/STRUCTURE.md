@@ -1,5 +1,5 @@
 # Project Structure
-Generated: 2026-03-27
+Generated: 2026-03-27 (updated)
 
 Assets/
 ├── Animations/  (23 files: .anim + .controller)
@@ -21,6 +21,7 @@ Assets/
 │   ├── plan-issue-6.md
 │   ├── plan-issue-40.md
 │   ├── plan-issue-59.md
+│   ├── plan-issue-80.md
 │   ├── plan-level-scroll-transition.md
 │   └── premier-jet-roguelite.html
 ├── Fonts/  (empty)
@@ -38,6 +39,7 @@ Assets/
 │   ├── Combat/
 │   │   ├── AnimHashes.cs
 │   │   ├── AnimationEventRelay.cs
+│   │   ├── AttackSlotRegistry.cs
 │   │   ├── CharacterAppearance.cs
 │   │   ├── CharacterMover.cs
 │   │   ├── CombatController.cs
@@ -109,8 +111,10 @@ Assets/
 │   ├── EditMode/
 │   │   ├── Tests.EditMode.asmdef
 │   │   ├── EditModeTestBase.cs
+│   │   ├── CombatStatsDamageEventTests.cs
 │   │   ├── CombatStatsTests.cs
 │   │   ├── FormationLayoutTests.cs
+│   │   ├── RecalculateFormationTests.cs
 │   │   └── TargetFinderTests.cs
 │   └── PlayMode/
 │       ├── Tests.PlayMode.asmdef
@@ -121,6 +125,8 @@ Assets/
 │       ├── CharacterMoverTests.cs
 │       ├── CombatControllerTests.cs
 │       ├── CombatStatsRegenTests.cs
+│       ├── FormationRecalculationTests.cs
+│       ├── HealthBarTrailTests.cs
 │       ├── LevelManagerDefeatTests.cs
 │       ├── VisualEquipmentTestLoopTests.cs
 │       └── WorldConveyorTests.cs

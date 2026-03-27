@@ -30,12 +30,20 @@ namespace RogueliteAutoBattler.Combat
             Vector2 homeOffset,
             float colliderRadius,
             AppearanceData appearance,
-            string callerName)
+            string callerName,
+            Color? healthBarFillColor = null,
+            Color? healthBarTrailColor = null)
         {
             var combatStats = character.AddComponent<CombatStats>();
             combatStats.InitializeDirect(maxHp, atk, attackSpeed, regenHpPerSecond);
 
-            character.AddComponent<HealthBar>();
+            var healthBar = character.AddComponent<HealthBar>();
+            if (healthBarFillColor.HasValue || healthBarTrailColor.HasValue)
+            {
+                healthBar.SetColors(
+                    healthBarFillColor ?? HealthBar.AllyFillColor,
+                    healthBarTrailColor ?? HealthBar.DefaultTrailColor);
+            }
 
             var mover = character.AddComponent<CharacterMover>();
             mover.SetMoveSpeed(moveSpeed);
@@ -61,7 +69,7 @@ namespace RogueliteAutoBattler.Combat
             };
         }
 
-        public static void WireAnimationRelay(GameObject character, CombatController controller, string callerName)
+        private static void WireAnimationRelay(GameObject character, CombatController controller, string callerName)
         {
             var animator = character.GetComponentInChildren<Animator>();
             if (animator == null)

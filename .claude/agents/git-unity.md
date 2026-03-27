@@ -207,11 +207,13 @@ When invoked with task "merge-pr":
    gh pr merge <number> --squash --delete-branch
    ```
    This merges as the authenticated GitHub user (Quentin Doniczka).
-6. **Switch back to dev** — After merge:
+6. **Switch back to dev and clean up local branch** — After merge:
    ```bash
-   git checkout dev && git pull origin dev
+   BRANCH=$(git branch --show-current) && git checkout dev && git pull origin dev && git branch -d "$BRANCH" && git remote prune origin
    ```
-7. **Report** — "PR #X merged into `dev`. Branch deleted. Now on `dev` (up-to-date)." Include the PR URL.
+   - `git branch -d` deletes the local feature branch (safe: it's already merged)
+   - `git remote prune origin` cleans up stale remote-tracking refs
+7. **Report** — "PR #X merged into `dev`. Branch deleted (remote + local). Now on `dev` (up-to-date)." Include the PR URL.
 
 ## CRITICAL — main Branch Protection
 

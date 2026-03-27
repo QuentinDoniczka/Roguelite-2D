@@ -193,7 +193,8 @@ namespace RogueliteAutoBattler.Combat
                 homeOffset,
                 data.ColliderRadius,
                 data.Appearance,
-                nameof(LevelManager));
+                nameof(LevelManager),
+                healthBarFillColor: HealthBar.EnemyFillColor);
 
             IgnoreCollisionWithOppositeTeam(enemy, _teamContainer);
 

@@ -137,6 +137,7 @@ Assets/
 │   ├── EditMode/
 │   │   ├── Tests.EditMode.asmdef
 │   │   ├── EditModeTestBase.cs
+│   │   ├── CombatStatsDamageEventTests.cs
 │   │   ├── CombatStatsTests.cs
 │   │   ├── FormationLayoutTests.cs
 │   │   ├── RecalculateFormationTests.cs
@@ -151,6 +152,7 @@ Assets/
 │       ├── CombatControllerTests.cs
 │       ├── CombatStatsRegenTests.cs
 │       ├── FormationRecalculationTests.cs
+│       ├── HealthBarTrailTests.cs
 │       ├── LevelManagerDefeatTests.cs
 │       ├── VisualEquipmentTestLoopTests.cs
 │       └── WorldConveyorTests.cs
