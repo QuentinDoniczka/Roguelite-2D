@@ -212,6 +212,9 @@ namespace RogueliteAutoBattler.Combat
                 data.Appearance,
                 nameof(LevelManager));
 
+            // Prevent allies and enemies from pushing each other physically.
+            IgnoreCollisionWithOppositeTeam(enemy, _teamContainer);
+
             // Track enemy death for level progression.
             _aliveEnemyCount++;
             components.Stats.OnDied += OnEnemyDied;
@@ -479,6 +482,25 @@ namespace RogueliteAutoBattler.Combat
 
         internal void RecalculateEnemyFormationForTest() =>
             CombatSetupHelper.RecalculateFormation(_enemiesContainer, _enemiesHomeAnchor, facingRight: false);
+
+        /// <summary>
+        /// Disables physics collision between a newly spawned character and all
+        /// characters in the opposite team container. Bidirectional (A ignores B = B ignores A).
+        /// </summary>
+        private static void IgnoreCollisionWithOppositeTeam(GameObject character, Transform oppositeContainer)
+        {
+            if (oppositeContainer == null) return;
+
+            var col = character.GetComponent<Collider2D>();
+            if (col == null) return;
+
+            for (int i = 0; i < oppositeContainer.childCount; i++)
+            {
+                var otherCol = oppositeContainer.GetChild(i).GetComponent<Collider2D>();
+                if (otherCol != null)
+                    Physics2D.IgnoreCollision(col, otherCol, true);
+            }
+        }
 
     }
 }
