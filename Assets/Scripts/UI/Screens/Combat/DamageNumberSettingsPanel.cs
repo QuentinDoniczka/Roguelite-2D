@@ -30,7 +30,7 @@ namespace RogueliteAutoBattler.UI.Screens.Combat
         [Header("Reset")]
         [SerializeField] private Button _resetButton;
 
-        private static readonly Color[] ALLY_COLOR_PRESETS =
+        internal static readonly Color[] AllyColorPresets =
         {
             new Color(1f, 0.2f, 0.2f, 1f),
             new Color(1f, 0.5f, 0f, 1f),
@@ -42,7 +42,7 @@ namespace RogueliteAutoBattler.UI.Screens.Combat
             Color.white
         };
 
-        private static readonly Color[] ENEMY_COLOR_PRESETS =
+        internal static readonly Color[] EnemyColorPresets =
         {
             Color.white,
             new Color(0.6f, 0.8f, 1f, 1f),
@@ -54,25 +54,34 @@ namespace RogueliteAutoBattler.UI.Screens.Combat
             new Color(0f, 0.9f, 1f, 1f)
         };
 
-        private const float COLOR_MATCH_TOLERANCE = 0.02f;
-        private const float ACTIVE_BUTTON_SCALE = 1.15f;
+        private const float ColorMatchTolerance = 0.02f;
+        private const float ActiveButtonScale = 1.15f;
+
+        private const float FontSizeSliderMin = 1f;
+        private const float FontSizeSliderMax = 20f;
+        private const float LifetimeSliderMin = 0.2f;
+        private const float LifetimeSliderMax = 3f;
+        private const float SlideDistanceSliderMin = 0.1f;
+        private const float SlideDistanceSliderMax = 2f;
+        private const float SpawnOffsetYSliderMin = 0f;
+        private const float SpawnOffsetYSliderMax = 1f;
 
         private bool _isOpen;
 
         private void Awake()
         {
-            SetupSlider(_fontSizeSlider, 1f, 20f);
-            SetupSlider(_lifetimeSlider, 0.2f, 3f);
-            SetupSlider(_slideDistanceSlider, 0.1f, 2f);
-            SetupSlider(_spawnOffsetYSlider, 0f, 1f);
+            SetupSlider(_fontSizeSlider, FontSizeSliderMin, FontSizeSliderMax);
+            SetupSlider(_lifetimeSlider, LifetimeSliderMin, LifetimeSliderMax);
+            SetupSlider(_slideDistanceSlider, SlideDistanceSliderMin, SlideDistanceSliderMax);
+            SetupSlider(_spawnOffsetYSlider, SpawnOffsetYSliderMin, SpawnOffsetYSliderMax);
 
             _fontSizeSlider.onValueChanged.AddListener(OnFontSizeChanged);
             _lifetimeSlider.onValueChanged.AddListener(OnLifetimeChanged);
             _slideDistanceSlider.onValueChanged.AddListener(OnSlideDistanceChanged);
             _spawnOffsetYSlider.onValueChanged.AddListener(OnSpawnOffsetYChanged);
 
-            BindColorButtons(_allyColorButtons, ALLY_COLOR_PRESETS, true);
-            BindColorButtons(_enemyColorButtons, ENEMY_COLOR_PRESETS, false);
+            BindColorButtons(_allyColorButtons, AllyColorPresets, true);
+            BindColorButtons(_enemyColorButtons, EnemyColorPresets, false);
 
             if (_resetButton != null)
                 _resetButton.onClick.AddListener(OnResetClicked);
@@ -193,8 +202,8 @@ namespace RogueliteAutoBattler.UI.Screens.Combat
 
         private void HighlightActiveColors()
         {
-            HighlightRow(_allyColorButtons, ALLY_COLOR_PRESETS, _config.AllyDamageColor);
-            HighlightRow(_enemyColorButtons, ENEMY_COLOR_PRESETS, _config.EnemyDamageColor);
+            HighlightRow(_allyColorButtons, AllyColorPresets, _config.AllyDamageColor);
+            HighlightRow(_enemyColorButtons, EnemyColorPresets, _config.EnemyDamageColor);
         }
 
         private static void HighlightRow(Button[] buttons, Color[] presets, Color currentColor)
@@ -209,16 +218,16 @@ namespace RogueliteAutoBattler.UI.Screens.Combat
                     displayColor.a = isActive ? 1f : 0.4f;
                     image.color = displayColor;
                 }
-                buttons[i].transform.localScale = isActive ? Vector3.one * ACTIVE_BUTTON_SCALE : Vector3.one;
+                buttons[i].transform.localScale = isActive ? Vector3.one * ActiveButtonScale : Vector3.one;
             }
         }
 
         private static bool ColorsApproxEqual(Color a, Color b)
         {
-            return Mathf.Abs(a.r - b.r) < COLOR_MATCH_TOLERANCE
-                && Mathf.Abs(a.g - b.g) < COLOR_MATCH_TOLERANCE
-                && Mathf.Abs(a.b - b.b) < COLOR_MATCH_TOLERANCE
-                && Mathf.Abs(a.a - b.a) < COLOR_MATCH_TOLERANCE;
+            return Mathf.Abs(a.r - b.r) < ColorMatchTolerance
+                && Mathf.Abs(a.g - b.g) < ColorMatchTolerance
+                && Mathf.Abs(a.b - b.b) < ColorMatchTolerance
+                && Mathf.Abs(a.a - b.a) < ColorMatchTolerance;
         }
     }
 }
