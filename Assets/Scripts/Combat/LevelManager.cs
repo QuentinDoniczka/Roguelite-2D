@@ -194,7 +194,8 @@ namespace RogueliteAutoBattler.Combat
                 data.ColliderRadius,
                 data.Appearance,
                 nameof(LevelManager),
-                healthBarFillColor: HealthBar.EnemyFillColor);
+                healthBarFillColor: HealthBar.EnemyFillColor,
+                isAlly: false);
 
             IgnoreCollisionWithOppositeTeam(enemy, _teamContainer);
 
