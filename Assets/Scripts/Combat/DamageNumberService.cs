@@ -27,7 +27,7 @@ namespace RogueliteAutoBattler.Combat
 
         public static void Show(Vector3 worldPosition, int value, bool isAlly)
         {
-            if (!_isInitialized)
+            if (!_isInitialized || !_config.Enabled)
                 return;
 
             Color color = isAlly ? _config.AllyDamageColor : _config.EnemyDamageColor;

@@ -34,6 +34,8 @@ namespace RogueliteAutoBattler.Combat
             transform.position = worldPosition;
             _tmp.text = damageValue.ToString();
             _tmp.color = color;
+            if (config.Font != null)
+                _tmp.font = config.Font;
             _tmp.fontSize = config.FontSize;
             _tmp.sortingLayerID = _effectsSortingLayerId;
             _tmp.sortingOrder = config.SortingOrder;

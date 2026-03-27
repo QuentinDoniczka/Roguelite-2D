@@ -145,7 +145,7 @@ namespace RogueliteAutoBattler.Editor
                     defaultAlly.FindPropertyRelative("attackSpeed").floatValue     = 1f;
                     defaultAlly.FindPropertyRelative("moveSpeed").floatValue       = 2f;
                     defaultAlly.FindPropertyRelative("regenHpPerSecond").floatValue = 0f;
-                    defaultAlly.FindPropertyRelative("colliderRadius").floatValue  = 0.05f;
+                    defaultAlly.FindPropertyRelative("colliderRadius").floatValue  = 0.10f;
                     soTeamDb.ApplyModifiedPropertiesWithoutUndo();
                 }
 

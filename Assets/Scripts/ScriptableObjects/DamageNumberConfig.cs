@@ -1,3 +1,4 @@
+using TMPro;
 using UnityEngine;
 
 namespace RogueliteAutoBattler.Data
@@ -5,8 +6,12 @@ namespace RogueliteAutoBattler.Data
     [CreateAssetMenu(fileName = "DamageNumberConfig", menuName = "Roguelite/Damage Number Config")]
     public class DamageNumberConfig : ScriptableObject
     {
+        [Header("General")]
+        [SerializeField] private bool _enabled = true;
+
         [Header("Text")]
-        [SerializeField] private float _fontSize = 5f;
+        [SerializeField] private TMP_FontAsset _font;
+        [SerializeField] private float _fontSize = 1.25f;
 
         [Header("Animation")]
         [SerializeField] private float _lifetime = 0.8f;
@@ -26,41 +31,16 @@ namespace RogueliteAutoBattler.Data
         [Header("Spawn")]
         [SerializeField] private float _spawnOffsetY = 0.3f;
 
-        public float FontSize { get => _fontSize; internal set => _fontSize = value; }
-        public float Lifetime { get => _lifetime; internal set => _lifetime = value; }
+        public bool Enabled => _enabled;
+        public TMP_FontAsset Font => _font;
+        public float FontSize => _fontSize;
+        public float Lifetime => _lifetime;
         public Vector2 SlideDirection => _slideDirection;
-        public float SlideDistance { get => _slideDistance; internal set => _slideDistance = value; }
-        public Color AllyDamageColor { get => _allyDamageColor; internal set => _allyDamageColor = value; }
-        public Color EnemyDamageColor { get => _enemyDamageColor; internal set => _enemyDamageColor = value; }
+        public float SlideDistance => _slideDistance;
+        public Color AllyDamageColor => _allyDamageColor;
+        public Color EnemyDamageColor => _enemyDamageColor;
         public int SortingOrder => _sortingOrder;
         public int InitialPoolSize => _initialPoolSize;
-        public float SpawnOffsetY { get => _spawnOffsetY; internal set => _spawnOffsetY = value; }
-
-        private float _defaultFontSize;
-        private float _defaultLifetime;
-        private float _defaultSlideDistance;
-        private float _defaultSpawnOffsetY;
-        private Color _defaultAllyDamageColor;
-        private Color _defaultEnemyDamageColor;
-
-        private void OnEnable()
-        {
-            _defaultFontSize = _fontSize;
-            _defaultLifetime = _lifetime;
-            _defaultSlideDistance = _slideDistance;
-            _defaultSpawnOffsetY = _spawnOffsetY;
-            _defaultAllyDamageColor = _allyDamageColor;
-            _defaultEnemyDamageColor = _enemyDamageColor;
-        }
-
-        internal void RestoreDefaults()
-        {
-            _fontSize = _defaultFontSize;
-            _lifetime = _defaultLifetime;
-            _slideDistance = _defaultSlideDistance;
-            _spawnOffsetY = _defaultSpawnOffsetY;
-            _allyDamageColor = _defaultAllyDamageColor;
-            _enemyDamageColor = _defaultEnemyDamageColor;
-        }
+        public float SpawnOffsetY => _spawnOffsetY;
     }
 }
