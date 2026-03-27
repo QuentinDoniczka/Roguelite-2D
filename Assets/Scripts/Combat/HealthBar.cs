@@ -17,6 +17,9 @@ namespace RogueliteAutoBattler.Combat
         [SerializeField] private float _yOffset = 0.3f;
 
         private static readonly Color ColorBg = new Color(0.15f, 0.15f, 0.15f, 1f);
+        public static readonly Color AllyFillColor = new Color(0.20f, 0.80f, 0.20f, 1f);
+        public static readonly Color EnemyFillColor = new Color(0.80f, 0.20f, 0.20f, 1f);
+        public static readonly Color DefaultTrailColor = new Color(1f, 1f, 1f, 0.80f);
 
         [Header("Colors")]
         [SerializeField] private Color _fillColor = new Color(0.20f, 0.80f, 0.20f, 1f);
@@ -49,8 +52,8 @@ namespace RogueliteAutoBattler.Combat
             _hasStats = _stats != null;
             EnsureUnlitMaterial();
             CreateBar();
-            _trailRatio = 1f;
-            _stats.OnDamageTaken += HandleDamageTaken;
+            if (_hasStats)
+                _stats.OnDamageTaken += HandleDamageTaken;
         }
 
         private void OnDestroy()
@@ -122,6 +125,9 @@ namespace RogueliteAutoBattler.Combat
 
         private void HandleDamageTaken(int damage, int currentHp)
         {
+            if (_stats.MaxHp <= 0)
+                return;
+
             float newRatio = (float)currentHp / _stats.MaxHp;
             _trailStartRatio = _trailRatio;
             _trailTargetRatio = newRatio;

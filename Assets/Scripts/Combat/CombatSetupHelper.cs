@@ -41,8 +41,8 @@ namespace RogueliteAutoBattler.Combat
             if (healthBarFillColor.HasValue || healthBarTrailColor.HasValue)
             {
                 healthBar.SetColors(
-                    healthBarFillColor ?? new Color(0.20f, 0.80f, 0.20f, 1f),
-                    healthBarTrailColor ?? new Color(1f, 1f, 1f, 0.80f));
+                    healthBarFillColor ?? HealthBar.AllyFillColor,
+                    healthBarTrailColor ?? HealthBar.DefaultTrailColor);
             }
 
             var mover = character.AddComponent<CharacterMover>();
@@ -69,7 +69,7 @@ namespace RogueliteAutoBattler.Combat
             };
         }
 
-        public static void WireAnimationRelay(GameObject character, CombatController controller, string callerName)
+        private static void WireAnimationRelay(GameObject character, CombatController controller, string callerName)
         {
             var animator = character.GetComponentInChildren<Animator>();
             if (animator == null)
