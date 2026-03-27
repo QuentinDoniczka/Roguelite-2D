@@ -12,12 +12,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9e70e1b5e113bb04ea9a99d9b9797bbd, type: 3}
   m_Name: DamageNumberConfig
   m_EditorClassIdentifier: RogueliteAutoBattler.Runtime::RogueliteAutoBattler.Data.DamageNumberConfig
-  _fontSize: 5
+  _enabled: 1
+  _fontSize: 1
   _lifetime: 0.8
   _slideDirection: {x: 0, y: 1}
   _slideDistance: 0.5
-  _allyDamageColor: {r: 1, g: 0.2, b: 0.2, a: 1}
-  _enemyDamageColor: {r: 1, g: 1, b: 1, a: 1}
+  _allyDamageColor: {r: 0.2, g: 1, b: 0.2, a: 1}
+  _enemyDamageColor: {r: 1, g: 0.7, b: 0.8, a: 1}
   _sortingOrder: 20
   _initialPoolSize: 20
   _spawnOffsetY: 0.3

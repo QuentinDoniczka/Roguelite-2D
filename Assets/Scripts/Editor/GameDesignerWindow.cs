@@ -203,7 +203,7 @@ namespace RogueliteAutoBattler.Editor
             TeamSetFloatSafe(allyProp, "attackSpeed",        TeamDefaultAttackSpeed);
             TeamSetFloatSafe(allyProp, "moveSpeed",          TeamDefaultMoveSpeed);
             TeamSetFloatSafe(allyProp, "regenHpPerSecond",   TeamDefaultRegenHpPerSec);
-            TeamSetFloatSafe(allyProp, "colliderRadius",    0.05f);
+            TeamSetFloatSafe(allyProp, "colliderRadius",    0.10f);
         }
 
         private bool TeamDrawAlly(SerializedProperty alliesProp, int index)
@@ -335,7 +335,7 @@ namespace RogueliteAutoBattler.Editor
         private const float  LevelDefaultEnemyAttackSpeed = 1f;
         private const float  LevelDefaultEnemyMoveSpeed  = 2f;
         private const float  LevelDefaultEnemyAttackRange = 0.5f;
-        private const float  LevelDefaultEnemyColliderRadius = 0.15f;
+        private const float  LevelDefaultEnemyColliderRadius = 0.10f;
 
         private LevelDatabase    _levelDatabase;
         private SerializedObject _levelSerializedDatabase;
