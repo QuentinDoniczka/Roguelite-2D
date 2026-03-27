@@ -2,10 +2,6 @@ using UnityEngine;
 
 namespace RogueliteAutoBattler.Combat
 {
-    /// <summary>
-    /// Runtime component holding current HP for a character in combat.
-    /// Attached to each character at spawn via <see cref="CombatSpawnManager"/>.
-    /// </summary>
     public class CombatStats : MonoBehaviour
     {
         private int _currentHp;
@@ -15,22 +11,12 @@ namespace RogueliteAutoBattler.Combat
         private float _regenHpPerSecond;
         private float _regenAccumulator;
 
-        /// <summary>Current health points.</summary>
         public int CurrentHp => _currentHp;
-
-        /// <summary>Maximum health points.</summary>
         public int MaxHp => _maxHp;
-
-        /// <summary>Damage dealt per attack.</summary>
         public int Atk => _atk;
-
-        /// <summary>Attacks per second.</summary>
         public float AttackSpeed => _attackSpeed;
-
-        /// <summary>True when CurrentHp has reached zero.</summary>
         public bool IsDead => _currentHp <= 0;
 
-        /// <summary>Initializes stats directly from values (used by wave-spawned enemies without a SO).</summary>
         public void InitializeDirect(int maxHp, int atk, float attackSpeed, float regenHpPerSecond = 0f)
         {
             _maxHp = maxHp;
@@ -41,11 +27,9 @@ namespace RogueliteAutoBattler.Combat
             _regenAccumulator = 0f;
         }
 
-        /// <summary>Fired once when CurrentHp reaches zero.</summary>
+        // TODO: Server-authoritative — validate damage server-side
         public event System.Action OnDied;
 
-        // TODO: Server-authoritative — validate damage server-side
-        /// <summary>Reduces CurrentHp by <paramref name="damage"/>, clamped to zero.</summary>
         public void TakeDamage(int damage)
         {
             if (IsDead) return;
@@ -53,9 +37,6 @@ namespace RogueliteAutoBattler.Combat
             _currentHp = Mathf.Max(0, _currentHp - damage);
             if (IsDead)
             {
-                // Safety net: free all slots pointing to this target before OnDied fires.
-                // Attackers will also individually release via HandleTargetDied -> Target setter,
-                // but this ensures no stale slots if an attacker is destroyed simultaneously.
                 AttackSlotRegistry.ReleaseAll(transform);
 #if UNITY_EDITOR
                 Debug.Log($"[CombatStats] {gameObject.name} died!");

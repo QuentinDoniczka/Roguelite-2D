@@ -3,11 +3,6 @@ using UnityEngine;
 
 namespace RogueliteAutoBattler.Combat
 {
-    /// <summary>
-    /// Spawns ally characters at the start of combat. Enemy spawning is handled
-    /// by <see cref="LevelManager"/> via wave data.
-    /// Each ally prefab must have the Root/Visual hierarchy (Rigidbody2D on root, Animator on Visual child).
-    /// </summary>
     public class CombatSpawnManager : MonoBehaviour
     {
         [Header("Team")]
@@ -26,7 +21,6 @@ namespace RogueliteAutoBattler.Combat
         public const string EnemiesHomeAnchorName = CombatSetupHelper.EnemiesHomeAnchorName;
         public const string CombatTriggerZoneName = CombatSetupHelper.CombatTriggerZoneName;
 
-        // The default sprite faces left. Flip X to face right.
         private static readonly Vector3 FacingRightScale = new Vector3(-1f, 1f, 1f);
 
         private void Start()

@@ -7,19 +7,11 @@ using UnityEngine;
 
 namespace RogueliteAutoBattler.Editor
 {
-    /// <summary>
-    /// Builds the CombatWorld 2D scene hierarchy and configures the main camera.
-    /// </summary>
     internal static class CombatWorldBuilder
     {
         private const float CameraOrthoSize = 5.4f;
         private const float CameraZPosition = -10f;
-
-        // Ground tile — 200 units wide so the camera never sees an edge during a scroll session.
-        // Height and centerY are calculated at runtime by GroundFitter.
         private const float GroundWidth = 200f;
-
-        // Must match GroundFitter._gameAreaBottomRatio default (0.40f).
         private const float GameAreaBottomRatio = 0.40f;
 
         private const string WeaponSpritesFolder = "Assets/Sprites/Items/melee weapons";
@@ -35,27 +27,17 @@ namespace RogueliteAutoBattler.Editor
         };
 
         private const string GridSpritePath = "Assets/Sprites/Environment/grid_ground.png";
-        private const int GridTextureSize = 64;   // pixels per tile
-        private const int GridCellSize = 8;        // pixels per checkerboard cell
-        private const int GridPixelsPerUnit = 64;  // 1 tile = 1 world unit
+        private const int GridTextureSize = 64;
+        private const int GridCellSize = 8;
+        private const int GridPixelsPerUnit = 64;
 
-        // Checkerboard colours — dark green / light green so movement is obvious.
-        private static readonly Color32 GridColorA = new Color32(45, 90, 39, 255);   // #2d5a27
-        private static readonly Color32 GridColorB = new Color32(61, 122, 55, 255);  // #3d7a37
+        private static readonly Color32 GridColorA = new Color32(45, 90, 39, 255);
+        private static readonly Color32 GridColorB = new Color32(61, 122, 55, 255);
 
-        // Blue variant for alternate terrain.
         private const string GridBlueSpritePath = "Assets/Sprites/Environment/grid_ground_blue.png";
-        private static readonly Color32 GridBlueColorA = new Color32(30, 60, 120, 255);  // #1e3c78
-        private static readonly Color32 GridBlueColorB = new Color32(45, 85, 160, 255);  // #2d55a0
+        private static readonly Color32 GridBlueColorA = new Color32(30, 60, 120, 255);
+        private static readonly Color32 GridBlueColorB = new Color32(45, 85, 160, 255);
 
-        // ------------------------------------------------------------------
-        // Camera
-        // ------------------------------------------------------------------
-
-        /// <summary>
-        /// Configures the main camera as orthographic with the correct settings for 2D mobile.
-        /// Creates one if none exists.
-        /// </summary>
         internal static Camera ConfigureMainCamera()
         {
             Camera cam = Camera.main;
@@ -84,38 +66,24 @@ namespace RogueliteAutoBattler.Editor
             return cam;
         }
 
-        // ------------------------------------------------------------------
-        // CombatWorld hierarchy
-        // ------------------------------------------------------------------
-
-        /// <summary>
-        /// Creates a CombatWorld container with a tiled ground and containers for characters/effects.
-        /// Attaches WorldConveyor (side-scroll motion) and CombatSpawnManager (spawn orchestrator) to the root.
-        /// GroundFitter is attached to the Ground child.
-        /// </summary>
         internal static GameObject CreateCombatWorld()
         {
             var root = new GameObject("CombatWorld");
             root.transform.position = Vector3.zero;
             Undo.RegisterCreatedObjectUndo(root, "Create CombatWorld");
 
-            // Ground — tiled checkerboard, sized to match GameArea (top 60% of screen).
-            // Positioned behind everything on Background sorting layer.
-            // GroundFitter recalculates size and position at runtime from the camera.
             var groundGo = new GameObject("Ground");
             groundGo.transform.SetParent(root.transform, false);
             Undo.RegisterCreatedObjectUndo(groundGo, "Create CombatWorld");
             SpriteRenderer groundRenderer = groundGo.AddComponent<SpriteRenderer>();
             groundRenderer.sprite = CreateOrLoadGridSprite();
             groundRenderer.drawMode = SpriteDrawMode.Tiled;
-            // Position and size for edit-mode preview (GroundFitter overrides at runtime).
-            // GameArea = top 60%: bottom at y = -orthoSize + 0.4*visibleHeight, top at y = orthoSize
+
             float visibleHeight = CameraOrthoSize * 2f;
             float gameAreaBottom = -CameraOrthoSize + GameAreaBottomRatio * visibleHeight;
             float groundHeight = CameraOrthoSize - gameAreaBottom;
             float groundCenterY = (gameAreaBottom + CameraOrthoSize) * 0.5f;
-            // Anchor left edge to the left of the screen (assume ~16:9 aspect for edit preview).
-            float previewAspect = 9f / 16f; // portrait mobile
+            float previewAspect = 9f / 16f;
             float previewHalfWidth = CameraOrthoSize * previewAspect;
             float anchorX = -previewHalfWidth + GroundWidth * 0.5f;
             groundGo.transform.localPosition = new Vector3(anchorX, groundCenterY, 0f);
@@ -123,9 +91,7 @@ namespace RogueliteAutoBattler.Editor
             groundRenderer.sortingLayerName = "Background";
             groundRenderer.sortingOrder = -10;
             groundRenderer.color = Color.white;
-            // URP 2D uses Lit sprites by default — without a Light2D in the scene,
-            // sprites appear black. The ground is a flat background that doesn't
-            // need lighting, so we use the Unlit material.
+
             var unlitShader = Shader.Find("Universal Render Pipeline/2D/Sprite-Unlit-Default");
             if (unlitShader != null)
                 groundRenderer.material = new Material(unlitShader);
@@ -133,41 +99,29 @@ namespace RogueliteAutoBattler.Editor
                 Debug.LogWarning($"[{nameof(CombatWorldBuilder)}] Shader 'Sprite-Unlit-Default' not found. Ground may render black.");
             groundGo.AddComponent<GroundFitter>();
 
-            // Team container — place adventurer prefabs here.
-            // Every SpriteRenderer in this subtree must use sorting layer "Characters".
             var teamGo = new GameObject(CombatSpawnManager.TeamContainerName);
             teamGo.transform.SetParent(root.transform, false);
             Undo.RegisterCreatedObjectUndo(teamGo, "Create CombatWorld");
 
-            // Enemies container — place enemy prefabs here.
-            // Every SpriteRenderer in this subtree must use sorting layer "Characters".
             var enemiesGo = new GameObject(CombatSpawnManager.EnemiesContainerName);
             enemiesGo.transform.SetParent(root.transform, false);
             Undo.RegisterCreatedObjectUndo(enemiesGo, "Create CombatWorld");
 
-            // Effects container — VFX, projectiles, hit-sparks, etc.
-            // SpriteRenderers here should use sorting layer "Effects" (order 4) so they
-            // render on top of characters.
             var fxGo = new GameObject("Effects");
             fxGo.transform.SetParent(root.transform, false);
             Undo.RegisterCreatedObjectUndo(fxGo, "Create CombatWorld");
 
-            // Kinematic Rigidbody2D on CombatWorld root so WorldConveyor can use
-            // MovePosition — this keeps child dynamic Rigidbody2Ds in sync with physics.
             var rootRb = root.AddComponent<Rigidbody2D>();
             rootRb.bodyType = RigidbodyType2D.Kinematic;
 
-            // WorldConveyor drives the physical side-scroll motion.
             root.AddComponent<WorldConveyor>();
 
-            // CombatSpawnManager handles spawning adventurers and enemies into their containers.
             var spawnManager = root.AddComponent<CombatSpawnManager>();
 
             var soSpawnManager = new SerializedObject(spawnManager);
             EditorUIFactory.SetObj(soSpawnManager, "_teamContainer", teamGo.transform);
             EditorUIFactory.SetObj(soSpawnManager, "_enemiesContainer", enemiesGo.transform);
 
-            // Assign TeamDatabase asset — create one with a default warrior if it doesn't exist.
             const string teamDbPath = "Assets/Data/TeamDatabase.asset";
             var teamDb = AssetDatabase.LoadAssetAtPath<TeamDatabase>(teamDbPath);
             if (teamDb == null)
@@ -201,7 +155,6 @@ namespace RogueliteAutoBattler.Editor
             }
             EditorUIFactory.SetObj(soSpawnManager, "_teamDatabase", teamDb);
 
-            // LevelManager reads the LevelDatabase at runtime and swaps the ground sprite.
             var levelManager = root.AddComponent<LevelManager>();
             var soLevelManager = new SerializedObject(levelManager);
             EditorUIFactory.SetObj(soLevelManager, "_groundRenderer", groundRenderer);
@@ -212,13 +165,10 @@ namespace RogueliteAutoBattler.Editor
             if (levelDb != null)
                 EditorUIFactory.SetObj(soLevelManager, "_levelDatabase", levelDb);
 
-            // Screen-absolute anchors at scene root (outside CombatWorld so they
-            // don't scroll). Home positions for characters + combat zone boundary.
             var teamAnchor = FindOrCreateHomeAnchor(CombatSpawnManager.TeamHomeAnchorName, new Vector2(0.12f, 0.70f));
             var enemiesAnchor = FindOrCreateHomeAnchor(CombatSpawnManager.EnemiesHomeAnchorName, new Vector2(0.88f, 0.70f));
             var combatTrigger = FindOrCreateHomeAnchor(CombatSpawnManager.CombatTriggerZoneName, new Vector2(1f, 0.5f));
 
-            // Wire anchor references to managers.
             EditorUIFactory.SetObj(soSpawnManager, "_teamHomeAnchor", teamAnchor);
             soSpawnManager.ApplyModifiedProperties();
 
@@ -227,38 +177,29 @@ namespace RogueliteAutoBattler.Editor
             EditorUIFactory.SetObj(soLevelManager, "_combatTriggerZone", combatTrigger);
             soLevelManager.ApplyModifiedProperties();
 
-            // VisualEquipmentTestLoop — cycles through weapon/hat/shield sprites at runtime.
             AddVisualEquipmentTestLoop(root);
 
             return root;
         }
-
-        // ------------------------------------------------------------------
-        // VisualEquipmentTestLoop setup
-        // ------------------------------------------------------------------
 
         private static void AddVisualEquipmentTestLoop(GameObject combatWorld)
         {
             var equipmentLoop = combatWorld.AddComponent<VisualEquipmentTestLoop>();
             var so = new SerializedObject(equipmentLoop);
 
-            // Heads: all head sprites from all races.
             var headSprites = new List<Sprite>();
             foreach (var folder in HeadSpriteFolders)
                 headSprites.AddRange(LoadSpritesFromFolder(folder));
             SetSpriteArray(so, "_headSprites", headSprites.ToArray());
 
-            // Weapons: all sprites in the melee weapons folder, excluding shield.
             var weaponSprites = LoadSpritesFromFolder(
                 WeaponSpritesFolder,
                 excludePathContaining: "shield");
             SetSpriteArray(so, "_weaponSprites", weaponSprites);
 
-            // Hats: all sprites in the cloth wardrobe folder.
             var hatSprites = LoadSpritesFromFolder(HatSpritesFolder);
             SetSpriteArray(so, "_hatSprites", hatSprites);
 
-            // Shields: all sub-sprites from the shield sprite sheet.
             var shieldSprites = LoadSpritesFromFile(ShieldSpritePath);
             SetSpriteArray(so, "_shieldSprites", shieldSprites);
 
@@ -268,10 +209,6 @@ namespace RogueliteAutoBattler.Editor
                       $"heads:{headSprites.Count}, weapons:{weaponSprites.Length}, hats:{hatSprites.Length}, shields:{shieldSprites.Length}");
         }
 
-        /// <summary>
-        /// Loads all Sprite objects found in a folder via AssetDatabase.FindAssets.
-        /// Each PNG may be a sprite sheet — LoadAllAssetsAtPath is used to capture all sub-sprites.
-        /// </summary>
         private static Sprite[] LoadSpritesFromFolder(string folder, string excludePathContaining = null)
         {
             var guids = AssetDatabase.FindAssets("t:Sprite", new[] { folder });
@@ -288,17 +225,11 @@ namespace RogueliteAutoBattler.Editor
             return result.ToArray();
         }
 
-        /// <summary>
-        /// Loads all Sprite objects from a single asset file (handles sprite sheets).
-        /// </summary>
         private static Sprite[] LoadSpritesFromFile(string assetPath)
         {
             return AssetDatabase.LoadAllAssetsAtPath(assetPath).OfType<Sprite>().ToArray();
         }
 
-        /// <summary>
-        /// Populates a SerializedProperty sprite array by name.
-        /// </summary>
         private static void SetSpriteArray(SerializedObject so, string propertyName, Sprite[] sprites)
         {
             var prop = so.FindProperty(propertyName);
@@ -315,7 +246,6 @@ namespace RogueliteAutoBattler.Editor
 
         private static Transform FindOrCreateHomeAnchor(string anchorName, Vector2 viewportPosition)
         {
-            // Reuse existing anchor if already in the scene to avoid duplicates on rebuild.
             var existing = GameObject.Find(anchorName);
             if (existing != null)
             {
@@ -342,23 +272,11 @@ namespace RogueliteAutoBattler.Editor
             return go.transform;
         }
 
-        // ------------------------------------------------------------------
-        // Grid sprite
-        // ------------------------------------------------------------------
-
-        /// <summary>
-        /// Creates or loads the blue checkerboard grid sprite (alternate terrain).
-        /// </summary>
         internal static Sprite CreateOrLoadBlueGridSprite()
         {
             return CreateOrLoadCheckerboardSprite(GridBlueSpritePath, GridBlueColorA, GridBlueColorB);
         }
 
-        /// <summary>
-        /// Creates or loads the green checkerboard grid sprite used as the default ground tile.
-        /// The sprite is a 64x64 PNG with Repeat wrap mode and FullRect mesh so
-        /// <see cref="SpriteDrawMode.Tiled"/> works correctly.
-        /// </summary>
         internal static Sprite CreateOrLoadGridSprite()
         {
             return CreateOrLoadCheckerboardSprite(GridSpritePath, GridColorA, GridColorB);

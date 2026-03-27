@@ -65,10 +65,12 @@ You audit ONLY the code that changed in the latest feature/commit for a **Roguel
 
 ### LOW
 
+- **Comments in code** — Any `//`, `/* */`, `/// <summary>`, XML doc comments → flag for removal. Use verbose names instead. Only `// TODO:` for critical issues is acceptable.
+- **`[Tooltip]` attributes** that duplicate the field name → flag for removal
 - **Unused usings** — `using` directives with no references in the file
 - **Naming conventions** — PascalCase for public, _camelCase for private fields, IName for interfaces
 - **Dead code** — Unused variables, commented code, unreachable branches
-- **Missing `[Header]`/`[Tooltip]`** on serialized fields
+- **Missing `[Header]`** on serialized field groups
 
 ## Cross-Reference Check
 

@@ -197,6 +197,7 @@ public class SetupFeatureBuilderEditor : UnityEditor.Editor
 
 ## Rules
 
+- **NEVER write comments** — no `//`, no `/* */`, no `/// <summary>`, no `[Tooltip]` text that duplicates the field name. Use verbose, self-documenting names instead. The only acceptable comments are `// TODO:` for critical unresolved issues.
 - **All Editor files go in `Assets/Scripts/Editor/`** — namespace `RogueliteAutoBattler.Editor`
 - **Always use `Undo`** — RegisterCreatedObjectUndo, DestroyObjectImmediate, CollapseUndoOperations
 - **Always `MarkSceneDirty`** after modifications

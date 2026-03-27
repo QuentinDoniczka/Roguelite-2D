@@ -1,5 +1,5 @@
 # Project Structure
-Generated: 2026-03-26
+Generated: 2026-03-27
 
 Assets/
 ├── Animations/  (23 files: .anim + .controller)

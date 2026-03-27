@@ -64,8 +64,8 @@ namespace RogueliteAutoBattler.Tests.EditMode
             int diedCount = 0;
             _stats.OnDied += () => diedCount++;
 
-            _stats.TakeDamage(100); // First kill
-            _stats.TakeDamage(50);  // Damage while dead
+            _stats.TakeDamage(100);
+            _stats.TakeDamage(50);
 
             Assert.AreEqual(1, diedCount);
         }

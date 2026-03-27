@@ -25,7 +25,6 @@ namespace RogueliteAutoBattler.Tests.EditMode
             for (int i = 0; i < 3; i++)
             {
                 chars[i] = CreateFormationChild($"Char{i}");
-                // Give arbitrary initial offsets that differ from expected
                 chars[i].GetComponent<CharacterMover>().SetHomeOffset(new Vector2(99f, 99f));
             }
 
@@ -52,16 +51,13 @@ namespace RogueliteAutoBattler.Tests.EditMode
             var char1 = CreateFormationChild("Dead1");
             var char2 = CreateFormationChild("Alive2");
 
-            // Kill the second character
             char1.GetComponent<CombatStats>().TakeDamage(9999);
             Assert.IsTrue(char1.GetComponent<CombatStats>().IsDead, "Precondition: char1 should be dead");
 
-            // Record dead character's offset before recalculation
             var deadOffsetBefore = char1.GetComponent<CharacterMover>().HomeOffset;
 
             CombatSetupHelper.RecalculateFormation(_container.transform, _anchor.transform, facingRight: true);
 
-            // The two alive characters should get offsets for a 2-unit formation
             Vector2[] expected = FormationLayout.GetPositions(anchorPos, 2, true);
 
             var alive0Offset = char0.GetComponent<CharacterMover>().HomeOffset;
@@ -75,7 +71,6 @@ namespace RogueliteAutoBattler.Tests.EditMode
             Assert.That(alive2Offset.x, Is.EqualTo(expectedOffset1.x).Within(0.01f), "Alive2 X");
             Assert.That(alive2Offset.y, Is.EqualTo(expectedOffset1.y).Within(0.01f), "Alive2 Y");
 
-            // Dead character's offset should be unchanged
             var deadOffsetAfter = char1.GetComponent<CharacterMover>().HomeOffset;
             Assert.That(deadOffsetAfter.x, Is.EqualTo(deadOffsetBefore.x).Within(0.001f),
                 "Dead character X offset should not change");
@@ -89,17 +84,14 @@ namespace RogueliteAutoBattler.Tests.EditMode
             var char0 = CreateFormationChild("Dead0");
             var char1 = CreateFormationChild("Dead1");
 
-            // Kill both
             char0.GetComponent<CombatStats>().TakeDamage(9999);
             char1.GetComponent<CombatStats>().TakeDamage(9999);
 
-            // Record offsets before
             var offset0Before = char0.GetComponent<CharacterMover>().HomeOffset;
             var offset1Before = char1.GetComponent<CharacterMover>().HomeOffset;
 
             CombatSetupHelper.RecalculateFormation(_container.transform, _anchor.transform, facingRight: true);
 
-            // Both offsets should be unchanged
             var offset0After = char0.GetComponent<CharacterMover>().HomeOffset;
             var offset1After = char1.GetComponent<CharacterMover>().HomeOffset;
 
@@ -149,9 +141,6 @@ namespace RogueliteAutoBattler.Tests.EditMode
                 CombatSetupHelper.RecalculateFormation(_container.transform, null, true));
         }
 
-        /// <summary>
-        /// Creates a formation-ready character (CombatStats + CharacterMover) as a child of the container.
-        /// </summary>
         private GameObject CreateFormationChild(string name)
         {
             var go = TestCharacterFactory.CreateFormationCharacter(name: name, maxHp: 100, atk: 10, attackSpeed: 1f, moveSpeed: 2f);

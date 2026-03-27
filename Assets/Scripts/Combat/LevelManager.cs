@@ -4,10 +4,6 @@ using UnityEngine;
 
 namespace RogueliteAutoBattler.Combat
 {
-    /// <summary>
-    /// Reads the LevelDatabase at runtime, applies the current stage's terrain sprite,
-    /// and spawns enemy waves for the current level. Attach to the CombatWorld root.
-    /// </summary>
     [RequireComponent(typeof(WorldConveyor))]
     public class LevelManager : MonoBehaviour
     {
@@ -22,18 +18,13 @@ namespace RogueliteAutoBattler.Combat
         [SerializeField] private int _currentLevelIndex;
 
         [Header("Containers")]
-        [Tooltip("Parent transform for spawned enemies.")]
         [SerializeField] private Transform _enemiesContainer;
-
-        [Tooltip("Parent transform for the ally team (used to find targets for enemies).")]
         [SerializeField] private Transform _teamContainer;
 
         [Header("Scroll Transition")]
-        [Tooltip("Distance in world units the world scrolls left between levels.")]
         [SerializeField] private float _scrollDistance = 2f;
 
         [Header("Enemy Spawn")]
-        [Tooltip("Extra X offset to spawn enemies off-screen to the right of EnemiesHomeAnchor.")]
         [SerializeField] private float _enemySpawnOffscreenX = 1f;
 
         [Header("Anchors")]
@@ -66,15 +57,11 @@ namespace RogueliteAutoBattler.Combat
                 _enemiesHomeAnchor = GameObject.Find(CombatSetupHelper.EnemiesHomeAnchorName)?.transform;
             _conveyor = GetComponent<WorldConveyor>();
             ApplyStage(_currentStageIndex);
-            // Wait until an ally actually exists in the team container.
             yield return new WaitUntil(() => TargetFinder.Closest(_teamContainer, Vector3.zero) != null);
             WireAllyDeathTracking();
             StartLevel(_currentLevelIndex);
         }
 
-        /// <summary>
-        /// Applies the terrain sprite for the given stage index.
-        /// </summary>
         public void ApplyStage(int stageIndex)
         {
             if (_levelDatabase == null)
@@ -105,9 +92,6 @@ namespace RogueliteAutoBattler.Combat
             }
         }
 
-        /// <summary>
-        /// Starts spawning enemy waves for the given level index within the current stage.
-        /// </summary>
         public void StartLevel(int levelIndex)
         {
             if (_levelDatabase == null)
@@ -166,7 +150,6 @@ namespace RogueliteAutoBattler.Combat
             Debug.Log($"[{nameof(LevelManager)}] Spawning wave {waveIndex} '{wave.WaveName}' ({wave.Enemies.Count} enemies).");
 #endif
 
-            // Calculate formation positions for this wave's enemies.
             Vector2 anchorPos = _enemiesHomeAnchor != null
                 ? (Vector2)_enemiesHomeAnchor.position
                 : new Vector2(FallbackEnemySpawnX, 0f);
@@ -212,21 +195,17 @@ namespace RogueliteAutoBattler.Combat
                 data.Appearance,
                 nameof(LevelManager));
 
-            // Prevent allies and enemies from pushing each other physically.
             IgnoreCollisionWithOppositeTeam(enemy, _teamContainer);
 
-            // Track enemy death for level progression.
             _aliveEnemyCount++;
             components.Stats.OnDied += OnEnemyDied;
 
             var enemyTransform = enemy.transform;
 
-            // CombatController — set attack range, wire retarget delegate with closure on position.
             components.Controller.SetAttackRange(data.AttackRange);
             components.Controller.SetAttackerFacing(false);
             components.Controller.FindNewTarget = () => TargetFinder.LeastContested(_teamContainer, enemyTransform.position);
 
-            // Set target through CombatController.Target so OnDied subscription is wired.
             Transform allyTarget = TargetFinder.LeastContested(_teamContainer, enemyTransform.position);
             if (allyTarget != null)
                 components.Controller.Target = allyTarget;
@@ -235,7 +214,6 @@ namespace RogueliteAutoBattler.Combat
                 Debug.LogWarning($"[{nameof(LevelManager)}] No alive ally found for enemy '{data.EnemyName}' to target.");
 #endif
 
-            // Wire ally to target this enemy if it has no target yet.
             SetAllyTarget(enemy.transform);
 
 #if UNITY_EDITOR
@@ -243,10 +221,6 @@ namespace RogueliteAutoBattler.Combat
 #endif
         }
 
-        /// <summary>
-        /// Sets the ally's target to the given enemy if the ally currently has no target
-        /// or its current target is dead. Also wires the retarget delegate once.
-        /// </summary>
         private void SetAllyTarget(Transform firstEnemy)
         {
             if (_teamContainer == null)
@@ -261,15 +235,12 @@ namespace RogueliteAutoBattler.Combat
                 if (!allyTransform.TryGetComponent<CharacterMover>(out var allyMover))
                     continue;
 
-                // Assign target if ally has none or current target is dead
                 bool needsTarget = allyMover.Target == null;
                 if (!needsTarget && allyMover.Target.TryGetComponent<CombatStats>(out var targetStats))
                     needsTarget = targetStats.IsDead;
 
                 if (needsTarget)
                 {
-                    // Only target this enemy if it's inside the combat zone.
-                    // Use CombatController.Target so OnDied subscription is wired.
                     bool inZone = firstEnemy.position.x <= CombatZoneX;
                     if (inZone && allyTransform.TryGetComponent<CombatController>(out var allyController))
                         allyController.Target = firstEnemy;
@@ -330,10 +301,6 @@ namespace RogueliteAutoBattler.Combat
 
         private IEnumerator LevelTransitionCoroutine()
         {
-            // Scroll starts immediately — allies walk back to HomeAnchor
-            // while the world scrolls; the slow conveyor lets them catch up naturally.
-
-            // Start scroll and spawn enemies when deceleration begins
             if (_conveyor != null)
             {
                 bool enemiesSpawned = false;
@@ -350,11 +317,9 @@ namespace RogueliteAutoBattler.Combat
                 _conveyor.OnDecelerationStarted += OnDecel;
                 _conveyor.ScrollBy(_scrollDistance);
 
-                // Wait for scroll to finish
                 yield return new WaitUntil(() => !_conveyor.IsScrolling);
                 _conveyor.OnDecelerationStarted -= OnDecel;
 
-                // If scroll was too short for deceleration phase, spawn now
                 if (!enemiesSpawned)
                 {
 #if UNITY_EDITOR
@@ -453,13 +418,11 @@ namespace RogueliteAutoBattler.Combat
                 if (!ally.TryGetComponent<CombatStats>(out var stats) || stats.IsDead)
                     continue;
 
-                stats.OnDied -= OnAllyDied; // Prevent double-subscription
+                stats.OnDied -= OnAllyDied;
                 stats.OnDied += OnAllyDied;
                 _aliveAllyCount++;
             }
         }
-
-        // ---- Test helpers (internal, visible to Tests.PlayMode via InternalsVisibleTo) ----
 
         internal int AliveAllyCount => _aliveAllyCount;
         internal bool LevelInProgress => _levelInProgress;
@@ -483,10 +446,6 @@ namespace RogueliteAutoBattler.Combat
         internal void RecalculateEnemyFormationForTest() =>
             CombatSetupHelper.RecalculateFormation(_enemiesContainer, _enemiesHomeAnchor, facingRight: false);
 
-        /// <summary>
-        /// Disables physics collision between a newly spawned character and all
-        /// characters in the opposite team container. Bidirectional (A ignores B = B ignores A).
-        /// </summary>
         private static void IgnoreCollisionWithOppositeTeam(GameObject character, Transform oppositeContainer)
         {
             if (oppositeContainer == null) return;
@@ -501,6 +460,5 @@ namespace RogueliteAutoBattler.Combat
                     Physics2D.IgnoreCollision(col, otherCol, true);
             }
         }
-
     }
 }

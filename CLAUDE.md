@@ -25,7 +25,7 @@
 Doc detaille : `Assets/doc/premier-jet-roguelite.html`
 
 # Project Structure
-Generated: 2026-03-27
+Generated: 2026-03-27 (updated)
 
 Assets/
 ├── Animations/  (23 files: .anim + .controller)

@@ -16,11 +16,6 @@ namespace RogueliteAutoBattler.Tests.PlayMode
         private GameObject _teamHomeAnchor;
         private GameObject _enemiesHomeAnchor;
 
-        /// <summary>
-        /// Creates a LevelManager on a fresh GameObject with WorldConveyor.
-        /// Also creates Team and Enemies containers, and home anchors.
-        /// Disable LevelManager immediately so Start() does not run.
-        /// </summary>
         private void CreateLevelManagerSetup(
             Vector2? teamAnchorPos = null,
             Vector2? enemiesAnchorPos = null)
@@ -40,14 +35,9 @@ namespace RogueliteAutoBattler.Tests.PlayMode
                 "EnemiesHomeAnchor", enemiesAnchorPos ?? new Vector2(5f, 0f)));
         }
 
-        // ---------------------------------------------------------------
-        // Test 1: Allies win, one ally dead, formation recalculated
-        // ---------------------------------------------------------------
-
         [UnityTest]
         public IEnumerator AlliesWin_OneAllyDead_FormationRecalculated()
         {
-            // Arrange
             CreateLevelManagerSetup(
                 teamAnchorPos: Vector2.zero,
                 enemiesAnchorPos: new Vector2(5f, 0f));
@@ -63,10 +53,8 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             ally2.transform.SetParent(_teamContainer.transform);
             ally3.transform.SetParent(_teamContainer.transform);
 
-            // Wait a frame so Awake runs on all components.
             yield return null;
 
-            // Set initial home offsets for a 3-unit formation.
             Vector2 teamAnchorPos = (Vector2)_teamHomeAnchor.transform.position;
             Vector2[] initial3Positions = FormationLayout.GetPositions(teamAnchorPos, 3, facingRight: true);
 
@@ -91,48 +79,37 @@ namespace RogueliteAutoBattler.Tests.PlayMode
                 _teamHomeAnchor.transform, _enemiesHomeAnchor.transform);
             _levelManager.WireAllyDeathTrackingForTest();
 
-            // Act -- kill ally #2 (the middle one).
             LogAssert.Expect(LogType.Log, "[CombatStats] Ally2 died!");
             ally2.GetComponent<CombatStats>().TakeDamage(9999);
 
-            // Simulate end-of-combat: clear targets and recalculate.
             _levelManager.ClearAllyTargetsForTest();
             _levelManager.RecalculateAllyFormationForTest();
 
             yield return null;
 
-            // Assert -- compute expected 2-unit formation.
             Vector2[] expected2Positions = FormationLayout.GetPositions(teamAnchorPos, 2, facingRight: true);
             Vector2 expectedOffset0 = expected2Positions[0] - teamAnchorPos;
             Vector2 expectedOffset1 = expected2Positions[1] - teamAnchorPos;
 
-            // Ally1 (alive) should have the first position of the 2-unit formation.
             Assert.AreEqual(expectedOffset0.x, mover1.HomeOffset.x, 0.001f,
                 "Ally1 HomeOffset.x should match 2-unit formation position 0.");
             Assert.AreEqual(expectedOffset0.y, mover1.HomeOffset.y, 0.001f,
                 "Ally1 HomeOffset.y should match 2-unit formation position 0.");
 
-            // Ally3 (alive) should have the second position of the 2-unit formation.
             Assert.AreEqual(expectedOffset1.x, mover3.HomeOffset.x, 0.001f,
                 "Ally3 HomeOffset.x should match 2-unit formation position 1.");
             Assert.AreEqual(expectedOffset1.y, mover3.HomeOffset.y, 0.001f,
                 "Ally3 HomeOffset.y should match 2-unit formation position 1.");
 
-            // Ally2 (dead) should still have its original offset (not recalculated).
             Assert.AreEqual(initialOffset2.x, mover2.HomeOffset.x, 0.001f,
                 "Dead Ally2 HomeOffset.x should be unchanged.");
             Assert.AreEqual(initialOffset2.y, mover2.HomeOffset.y, 0.001f,
                 "Dead Ally2 HomeOffset.y should be unchanged.");
         }
 
-        // ---------------------------------------------------------------
-        // Test 2: Enemies win, one enemy dead, formation recalculated
-        // ---------------------------------------------------------------
-
         [UnityTest]
         public IEnumerator EnemiesWin_OneEnemyDead_FormationRecalculated()
         {
-            // Arrange
             CreateLevelManagerSetup(
                 teamAnchorPos: Vector2.zero,
                 enemiesAnchorPos: new Vector2(5f, 0f));
@@ -148,10 +125,8 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             enemy2.transform.SetParent(_enemiesContainer.transform);
             enemy3.transform.SetParent(_enemiesContainer.transform);
 
-            // Wait a frame so Awake runs.
             yield return null;
 
-            // Set initial home offsets for a 3-unit enemy formation (facingRight: false).
             Vector2 enemyAnchorPos = (Vector2)_enemiesHomeAnchor.transform.position;
             Vector2[] initial3Positions = FormationLayout.GetPositions(enemyAnchorPos, 3, facingRight: false);
 
@@ -175,53 +150,41 @@ namespace RogueliteAutoBattler.Tests.PlayMode
                 _teamContainer.transform, _enemiesContainer.transform,
                 _teamHomeAnchor.transform, _enemiesHomeAnchor.transform);
 
-            // Act -- kill enemy #2 (the middle one).
             LogAssert.Expect(LogType.Log, "[CombatStats] Enemy2 died!");
             enemy2.GetComponent<CombatStats>().TakeDamage(9999);
 
-            // Simulate end-of-combat: clear targets and recalculate.
             _levelManager.ClearEnemyTargetsForTest();
             _levelManager.RecalculateEnemyFormationForTest();
 
             yield return null;
 
-            // Assert -- compute expected 2-unit formation (facingRight: false).
             Vector2[] expected2Positions = FormationLayout.GetPositions(enemyAnchorPos, 2, facingRight: false);
             Vector2 expectedOffset0 = expected2Positions[0] - enemyAnchorPos;
             Vector2 expectedOffset1 = expected2Positions[1] - enemyAnchorPos;
 
-            // Enemy1 (alive) should have the first position of the 2-unit formation.
             Assert.AreEqual(expectedOffset0.x, mover1.HomeOffset.x, 0.001f,
                 "Enemy1 HomeOffset.x should match 2-unit formation position 0.");
             Assert.AreEqual(expectedOffset0.y, mover1.HomeOffset.y, 0.001f,
                 "Enemy1 HomeOffset.y should match 2-unit formation position 0.");
 
-            // Enemy3 (alive) should have the second position of the 2-unit formation.
             Assert.AreEqual(expectedOffset1.x, mover3.HomeOffset.x, 0.001f,
                 "Enemy3 HomeOffset.x should match 2-unit formation position 1.");
             Assert.AreEqual(expectedOffset1.y, mover3.HomeOffset.y, 0.001f,
                 "Enemy3 HomeOffset.y should match 2-unit formation position 1.");
 
-            // Enemy2 (dead) should still have its original offset.
             Assert.AreEqual(initialOffset2.x, mover2.HomeOffset.x, 0.001f,
                 "Dead Enemy2 HomeOffset.x should be unchanged.");
             Assert.AreEqual(initialOffset2.y, mover2.HomeOffset.y, 0.001f,
                 "Dead Enemy2 HomeOffset.y should be unchanged.");
         }
 
-        // ---------------------------------------------------------------
-        // Test 3: Survivors walk toward new home positions after recalc
-        // ---------------------------------------------------------------
-
         [UnityTest]
         public IEnumerator RecalculateFormation_SurvivorsWalkToNewPositions()
         {
-            // Arrange -- 3 allies with CharacterMover, no target (homing mode).
             CreateLevelManagerSetup(
                 teamAnchorPos: Vector2.zero,
                 enemiesAnchorPos: new Vector2(5f, 0f));
 
-            // Place allies at their initial 3-unit formation positions so they start "at home".
             Vector2 teamAnchorPos = (Vector2)_teamHomeAnchor.transform.position;
             Vector2[] initial3Positions = FormationLayout.GetPositions(teamAnchorPos, 3, facingRight: true);
 
@@ -236,7 +199,6 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             ally2.transform.SetParent(_teamContainer.transform);
             ally3.transform.SetParent(_teamContainer.transform);
 
-            // Wait a frame so Awake runs.
             yield return null;
 
             var mover1 = ally1.GetComponent<CharacterMover>();
@@ -259,21 +221,16 @@ namespace RogueliteAutoBattler.Tests.PlayMode
                 _teamHomeAnchor.transform, _enemiesHomeAnchor.transform);
             _levelManager.WireAllyDeathTrackingForTest();
 
-            // Kill ally #2.
             LogAssert.Expect(LogType.Log, "[CombatStats] Ally2 died!");
             ally2.GetComponent<CombatStats>().TakeDamage(9999);
 
-            // Simulate disengage so CombatController re-enables CharacterMover.
             _levelManager.ClearAllyTargetsForTest();
 
-            // Record positions BEFORE recalculation.
             Vector2 ally1PosBefore = (Vector2)ally1.transform.position;
             Vector2 ally3PosBefore = (Vector2)ally3.transform.position;
 
-            // Act -- recalculate formation (this updates HomeOffset, homing logic moves them).
             _levelManager.RecalculateAllyFormationForTest();
 
-            // Compute the new home positions that survivors should walk toward.
             Vector2[] expected2Positions = FormationLayout.GetPositions(teamAnchorPos, 2, facingRight: true);
             Vector2 newHome1 = expected2Positions[0];
             Vector2 newHome3 = expected2Positions[1];
@@ -281,11 +238,9 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             float ally1DistBefore = Vector2.Distance(ally1PosBefore, newHome1);
             float ally3DistBefore = Vector2.Distance(ally3PosBefore, newHome3);
 
-            // Wait for physics to move characters toward their new home positions.
             for (int i = 0; i < 30; i++)
                 yield return new WaitForFixedUpdate();
 
-            // Assert -- survivors have moved closer to their new home positions.
             Vector2 ally1PosAfter = (Vector2)ally1.transform.position;
             Vector2 ally3PosAfter = (Vector2)ally3.transform.position;
 

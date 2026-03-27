@@ -443,6 +443,9 @@ public IEnumerator WeaponSprite_SurvivesAnimatorFrames()
 
 ## Rules
 
+### Code Style — No Comments
+- **NEVER write comments** — no `//`, no `/* */`, no `/// <summary>`. Use verbose, self-documenting test method names and variable names instead. The only acceptable comments are `// TODO:` for critical unresolved issues.
+
 ### CRITICAL — Tests Are Safety Nets, Not Obstacles
 
 Tests verify that the app behaves correctly. The goal is that **the final test suite produces the same results** — same behaviors validated, same coverage. Never weaken tests just to make them green.

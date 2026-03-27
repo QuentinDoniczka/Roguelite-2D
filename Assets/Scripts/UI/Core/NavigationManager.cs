@@ -4,57 +4,27 @@ using UnityEngine.InputSystem;
 
 namespace RogueliteAutoBattler.UI.Core
 {
-    /// <summary>
-    /// Singleton that manages tab navigation.
-    /// Combat screen is the default (no tab selected).
-    /// Clicking a tab shows that panel; clicking it again returns to combat.
-    /// </summary>
     public class NavigationManager : MonoBehaviour
     {
-        /// <summary>
-        /// Singleton instance.
-        /// Single-scene architecture — no DontDestroyOnLoad needed.
-        /// </summary>
         public static NavigationManager Instance { get; private set; }
 
         [Header("Default Screens")]
-        [SerializeField]
-        [Tooltip("Main screen shown when no tab is selected (Combat/Battle).")]
-        private UIScreen _defaultScreen;
-
-        [SerializeField]
-        [Tooltip("Info panel shown when no tab is selected.")]
-        private UIScreen _defaultInfoScreen;
+        [SerializeField] private UIScreen _defaultScreen;
+        [SerializeField] private UIScreen _defaultInfoScreen;
 
         [Header("Tab Setup")]
-        [SerializeField]
-        [Tooltip("Tab buttons in order.")]
-        private TabButton[] _tabButtons;
-
-        [SerializeField]
-        [Tooltip("Root screens in order (same order as tab buttons).")]
-        private UIScreen[] _rootScreens;
-
-        [SerializeField]
-        [Tooltip("Info screens in order (same order as tab buttons).")]
-        private UIScreen[] _infoScreens;
+        [SerializeField] private TabButton[] _tabButtons;
+        [SerializeField] private UIScreen[] _rootScreens;
+        [SerializeField] private UIScreen[] _infoScreens;
 
         [Header("Input")]
-        [SerializeField]
-        [Tooltip("Input action for back/cancel navigation (typically Escape key).")]
-        private InputActionReference _cancelAction;
+        [SerializeField] private InputActionReference _cancelAction;
 
         private ScreenStack[] _stacks;
         private int _currentTabIndex = -1;
 
-        /// <summary>
-        /// Index of the currently active tab. -1 means no tab (default/combat screen).
-        /// </summary>
         public int CurrentTab => _currentTabIndex;
 
-        /// <summary>
-        /// Fired when the active tab changes. -1 means returned to default screen.
-        /// </summary>
         public event Action<int> OnTabChanged;
 
         private void Awake()
@@ -96,7 +66,6 @@ namespace RogueliteAutoBattler.UI.Core
                 _stacks[i] = new ScreenStack(_rootScreens[i]);
             }
 
-            // Hide all info screens
             if (_infoScreens != null)
             {
                 for (int i = 0; i < _infoScreens.Length; i++)
@@ -111,7 +80,6 @@ namespace RogueliteAutoBattler.UI.Core
         {
             if (_stacks == null) return;
 
-            // Show default screens (combat + combat info), no tab selected
             if (_defaultScreen != null)
                 _defaultScreen.OnShow();
             if (_defaultInfoScreen != null)
@@ -145,37 +113,29 @@ namespace RogueliteAutoBattler.UI.Core
         {
             if (_stacks == null) return;
 
-            // If a tab is active and has sub-screens, pop
             if (_currentTabIndex >= 0 && _stacks[_currentTabIndex].Count > 1)
             {
                 PopScreen();
                 return;
             }
 
-            // If a tab is active, return to default (combat)
             if (_currentTabIndex >= 0)
             {
                 ReturnToDefault();
             }
         }
 
-        /// <summary>
-        /// Switches to the tab at the given index.
-        /// If the tab is already active, returns to the default screen (toggle behavior).
-        /// </summary>
         public void SwitchTab(int index)
         {
             if (_stacks == null || index < 0 || index >= _stacks.Length)
                 return;
 
-            // Toggle: clicking the active tab returns to default
             if (index == _currentTabIndex)
             {
                 ReturnToDefault();
                 return;
             }
 
-            // Hide current tab if any
             if (_currentTabIndex >= 0)
             {
                 _tabButtons[_currentTabIndex].Deselect();
@@ -184,7 +144,6 @@ namespace RogueliteAutoBattler.UI.Core
             }
             else
             {
-                // Hide default screens (combat)
                 if (_defaultScreen != null)
                     _defaultScreen.OnHide();
                 if (_defaultInfoScreen != null)
@@ -199,9 +158,6 @@ namespace RogueliteAutoBattler.UI.Core
             OnTabChanged?.Invoke(_currentTabIndex);
         }
 
-        /// <summary>
-        /// Returns to the default screen (combat). Deselects all tabs.
-        /// </summary>
         public void ReturnToDefault()
         {
             if (_currentTabIndex >= 0)
@@ -221,19 +177,12 @@ namespace RogueliteAutoBattler.UI.Core
             OnTabChanged?.Invoke(-1);
         }
 
-        /// <summary>
-        /// Pushes a sub-screen onto the current tab's stack.
-        /// </summary>
         public void PushScreen(UIScreen screen)
         {
             if (_stacks == null || _currentTabIndex < 0) return;
             _stacks[_currentTabIndex].Push(screen);
         }
 
-        /// <summary>
-        /// Pops the top screen from the current tab's stack.
-        /// Returns null if only the root remains.
-        /// </summary>
         public UIScreen PopScreen()
         {
             if (_stacks == null || _currentTabIndex < 0) return null;
