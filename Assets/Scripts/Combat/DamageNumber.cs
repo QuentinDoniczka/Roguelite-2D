@@ -12,11 +12,13 @@ namespace RogueliteAutoBattler.Combat
         private TextMeshPro _tmp;
         private Action<DamageNumber> _returnToPool;
         private Coroutine _activeCoroutine;
+        private int _effectsSortingLayerId;
 
         private void Awake()
         {
             _tmp = GetComponent<TextMeshPro>();
             _tmp.alignment = TextAlignmentOptions.Center;
+            _effectsSortingLayerId = SortingLayer.NameToID(SortingLayers.Effects);
         }
 
         public void Initialize(Action<DamageNumber> returnToPool)
@@ -33,7 +35,7 @@ namespace RogueliteAutoBattler.Combat
             _tmp.text = damageValue.ToString();
             _tmp.color = color;
             _tmp.fontSize = config.FontSize;
-            _tmp.sortingLayerID = SortingLayer.NameToID("Effects");
+            _tmp.sortingLayerID = _effectsSortingLayerId;
             _tmp.sortingOrder = config.SortingOrder;
             gameObject.SetActive(true);
             _activeCoroutine = StartCoroutine(AnimateCoroutine(config));

@@ -20,6 +20,12 @@ namespace RogueliteAutoBattler.Data
         [Header("Rendering")]
         [SerializeField] private int _sortingOrder = 20;
 
+        [Header("Pooling")]
+        [SerializeField] private int _initialPoolSize = 20;
+
+        [Header("Spawn")]
+        [SerializeField] private float _spawnOffsetY = 0.3f;
+
         public float FontSize => _fontSize;
         public float Lifetime => _lifetime;
         public Vector2 SlideDirection => _slideDirection;
@@ -27,5 +33,7 @@ namespace RogueliteAutoBattler.Data
         public Color AllyDamageColor => _allyDamageColor;
         public Color EnemyDamageColor => _enemyDamageColor;
         public int SortingOrder => _sortingOrder;
+        public int InitialPoolSize => _initialPoolSize;
+        public float SpawnOffsetY => _spawnOffsetY;
     }
 }

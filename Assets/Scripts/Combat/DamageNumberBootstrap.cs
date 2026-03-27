@@ -10,6 +10,18 @@ namespace RogueliteAutoBattler.Combat
 
         private void Awake()
         {
+            if (_config == null)
+            {
+                Debug.LogError("[DamageNumberBootstrap] _config is not assigned. DamageNumberService will not initialize.");
+                return;
+            }
+
+            if (_effectsContainer == null)
+            {
+                Debug.LogError("[DamageNumberBootstrap] _effectsContainer is not assigned. DamageNumberService will not initialize.");
+                return;
+            }
+
             DamageNumberService.Initialize(_effectsContainer, _config);
         }
     }

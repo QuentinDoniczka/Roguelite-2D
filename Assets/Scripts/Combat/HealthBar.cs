@@ -5,7 +5,6 @@ namespace RogueliteAutoBattler.Combat
     [RequireComponent(typeof(CombatStats))]
     public class HealthBar : MonoBehaviour
     {
-        private const string EffectsSortingLayer = "Effects";
         private const string UnlitShaderName = "Universal Render Pipeline/2D/Sprite-Unlit-Default";
         private const int SortingOrderBackground = 10;
         private const int SortingOrderTrailFill = 11;
@@ -91,7 +90,7 @@ namespace RogueliteAutoBattler.Combat
             var bgRenderer = bgGo.AddComponent<SpriteRenderer>();
             bgRenderer.sprite = bgSprite;
             bgRenderer.color = ColorBg;
-            bgRenderer.sortingLayerName = EffectsSortingLayer;
+            bgRenderer.sortingLayerName = SortingLayers.Effects;
             bgRenderer.sortingOrder = SortingOrderBackground;
             bgRenderer.material = _unlitMaterial;
 
@@ -105,7 +104,7 @@ namespace RogueliteAutoBattler.Combat
             _trailFillRenderer = trailFillGo.AddComponent<SpriteRenderer>();
             _trailFillRenderer.sprite = fillSprite;
             _trailFillRenderer.color = _trailColor;
-            _trailFillRenderer.sortingLayerName = EffectsSortingLayer;
+            _trailFillRenderer.sortingLayerName = SortingLayers.Effects;
             _trailFillRenderer.sortingOrder = SortingOrderTrailFill;
             _trailFillRenderer.material = _unlitMaterial;
             _trailFillTransform = trailFillGo.transform;
@@ -117,7 +116,7 @@ namespace RogueliteAutoBattler.Combat
             _fillRenderer = fillGo.AddComponent<SpriteRenderer>();
             _fillRenderer.sprite = fillSprite;
             _fillRenderer.color = _fillColor;
-            _fillRenderer.sortingLayerName = EffectsSortingLayer;
+            _fillRenderer.sortingLayerName = SortingLayers.Effects;
             _fillRenderer.sortingOrder = SortingOrderFill;
             _fillRenderer.material = _unlitMaterial;
             _fillTransform = fillGo.transform;

@@ -21,7 +21,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
         {
             _container = Track(new GameObject("DamageNumberTestContainer"));
 
-            _damageNumberGo = new GameObject("TestDamageNumber");
+            _damageNumberGo = Track(new GameObject("TestDamageNumber"));
             _damageNumberGo.transform.SetParent(_container.transform, false);
 
             _tmp = _damageNumberGo.AddComponent<TextMeshPro>();
