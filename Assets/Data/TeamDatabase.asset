@@ -20,7 +20,7 @@ MonoBehaviour:
     attackSpeed: 1
     moveSpeed: 2
     regenHpPerSecond: 0
-    colliderRadius: 0.05
+    colliderRadius: 0.1
     appearance:
       headSprite: {fileID: 0}
       hatSprite: {fileID: 0}
@@ -33,7 +33,7 @@ MonoBehaviour:
     attackSpeed: 1
     moveSpeed: 2
     regenHpPerSecond: 0
-    colliderRadius: 0.05
+    colliderRadius: 0.1
     appearance:
       headSprite: {fileID: 0}
       hatSprite: {fileID: 0}
@@ -46,7 +46,7 @@ MonoBehaviour:
     attackSpeed: 1
     moveSpeed: 2
     regenHpPerSecond: 0
-    colliderRadius: 0.05
+    colliderRadius: 0.1
     appearance:
       headSprite: {fileID: 0}
       hatSprite: {fileID: 0}
@@ -59,7 +59,7 @@ MonoBehaviour:
     attackSpeed: 1
     moveSpeed: 2
     regenHpPerSecond: 0
-    colliderRadius: 0.05
+    colliderRadius: 0.1
     appearance:
       headSprite: {fileID: 0}
       hatSprite: {fileID: 0}
@@ -72,7 +72,7 @@ MonoBehaviour:
     attackSpeed: 1
     moveSpeed: 2
     regenHpPerSecond: 0
-    colliderRadius: 0.05
+    colliderRadius: 0.1
     appearance:
       headSprite: {fileID: 0}
       hatSprite: {fileID: 0}
@@ -85,7 +85,7 @@ MonoBehaviour:
     attackSpeed: 1
     moveSpeed: 2
     regenHpPerSecond: 0
-    colliderRadius: 0.05
+    colliderRadius: 0.1
     appearance:
       headSprite: {fileID: 0}
       hatSprite: {fileID: 0}
