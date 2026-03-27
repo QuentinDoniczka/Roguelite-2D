@@ -222,6 +222,7 @@ namespace RogueliteAutoBattler.Editor
             EditorUIFactory.SetObj(soSpawnManager, "_teamHomeAnchor", teamAnchor);
             soSpawnManager.ApplyModifiedProperties();
 
+            EditorUIFactory.SetObj(soLevelManager, "_teamHomeAnchor", teamAnchor);
             EditorUIFactory.SetObj(soLevelManager, "_enemiesHomeAnchor", enemiesAnchor);
             EditorUIFactory.SetObj(soLevelManager, "_combatTriggerZone", combatTrigger);
             soLevelManager.ApplyModifiedProperties();

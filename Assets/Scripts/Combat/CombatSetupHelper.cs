@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using RogueliteAutoBattler.Data;
 using UnityEngine;
 
@@ -95,6 +96,42 @@ namespace RogueliteAutoBattler.Combat
 
             var relay = animator.gameObject.AddComponent<AnimationEventRelay>();
             relay.Initialize(controller);
+        }
+
+        /// <summary>
+        /// Recalculates formation offsets for all alive characters in a container.
+        /// Does NOT move characters — only updates their <see cref="CharacterMover.SetHomeOffset"/>.
+        /// The homing logic in <see cref="CharacterMover.FixedUpdate"/> handles actual movement.
+        /// </summary>
+        public static void RecalculateFormation(Transform container, Transform homeAnchor, bool facingRight)
+        {
+            if (container == null || homeAnchor == null)
+                return;
+
+            var aliveList = new List<CharacterMover>();
+
+            for (int i = 0; i < container.childCount; i++)
+            {
+                Transform child = container.GetChild(i);
+                if (child.TryGetComponent<CombatStats>(out var stats)
+                    && !stats.IsDead
+                    && child.TryGetComponent<CharacterMover>(out var mover))
+                {
+                    aliveList.Add(mover);
+                }
+            }
+
+            if (aliveList.Count == 0)
+                return;
+
+            Vector2 anchorPos = (Vector2)homeAnchor.position;
+            Vector2[] positions = FormationLayout.GetPositions(anchorPos, aliveList.Count, facingRight);
+
+            for (int i = 0; i < aliveList.Count; i++)
+            {
+                Vector2 offset = positions[i] - anchorPos;
+                aliveList[i].SetHomeOffset(offset);
+            }
         }
 
         /// <summary>

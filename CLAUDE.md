@@ -139,6 +139,7 @@ Assets/
 │   │   ├── EditModeTestBase.cs
 │   │   ├── CombatStatsTests.cs
 │   │   ├── FormationLayoutTests.cs
+│   │   ├── RecalculateFormationTests.cs
 │   │   └── TargetFinderTests.cs
 │   └── PlayMode/
 │       ├── Tests.PlayMode.asmdef
@@ -149,6 +150,7 @@ Assets/
 │       ├── CharacterMoverTests.cs
 │       ├── CombatControllerTests.cs
 │       ├── CombatStatsRegenTests.cs
+│       ├── FormationRecalculationTests.cs
 │       ├── LevelManagerDefeatTests.cs
 │       ├── VisualEquipmentTestLoopTests.cs
 │       └── WorldConveyorTests.cs

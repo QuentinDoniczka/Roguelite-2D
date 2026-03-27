@@ -37,6 +37,7 @@ namespace RogueliteAutoBattler.Combat
         [SerializeField] private float _enemySpawnOffscreenX = 1f;
 
         [Header("Anchors")]
+        [SerializeField] private Transform _teamHomeAnchor;
         [SerializeField] private Transform _enemiesHomeAnchor;
         [SerializeField] private Transform _combatTriggerZone;
 
@@ -59,6 +60,10 @@ namespace RogueliteAutoBattler.Combat
         private IEnumerator Start()
         {
             CombatSetupHelper.FindContainersIfNeeded(transform, ref _teamContainer, ref _enemiesContainer, nameof(LevelManager));
+            if (_teamHomeAnchor == null)
+                _teamHomeAnchor = GameObject.Find(CombatSetupHelper.TeamHomeAnchorName)?.transform;
+            if (_enemiesHomeAnchor == null)
+                _enemiesHomeAnchor = GameObject.Find(CombatSetupHelper.EnemiesHomeAnchorName)?.transform;
             _conveyor = GetComponent<WorldConveyor>();
             ApplyStage(_currentStageIndex);
             // Wait until an ally actually exists in the team container.
@@ -294,6 +299,7 @@ namespace RogueliteAutoBattler.Combat
 
             ClearAllyTargets();
             AttackSlotRegistry.Clear();
+            CombatSetupHelper.RecalculateFormation(_teamContainer, _teamHomeAnchor, facingRight: true);
 
             var stages = _levelDatabase.Stages;
             if (stages == null || _currentStageIndex < 0 || _currentStageIndex >= stages.Count)
@@ -429,6 +435,7 @@ namespace RogueliteAutoBattler.Combat
 #endif
             ClearEnemyTargets();
             AttackSlotRegistry.Clear();
+            CombatSetupHelper.RecalculateFormation(_enemiesContainer, _enemiesHomeAnchor, facingRight: false);
         }
 
         private void WireAllyDeathTracking()
@@ -454,16 +461,24 @@ namespace RogueliteAutoBattler.Combat
         internal int AliveAllyCount => _aliveAllyCount;
         internal bool LevelInProgress => _levelInProgress;
 
-        internal void InitializeForTest(Transform teamContainer, Transform enemiesContainer)
+        internal void InitializeForTest(Transform teamContainer, Transform enemiesContainer, Transform teamHomeAnchor = null, Transform enemiesHomeAnchor = null)
         {
             _teamContainer = teamContainer;
             _enemiesContainer = enemiesContainer;
+            if (teamHomeAnchor != null) _teamHomeAnchor = teamHomeAnchor;
+            if (enemiesHomeAnchor != null) _enemiesHomeAnchor = enemiesHomeAnchor;
             _levelInProgress = true;
         }
 
         internal void WireAllyDeathTrackingForTest() => WireAllyDeathTracking();
         internal void ClearAllyTargetsForTest() => ClearAllyTargets();
         internal void ClearEnemyTargetsForTest() => ClearEnemyTargets();
+
+        internal void RecalculateAllyFormationForTest() =>
+            CombatSetupHelper.RecalculateFormation(_teamContainer, _teamHomeAnchor, facingRight: true);
+
+        internal void RecalculateEnemyFormationForTest() =>
+            CombatSetupHelper.RecalculateFormation(_enemiesContainer, _enemiesHomeAnchor, facingRight: false);
 
     }
 }
