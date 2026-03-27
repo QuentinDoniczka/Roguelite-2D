@@ -17,8 +17,10 @@ namespace RogueliteAutoBattler.Combat
         [SerializeField] private float _yOffset = 0.3f;
 
         private static readonly Color ColorBg = new Color(0.15f, 0.15f, 0.15f, 1f);
-        private static readonly Color ColorTrail = new Color(0.80f, 0.20f, 0.20f, 0.80f);
-        private static readonly Color ColorHealthy = new Color(0.20f, 0.80f, 0.20f, 1f);
+
+        [Header("Colors")]
+        [SerializeField] private Color _fillColor = new Color(0.20f, 0.80f, 0.20f, 1f);
+        [SerializeField] private Color _trailColor = new Color(1f, 1f, 1f, 0.80f);
 
         private static Material _unlitMaterial;
         private static Sprite _centeredSprite;
@@ -57,6 +59,17 @@ namespace RogueliteAutoBattler.Combat
                 _stats.OnDamageTaken -= HandleDamageTaken;
         }
 
+        public void SetColors(Color fillColor, Color trailColor)
+        {
+            _fillColor = fillColor;
+            _trailColor = trailColor;
+
+            if (_fillRenderer != null)
+                _fillRenderer.color = _fillColor;
+            if (_trailFillRenderer != null)
+                _trailFillRenderer.color = _trailColor;
+        }
+
         private void CreateBar()
         {
             var bgSprite = GetOrCreateSprite(ref _centeredSprite, new Vector2(0.5f, 0.5f));
@@ -88,7 +101,7 @@ namespace RogueliteAutoBattler.Combat
             trailFillGo.transform.localScale = fillLocalScale;
             _trailFillRenderer = trailFillGo.AddComponent<SpriteRenderer>();
             _trailFillRenderer.sprite = fillSprite;
-            _trailFillRenderer.color = ColorTrail;
+            _trailFillRenderer.color = _trailColor;
             _trailFillRenderer.sortingLayerName = EffectsSortingLayer;
             _trailFillRenderer.sortingOrder = SortingOrderTrailFill;
             _trailFillRenderer.material = _unlitMaterial;
@@ -100,7 +113,7 @@ namespace RogueliteAutoBattler.Combat
             fillGo.transform.localScale = fillLocalScale;
             _fillRenderer = fillGo.AddComponent<SpriteRenderer>();
             _fillRenderer.sprite = fillSprite;
-            _fillRenderer.color = ColorHealthy;
+            _fillRenderer.color = _fillColor;
             _fillRenderer.sortingLayerName = EffectsSortingLayer;
             _fillRenderer.sortingOrder = SortingOrderFill;
             _fillRenderer.material = _unlitMaterial;

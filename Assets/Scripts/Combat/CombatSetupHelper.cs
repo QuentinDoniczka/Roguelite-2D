@@ -30,12 +30,20 @@ namespace RogueliteAutoBattler.Combat
             Vector2 homeOffset,
             float colliderRadius,
             AppearanceData appearance,
-            string callerName)
+            string callerName,
+            Color? healthBarFillColor = null,
+            Color? healthBarTrailColor = null)
         {
             var combatStats = character.AddComponent<CombatStats>();
             combatStats.InitializeDirect(maxHp, atk, attackSpeed, regenHpPerSecond);
 
-            character.AddComponent<HealthBar>();
+            var healthBar = character.AddComponent<HealthBar>();
+            if (healthBarFillColor.HasValue || healthBarTrailColor.HasValue)
+            {
+                healthBar.SetColors(
+                    healthBarFillColor ?? new Color(0.20f, 0.80f, 0.20f, 1f),
+                    healthBarTrailColor ?? new Color(1f, 1f, 1f, 0.80f));
+            }
 
             var mover = character.AddComponent<CharacterMover>();
             mover.SetMoveSpeed(moveSpeed);
