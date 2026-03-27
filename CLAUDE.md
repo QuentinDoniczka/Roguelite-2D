@@ -25,7 +25,7 @@
 Doc detaille : `Assets/doc/premier-jet-roguelite.html`
 
 # Project Structure
-Generated: 2026-03-27 (updated #86)
+Generated: 2026-03-27 (updated #88)
 
 Assets/
 ├── Animations/  (23 files: .anim + .controller)
@@ -76,6 +76,7 @@ Assets/
 │   │   ├── DamageNumber.cs
 │   │   ├── DamageNumberBootstrap.cs
 │   │   ├── DamageNumberService.cs
+│   │   ├── DamageNumberSettingsPersistence.cs
 │   │   ├── FormationLayout.cs
 │   │   ├── GroundFitter.cs
 │   │   ├── HealthBar.cs
@@ -110,7 +111,8 @@ Assets/
 │   │   │   └── UIScreen.cs
 │   │   ├── Screens/
 │   │   │   ├── Combat/
-│   │   │   │   └── CombatScreen.cs
+│   │   │   │   ├── CombatScreen.cs
+│   │   │   └── DamageNumberSettingsPanel.cs
 │   │   │   ├── Guild/
 │   │   │   │   └── GuildScreen.cs
 │   │   │   ├── Shop/
