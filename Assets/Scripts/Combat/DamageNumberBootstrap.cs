@@ -22,6 +22,7 @@ namespace RogueliteAutoBattler.Combat
                 return;
             }
 
+            DamageNumberSettingsPersistence.Load(_config);
             DamageNumberService.Initialize(_effectsContainer, _config);
         }
     }
