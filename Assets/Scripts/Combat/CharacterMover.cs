@@ -30,6 +30,7 @@ namespace RogueliteAutoBattler.Combat
         private Animator _animator;
         private bool _hasAnimator;
         private Rigidbody2D _rb;
+        private CircleCollider2D _col;
         private WorldConveyor _conveyor;
         private bool _isMoving;
         private bool _isCharge;
@@ -84,9 +85,9 @@ namespace RogueliteAutoBattler.Combat
                 };
             }
 
-            var col = GetComponent<CircleCollider2D>();
-            if (col != null)
-                col.sharedMaterial = _frictionlessMaterial;
+            _col = GetComponent<CircleCollider2D>();
+            if (_col != null)
+                _col.sharedMaterial = _frictionlessMaterial;
 
             if (_hasAnimator)
                 _animator.applyRootMotion = false;
@@ -102,6 +103,9 @@ namespace RogueliteAutoBattler.Combat
 
             if (_target == null)
             {
+                // Disable collider when homing so teammates don't block each other.
+                if (_col != null) _col.enabled = false;
+
                 bool scrolling = _conveyor != null && _conveyor.IsScrolling;
 
                 if (scrolling)
@@ -159,6 +163,9 @@ namespace RogueliteAutoBattler.Combat
                 }
                 return;
             }
+
+            // Re-enable collider in combat mode.
+            if (_col != null) _col.enabled = true;
 
             Vector2 destination = (Vector2)_target.position;
             Vector2 direction = (destination - (Vector2)transform.position).normalized;
