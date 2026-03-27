@@ -127,6 +127,18 @@ namespace RogueliteAutoBattler.Tests
             return go;
         }
 
+        public static GameObject CreateCharacterWithHealthBar(
+            string name = "TestHealthBarChar",
+            int maxHp = 100,
+            int atk = 10,
+            float attackSpeed = 1f,
+            float regenHpPerSecond = 0f)
+        {
+            var go = CreateCombatCharacter(name, maxHp, atk, attackSpeed, regenHpPerSecond);
+            go.AddComponent<HealthBar>();
+            return go;
+        }
+
         public static GameObject CreateAnchor(string name = "Anchor", Vector2? position = null)
         {
             var go = new GameObject(name);

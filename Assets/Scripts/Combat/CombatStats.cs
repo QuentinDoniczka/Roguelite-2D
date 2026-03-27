@@ -27,7 +27,7 @@ namespace RogueliteAutoBattler.Combat
             _regenAccumulator = 0f;
         }
 
-        // TODO: Server-authoritative — validate damage server-side
+        public event System.Action<int, int> OnDamageTaken;
         public event System.Action OnDied;
 
         public void TakeDamage(int damage)
@@ -35,6 +35,7 @@ namespace RogueliteAutoBattler.Combat
             if (IsDead) return;
 
             _currentHp = Mathf.Max(0, _currentHp - damage);
+            OnDamageTaken?.Invoke(damage, _currentHp);
             if (IsDead)
             {
                 AttackSlotRegistry.ReleaseAll(transform);

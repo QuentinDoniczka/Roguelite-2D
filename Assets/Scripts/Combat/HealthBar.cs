@@ -7,6 +7,9 @@ namespace RogueliteAutoBattler.Combat
     {
         private const string EffectsSortingLayer = "Effects";
         private const string UnlitShaderName = "Universal Render Pipeline/2D/Sprite-Unlit-Default";
+        private const int SortingOrderBackground = 10;
+        private const int SortingOrderTrailFill = 11;
+        private const int SortingOrderFill = 12;
 
         [Header("Bar Dimensions")]
         [SerializeField] private float _barWidth = 0.3f;
@@ -14,24 +17,44 @@ namespace RogueliteAutoBattler.Combat
         [SerializeField] private float _yOffset = 0.3f;
 
         private static readonly Color ColorBg = new Color(0.15f, 0.15f, 0.15f, 1f);
+        private static readonly Color ColorTrail = new Color(0.80f, 0.20f, 0.20f, 0.80f);
         private static readonly Color ColorHealthy = new Color(0.20f, 0.80f, 0.20f, 1f);
-        private static readonly Color ColorWarning = new Color(0.80f, 0.80f, 0.20f, 1f);
-        private static readonly Color ColorCritical = new Color(0.80f, 0.20f, 0.20f, 1f);
 
         private static Material _unlitMaterial;
         private static Sprite _centeredSprite;
         private static Sprite _leftAlignedSprite;
 
+        [Header("Trail Settings")]
+        [SerializeField] private float _trailFadeDuration = 0.5f;
+
         private CombatStats _stats;
+        private bool _hasStats;
         private Transform _pivotTransform;
+        private Transform _trailFillTransform;
+        private SpriteRenderer _trailFillRenderer;
         private Transform _fillTransform;
         private SpriteRenderer _fillRenderer;
+
+        private float _trailRatio = 1f;
+        private float _trailStartRatio;
+        private float _trailTargetRatio;
+        private float _trailElapsed;
+        private bool _isTrailLerping;
 
         private void Awake()
         {
             _stats = GetComponent<CombatStats>();
+            _hasStats = _stats != null;
             EnsureUnlitMaterial();
             CreateBar();
+            _trailRatio = 1f;
+            _stats.OnDamageTaken += HandleDamageTaken;
+        }
+
+        private void OnDestroy()
+        {
+            if (_hasStats)
+                _stats.OnDamageTaken -= HandleDamageTaken;
         }
 
         private void CreateBar()
@@ -53,25 +76,49 @@ namespace RogueliteAutoBattler.Combat
             bgRenderer.sprite = bgSprite;
             bgRenderer.color = ColorBg;
             bgRenderer.sortingLayerName = EffectsSortingLayer;
-            bgRenderer.sortingOrder = 10;
+            bgRenderer.sortingOrder = SortingOrderBackground;
             bgRenderer.material = _unlitMaterial;
+
+            var fillLocalPosition = new Vector3(-_barWidth * 0.5f, 0f, 0f);
+            var fillLocalScale = new Vector3(_barWidth, _barHeight, 1f);
+
+            var trailFillGo = new GameObject("TrailFill");
+            trailFillGo.transform.SetParent(_pivotTransform, false);
+            trailFillGo.transform.localPosition = fillLocalPosition;
+            trailFillGo.transform.localScale = fillLocalScale;
+            _trailFillRenderer = trailFillGo.AddComponent<SpriteRenderer>();
+            _trailFillRenderer.sprite = fillSprite;
+            _trailFillRenderer.color = ColorTrail;
+            _trailFillRenderer.sortingLayerName = EffectsSortingLayer;
+            _trailFillRenderer.sortingOrder = SortingOrderTrailFill;
+            _trailFillRenderer.material = _unlitMaterial;
+            _trailFillTransform = trailFillGo.transform;
 
             var fillGo = new GameObject("Fill");
             fillGo.transform.SetParent(_pivotTransform, false);
-            fillGo.transform.localPosition = new Vector3(-_barWidth * 0.5f, 0f, 0f);
-            fillGo.transform.localScale = new Vector3(_barWidth, _barHeight, 1f);
+            fillGo.transform.localPosition = fillLocalPosition;
+            fillGo.transform.localScale = fillLocalScale;
             _fillRenderer = fillGo.AddComponent<SpriteRenderer>();
             _fillRenderer.sprite = fillSprite;
             _fillRenderer.color = ColorHealthy;
             _fillRenderer.sortingLayerName = EffectsSortingLayer;
-            _fillRenderer.sortingOrder = 11;
+            _fillRenderer.sortingOrder = SortingOrderFill;
             _fillRenderer.material = _unlitMaterial;
             _fillTransform = fillGo.transform;
         }
 
+        private void HandleDamageTaken(int damage, int currentHp)
+        {
+            float newRatio = (float)currentHp / _stats.MaxHp;
+            _trailStartRatio = _trailRatio;
+            _trailTargetRatio = newRatio;
+            _trailElapsed = 0f;
+            _isTrailLerping = true;
+        }
+
         private void LateUpdate()
         {
-            if (_stats == null || _stats.MaxHp <= 0)
+            if (!_hasStats || _stats.MaxHp <= 0)
                 return;
 
             ApplyFlipCompensation(_pivotTransform);
@@ -82,17 +129,29 @@ namespace RogueliteAutoBattler.Combat
             scale.x = _barWidth * ratio;
             _fillTransform.localScale = scale;
 
-            _fillRenderer.color = ratio > 0.5f
-                ? ColorHealthy
-                : ratio > 0.25f
-                    ? ColorWarning
-                    : ColorCritical;
+            if (_isTrailLerping)
+            {
+                _trailElapsed += Time.deltaTime;
+                float t = Mathf.Clamp01(_trailElapsed / _trailFadeDuration);
+                _trailRatio = Mathf.Lerp(_trailStartRatio, _trailTargetRatio, t);
+                if (t >= 1f)
+                    _isTrailLerping = false;
+            }
+
+            if (_trailRatio < ratio)
+                _trailRatio = ratio;
+
+            var trailScale = _trailFillTransform.localScale;
+            trailScale.x = _barWidth * _trailRatio;
+            _trailFillTransform.localScale = trailScale;
         }
 
         private void ApplyFlipCompensation(Transform pivot)
         {
             float sign = transform.localScale.x < 0f ? -1f : 1f;
-            pivot.localScale = new Vector3(sign, 1f, 1f);
+            var pivotScale = pivot.localScale;
+            pivotScale.x = sign;
+            pivot.localScale = pivotScale;
         }
 
         private static Sprite GetOrCreateSprite(ref Sprite cached, Vector2 pivot)
@@ -117,8 +176,7 @@ namespace RogueliteAutoBattler.Combat
             }
             else
             {
-                Debug.LogWarning("[HealthBar] Shader 'Sprite-Unlit-Default' not found. " +
-                                 "HP bar may render black. Falling back to default sprite material.");
+                Debug.LogWarning($"[HealthBar] Shader '{UnlitShaderName}' not found. HP bar may render black. Falling back to default sprite material.");
             }
         }
     }
