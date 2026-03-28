@@ -30,7 +30,7 @@ MonoBehaviour:
           attackRange: 0.5
           attackType: 0
           colliderRadius: 0.05
-          goldDrop: 1
+          goldDrop: 10
           appearance:
             headSprite: {fileID: 0}
             hatSprite: {fileID: 0}
