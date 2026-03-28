@@ -27,6 +27,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             canvasGo.AddComponent<Canvas>();
 
             var badgeGo = new GameObject("GoldBadge");
+            badgeGo.AddComponent<RectTransform>();
             badgeGo.transform.SetParent(canvasGo.transform);
 
             var labelGo = new GameObject("Label");
