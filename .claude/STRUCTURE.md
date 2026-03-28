@@ -1,5 +1,5 @@
 # Project Structure
-Generated: 2026-03-28 (updated #92)
+Generated: 2026-03-28 (updated #93)
 
 Assets/
 ├── Animations/  (23 files: .anim + .controller)
@@ -58,6 +58,8 @@ Assets/
 │   │   ├── ScreenAnchor.cs
 │   │   ├── SortingLayers.cs
 │   │   ├── TargetFinder.cs
+│   │   ├── GoldFormatter.cs
+│   │   ├── GoldWallet.cs
 │   │   ├── VisualEquipmentTestLoop.cs
 │   │   └── WorldConveyor.cs
 │   ├── Core/  (empty)
@@ -96,7 +98,8 @@ Assets/
 │   │   │   │   └── SkillTreeScreen.cs
 │   │   │   └── Village/
 │   │   │       └── VillageScreen.cs
-│   │   └── Widgets/  (empty)
+│   │   └── Widgets/
+│   │       └── GoldHudBadge.cs
 │   └── Village/  (empty)
 ├── Settings/
 │   ├── DefaultVolumeProfile.asset
@@ -124,6 +127,7 @@ Assets/
 │   │   ├── CombatStatsTests.cs
 │   │   ├── FormationLayoutTests.cs
 │   │   ├── RecalculateFormationTests.cs
+│   │   ├── GoldFormatterTests.cs
 │   │   └── TargetFinderTests.cs
 │   └── PlayMode/
 │       ├── Tests.PlayMode.asmdef
@@ -137,6 +141,8 @@ Assets/
 │       ├── DamageNumberServiceTests.cs
 │       ├── DamageNumberTests.cs
 │       ├── FormationRecalculationTests.cs
+│       ├── GoldHudBadgeTests.cs
+│       ├── GoldWalletTests.cs
 │       ├── HealthBarTrailTests.cs
 │       ├── LevelManagerDefeatTests.cs
 │       ├── VisualEquipmentTestLoopTests.cs
