@@ -43,6 +43,36 @@ namespace RogueliteAutoBattler.Editor
             GameObjectUtility.SetParentAndAlign(walletGo, go);
             walletGo.AddComponent<GoldWallet>();
 
+            var coinFlyPool = new GameObject("CoinFlyPool");
+            GameObjectUtility.SetParentAndAlign(coinFlyPool, go);
+            RectTransform coinFlyPoolRect = coinFlyPool.AddComponent<RectTransform>();
+            coinFlyPoolRect.anchorMin = Vector2.zero;
+            coinFlyPoolRect.anchorMax = Vector2.one;
+            coinFlyPoolRect.offsetMin = Vector2.zero;
+            coinFlyPoolRect.offsetMax = Vector2.zero;
+
+            var bootstrap = go.AddComponent<CoinFlyBootstrap>();
+            var bootstrapSO = new SerializedObject(bootstrap);
+            var coinContainerProp = bootstrapSO.FindProperty("_coinContainer");
+            if (coinContainerProp == null)
+                Debug.LogError($"[{nameof(CombatHudBuilder)}] SerializedProperty '_coinContainer' not found on CoinFlyBootstrap.");
+            else
+                coinContainerProp.objectReferenceValue = coinFlyPoolRect;
+
+            var targetBadgeProp = bootstrapSO.FindProperty("_targetBadge");
+            if (targetBadgeProp == null)
+                Debug.LogError($"[{nameof(CombatHudBuilder)}] SerializedProperty '_targetBadge' not found on CoinFlyBootstrap.");
+            else
+                targetBadgeProp.objectReferenceValue = goldBadge != null ? goldBadge.GetComponent<RectTransform>() : null;
+
+            var coinSpriteProp = bootstrapSO.FindProperty("_coinSprite");
+            if (coinSpriteProp == null)
+                Debug.LogError($"[{nameof(CombatHudBuilder)}] SerializedProperty '_coinSprite' not found on CoinFlyBootstrap.");
+            else
+                coinSpriteProp.objectReferenceValue = AssetDatabase.GetBuiltinExtraResource<Sprite>("UI/Skin/Knob.psd");
+
+            bootstrapSO.ApplyModifiedProperties();
+
             CreateCurrencyBadge(go.transform, "Diamond", "211",
                 new Vector2(0.77f, 0.92f), new Vector2(1f, 1f),
                 (Color)new Color32(185, 242, 255, 255));

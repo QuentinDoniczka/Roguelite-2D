@@ -11,7 +11,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
 {
     public class GoldHudBadgeTests
     {
-        private readonly List<GameObject> _spawned = new();
+        private readonly List<GameObject> _spawned = new List<GameObject>();
         private GoldWallet _wallet;
         private TMP_Text _label;
 
@@ -27,6 +27,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             canvasGo.AddComponent<Canvas>();
 
             var badgeGo = new GameObject("GoldBadge");
+            badgeGo.AddComponent<RectTransform>();
             badgeGo.transform.SetParent(canvasGo.transform);
 
             var labelGo = new GameObject("Label");
@@ -76,6 +77,27 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             yield return null;
 
             Assert.AreEqual("1.5K", _label.text);
+        }
+
+        [UnityTest]
+        public IEnumerator Punch_ScalesUpThenBack()
+        {
+            yield return null;
+
+            GoldHudBadge badge = Object.FindObjectsByType<GoldHudBadge>(FindObjectsSortMode.None)[0];
+            badge.Punch();
+
+            yield return new WaitForSeconds(0.08f);
+
+            RectTransform badgeRect = badge.GetComponent<RectTransform>();
+            Assert.Greater(badgeRect.localScale.x, 1.0f,
+                "Scale should be greater than 1.0 during punch peak");
+
+            yield return new WaitForSeconds(0.1f);
+
+            Assert.AreEqual(1f, badgeRect.localScale.x, 0.05f);
+            Assert.AreEqual(1f, badgeRect.localScale.y, 0.05f);
+            Assert.AreEqual(1f, badgeRect.localScale.z, 0.05f);
         }
     }
 }

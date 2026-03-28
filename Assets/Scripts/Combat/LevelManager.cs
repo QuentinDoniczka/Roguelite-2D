@@ -205,11 +205,14 @@ namespace RogueliteAutoBattler.Combat
             _aliveEnemyCount++;
             components.Stats.OnDied += OnEnemyDied;
 
+            var enemyTransform = enemy.transform;
+
             int goldAmount = data.GoldDrop;
             if (goldAmount > 0)
+            {
                 components.Stats.OnDied += () => { if (_goldWallet != null) _goldWallet.Add(goldAmount); };
-
-            var enemyTransform = enemy.transform;
+                components.Stats.OnDied += () => { CoinFlyService.Show(enemyTransform.position); };
+            }
 
             components.Controller.SetAttackRange(data.AttackRange);
             components.Controller.SetAttackerFacing(false);

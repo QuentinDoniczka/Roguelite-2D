@@ -25,7 +25,7 @@
 Doc detaille : `Assets/doc/premier-jet-roguelite.html`
 
 # Project Structure
-Generated: 2026-03-28 (updated #93)
+Generated: 2026-03-28 (updated #94)
 
 Assets/
 ├── Animations/  (23 files: .anim + .controller)
@@ -69,6 +69,9 @@ Assets/
 │   │   ├── AttackSlotRegistry.cs
 │   │   ├── CharacterAppearance.cs
 │   │   ├── CharacterMover.cs
+│   │   ├── CoinFly.cs
+│   │   ├── CoinFlyBootstrap.cs
+│   │   ├── CoinFlyService.cs
 │   │   ├── CombatController.cs
 │   │   ├── CombatSetupHelper.cs
 │   │   ├── CombatSpawnManager.cs
@@ -78,14 +81,14 @@ Assets/
 │   │   ├── DamageNumberService.cs
 │   │   ├── DamageNumberSettingsPersistence.cs
 │   │   ├── FormationLayout.cs
+│   │   ├── GoldFormatter.cs
+│   │   ├── GoldWallet.cs
 │   │   ├── GroundFitter.cs
 │   │   ├── HealthBar.cs
 │   │   ├── LevelManager.cs
 │   │   ├── ScreenAnchor.cs
 │   │   ├── SortingLayers.cs
 │   │   ├── TargetFinder.cs
-│   │   ├── GoldFormatter.cs
-│   │   ├── GoldWallet.cs
 │   │   ├── VisualEquipmentTestLoop.cs
 │   │   └── WorldConveyor.cs
 │   ├── Core/  (empty)
@@ -104,7 +107,6 @@ Assets/
 │   │   ├── LevelDataTypes.cs
 │   │   ├── LevelDatabase.cs
 │   │   └── TeamDatabase.cs
-
 │   ├── Services/
 │   │   └── Local/  (empty)
 │   ├── UI/
@@ -116,7 +118,7 @@ Assets/
 │   │   ├── Screens/
 │   │   │   ├── Combat/
 │   │   │   │   ├── CombatScreen.cs
-│   │   │   └── DamageNumberSettingsPanel.cs
+│   │   │   │   └── DamageNumberSettingsPanel.cs
 │   │   │   ├── Guild/
 │   │   │   │   └── GuildScreen.cs
 │   │   │   ├── Shop/
@@ -163,6 +165,8 @@ Assets/
 │       │   └── TestCharacterFactory.cs
 │       ├── CharacterAppearanceTests.cs
 │       ├── CharacterMoverTests.cs
+│       ├── CoinFlyServiceTests.cs
+│       ├── CoinFlyTests.cs
 │       ├── CombatControllerTests.cs
 │       ├── CombatStatsRegenTests.cs
 │       ├── DamageNumberServiceTests.cs
