@@ -1,3 +1,4 @@
+using System.Collections;
 using RogueliteAutoBattler.Combat;
 using TMPro;
 using UnityEngine;
@@ -8,10 +9,13 @@ namespace RogueliteAutoBattler.UI.Widgets
     {
         private TMP_Text _label;
         private GoldWallet _wallet;
+        private RectTransform _rectTransform;
+        private Coroutine _punchCoroutine;
 
         private void Awake()
         {
             _label = GetComponentInChildren<TMP_Text>();
+            _rectTransform = GetComponent<RectTransform>();
         }
 
         private void Start()
@@ -35,6 +39,48 @@ namespace RogueliteAutoBattler.UI.Widgets
         {
             if (_label != null)
                 _label.text = GoldFormatter.Format(total);
+        }
+
+        public void Punch()
+        {
+            if (_rectTransform == null)
+                return;
+
+            if (_punchCoroutine != null)
+                StopCoroutine(_punchCoroutine);
+
+            _punchCoroutine = StartCoroutine(PunchCoroutine());
+        }
+
+        private IEnumerator PunchCoroutine()
+        {
+            const float peakScale = 1.15f;
+            const float halfDuration = 0.075f;
+
+            float elapsed = 0f;
+            while (elapsed < halfDuration)
+            {
+                elapsed += Time.deltaTime;
+                float t = Mathf.Clamp01(elapsed / halfDuration);
+                float easeOut = 1f - (1f - t) * (1f - t);
+                float scale = Mathf.Lerp(1f, peakScale, easeOut);
+                _rectTransform.localScale = Vector3.one * scale;
+                yield return null;
+            }
+
+            elapsed = 0f;
+            while (elapsed < halfDuration)
+            {
+                elapsed += Time.deltaTime;
+                float t = Mathf.Clamp01(elapsed / halfDuration);
+                float easeIn = t * t;
+                float scale = Mathf.Lerp(peakScale, 1f, easeIn);
+                _rectTransform.localScale = Vector3.one * scale;
+                yield return null;
+            }
+
+            _rectTransform.localScale = Vector3.one;
+            _punchCoroutine = null;
         }
     }
 }
