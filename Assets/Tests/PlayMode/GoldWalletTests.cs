@@ -108,7 +108,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             yield return null;
 
             _wallet.Add(500);
-            _wallet.Reset();
+            _wallet.ResetGold();
 
             Assert.AreEqual(0, _wallet.Gold);
         }
@@ -123,7 +123,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             int receivedTotal = -1;
             _wallet.OnGoldChanged += total => receivedTotal = total;
 
-            _wallet.Reset();
+            _wallet.ResetGold();
 
             Assert.AreEqual(0, receivedTotal);
         }

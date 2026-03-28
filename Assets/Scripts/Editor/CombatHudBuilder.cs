@@ -1,5 +1,7 @@
+using RogueliteAutoBattler.Combat;
 using RogueliteAutoBattler.UI.Core;
 using RogueliteAutoBattler.UI.Screens.Combat;
+using RogueliteAutoBattler.UI.Widgets;
 using TMPro;
 using UnityEditor;
 using UnityEngine;
@@ -32,6 +34,14 @@ namespace RogueliteAutoBattler.Editor
             CreateCurrencyBadge(go.transform, "Gold", "0",
                 new Vector2(0.55f, 0.92f), new Vector2(0.77f, 1f),
                 (Color)new Color32(255, 215, 0, 255));
+
+            var goldBadge = go.transform.Find("Gold");
+            if (goldBadge != null)
+                goldBadge.gameObject.AddComponent<GoldHudBadge>();
+
+            var walletGo = new GameObject("GoldWallet");
+            GameObjectUtility.SetParentAndAlign(walletGo, go);
+            walletGo.AddComponent<GoldWallet>();
 
             CreateCurrencyBadge(go.transform, "Diamond", "211",
                 new Vector2(0.77f, 0.92f), new Vector2(1f, 1f),

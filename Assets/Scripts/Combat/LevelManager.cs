@@ -207,7 +207,7 @@ namespace RogueliteAutoBattler.Combat
 
             int goldAmount = data.GoldDrop;
             if (goldAmount > 0)
-                components.Stats.OnDied += () => _goldWallet?.Add(goldAmount);
+                components.Stats.OnDied += () => { if (_goldWallet != null) _goldWallet.Add(goldAmount); };
 
             var enemyTransform = enemy.transform;
 

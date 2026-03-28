@@ -17,7 +17,7 @@ namespace RogueliteAutoBattler.Combat
             OnGoldChanged?.Invoke(_gold);
         }
 
-        public void Reset()
+        public void ResetGold()
         {
             _gold = 0;
             OnGoldChanged?.Invoke(_gold);
