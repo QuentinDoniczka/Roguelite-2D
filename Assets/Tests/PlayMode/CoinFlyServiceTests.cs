@@ -111,11 +111,13 @@ namespace RogueliteAutoBattler.Tests.PlayMode
         {
             CoinFlyService.ResetForTest();
 
+            Texture2D texture = _coinSprite != null ? _coinSprite.texture : null;
+
             if (_coinSprite != null)
                 Object.Destroy(_coinSprite);
 
-            if (_coinSprite != null && _coinSprite.texture != null)
-                Object.Destroy(_coinSprite.texture);
+            if (texture != null)
+                Object.Destroy(texture);
 
             base.TearDown();
         }

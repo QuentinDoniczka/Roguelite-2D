@@ -11,7 +11,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
 {
     public class GoldHudBadgeTests
     {
-        private readonly List<GameObject> _spawned = new();
+        private readonly List<GameObject> _spawned = new List<GameObject>();
         private GoldWallet _wallet;
         private TMP_Text _label;
 

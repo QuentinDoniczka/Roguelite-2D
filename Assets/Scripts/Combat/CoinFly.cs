@@ -8,17 +8,15 @@ namespace RogueliteAutoBattler.Combat
     [RequireComponent(typeof(Image))]
     public class CoinFly : MonoBehaviour
     {
-        private const float ARC_HEIGHT_RATIO = 0.3f;
-        private const float MIN_ARC_HEIGHT = 100f;
+        private const float ArcHeightRatio = 0.3f;
+        private const float MinArcHeight = 100f;
 
-        private Image _image;
         private RectTransform _rectTransform;
         private Action<CoinFly> _returnToPool;
         private Coroutine _activeCoroutine;
 
         private void Awake()
         {
-            _image = GetComponent<Image>();
             _rectTransform = GetComponent<RectTransform>();
         }
 
@@ -40,7 +38,7 @@ namespace RogueliteAutoBattler.Combat
         private IEnumerator AnimateCoroutine(Vector2 start, Vector2 target, float duration, Action onArrive)
         {
             float distance = Vector2.Distance(start, target);
-            float arcHeight = Mathf.Max(distance * ARC_HEIGHT_RATIO, MIN_ARC_HEIGHT);
+            float arcHeight = Mathf.Max(distance * ArcHeightRatio, MinArcHeight);
 
             Vector2 midpoint = (start + target) * 0.5f;
             Vector2 controlPoint = midpoint + Vector2.up * arcHeight;

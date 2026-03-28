@@ -1,5 +1,5 @@
-using System;
 using System.Collections.Generic;
+using RogueliteAutoBattler.UI.Widgets;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -10,25 +10,27 @@ namespace RogueliteAutoBattler.Combat
         private static readonly Queue<CoinFly> _pool = new Queue<CoinFly>();
         private static RectTransform _container;
         private static RectTransform _targetBadge;
+        private static GoldHudBadge _targetBadgeComponent;
         private static Camera _camera;
         private static Canvas _canvas;
         private static Sprite _coinSprite;
         private static bool _isInitialized;
 
-        private const int INITIAL_POOL_SIZE = 5;
-        private const float DURATION = 0.6f;
-        private static readonly Color COIN_COLOR = new Color32(255, 215, 0, 255);
-        private const float COIN_SIZE = 32f;
+        private const int InitialPoolSize = 5;
+        private const float Duration = 0.6f;
+        private static readonly Color CoinColor = new Color32(255, 215, 0, 255);
+        private const float CoinSize = 32f;
 
         public static void Initialize(RectTransform container, RectTransform targetBadge, Camera camera, Canvas canvas, Sprite coinSprite)
         {
             _container = container;
             _targetBadge = targetBadge;
+            _targetBadgeComponent = targetBadge != null ? targetBadge.GetComponent<GoldHudBadge>() : null;
             _camera = camera;
             _canvas = canvas;
             _coinSprite = coinSprite;
 
-            for (int i = 0; i < INITIAL_POOL_SIZE; i++)
+            for (int i = 0; i < InitialPoolSize; i++)
             {
                 _pool.Enqueue(CreateInstance());
             }
@@ -36,7 +38,7 @@ namespace RogueliteAutoBattler.Combat
             _isInitialized = true;
         }
 
-        public static void Show(Vector3 worldPosition, Action onArrive = null)
+        public static void Show(Vector3 worldPosition)
         {
             if (!_isInitialized)
                 return;
@@ -56,7 +58,13 @@ namespace RogueliteAutoBattler.Combat
                 ? _pool.Dequeue()
                 : CreateInstance();
 
-            coin.Play(startLocal, targetLocal, DURATION, onArrive);
+            coin.Play(startLocal, targetLocal, Duration, OnCoinArrived);
+        }
+
+        private static void OnCoinArrived()
+        {
+            if (_targetBadgeComponent != null)
+                _targetBadgeComponent.Punch();
         }
 
         private static CoinFly CreateInstance()
@@ -66,10 +74,10 @@ namespace RogueliteAutoBattler.Combat
 
             Image image = go.AddComponent<Image>();
             image.sprite = _coinSprite;
-            image.color = COIN_COLOR;
+            image.color = CoinColor;
 
             RectTransform rectTransform = go.GetComponent<RectTransform>();
-            rectTransform.sizeDelta = new Vector2(COIN_SIZE, COIN_SIZE);
+            rectTransform.sizeDelta = new Vector2(CoinSize, CoinSize);
 
             CoinFly coin = go.AddComponent<CoinFly>();
             coin.Initialize(ReturnToPool);
@@ -89,6 +97,7 @@ namespace RogueliteAutoBattler.Combat
             _pool.Clear();
             _container = null;
             _targetBadge = null;
+            _targetBadgeComponent = null;
             _camera = null;
             _canvas = null;
             _coinSprite = null;
