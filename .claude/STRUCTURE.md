@@ -1,5 +1,5 @@
 # Project Structure
-Generated: 2026-03-27 (updated)
+Generated: 2026-03-28 (updated #92)
 
 Assets/
 ├── Animations/  (23 files: .anim + .controller)
@@ -11,6 +11,7 @@ Assets/
 │   ├── Enemies/
 │   │   └── EnemyStats.asset
 │   ├── LevelDatabase.asset
+│   ├── DamageNumberConfig.asset
 │   ├── LootTables/  (empty)
 │   └── TeamDatabase.asset
 ├── doc/
@@ -46,11 +47,16 @@ Assets/
 │   │   ├── CombatSetupHelper.cs
 │   │   ├── CombatSpawnManager.cs
 │   │   ├── CombatStats.cs
+│   │   ├── DamageNumber.cs
+│   │   ├── DamageNumberBootstrap.cs
+│   │   ├── DamageNumberService.cs
+│   │   ├── DamageNumberSettingsPersistence.cs
 │   │   ├── FormationLayout.cs
 │   │   ├── GroundFitter.cs
 │   │   ├── HealthBar.cs
 │   │   ├── LevelManager.cs
 │   │   ├── ScreenAnchor.cs
+│   │   ├── SortingLayers.cs
 │   │   ├── TargetFinder.cs
 │   │   ├── VisualEquipmentTestLoop.cs
 │   │   └── WorldConveyor.cs
@@ -61,10 +67,12 @@ Assets/
 │   │   ├── CombatWorldBuilder.cs
 │   │   ├── EditorUIFactory.cs
 │   │   ├── GameDesignerWindow.cs
+│   │   ├── SettingsWindow.cs
 │   │   └── SetupNavigationSceneEditor.cs
 │   ├── Items/  (empty)
 │   ├── ScriptableObjects/
 │   │   ├── CharacterStats.cs
+│   │   ├── DamageNumberConfig.cs
 │   │   ├── LevelDataTypes.cs
 │   │   ├── LevelDatabase.cs
 │   │   └── TeamDatabase.cs
@@ -78,7 +86,8 @@ Assets/
 │   │   │   └── UIScreen.cs
 │   │   ├── Screens/
 │   │   │   ├── Combat/
-│   │   │   │   └── CombatScreen.cs
+│   │   │   │   ├── CombatScreen.cs
+│   │   │   │   └── DamageNumberSettingsPanel.cs
 │   │   │   ├── Guild/
 │   │   │   │   └── GuildScreen.cs
 │   │   │   ├── Shop/
@@ -125,6 +134,8 @@ Assets/
 │       ├── CharacterMoverTests.cs
 │       ├── CombatControllerTests.cs
 │       ├── CombatStatsRegenTests.cs
+│       ├── DamageNumberServiceTests.cs
+│       ├── DamageNumberTests.cs
 │       ├── FormationRecalculationTests.cs
 │       ├── HealthBarTrailTests.cs
 │       ├── LevelManagerDefeatTests.cs

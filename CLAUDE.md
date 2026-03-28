@@ -25,7 +25,7 @@
 Doc detaille : `Assets/doc/premier-jet-roguelite.html`
 
 # Project Structure
-Generated: 2026-03-27 (updated #88)
+Generated: 2026-03-28 (updated #92)
 
 Assets/
 ├── Animations/  (23 files: .anim + .controller)
@@ -93,6 +93,7 @@ Assets/
 │   │   ├── CombatWorldBuilder.cs
 │   │   ├── EditorUIFactory.cs
 │   │   ├── GameDesignerWindow.cs
+│   │   ├── SettingsWindow.cs
 │   │   └── SetupNavigationSceneEditor.cs
 │   ├── Items/  (empty)
 │   ├── ScriptableObjects/
@@ -101,6 +102,7 @@ Assets/
 │   │   ├── LevelDataTypes.cs
 │   │   ├── LevelDatabase.cs
 │   │   └── TeamDatabase.cs
+
 │   ├── Services/
 │   │   └── Local/  (empty)
 │   ├── UI/
