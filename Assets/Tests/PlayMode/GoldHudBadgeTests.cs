@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using NUnit.Framework;
 using RogueliteAutoBattler.Combat;
 using RogueliteAutoBattler.UI.Widgets;
@@ -8,18 +9,21 @@ using UnityEngine.TestTools;
 
 namespace RogueliteAutoBattler.Tests.PlayMode
 {
-    public class GoldHudBadgeTests : PlayModeTestBase
+    public class GoldHudBadgeTests
     {
+        private readonly List<GameObject> _spawned = new();
         private GoldWallet _wallet;
         private TMP_Text _label;
 
         [SetUp]
         public void SetUp()
         {
-            var walletGo = Track(new GameObject("GoldWallet"));
+            var walletGo = new GameObject("GoldWallet");
+            _spawned.Add(walletGo);
             _wallet = walletGo.AddComponent<GoldWallet>();
 
-            var canvasGo = Track(new GameObject("TestCanvas"));
+            var canvasGo = new GameObject("TestCanvas");
+            _spawned.Add(canvasGo);
             canvasGo.AddComponent<Canvas>();
 
             var badgeGo = new GameObject("GoldBadge");
@@ -30,6 +34,18 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             _label = labelGo.AddComponent<TextMeshProUGUI>();
 
             badgeGo.AddComponent<GoldHudBadge>();
+        }
+
+        [TearDown]
+        public void TearDown()
+        {
+            foreach (var go in _spawned)
+            {
+                if (go != null)
+                    Object.DestroyImmediate(go);
+            }
+
+            _spawned.Clear();
         }
 
         [UnityTest]
