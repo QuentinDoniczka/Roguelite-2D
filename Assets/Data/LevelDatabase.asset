@@ -45,7 +45,7 @@ MonoBehaviour:
           attackRange: 0.5
           attackType: 0
           colliderRadius: 0.05
-          goldDrop: 0
+          goldDrop: 1
           appearance:
             headSprite: {fileID: 0}
             hatSprite: {fileID: 0}
@@ -63,7 +63,7 @@ MonoBehaviour:
           attackRange: 0.5
           attackType: 0
           colliderRadius: 0.05
-          goldDrop: 0
+          goldDrop: 1
           appearance:
             headSprite: {fileID: 0}
             hatSprite: {fileID: 0}
@@ -83,7 +83,7 @@ MonoBehaviour:
           attackRange: 0.5
           attackType: 0
           colliderRadius: 0.05
-          goldDrop: 0
+          goldDrop: 1
           appearance:
             headSprite: {fileID: 0}
             hatSprite: {fileID: 0}
