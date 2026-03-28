@@ -25,7 +25,7 @@
 Doc detaille : `Assets/doc/premier-jet-roguelite.html`
 
 # Project Structure
-Generated: 2026-03-28 (updated #94)
+Generated: 2026-03-29 (updated #97)
 
 Assets/
 ├── Animations/  (23 files: .anim + .controller)
@@ -91,9 +91,12 @@ Assets/
 │   │   ├── TargetFinder.cs
 │   │   ├── VisualEquipmentTestLoop.cs
 │   │   └── WorldConveyor.cs
-│   ├── Core/  (empty)
+│   ├── Core/
+│   │   ├── CanvasFactory.cs
+│   │   └── GameBootstrap.cs
 │   ├── Editor/
 │   │   ├── RogueliteAutoBattler.Editor.asmdef
+│   │   ├── BootstrapSceneBuilder.cs
 │   │   ├── CombatHudBuilder.cs
 │   │   ├── CombatWorldBuilder.cs
 │   │   ├── EditorUIFactory.cs
@@ -165,6 +168,7 @@ Assets/
 │       │   └── TestCharacterFactory.cs
 │       ├── CharacterAppearanceTests.cs
 │       ├── CharacterMoverTests.cs
+│       ├── CanvasFactoryTests.cs
 │       ├── CoinFlyServiceTests.cs
 │       ├── CoinFlyTests.cs
 │       ├── CombatControllerTests.cs
@@ -172,6 +176,7 @@ Assets/
 │       ├── DamageNumberServiceTests.cs
 │       ├── DamageNumberTests.cs
 │       ├── FormationRecalculationTests.cs
+│       ├── GameBootstrapTests.cs
 │       ├── GoldHudBadgeTests.cs
 │       ├── GoldWalletTests.cs
 │       ├── HealthBarTrailTests.cs

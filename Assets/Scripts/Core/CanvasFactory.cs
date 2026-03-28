@@ -14,6 +14,9 @@ namespace RogueliteAutoBattler.Core
 
         public static GameObject Create(Camera cam)
         {
+            if (cam == null)
+                Debug.LogWarning("[CanvasFactory] Camera is null. Canvas will behave as ScreenSpaceOverlay.");
+
             var go = new GameObject("UICanvas");
 
             Canvas canvas = go.AddComponent<Canvas>();

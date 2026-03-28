@@ -1,3 +1,4 @@
+using RogueliteAutoBattler.Core;
 using RogueliteAutoBattler.UI.Core;
 using RogueliteAutoBattler.UI.Screens.Guild;
 using RogueliteAutoBattler.UI.Screens.Shop;
@@ -16,12 +17,8 @@ namespace RogueliteAutoBattler.Editor
 {
     public static class SetupNavigationSceneEditor
     {
-        private const int CanvasWidth = 1080;
-        private const int CanvasHeight = 1920;
-        private const float CanvasMatch = 0.5f;
-
-        private const float NavRatio = 0.08f;
-        private const float InfoTop = 0.40f;
+        internal const float NavRatio = 0.08f;
+        internal const float InfoTop = 0.40f;
 
         private const int TabCount = 5;
 
@@ -34,7 +31,7 @@ namespace RogueliteAutoBattler.Editor
         private static readonly Color NavBarBg = (Color)new Color32(25, 25, 25, 255);
         private static readonly Color NavBtnNormal = (Color)new Color32(40, 40, 40, 255);
         private static readonly Color NavBtnSelected = (Color)new Color32(80, 80, 80, 255);
-        private static readonly Color InfoBg = (Color)new Color32(30, 30, 40, 240);
+        internal static readonly Color InfoBg = (Color)new Color32(30, 30, 40, 240);
         private static readonly Color BtnHighlighted = (Color)new Color32(220, 220, 220, 255);
         private static readonly Color BtnPressed = (Color)new Color32(180, 180, 180, 255);
 
@@ -53,28 +50,46 @@ namespace RogueliteAutoBattler.Editor
             int undoGroup = Undo.GetCurrentGroup();
             Undo.SetCurrentGroupName("Setup Navigation UI");
 
+            DestroyExistingSceneContent(existingCanvas);
+
+            BuildSceneContent(out Canvas canvas, out Transform combatWorld,
+                out NavigationManager navigationManager, out Camera mainCamera);
+
+            Undo.CollapseUndoOperations(undoGroup);
+            EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
+            Selection.activeGameObject = canvas.gameObject;
+            Debug.Log("[SetupNavigationUI] Done. Press Play — click tabs to switch panels.");
+        }
+
+        internal static void DestroyExistingSceneContent(Canvas existingCanvas)
+        {
             if (existingCanvas != null)
                 Undo.DestroyObjectImmediate(existingCanvas.gameObject);
 
-            EventSystem es = Object.FindFirstObjectByType<EventSystem>(FindObjectsInactive.Include);
-            if (es != null)
-                Undo.DestroyObjectImmediate(es.gameObject);
+            EventSystem existingEs = Object.FindFirstObjectByType<EventSystem>(FindObjectsInactive.Include);
+            if (existingEs != null)
+                Undo.DestroyObjectImmediate(existingEs.gameObject);
 
-            NavigationManager oldNav = Object.FindFirstObjectByType<NavigationManager>(FindObjectsInactive.Include);
-            if (oldNav != null)
-                Undo.DestroyObjectImmediate(oldNav.gameObject);
+            NavigationManager existingNav = Object.FindFirstObjectByType<NavigationManager>(FindObjectsInactive.Include);
+            if (existingNav != null)
+                Undo.DestroyObjectImmediate(existingNav.gameObject);
 
             GameObject oldWorld = GameObject.Find("CombatWorld");
             if (oldWorld != null)
                 Undo.DestroyObjectImmediate(oldWorld);
+        }
 
-            Camera mainCam = CombatWorldBuilder.ConfigureMainCamera();
+        internal static void BuildSceneContent(out Canvas canvas, out Transform combatWorld,
+            out NavigationManager navigationManager, out Camera mainCamera)
+        {
+            mainCamera = CombatWorldBuilder.ConfigureMainCamera();
 
             GameObject combatWorldGo = CombatWorldBuilder.CreateCombatWorld();
-            Undo.RegisterCreatedObjectUndo(combatWorldGo, "CombatWorld");
+            combatWorld = combatWorldGo.transform;
 
             GameObject esGo = CreateEventSystem();
-            GameObject canvasGo = CreateCanvas(mainCam);
+            GameObject canvasGo = CanvasFactory.Create(mainCamera);
+            canvas = canvasGo.GetComponent<Canvas>();
 
             GameObject gameArea = EditorUIFactory.CreateArea(canvasGo.transform, "GameArea", InfoTop, 1f, Color.clear);
             UIScreen combatScreen = CombatHudBuilder.CreateCombatPanel(gameArea.transform);
@@ -88,18 +103,14 @@ namespace RogueliteAutoBattler.Editor
             TabButton[] tabButtons = CreateTabButtons(navBar.transform);
 
             GameObject navGo = CreateNavigationManager(canvasGo.transform, combatScreen, defaultInfoScreen, tabButtons, tabScreens, infoScreens);
-            WireCancelAction(navGo.GetComponent<NavigationManager>());
+            navigationManager = navGo.GetComponent<NavigationManager>();
+            WireCancelAction(navigationManager);
 
             Undo.RegisterCreatedObjectUndo(esGo, "EventSystem");
             Undo.RegisterCreatedObjectUndo(canvasGo, "UICanvas");
-            Undo.CollapseUndoOperations(undoGroup);
-
-            EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
-            Selection.activeGameObject = canvasGo;
-            Debug.Log("[SetupNavigationUI] Done. Press Play — click tabs to switch panels.");
         }
 
-        private static GameObject CreateEventSystem()
+        internal static GameObject CreateEventSystem()
         {
             var go = new GameObject("EventSystem");
             go.AddComponent<EventSystem>();
@@ -107,26 +118,7 @@ namespace RogueliteAutoBattler.Editor
             return go;
         }
 
-        private static GameObject CreateCanvas(Camera cam)
-        {
-            var go = new GameObject("UICanvas");
-            Canvas c = go.AddComponent<Canvas>();
-            c.renderMode = RenderMode.ScreenSpaceCamera;
-            c.worldCamera = cam;
-            c.planeDistance = 100f;
-            c.sortingLayerName = "UI";
-            c.sortingOrder = 0;
-
-            CanvasScaler s = go.AddComponent<CanvasScaler>();
-            s.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-            s.referenceResolution = new Vector2(CanvasWidth, CanvasHeight);
-            s.matchWidthOrHeight = CanvasMatch;
-
-            go.AddComponent<GraphicRaycaster>();
-            return go;
-        }
-
-        private static UIScreen[] CreateTabPanels(Transform parent)
+        internal static UIScreen[] CreateTabPanels(Transform parent)
         {
             var configs = new[]
             {
@@ -155,7 +147,7 @@ namespace RogueliteAutoBattler.Editor
             return screens;
         }
 
-        private static UIScreen CreateInfoPanel(Transform parent, string name, string label, Color bg, bool visible = false)
+        internal static UIScreen CreateInfoPanel(Transform parent, string name, string label, Color bg, bool visible = false)
         {
             var go = new GameObject(name);
             GameObjectUtility.SetParentAndAlign(go, parent.gameObject);
@@ -169,7 +161,7 @@ namespace RogueliteAutoBattler.Editor
             return screen;
         }
 
-        private static UIScreen[] CreateTabInfoPanels(Transform parent)
+        internal static UIScreen[] CreateTabInfoPanels(Transform parent)
         {
             var configs = new[]
             {
@@ -189,7 +181,7 @@ namespace RogueliteAutoBattler.Editor
             return screens;
         }
 
-        private static GameObject CreateNavBar(Transform parent)
+        internal static GameObject CreateNavBar(Transform parent)
         {
             var go = new GameObject("NavBar");
             GameObjectUtility.SetParentAndAlign(go, parent.gameObject);
@@ -212,7 +204,7 @@ namespace RogueliteAutoBattler.Editor
             return go;
         }
 
-        private static TabButton[] CreateTabButtons(Transform parent)
+        internal static TabButton[] CreateTabButtons(Transform parent)
         {
             var configs = new[]
             {
@@ -262,7 +254,7 @@ namespace RogueliteAutoBattler.Editor
             return buttons;
         }
 
-        private static GameObject CreateNavigationManager(Transform parent, UIScreen defaultScreen, UIScreen defaultInfoScreen,
+        internal static GameObject CreateNavigationManager(Transform parent, UIScreen defaultScreen, UIScreen defaultInfoScreen,
             TabButton[] tabButtons, UIScreen[] tabScreens, UIScreen[] infoScreens)
         {
             var go = new GameObject("NavigationManager");
@@ -281,7 +273,7 @@ namespace RogueliteAutoBattler.Editor
             return go;
         }
 
-        private static void WireCancelAction(NavigationManager nav)
+        internal static void WireCancelAction(NavigationManager nav)
         {
             InputActionReference cancelRef = FindActionRef(InputAssetPath, "UI", "Cancel");
             if (cancelRef == null)
