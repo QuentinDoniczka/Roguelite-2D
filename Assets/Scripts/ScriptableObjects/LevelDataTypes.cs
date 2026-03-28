@@ -70,6 +70,7 @@ namespace RogueliteAutoBattler.Data
         [SerializeField] private float attackRange = 0.5f;
         [SerializeField] private AttackType attackType = AttackType.Melee;
         [SerializeField] private float colliderRadius = 0.10f;
+        [SerializeField] private int goldDrop;
 
         [Header("Appearance")]
         [SerializeField] private AppearanceData appearance = new AppearanceData();
@@ -83,6 +84,7 @@ namespace RogueliteAutoBattler.Data
         public float AttackRange => attackRange;
         public AttackType AttackType => attackType;
         public float ColliderRadius => colliderRadius;
+        public int GoldDrop => goldDrop;
         public AppearanceData Appearance => appearance;
     }
 
