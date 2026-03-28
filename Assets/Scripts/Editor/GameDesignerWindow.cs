@@ -336,7 +336,7 @@ namespace RogueliteAutoBattler.Editor
         private const float  LevelDefaultEnemyMoveSpeed  = 2f;
         private const float  LevelDefaultEnemyAttackRange = 0.5f;
         private const float  LevelDefaultEnemyColliderRadius = 0.10f;
-        private const int    LevelDefaultEnemyGoldDrop       = 0;
+        private const int    LevelDefaultEnemyGoldDrop       = 1;
 
         private LevelDatabase    _levelDatabase;
         private SerializedObject _levelSerializedDatabase;

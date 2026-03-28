@@ -29,7 +29,7 @@ namespace RogueliteAutoBattler.Editor
                 new Vector2(12, -8), new Vector2(-8, -8),
                 TextAlignmentOptions.Center);
 
-            CreateCurrencyBadge(go.transform, "Gold", "1.93m",
+            CreateCurrencyBadge(go.transform, "Gold", "0",
                 new Vector2(0.55f, 0.92f), new Vector2(0.77f, 1f),
                 (Color)new Color32(255, 215, 0, 255));
 
