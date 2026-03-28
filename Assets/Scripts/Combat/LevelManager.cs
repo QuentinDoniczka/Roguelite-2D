@@ -1,5 +1,6 @@
 using System.Collections;
 using RogueliteAutoBattler.Data;
+using RogueliteAutoBattler.UI.Widgets;
 using UnityEngine;
 
 namespace RogueliteAutoBattler.Combat
@@ -40,6 +41,7 @@ namespace RogueliteAutoBattler.Combat
         private bool _levelInProgress;
         private WorldConveyor _conveyor;
         private GoldWallet _goldWallet;
+        private GoldHudBadge _goldHudBadge;
 
         private float CombatZoneX => _combatTriggerZone != null ? _combatTriggerZone.position.x : float.MaxValue;
 
@@ -59,6 +61,8 @@ namespace RogueliteAutoBattler.Combat
             _conveyor = GetComponent<WorldConveyor>();
             var wallets = FindObjectsByType<GoldWallet>(FindObjectsSortMode.None);
             if (wallets.Length > 0) _goldWallet = wallets[0];
+            var badges = FindObjectsByType<GoldHudBadge>(FindObjectsSortMode.None);
+            if (badges.Length > 0) _goldHudBadge = badges[0];
             ApplyStage(_currentStageIndex);
             yield return new WaitUntil(() => TargetFinder.Closest(_teamContainer, Vector3.zero) != null);
             WireAllyDeathTracking();
@@ -207,7 +211,18 @@ namespace RogueliteAutoBattler.Combat
 
             int goldAmount = data.GoldDrop;
             if (goldAmount > 0)
+            {
                 components.Stats.OnDied += () => { if (_goldWallet != null) _goldWallet.Add(goldAmount); };
+
+                var coinFlyTransform = enemy.transform;
+                components.Stats.OnDied += () =>
+                {
+                    CoinFlyService.Show(coinFlyTransform.position, () =>
+                    {
+                        if (_goldHudBadge != null) _goldHudBadge.Punch();
+                    });
+                };
+            }
 
             var enemyTransform = enemy.transform;
 
