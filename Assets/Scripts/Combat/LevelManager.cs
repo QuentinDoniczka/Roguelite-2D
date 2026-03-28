@@ -39,6 +39,7 @@ namespace RogueliteAutoBattler.Combat
         private int _pendingWaveCount;
         private bool _levelInProgress;
         private WorldConveyor _conveyor;
+        private GoldWallet _goldWallet;
 
         private float CombatZoneX => _combatTriggerZone != null ? _combatTriggerZone.position.x : float.MaxValue;
 
@@ -56,6 +57,8 @@ namespace RogueliteAutoBattler.Combat
             if (_enemiesHomeAnchor == null)
                 _enemiesHomeAnchor = GameObject.Find(CombatSetupHelper.EnemiesHomeAnchorName)?.transform;
             _conveyor = GetComponent<WorldConveyor>();
+            var wallets = FindObjectsByType<GoldWallet>(FindObjectsSortMode.None);
+            if (wallets.Length > 0) _goldWallet = wallets[0];
             ApplyStage(_currentStageIndex);
             yield return new WaitUntil(() => TargetFinder.Closest(_teamContainer, Vector3.zero) != null);
             WireAllyDeathTracking();
@@ -201,6 +204,10 @@ namespace RogueliteAutoBattler.Combat
 
             _aliveEnemyCount++;
             components.Stats.OnDied += OnEnemyDied;
+
+            int goldAmount = data.GoldDrop;
+            if (goldAmount > 0)
+                components.Stats.OnDied += () => { if (_goldWallet != null) _goldWallet.Add(goldAmount); };
 
             var enemyTransform = enemy.transform;
 

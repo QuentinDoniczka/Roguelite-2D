@@ -336,6 +336,7 @@ namespace RogueliteAutoBattler.Editor
         private const float  LevelDefaultEnemyMoveSpeed  = 2f;
         private const float  LevelDefaultEnemyAttackRange = 0.5f;
         private const float  LevelDefaultEnemyColliderRadius = 0.10f;
+        private const int    LevelDefaultEnemyGoldDrop       = 1;
 
         private LevelDatabase    _levelDatabase;
         private SerializedObject _levelSerializedDatabase;
@@ -794,6 +795,9 @@ namespace RogueliteAutoBattler.Editor
             var colRadius = target.FindPropertyRelative("colliderRadius");
             if (colRadius != null) colRadius.floatValue = source.FindPropertyRelative("colliderRadius").floatValue;
 
+            var goldDrop = target.FindPropertyRelative("goldDrop");
+            if (goldDrop != null) goldDrop.intValue = source.FindPropertyRelative("goldDrop").intValue;
+
             var headSprite = target.FindPropertyRelative("appearance.headSprite");
             if (headSprite != null) headSprite.objectReferenceValue = source.FindPropertyRelative("appearance.headSprite").objectReferenceValue;
 
@@ -832,6 +836,9 @@ namespace RogueliteAutoBattler.Editor
 
             var colRadius = newEnemy.FindPropertyRelative("colliderRadius");
             if (colRadius != null) colRadius.floatValue = LevelDefaultEnemyColliderRadius;
+
+            var goldDrop = newEnemy.FindPropertyRelative("goldDrop");
+            if (goldDrop != null) goldDrop.intValue = LevelDefaultEnemyGoldDrop;
 
             var prefab = newEnemy.FindPropertyRelative("prefab");
             if (prefab != null)
@@ -927,6 +934,12 @@ namespace RogueliteAutoBattler.Editor
                 colRadiusProp.floatValue = EditorGUILayout.FloatField("Collider Radius", colRadiusProp.floatValue);
             else
                 Debug.LogError("[LevelDesigner] Property 'colliderRadius' not found on EnemySpawnData.");
+
+            var goldDropProp = enemyProp.FindPropertyRelative("goldDrop");
+            if (goldDropProp != null)
+                goldDropProp.intValue = EditorGUILayout.IntField("Gold Drop", goldDropProp.intValue);
+            else
+                Debug.LogError("[LevelDesigner] Property 'goldDrop' not found on EnemySpawnData.");
 
             DrawAppearanceFields(enemyProp);
 

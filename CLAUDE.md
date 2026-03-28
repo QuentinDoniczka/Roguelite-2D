@@ -25,7 +25,7 @@
 Doc detaille : `Assets/doc/premier-jet-roguelite.html`
 
 # Project Structure
-Generated: 2026-03-27 (updated #88)
+Generated: 2026-03-28 (updated #93)
 
 Assets/
 ├── Animations/  (23 files: .anim + .controller)
@@ -84,6 +84,8 @@ Assets/
 │   │   ├── ScreenAnchor.cs
 │   │   ├── SortingLayers.cs
 │   │   ├── TargetFinder.cs
+│   │   ├── GoldFormatter.cs
+│   │   ├── GoldWallet.cs
 │   │   ├── VisualEquipmentTestLoop.cs
 │   │   └── WorldConveyor.cs
 │   ├── Core/  (empty)
@@ -93,6 +95,7 @@ Assets/
 │   │   ├── CombatWorldBuilder.cs
 │   │   ├── EditorUIFactory.cs
 │   │   ├── GameDesignerWindow.cs
+│   │   ├── SettingsWindow.cs
 │   │   └── SetupNavigationSceneEditor.cs
 │   ├── Items/  (empty)
 │   ├── ScriptableObjects/
@@ -101,6 +104,7 @@ Assets/
 │   │   ├── LevelDataTypes.cs
 │   │   ├── LevelDatabase.cs
 │   │   └── TeamDatabase.cs
+
 │   ├── Services/
 │   │   └── Local/  (empty)
 │   ├── UI/
@@ -121,7 +125,8 @@ Assets/
 │   │   │   │   └── SkillTreeScreen.cs
 │   │   │   └── Village/
 │   │   │       └── VillageScreen.cs
-│   │   └── Widgets/  (empty)
+│   │   └── Widgets/
+│   │       └── GoldHudBadge.cs
 │   └── Village/  (empty)
 ├── Settings/
 │   ├── DefaultVolumeProfile.asset
@@ -149,6 +154,7 @@ Assets/
 │   │   ├── CombatStatsTests.cs
 │   │   ├── FormationLayoutTests.cs
 │   │   ├── RecalculateFormationTests.cs
+│   │   ├── GoldFormatterTests.cs
 │   │   └── TargetFinderTests.cs
 │   └── PlayMode/
 │       ├── Tests.PlayMode.asmdef
@@ -162,6 +168,8 @@ Assets/
 │       ├── DamageNumberServiceTests.cs
 │       ├── DamageNumberTests.cs
 │       ├── FormationRecalculationTests.cs
+│       ├── GoldHudBadgeTests.cs
+│       ├── GoldWalletTests.cs
 │       ├── HealthBarTrailTests.cs
 │       ├── LevelManagerDefeatTests.cs
 │       ├── VisualEquipmentTestLoopTests.cs
