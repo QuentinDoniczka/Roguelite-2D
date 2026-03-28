@@ -33,14 +33,24 @@ namespace RogueliteAutoBattler.Data
 
         public bool Enabled => _enabled;
         public TMP_FontAsset Font => _font;
-        public float FontSize => _fontSize;
-        public float Lifetime => _lifetime;
+        public float FontSize { get => _fontSize; set => _fontSize = value; }
+        public float Lifetime { get => _lifetime; set => _lifetime = value; }
         public Vector2 SlideDirection => _slideDirection;
-        public float SlideDistance => _slideDistance;
-        public Color AllyDamageColor => _allyDamageColor;
-        public Color EnemyDamageColor => _enemyDamageColor;
+        public float SlideDistance { get => _slideDistance; set => _slideDistance = value; }
+        public Color AllyDamageColor { get => _allyDamageColor; set => _allyDamageColor = value; }
+        public Color EnemyDamageColor { get => _enemyDamageColor; set => _enemyDamageColor = value; }
         public int SortingOrder => _sortingOrder;
         public int InitialPoolSize => _initialPoolSize;
-        public float SpawnOffsetY => _spawnOffsetY;
+        public float SpawnOffsetY { get => _spawnOffsetY; set => _spawnOffsetY = value; }
+
+        public void RestoreDefaults()
+        {
+            _fontSize = 1.25f;
+            _lifetime = 0.8f;
+            _slideDistance = 0.5f;
+            _spawnOffsetY = 0.3f;
+            _allyDamageColor = new Color(1f, 0.2f, 0.2f, 1f);
+            _enemyDamageColor = Color.white;
+        }
     }
 }
