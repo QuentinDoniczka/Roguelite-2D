@@ -35,7 +35,7 @@ namespace RogueliteAutoBattler.Data
         public Sprite Terrain => terrain;
         public List<LevelData> Levels => levels;
 
-        public StageData() { }
+        private StageData() { }
 
         internal StageData(string stageName, Sprite terrain, List<LevelData> levels)
         {
@@ -54,7 +54,7 @@ namespace RogueliteAutoBattler.Data
         public string LevelName => levelName;
         public List<WaveData> Waves => waves;
 
-        public LevelData() { }
+        private LevelData() { }
 
         internal LevelData(string levelName, List<WaveData> waves)
         {
@@ -74,7 +74,7 @@ namespace RogueliteAutoBattler.Data
         public float SpawnDelay => spawnDelay;
         public List<EnemySpawnData> Enemies => enemies;
 
-        public WaveData() { }
+        private WaveData() { }
 
         internal WaveData(string waveName, float spawnDelay, List<EnemySpawnData> enemies)
         {
@@ -113,7 +113,7 @@ namespace RogueliteAutoBattler.Data
         public int GoldDrop => goldDrop;
         public AppearanceData Appearance => appearance;
 
-        public EnemySpawnData() { }
+        private EnemySpawnData() { }
 
         internal EnemySpawnData(string enemyName, int hp, int atk)
         {

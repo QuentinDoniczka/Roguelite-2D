@@ -17,16 +17,17 @@ namespace RogueliteAutoBattler.Tests.PlayMode
         private TMP_Text _compactLabel;
         private TMP_Text _announcementLabel;
         private CanvasGroup _announcementGroup;
+        private LevelDatabase _levelDatabase;
 
         [SetUp]
         public void SetUp()
         {
-            var levelDatabase = ScriptableObject.CreateInstance<LevelDatabase>();
+            _levelDatabase = ScriptableObject.CreateInstance<LevelDatabase>();
             var wave = new WaveData("W1", 0f, new List<EnemySpawnData>());
             var level1 = new LevelData("Level1", new List<WaveData> { wave });
             var level2 = new LevelData("Level2", new List<WaveData> { wave });
             var stage = new StageData("Stage1", null, new List<LevelData> { level1, level2 });
-            levelDatabase.Stages.Add(stage);
+            _levelDatabase.Stages.Add(stage);
 
             var levelManagerGo = new GameObject("LevelManager");
             levelManagerGo.AddComponent<WorldConveyor>();
@@ -39,7 +40,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             _levelManager.InitializeForTest(
                 teamContainer.transform,
                 enemiesContainer.transform,
-                levelDatabase: levelDatabase);
+                levelDatabase: _levelDatabase);
 
             var canvasGo = new GameObject("TestCanvas");
             canvasGo.AddComponent<Canvas>();
@@ -62,6 +63,14 @@ namespace RogueliteAutoBattler.Tests.PlayMode
 
             _badge = badgeGo.AddComponent<BattleIndicatorBadge>();
             _badge.InitializeForTest(_levelManager, _compactLabel, _announcementLabel, _announcementGroup);
+        }
+
+        public override void TearDown()
+        {
+            base.TearDown();
+
+            if (_levelDatabase != null)
+                Object.DestroyImmediate(_levelDatabase);
         }
 
         [UnityTest]

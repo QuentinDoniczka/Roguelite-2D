@@ -22,6 +22,7 @@ namespace RogueliteAutoBattler.UI.Widgets
 
         private LevelManager _levelManager;
         private Coroutine _announcementCoroutine;
+        private RectTransform _announcementRect;
 
         private void Start()
         {
@@ -34,7 +35,10 @@ namespace RogueliteAutoBattler.UI.Widgets
             }
 
             if (_announcementGroup != null)
+            {
+                _announcementRect = _announcementGroup.GetComponent<RectTransform>();
                 _announcementGroup.alpha = 0f;
+            }
         }
 
         private void OnDestroy()
@@ -68,9 +72,7 @@ namespace RogueliteAutoBattler.UI.Widgets
             if (_announcementLabel != null)
                 _announcementLabel.text = $"Stage {stageIndex + 1} - Level {levelIndex + 1}";
 
-            RectTransform announcementRect = _announcementGroup != null
-                ? _announcementGroup.GetComponent<RectTransform>()
-                : null;
+            RectTransform announcementRect = _announcementRect;
 
             float elapsed = 0f;
             while (elapsed < AnnouncementFadeInDuration)
@@ -140,7 +142,10 @@ namespace RogueliteAutoBattler.UI.Widgets
             UpdateCompactLabel(_levelManager.CurrentStageIndex, _levelManager.CurrentLevelIndex);
 
             if (_announcementGroup != null)
+            {
+                _announcementRect = _announcementGroup.GetComponent<RectTransform>();
                 _announcementGroup.alpha = 0f;
+            }
         }
     }
 }
