@@ -5,23 +5,13 @@ using System.Collections.Generic;
 
 namespace RogueliteAutoBattler.Editor
 {
-    /// <summary>
-    /// Unified Game Designer window with two tabs:
-    ///   Tab 0 — Team Builder  (formerly TeamEditorWindow)
-    ///   Tab 1 — Level Designer (formerly LevelEditorWindow)
-    /// All mutations go through SerializedObject / SerializedProperty for full Undo support.
-    /// </summary>
     public class GameDesignerWindow : EditorWindow
     {
-        // ─── Tab ─────────────────────────────────────────────────────────────
         private static readonly string[] TabNames = { "Party Builder", "Level Designer" };
         private int _selectedTab;
 
-        // ─── Shared: selected-row style ───────────────────────────────────
         private GUIStyle  _selectedRowStyle;
         private Texture2D _selectedRowTexture;
-
-        // ─── MenuItem ────────────────────────────────────────────────────────
 
         [MenuItem("Roguelite/Game Designer")]
         private static void OpenWindow()
@@ -31,8 +21,6 @@ namespace RogueliteAutoBattler.Editor
             window.Show();
         }
 
-        // ─── Lifecycle ───────────────────────────────────────────────────────
-
         private void OnEnable()
         {
             TeamTryAutoLoadDatabase();
@@ -41,13 +29,10 @@ namespace RogueliteAutoBattler.Editor
 
         private void OnDisable()
         {
-            // Team cleanup
             _teamSerializedDatabase = null;
 
-            // Level cleanup
             _levelSerializedDatabase = null;
 
-            // Shared style cleanup
             _selectedRowStyle = null;
             if (_selectedRowTexture != null)
             {
@@ -56,11 +41,8 @@ namespace RogueliteAutoBattler.Editor
             }
         }
 
-        // ─── OnGUI ───────────────────────────────────────────────────────────
-
         private void OnGUI()
         {
-            // Tab bar
             _selectedTab = GUILayout.Toolbar(_selectedTab, TabNames, EditorStyles.toolbarButton);
             GUILayout.Space(2f);
 
@@ -71,18 +53,14 @@ namespace RogueliteAutoBattler.Editor
             }
         }
 
-        // ══════════════════════════════════════════════════════════════════════
         #region Team Builder
-        // ══════════════════════════════════════════════════════════════════════
 
-        // ─── Layout constants ────────────────────────────────────────────────
         private const float TeamRowHeight        = 24f;
         private const float TeamSmallButtonWidth = 24f;
         private const float TeamAddButtonHeight  = 22f;
         private const string TeamDefaultAllyPrefabPath = "Assets/Prefabs/Characters/sampleCharacterHuman.prefab";
         private const string TeamDatabaseDefaultPath   = "Assets/Data/TeamDatabase.asset";
 
-        // ─── Default values for new allies ───────────────────────────────────
         private const string TeamDefaultAllyName      = "Warrior";
         private const int    TeamDefaultMaxHp          = 100;
         private const int    TeamDefaultAtk            = 10;
@@ -90,13 +68,10 @@ namespace RogueliteAutoBattler.Editor
         private const float  TeamDefaultMoveSpeed      = 2f;
         private const float  TeamDefaultRegenHpPerSec  = 0f;
 
-        // ─── State ───────────────────────────────────────────────────────────
         private TeamDatabase   _teamDatabase;
         private SerializedObject _teamSerializedDatabase;
         private Vector2 _teamScrollPos;
         private readonly Dictionary<string, bool> _teamFoldouts = new Dictionary<string, bool>();
-
-        // ─── Auto-load / create database ─────────────────────────────────────
 
         private void TeamTryAutoLoadDatabase()
         {
@@ -123,8 +98,6 @@ namespace RogueliteAutoBattler.Editor
             _teamFoldouts.Clear();
             Repaint();
         }
-
-        // ─── Draw ────────────────────────────────────────────────────────────
 
         private void DrawTeamTab()
         {
@@ -169,10 +142,9 @@ namespace RogueliteAutoBattler.Editor
             }
             EditorGUILayout.EndScrollView();
 
-            _teamSerializedDatabase.ApplyModifiedProperties();
+            if (_teamSerializedDatabase.ApplyModifiedProperties())
+                AssetDatabase.SaveAssets();
         }
-
-        // ─── Toolbar ─────────────────────────────────────────────────────────
 
         private void DrawTeamToolbar()
         {
@@ -199,8 +171,6 @@ namespace RogueliteAutoBattler.Editor
             GUILayout.EndHorizontal();
         }
 
-        // ─── Add button ──────────────────────────────────────────────────────
-
         private void TeamDrawAddButton(SerializedProperty alliesProp)
         {
             if (GUILayout.Button("+ Add Ally", GUILayout.Height(TeamAddButtonHeight)))
@@ -212,7 +182,6 @@ namespace RogueliteAutoBattler.Editor
                     var newAlly = alliesProp.GetArrayElementAtIndex(alliesProp.arraySize - 1);
                     TeamInitAllyDefaults(newAlly);
                 }
-                // If the list was non-empty, Unity's arraySize++ already copied the last element.
                 EditorUtility.SetDirty(_teamDatabase);
             }
         }
@@ -234,12 +203,9 @@ namespace RogueliteAutoBattler.Editor
             TeamSetFloatSafe(allyProp, "attackSpeed",        TeamDefaultAttackSpeed);
             TeamSetFloatSafe(allyProp, "moveSpeed",          TeamDefaultMoveSpeed);
             TeamSetFloatSafe(allyProp, "regenHpPerSecond",   TeamDefaultRegenHpPerSec);
-            TeamSetFloatSafe(allyProp, "colliderRadius",    0.05f);
+            TeamSetFloatSafe(allyProp, "colliderRadius",    0.10f);
         }
 
-        // ─── Single ally foldout ─────────────────────────────────────────────
-
-        /// <summary>Returns true if the ally list was structurally modified (caller must break).</summary>
         private bool TeamDrawAlly(SerializedProperty alliesProp, int index)
         {
             var allyProp = alliesProp.GetArrayElementAtIndex(index);
@@ -253,7 +219,6 @@ namespace RogueliteAutoBattler.Editor
                 ? nameProp.stringValue
                 : $"Ally {index + 1}";
 
-            // Header row
             GUILayout.BeginHorizontal();
             {
                 _teamFoldouts[foldoutKey] = EditorGUILayout.Foldout(
@@ -279,7 +244,6 @@ namespace RogueliteAutoBattler.Editor
             if (!_teamFoldouts[foldoutKey])
                 return false;
 
-            // Fields
             EditorGUI.indentLevel++;
 
             if (nameProp != null)
@@ -330,13 +294,13 @@ namespace RogueliteAutoBattler.Editor
             else
                 Debug.LogError("[TeamBuilder] Property 'colliderRadius' not found on AllySpawnData.");
 
+            DrawAppearanceFields(allyProp);
+
             EditorGUI.indentLevel--;
             GUILayout.Space(2f);
 
             return false;
         }
-
-        // ─── Helpers ─────────────────────────────────────────────────────────
 
         private static void TeamSetIntSafe(SerializedProperty parent, string name, int value)
         {
@@ -354,11 +318,8 @@ namespace RogueliteAutoBattler.Editor
 
         #endregion
 
-        // ══════════════════════════════════════════════════════════════════════
         #region Level Designer
-        // ══════════════════════════════════════════════════════════════════════
 
-        // ─── Layout constants ────────────────────────────────────────────────
         private const float LevelColumnStagesWidth  = 150f;
         private const float LevelColumnLevelsWidth  = 150f;
         private const float LevelRowHeight          = 24f;
@@ -368,15 +329,21 @@ namespace RogueliteAutoBattler.Editor
         private const string LevelDatabaseDefaultPath   = "Assets/Data/LevelDatabase.asset";
         private const string LevelDefaultEnemyPrefabPath = "Assets/Prefabs/Characters/sampleCharacterHuman.prefab";
 
-        // ─── State ───────────────────────────────────────────────────────────
+        private const string LevelDefaultEnemyName       = "Enemy";
+        private const int    LevelDefaultEnemyHp         = 50;
+        private const int    LevelDefaultEnemyAtk        = 10;
+        private const float  LevelDefaultEnemyAttackSpeed = 1f;
+        private const float  LevelDefaultEnemyMoveSpeed  = 2f;
+        private const float  LevelDefaultEnemyAttackRange = 0.5f;
+        private const float  LevelDefaultEnemyColliderRadius = 0.10f;
+        private const int    LevelDefaultEnemyGoldDrop       = 1;
+
         private LevelDatabase    _levelDatabase;
         private SerializedObject _levelSerializedDatabase;
         private int _levelSelectedStageIndex = -1;
         private int _levelSelectedLevelIndex = -1;
         private Vector2 _levelWavesScrollPos;
         private readonly Dictionary<string, bool> _levelFoldouts = new Dictionary<string, bool>();
-
-        // ─── Auto-load / create database ─────────────────────────────────────
 
         private void LevelTryAutoLoadDatabase()
         {
@@ -406,8 +373,6 @@ namespace RogueliteAutoBattler.Editor
             Repaint();
         }
 
-        // ─── Draw ────────────────────────────────────────────────────────────
-
         private void DrawLevelTab()
         {
             DrawLevelToolbar();
@@ -432,10 +397,9 @@ namespace RogueliteAutoBattler.Editor
             }
             GUILayout.EndHorizontal();
 
-            _levelSerializedDatabase.ApplyModifiedProperties();
+            if (_levelSerializedDatabase.ApplyModifiedProperties())
+                AssetDatabase.SaveAssets();
         }
-
-        // ─── Toolbar ─────────────────────────────────────────────────────────
 
         private void DrawLevelToolbar()
         {
@@ -461,8 +425,6 @@ namespace RogueliteAutoBattler.Editor
             }
             GUILayout.EndHorizontal();
         }
-
-        // ─── Stages panel ────────────────────────────────────────────────────
 
         private void DrawStagesPanel(SerializedProperty stagesProp)
         {
@@ -547,8 +509,6 @@ namespace RogueliteAutoBattler.Editor
             GUILayout.EndVertical();
         }
 
-        // ─── Levels panel ────────────────────────────────────────────────────
-
         private void DrawLevelsPanel(SerializedProperty stagesProp)
         {
             GUILayout.BeginVertical(GUILayout.Width(LevelColumnLevelsWidth));
@@ -630,8 +590,6 @@ namespace RogueliteAutoBattler.Editor
             GUILayout.EndVertical();
         }
 
-        // ─── Waves panel ─────────────────────────────────────────────────────
-
         private void DrawWavesPanel(SerializedProperty stagesProp)
         {
             GUILayout.BeginVertical();
@@ -702,13 +660,11 @@ namespace RogueliteAutoBattler.Editor
             GUILayout.EndVertical();
         }
 
-        /// <summary>Returns true if the wave list was structurally modified (caller must break).</summary>
         private bool DrawWave(SerializedProperty wavesProp, int wi)
         {
             var waveProp    = wavesProp.GetArrayElementAtIndex(wi);
             var enemiesProp = waveProp.FindPropertyRelative("enemies");
 
-            // Wave header
             EditorGUILayout.BeginHorizontal(EditorStyles.helpBox,
                 GUILayout.Height(LevelWaveHeaderHeight));
 
@@ -740,7 +696,6 @@ namespace RogueliteAutoBattler.Editor
 
             EditorGUILayout.EndHorizontal();
 
-            // Enemy list
             EditorGUI.indentLevel++;
 
             bool enemyListModified = false;
@@ -768,7 +723,6 @@ namespace RogueliteAutoBattler.Editor
                         else
                             InitEnemyDefaults(newEnemy);
                     }
-                    // If the wave was non-empty, Unity's arraySize++ already copied the last element.
                     EditorUtility.SetDirty(_levelDatabase);
                 }
             }
@@ -777,12 +731,6 @@ namespace RogueliteAutoBattler.Editor
             return false;
         }
 
-        /// <summary>
-        /// Searches backwards through the database for the last EnemySpawnData, starting just
-        /// before the current wave (index currentWaveIndex) in the selected level.
-        /// Search order: previous waves in current level → previous levels in current stage → previous stages.
-        /// Returns null if no enemy exists anywhere in the database.
-        /// </summary>
         private SerializedProperty FindLastEnemyInDatabase(int currentWaveIndex)
         {
             var stagesProp = _levelSerializedDatabase.FindProperty("stages");
@@ -801,7 +749,6 @@ namespace RogueliteAutoBattler.Editor
                     var waves = level.FindPropertyRelative("waves");
                     if (waves == null) continue;
 
-                    // For the current level start one wave before the current wave (which is empty).
                     int startWave = (si == _levelSelectedStageIndex && li == _levelSelectedLevelIndex)
                         ? currentWaveIndex - 1
                         : waves.arraySize - 1;
@@ -847,40 +794,57 @@ namespace RogueliteAutoBattler.Editor
 
             var colRadius = target.FindPropertyRelative("colliderRadius");
             if (colRadius != null) colRadius.floatValue = source.FindPropertyRelative("colliderRadius").floatValue;
+
+            var goldDrop = target.FindPropertyRelative("goldDrop");
+            if (goldDrop != null) goldDrop.intValue = source.FindPropertyRelative("goldDrop").intValue;
+
+            var headSprite = target.FindPropertyRelative("appearance.headSprite");
+            if (headSprite != null) headSprite.objectReferenceValue = source.FindPropertyRelative("appearance.headSprite").objectReferenceValue;
+
+            var hatSprite = target.FindPropertyRelative("appearance.hatSprite");
+            if (hatSprite != null) hatSprite.objectReferenceValue = source.FindPropertyRelative("appearance.hatSprite").objectReferenceValue;
+
+            var weaponSprite = target.FindPropertyRelative("appearance.weaponSprite");
+            if (weaponSprite != null) weaponSprite.objectReferenceValue = source.FindPropertyRelative("appearance.weaponSprite").objectReferenceValue;
+
+            var shieldSprite = target.FindPropertyRelative("appearance.shieldSprite");
+            if (shieldSprite != null) shieldSprite.objectReferenceValue = source.FindPropertyRelative("appearance.shieldSprite").objectReferenceValue;
         }
 
         private void InitEnemyDefaults(SerializedProperty newEnemy)
         {
             var enemyName = newEnemy.FindPropertyRelative("enemyName");
-            if (enemyName != null) enemyName.stringValue = "Enemy";
+            if (enemyName != null) enemyName.stringValue = LevelDefaultEnemyName;
 
             var hp = newEnemy.FindPropertyRelative("hp");
-            if (hp != null) hp.intValue = 50;
+            if (hp != null) hp.intValue = LevelDefaultEnemyHp;
 
             var atk = newEnemy.FindPropertyRelative("atk");
-            if (atk != null) atk.intValue = 10;
+            if (atk != null) atk.intValue = LevelDefaultEnemyAtk;
 
             var attackSpeed = newEnemy.FindPropertyRelative("attackSpeed");
-            if (attackSpeed != null) attackSpeed.floatValue = 1f;
+            if (attackSpeed != null) attackSpeed.floatValue = LevelDefaultEnemyAttackSpeed;
 
             var moveSpeed = newEnemy.FindPropertyRelative("moveSpeed");
-            if (moveSpeed != null) moveSpeed.floatValue = 2f;
+            if (moveSpeed != null) moveSpeed.floatValue = LevelDefaultEnemyMoveSpeed;
 
             var attackRange = newEnemy.FindPropertyRelative("attackRange");
-            if (attackRange != null) attackRange.floatValue = 0.5f;
+            if (attackRange != null) attackRange.floatValue = LevelDefaultEnemyAttackRange;
 
             var attackType = newEnemy.FindPropertyRelative("attackType");
             if (attackType != null) attackType.enumValueIndex = 0;
 
             var colRadius = newEnemy.FindPropertyRelative("colliderRadius");
-            if (colRadius != null) colRadius.floatValue = 0.15f;
+            if (colRadius != null) colRadius.floatValue = LevelDefaultEnemyColliderRadius;
+
+            var goldDrop = newEnemy.FindPropertyRelative("goldDrop");
+            if (goldDrop != null) goldDrop.intValue = LevelDefaultEnemyGoldDrop;
 
             var prefab = newEnemy.FindPropertyRelative("prefab");
             if (prefab != null)
                 prefab.objectReferenceValue = AssetDatabase.LoadAssetAtPath<GameObject>(LevelDefaultEnemyPrefabPath);
         }
 
-        /// <summary>Returns true if the enemy list was structurally modified (caller must break).</summary>
         private bool DrawEnemy(SerializedProperty enemiesProp, int wi, int ei)
         {
             var enemyProp     = enemiesProp.GetArrayElementAtIndex(ei);
@@ -971,13 +935,41 @@ namespace RogueliteAutoBattler.Editor
             else
                 Debug.LogError("[LevelDesigner] Property 'colliderRadius' not found on EnemySpawnData.");
 
+            var goldDropProp = enemyProp.FindPropertyRelative("goldDrop");
+            if (goldDropProp != null)
+                goldDropProp.intValue = EditorGUILayout.IntField("Gold Drop", goldDropProp.intValue);
+            else
+                Debug.LogError("[LevelDesigner] Property 'goldDrop' not found on EnemySpawnData.");
+
+            DrawAppearanceFields(enemyProp);
+
             EditorGUI.indentLevel--;
             GUILayout.Space(2f);
 
             return false;
         }
 
-        // ─── Shared layout helpers ────────────────────────────────────────────
+        private static void DrawAppearanceFields(SerializedProperty parentProp)
+        {
+            var appearanceProp = parentProp.FindPropertyRelative("appearance");
+            if (appearanceProp == null)
+            {
+                Debug.LogError("[GameDesigner] Property 'appearance' not found.");
+                return;
+            }
+
+            EditorGUILayout.Space(4f);
+            EditorGUILayout.LabelField("Appearance", EditorStyles.boldLabel);
+
+            EditorGUILayout.PropertyField(
+                appearanceProp.FindPropertyRelative("headSprite"), new GUIContent("Head"));
+            EditorGUILayout.PropertyField(
+                appearanceProp.FindPropertyRelative("hatSprite"), new GUIContent("Hat / Armor"));
+            EditorGUILayout.PropertyField(
+                appearanceProp.FindPropertyRelative("weaponSprite"), new GUIContent("Weapon"));
+            EditorGUILayout.PropertyField(
+                appearanceProp.FindPropertyRelative("shieldSprite"), new GUIContent("Shield"));
+        }
 
         private static void DrawPanelHeader(string title)
         {
@@ -995,9 +987,7 @@ namespace RogueliteAutoBattler.Editor
 
         #endregion
 
-        // ══════════════════════════════════════════════════════════════════════
         #region Shared helpers
-        // ══════════════════════════════════════════════════════════════════════
 
         private GUIStyle GetSelectedRowStyle()
         {

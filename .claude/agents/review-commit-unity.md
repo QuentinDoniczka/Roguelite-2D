@@ -65,10 +65,12 @@ You audit ONLY the code that changed in the latest feature/commit for a **Roguel
 
 ### LOW
 
+- **Comments in code** — Any `//`, `/* */`, `/// <summary>`, XML doc comments → flag for removal. Use verbose names instead. Only `// TODO:` for critical issues is acceptable.
+- **`[Tooltip]` attributes** that duplicate the field name → flag for removal
 - **Unused usings** — `using` directives with no references in the file
 - **Naming conventions** — PascalCase for public, _camelCase for private fields, IName for interfaces
 - **Dead code** — Unused variables, commented code, unreachable branches
-- **Missing `[Header]`/`[Tooltip]`** on serialized fields
+- **Missing `[Header]`** on serialized field groups
 
 ## Cross-Reference Check
 
@@ -90,6 +92,21 @@ For each changed `.cs` file (excluding Editor/ and test files), verify:
 2. **Are new public methods covered?** If a new public method was added, is there a test for it?
 3. **Are modified methods still tested?** If method behavior changed, do existing tests still cover it?
 4. **Are new gameplay behaviors tested?** If a new gameplay feature was added (combat, recruitment, loot), is there a Play Mode test?
+
+### Combat Files Require Tests
+
+Files in `Assets/Scripts/Combat/` are high-priority for test coverage. The convention is:
+- Pure logic classes (e.g., `CombatStats.cs`, `FormationLayout.cs`, `TargetFinder.cs`) should have Edit Mode tests in `Assets/Tests/EditMode/<ClassName>Tests.cs`
+- MonoBehaviours with physics/lifecycle (e.g., `CharacterMover.cs`, `WorldConveyor.cs`) should have Play Mode tests in `Assets/Tests/PlayMode/<ClassName>Tests.cs`
+
+If a new or modified combat file has no corresponding test file, flag it as **HIGH** severity.
+
+### Test File Naming Convention
+
+| Source file | Expected test file(s) |
+|---|---|
+| `Assets/Scripts/Combat/Foo.cs` | `Assets/Tests/EditMode/FooTests.cs` and/or `Assets/Tests/PlayMode/FooTests.cs` |
+| `Assets/Scripts/ScriptableObjects/Bar.cs` | `Assets/Tests/EditMode/BarTests.cs` |
 
 Report missing test coverage in a dedicated section:
 

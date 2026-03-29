@@ -72,9 +72,12 @@ crashlytics-build.properties
 # JetBrains Rider
 .idea/
 
-# Test results and logs
-*-results.xml
-*-log.txt
+# Unity test results
+editmode-results.xml
+playmode-results.xml
+editmode-log.txt
+playmode-log.txt
+compile-log.txt
 
 # OS generated
 .DS_Store

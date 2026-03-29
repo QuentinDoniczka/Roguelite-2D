@@ -31,7 +31,9 @@
     "deny": [
       "Bash(sudo:*)",
       "Bash(su:*)",
-      "Bash(git push:*)",
+      "Bash(git push origin dev:*)",
+      "Bash(git push origin main:*)",
+      "Bash(git push origin master:*)",
       "Bash(git push --force:*)",
       "Bash(git push -f:*)",
       "Bash(git rebase:*)",

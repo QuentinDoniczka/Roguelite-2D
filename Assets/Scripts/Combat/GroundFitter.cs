@@ -2,10 +2,6 @@ using UnityEngine;
 
 namespace RogueliteAutoBattler.Combat
 {
-    /// <summary>
-    /// Sizes and positions the ground SpriteRenderer to match the GameArea
-    /// (top portion of the screen). Recalculates when screen size or camera changes.
-    /// </summary>
     [RequireComponent(typeof(SpriteRenderer))]
     public class GroundFitter : MonoBehaviour
     {
@@ -56,9 +52,7 @@ namespace RogueliteAutoBattler.Combat
 
             float width = Mathf.Max(_groundWidth, visibleWidth + 2f);
             _renderer.size = new Vector2(width, groundHeight);
-            // Anchor left edge to the left edge of the screen.
-            // Sprite is centered on its transform, so offset by half width minus half visible width.
-            // Offset so left edge is 1 unit past the screen's left edge (safety buffer).
+
             float visibleHalfWidth = visibleWidth * 0.5f;
             float anchorX = -(visibleHalfWidth + 1f) + width * 0.5f;
             transform.localPosition = new Vector3(anchorX, groundCenterY, 0f);

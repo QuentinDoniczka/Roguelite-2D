@@ -26,7 +26,7 @@ You are a senior Unity 2D C# developer working on a **Roguelite Auto-Battler 2D*
 ## Core Principles
 
 - Follow **SOLID, KISS, DRY, YAGNI**. Simplest working design.
-- Code in **English**. Clear naming over comments.
+- Code in **English**. **NEVER write comments** — no `//`, no `/* */`, no `/// <summary>`, no `[Tooltip]` text that duplicates the field name. Use verbose, self-documenting names instead. The only acceptable comments are `// TODO:` for critical unresolved issues.
 - No over-engineering. Keep files and classes small.
 
 ## Naming Conventions
@@ -53,9 +53,9 @@ You are a senior Unity 2D C# developer working on a **Roguelite Auto-Battler 2D*
 ## Unity 2D Standards
 
 - One MonoBehaviour per file, file name = class name
-- `[Header]` and `[Tooltip]` on serialized fields
+- `[Header]` on serialized field groups (no `[Tooltip]` — use descriptive field names instead)
 - `[RequireComponent]` when dependencies are mandatory
-- XML doc on public members
+- **No XML doc comments** — use descriptive method/class names instead
 - `Update` for input/non-physics logic, `FixedUpdate` for Rigidbody2D physics, `LateUpdate` for camera follow
 - Use **Rigidbody2D** and **Collider2D** (BoxCollider2D, CircleCollider2D, CapsuleCollider2D) — never 3D physics components
 - Use **SpriteRenderer** for game objects, **UI Image/TextMeshPro** for UI
@@ -87,7 +87,6 @@ Root (Rigidbody2D, CharacterMover, CombatController — NO Animator, NO SpriteRe
 private void Awake()
 {
     _rb = GetComponent<Rigidbody2D>();
-    // GetComponentInChildren — Animator is on the Visual child, not this GameObject
     _animator = GetComponentInChildren<Animator>();
     _animator.applyRootMotion = false;
 }
@@ -98,22 +97,18 @@ private void Awake()
 **Always use this pattern for animated characters**:
 
 ```csharp
-// Awake — enforce applyRootMotion off in code, never rely on prefab setting
 private void Awake()
 {
     _rb = GetComponent<Rigidbody2D>();
-    _animator = GetComponentInChildren<Animator>(); // Visual child, not root
+    _animator = GetComponentInChildren<Animator>();
     _animator.applyRootMotion = false;
 }
 
-// FixedUpdate — physics layer is separate from Animator layer, no interference
 private void FixedUpdate()
 {
     _rb.linearVelocity = new Vector2(_speed, 0f);
 }
 
-// Use animator.Play() for simple state changes — more robust than SetBool + transitions
-// SetBool + transitions require the animator controller to have transitions wired correctly
 private void SetMoving(bool isMoving)
 {
     _animator.Play(isMoving ? "Walk" : "Idle");
@@ -132,15 +127,12 @@ private void SetMoving(bool isMoving)
 When implementing client-side code that talks to the server:
 
 ```csharp
-// Use a service layer for API calls
 public interface IApiService
 {
     UniTask<RecruitResponse> RecruitAdventurer(RecruitRequest request);
     UniTask<CombatResult> SubmitCombatResult(CombatSubmission submission);
-    // etc.
 }
 
-// DTOs are plain C# classes (no MonoBehaviour), separate from game models
 public class RecruitResponse
 {
     public AdventurerDto Adventurer { get; set; }
@@ -158,7 +150,69 @@ public class RecruitResponse
 2. **Read existing files** — Match current code style
 3. **Implement** — Follow the plan and standards above
 4. **Self-review** — Naming OK? SerializeField private? GetComponent cached? No allocations in Update? 2D components used (not 3D)? Client/server boundary respected?
-5. **Report** — List what was created/modified
+5. **Run tests** — See "Test Execution After Implementation" below
+6. **Report** — List what was created/modified, plus test results (pass/fail counts)
+
+## Test Execution After Implementation
+
+After implementation and self-review, **always run the existing test suite** to catch regressions.
+
+### Git Worktree — Why and How
+
+Unity Editor locks the main project when open, so batch-mode tests cannot run on it. A **git worktree** at `C:/Users/donic/RiderProjects/Roguelite-2D-tests` is used instead. The worktree only sees **committed and pushed** code.
+
+**Before running any tests**, you MUST:
+1. **Commit** all changes on the current branch
+2. **Push** to origin
+3. **Sync the worktree**:
+```bash
+BRANCH=$(git -C "C:/Users/donic/RiderProjects/Roguelite-2D" branch --show-current)
+cd "C:/Users/donic/RiderProjects/Roguelite-2D-tests" && git fetch origin && git checkout "$BRANCH" && git reset --hard "origin/$BRANCH"
+```
+
+### Step 1 — Run Edit Mode tests (always)
+
+Check if Edit Mode test files exist first:
+```bash
+ls "C:/Users/donic/RiderProjects/Roguelite-2D/Assets/Tests/EditMode/"
+```
+
+If test files exist, run them:
+```bash
+"/c/Program Files/Unity/Hub/Editor/6000.3.6f1/Editor/Unity.exe" \
+  -runTests -batchmode -nographics \
+  -projectPath "C:/Users/donic/RiderProjects/Roguelite-2D-tests" \
+  -testPlatform EditMode \
+  -testResults "C:/Users/donic/RiderProjects/Roguelite-2D-tests/editmode-results.xml" \
+  -logFile "C:/Users/donic/RiderProjects/Roguelite-2D-tests/editmode-log.txt"
+```
+
+### Step 2 — Run Play Mode tests (if implementation touched MonoBehaviours with physics/lifecycle)
+
+If the implementation modified or created MonoBehaviours that use Rigidbody2D, Collider2D, physics, coroutines, or Update/FixedUpdate lifecycle, also run Play Mode tests:
+```bash
+"/c/Program Files/Unity/Hub/Editor/6000.3.6f1/Editor/Unity.exe" \
+  -runTests -batchmode -nographics \
+  -projectPath "C:/Users/donic/RiderProjects/Roguelite-2D-tests" \
+  -testPlatform PlayMode \
+  -testResults "C:/Users/donic/RiderProjects/Roguelite-2D-tests/playmode-results.xml" \
+  -logFile "C:/Users/donic/RiderProjects/Roguelite-2D-tests/playmode-log.txt"
+```
+
+### Step 3 — Parse results
+
+Read the XML results file(s). Look for `<test-run result="Failed">` or individual `<test-case result="Failed">` elements. Report pass/fail counts.
+
+- **Exit code 0** = all passed. **Exit code 2** = some failed.
+- The worktree avoids the "Unity already open" lock issue. If batch mode still fails unexpectedly, check that no Unity instance has the worktree path open.
+
+### Step 4 — Fix failures
+
+If any tests fail:
+1. Read the failure message from the XML results
+2. Determine if the failure is caused by the new implementation (regression) or a pre-existing issue
+3. If caused by the new implementation: **fix the code and re-run** until all tests pass
+4. If pre-existing: note it in the report but do not block on it
 
 ## Creating Unity Assets from Code
 
@@ -167,7 +221,6 @@ When the implementation requires creating Unity assets that can't be produced by
 1. Create a static method with `[MenuItem("Builder/Setup/DescriptiveName")]` that generates the asset
 2. At the **end** of the method, after the asset is created successfully, the button **deletes its own script file**:
    ```csharp
-   // Self-destruct: remove this setup script after use
    AssetDatabase.DeleteAsset("Assets/Scripts/Editor/Setup/ThisFileName.cs");
    AssetDatabase.Refresh();
    ```

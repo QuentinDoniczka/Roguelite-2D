@@ -11,11 +11,24 @@ namespace RogueliteAutoBattler.Data
     }
 
     [Serializable]
+    public class AppearanceData
+    {
+        [SerializeField] private Sprite headSprite;
+        [SerializeField] private Sprite hatSprite;
+        [SerializeField] private Sprite weaponSprite;
+        [SerializeField] private Sprite shieldSprite;
+
+        public Sprite HeadSprite => headSprite;
+        public Sprite HatSprite => hatSprite;
+        public Sprite WeaponSprite => weaponSprite;
+        public Sprite ShieldSprite => shieldSprite;
+    }
+
+    [Serializable]
     public class StageData
     {
         [SerializeField] private string stageName = "New Stage";
-        [SerializeField] [Tooltip("Ground sprite for this stage's terrain.")]
-        private Sprite terrain;
+        [SerializeField] private Sprite terrain;
         [SerializeField] private List<LevelData> levels = new List<LevelData>();
 
         public string StageName => stageName;
@@ -37,8 +50,7 @@ namespace RogueliteAutoBattler.Data
     public class WaveData
     {
         [SerializeField] private string waveName = "Wave";
-        [SerializeField] [Tooltip("Delay in seconds before this wave spawns (Wave 1 is always 0).")]
-        private float spawnDelay;
+        [SerializeField] private float spawnDelay;
         [SerializeField] private List<EnemySpawnData> enemies = new List<EnemySpawnData>();
 
         public string WaveName => waveName;
@@ -50,7 +62,6 @@ namespace RogueliteAutoBattler.Data
     public class EnemySpawnData
     {
         [SerializeField] private string enemyName = "Enemy";
-        [Tooltip("Enemy prefab — must have Rigidbody2D root + Animator child")]
         [SerializeField] private GameObject prefab;
         [SerializeField] private int hp = 50;
         [SerializeField] private int atk = 10;
@@ -58,8 +69,11 @@ namespace RogueliteAutoBattler.Data
         [SerializeField] private float moveSpeed = 2f;
         [SerializeField] private float attackRange = 0.5f;
         [SerializeField] private AttackType attackType = AttackType.Melee;
-        [SerializeField] private float colliderRadius = 0.05f;
-        [SerializeField] private Vector2 spawnOffset;
+        [SerializeField] private float colliderRadius = 0.10f;
+        [SerializeField] private int goldDrop;
+
+        [Header("Appearance")]
+        [SerializeField] private AppearanceData appearance = new AppearanceData();
 
         public string EnemyName => enemyName;
         public GameObject Prefab => prefab;
@@ -70,22 +84,24 @@ namespace RogueliteAutoBattler.Data
         public float AttackRange => attackRange;
         public AttackType AttackType => attackType;
         public float ColliderRadius => colliderRadius;
-        public Vector2 SpawnOffset => spawnOffset;
+        public int GoldDrop => goldDrop;
+        public AppearanceData Appearance => appearance;
     }
 
     [Serializable]
     public class AllySpawnData
     {
         [SerializeField] private string allyName = "Warrior";
-        [Tooltip("Ally prefab — must have Rigidbody2D root + Animator child")]
         [SerializeField] private GameObject prefab;
         [SerializeField] private int maxHp = 100;
         [SerializeField] private int atk = 10;
         [SerializeField] private float attackSpeed = 1f;
         [SerializeField] private float moveSpeed = 2f;
         [SerializeField] private float regenHpPerSecond = 0f;
-        [SerializeField] private float colliderRadius = 0.05f;
-        [SerializeField] private Vector2 spawnOffset;
+        [SerializeField] private float colliderRadius = 0.10f;
+
+        [Header("Appearance")]
+        [SerializeField] private AppearanceData appearance = new AppearanceData();
 
         public string AllyName => allyName;
         public GameObject Prefab => prefab;
@@ -95,6 +111,6 @@ namespace RogueliteAutoBattler.Data
         public float MoveSpeed => moveSpeed;
         public float RegenHpPerSecond => regenHpPerSecond;
         public float ColliderRadius => colliderRadius;
-        public Vector2 SpawnOffset => spawnOffset;
+        public AppearanceData Appearance => appearance;
     }
 }

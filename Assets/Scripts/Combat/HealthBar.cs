@@ -2,154 +2,182 @@ using UnityEngine;
 
 namespace RogueliteAutoBattler.Combat
 {
-    /// <summary>
-    /// Renders a world-space HP bar above the character using SpriteRenderers.
-    /// Must be placed on the same root GameObject as <see cref="CombatStats"/>.
-    ///
-    /// Structure:
-    ///   HealthBar_Pivot  (empty GO, child of character root — absorbs parent flip)
-    ///   ├── BG           (SpriteRenderer, dark, centered pivot)
-    ///   └── Fill         (SpriteRenderer, colored, left-aligned pivot)
-    ///
-    /// URP 2D uses Lit sprites by default: without a Light2D the bar would appear
-    /// black. Both renderers are explicitly set to Sprite-Unlit-Default.
-    /// </summary>
     [RequireComponent(typeof(CombatStats))]
     public class HealthBar : MonoBehaviour
     {
+        private const string UnlitShaderName = "Universal Render Pipeline/2D/Sprite-Unlit-Default";
+        private const int SortingOrderBackground = 10;
+        private const int SortingOrderTrailFill = 11;
+        private const int SortingOrderFill = 12;
+
         [Header("Bar Dimensions")]
-        [Tooltip("Total width of the health bar in world units.")]
         [SerializeField] private float _barWidth = 0.3f;
-
-        [Tooltip("Height of the health bar in world units.")]
         [SerializeField] private float _barHeight = 0.04f;
-
-        [Tooltip("Vertical offset above the character root position.")]
         [SerializeField] private float _yOffset = 0.3f;
 
-        // Full opacity — Unlit material, no alpha blending needed for visibility.
-        private static readonly Color ColorBg      = new Color(0.15f, 0.15f, 0.15f, 1f);
-        private static readonly Color ColorHealthy = new Color(0.20f, 0.80f, 0.20f, 1f);
-        private static readonly Color ColorWarning = new Color(0.80f, 0.80f, 0.20f, 1f);
-        private static readonly Color ColorCritical = new Color(0.80f, 0.20f, 0.20f, 1f);
+        private static readonly Color ColorBg = new Color(0.15f, 0.15f, 0.15f, 1f);
+        public static readonly Color AllyFillColor = new Color(0.20f, 0.80f, 0.20f, 1f);
+        public static readonly Color EnemyFillColor = new Color(0.80f, 0.20f, 0.20f, 1f);
+        public static readonly Color DefaultTrailColor = new Color(1f, 1f, 1f, 0.80f);
 
-        // Shared Unlit material — created once, reused by all HealthBar instances.
+        [Header("Colors")]
+        [SerializeField] private Color _fillColor = new Color(0.20f, 0.80f, 0.20f, 1f);
+        [SerializeField] private Color _trailColor = new Color(1f, 1f, 1f, 0.80f);
+
         private static Material _unlitMaterial;
-
-        // Shared sprites — created once, reused by all HealthBar instances.
         private static Sprite _centeredSprite;
         private static Sprite _leftAlignedSprite;
 
+        [Header("Trail Settings")]
+        [SerializeField] private float _trailFadeDuration = 0.5f;
+
         private CombatStats _stats;
-        private Transform   _pivotTransform;
-        private Transform   _fillTransform;
+        private bool _hasStats;
+        private Transform _pivotTransform;
+        private Transform _trailFillTransform;
+        private SpriteRenderer _trailFillRenderer;
+        private Transform _fillTransform;
         private SpriteRenderer _fillRenderer;
+
+        private float _trailRatio = 1f;
+        private float _trailStartRatio;
+        private float _trailTargetRatio;
+        private float _trailElapsed;
+        private bool _isTrailLerping;
+        private bool _fillDirty = true;
 
         private void Awake()
         {
             _stats = GetComponent<CombatStats>();
+            _hasStats = _stats != null;
             EnsureUnlitMaterial();
             CreateBar();
+            if (_hasStats)
+                _stats.OnDamageTaken += HandleDamageTaken;
         }
 
-        // ------------------------------------------------------------------
-        // Bar construction
-        // ------------------------------------------------------------------
+        private void OnDestroy()
+        {
+            if (_hasStats)
+                _stats.OnDamageTaken -= HandleDamageTaken;
+        }
+
+        public void SetColors(Color fillColor, Color trailColor)
+        {
+            _fillColor = fillColor;
+            _trailColor = trailColor;
+
+            if (_fillRenderer != null)
+                _fillRenderer.color = _fillColor;
+            if (_trailFillRenderer != null)
+                _trailFillRenderer.color = _trailColor;
+        }
 
         private void CreateBar()
         {
-            // Sprites —————————————————————————————————————————————————————
-            // Centered sprite (pivot 0.5, 0.5) — used for BG.
             var bgSprite = GetOrCreateSprite(ref _centeredSprite, new Vector2(0.5f, 0.5f));
-            // Left-aligned sprite (pivot 0, 0.5) — used for Fill so scaling X
-            // from 0 grows toward the right from the left edge.
             var fillSprite = GetOrCreateSprite(ref _leftAlignedSprite, new Vector2(0f, 0.5f));
 
-            // Pivot ———————————————————————————————————————————————————————
-            // An empty intermediary absorbs the parent's X flip.
-            // If the parent has localScale.x < 0 (flipped character), this pivot
-            // counteracts it with localScale.x = -1 so all children stay in
-            // normal (unflipped) space from the viewer's perspective.
             var pivotGo = new GameObject("HealthBar_Pivot");
             pivotGo.transform.SetParent(transform, false);
             pivotGo.transform.localPosition = new Vector3(0f, _yOffset, 0f);
             ApplyFlipCompensation(pivotGo.transform);
             _pivotTransform = pivotGo.transform;
 
-            // BG ——————————————————————————————————————————————————————————
-            // Centered in pivot space — full bar width, always visible.
             var bgGo = new GameObject("BG");
             bgGo.transform.SetParent(_pivotTransform, false);
             bgGo.transform.localPosition = Vector3.zero;
-            bgGo.transform.localScale    = new Vector3(_barWidth, _barHeight, 1f);
+            bgGo.transform.localScale = new Vector3(_barWidth, _barHeight, 1f);
             var bgRenderer = bgGo.AddComponent<SpriteRenderer>();
-            bgRenderer.sprite           = bgSprite;
-            bgRenderer.color            = ColorBg;
-            bgRenderer.sortingLayerName = "Effects";
-            bgRenderer.sortingOrder     = 10;
-            bgRenderer.material         = _unlitMaterial;
+            bgRenderer.sprite = bgSprite;
+            bgRenderer.color = ColorBg;
+            bgRenderer.sortingLayerName = SortingLayers.Effects;
+            bgRenderer.sortingOrder = SortingOrderBackground;
+            bgRenderer.material = _unlitMaterial;
 
-            // Fill ————————————————————————————————————————————————————————
-            // Left-aligned: position at the left edge of the BG (-width/2 in pivot
-            // space). Scale X = barWidth * ratio so it grows rightward from that edge.
+            var fillLocalPosition = new Vector3(-_barWidth * 0.5f, 0f, 0f);
+            var fillLocalScale = new Vector3(_barWidth, _barHeight, 1f);
+
+            var trailFillGo = new GameObject("TrailFill");
+            trailFillGo.transform.SetParent(_pivotTransform, false);
+            trailFillGo.transform.localPosition = fillLocalPosition;
+            trailFillGo.transform.localScale = fillLocalScale;
+            _trailFillRenderer = trailFillGo.AddComponent<SpriteRenderer>();
+            _trailFillRenderer.sprite = fillSprite;
+            _trailFillRenderer.color = _trailColor;
+            _trailFillRenderer.sortingLayerName = SortingLayers.Effects;
+            _trailFillRenderer.sortingOrder = SortingOrderTrailFill;
+            _trailFillRenderer.material = _unlitMaterial;
+            _trailFillTransform = trailFillGo.transform;
+
             var fillGo = new GameObject("Fill");
             fillGo.transform.SetParent(_pivotTransform, false);
-            fillGo.transform.localPosition = new Vector3(-_barWidth * 0.5f, 0f, 0f);
-            fillGo.transform.localScale    = new Vector3(_barWidth, _barHeight, 1f);
+            fillGo.transform.localPosition = fillLocalPosition;
+            fillGo.transform.localScale = fillLocalScale;
             _fillRenderer = fillGo.AddComponent<SpriteRenderer>();
-            _fillRenderer.sprite           = fillSprite;
-            _fillRenderer.color            = ColorHealthy;
-            _fillRenderer.sortingLayerName = "Effects";
-            _fillRenderer.sortingOrder     = 11;
-            _fillRenderer.material         = _unlitMaterial;
+            _fillRenderer.sprite = fillSprite;
+            _fillRenderer.color = _fillColor;
+            _fillRenderer.sortingLayerName = SortingLayers.Effects;
+            _fillRenderer.sortingOrder = SortingOrderFill;
+            _fillRenderer.material = _unlitMaterial;
             _fillTransform = fillGo.transform;
         }
 
-        // ------------------------------------------------------------------
-        // Runtime update
-        // ------------------------------------------------------------------
+        private void HandleDamageTaken(int damage, int currentHp)
+        {
+            if (_stats.MaxHp <= 0)
+                return;
+
+            float newRatio = (float)currentHp / _stats.MaxHp;
+            _trailStartRatio = _trailRatio;
+            _trailTargetRatio = newRatio;
+            _trailElapsed = 0f;
+            _isTrailLerping = true;
+            _fillDirty = true;
+        }
 
         private void LateUpdate()
         {
-            if (_stats == null || _stats.MaxHp <= 0)
+            if (!_hasStats || _stats.MaxHp <= 0)
                 return;
 
-            // Reapply flip compensation every frame — the parent scale can change
-            // (e.g. character reverses direction mid-combat).
             ApplyFlipCompensation(_pivotTransform);
 
-            float ratio = _stats.MaxHp > 0 ? (float)_stats.CurrentHp / _stats.MaxHp : 0f;
+            if (!_fillDirty && !_isTrailLerping)
+                return;
 
-            // Fill width represents HP ratio; height and Z stay unchanged.
+            float ratio = (float)_stats.CurrentHp / _stats.MaxHp;
+
             var scale = _fillTransform.localScale;
             scale.x = _barWidth * ratio;
             _fillTransform.localScale = scale;
+            _fillDirty = false;
 
-            _fillRenderer.color = ratio > 0.5f
-                ? ColorHealthy
-                : ratio > 0.25f
-                    ? ColorWarning
-                    : ColorCritical;
+            if (_isTrailLerping)
+            {
+                _trailElapsed += Time.deltaTime;
+                float t = Mathf.Clamp01(_trailElapsed / _trailFadeDuration);
+                _trailRatio = Mathf.Lerp(_trailStartRatio, _trailTargetRatio, t);
+                if (t >= 1f)
+                    _isTrailLerping = false;
+            }
+
+            if (_trailRatio < ratio)
+                _trailRatio = ratio;
+
+            var trailScale = _trailFillTransform.localScale;
+            trailScale.x = _barWidth * _trailRatio;
+            _trailFillTransform.localScale = trailScale;
         }
 
-        // ------------------------------------------------------------------
-        // Helpers
-        // ------------------------------------------------------------------
-
-        /// <summary>
-        /// Sets pivot.localScale.x = -1 when the parent's world X scale is negative,
-        /// so all children of the pivot render unflipped from the viewer's perspective.
-        /// </summary>
         private void ApplyFlipCompensation(Transform pivot)
         {
             float sign = transform.localScale.x < 0f ? -1f : 1f;
-            pivot.localScale = new Vector3(sign, 1f, 1f);
+            var pivotScale = pivot.localScale;
+            pivotScale.x = sign;
+            pivot.localScale = pivotScale;
         }
 
-        /// <summary>
-        /// Returns a cached 1x1 white sprite with the given pivot, creating it on first call.
-        /// Shared across all HealthBar instances to avoid per-instance sprite allocations.
-        /// </summary>
         private static Sprite GetOrCreateSprite(ref Sprite cached, Vector2 pivot)
         {
             if (cached != null)
@@ -160,24 +188,19 @@ namespace RogueliteAutoBattler.Combat
             return cached;
         }
 
-        /// <summary>
-        /// Lazily creates the shared Unlit material.
-        /// URP 2D Lit sprites appear black without a Light2D — Unlit bypasses lighting entirely.
-        /// </summary>
         private static void EnsureUnlitMaterial()
         {
             if (_unlitMaterial != null)
                 return;
 
-            var shader = Shader.Find("Universal Render Pipeline/2D/Sprite-Unlit-Default");
+            var shader = Shader.Find(UnlitShaderName);
             if (shader != null)
             {
                 _unlitMaterial = new Material(shader);
             }
             else
             {
-                Debug.LogWarning("[HealthBar] Shader 'Sprite-Unlit-Default' not found. " +
-                                 "HP bar may render black. Falling back to default sprite material.");
+                Debug.LogWarning($"[HealthBar] Shader '{UnlitShaderName}' not found. HP bar may render black. Falling back to default sprite material.");
             }
         }
     }

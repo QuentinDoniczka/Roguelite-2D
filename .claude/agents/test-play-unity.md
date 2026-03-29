@@ -249,28 +249,131 @@ For testing input → handler → game state. Use fake accounts + InputTestFixtu
 
 **Write API-level tests first (faster, more stable), then add input-level tests for critical flows.**
 
+## Writing Tests for New Features
+
+When a new feature is implemented, write tests covering it. Use the appropriate test level:
+
+### Decide: Edit Mode vs Play Mode
+
+| Use Edit Mode (`Assets/Tests/EditMode/`) | Use Play Mode (`Assets/Tests/PlayMode/`) |
+|---|---|
+| Pure logic (math, data, state machines) | Physics (Rigidbody2D, Collider2D movement) |
+| ScriptableObject validation | MonoBehaviour lifecycle (Awake, Update, coroutines) |
+| Method input/output | Multi-frame behavior (animations, timers) |
+| No Unity lifecycle needed | Input simulation (InputTestFixture) |
+
+### Use TestCharacterFactory for Combat Tests
+
+`Assets/Tests/PlayMode/TestUtils/TestCharacterFactory.cs` provides lightweight GameObjects for testing. Always use it instead of building GameObjects from scratch:
+
+```csharp
+// Combat character with stats (Rigidbody2D + CombatStats + Visual child)
+var unit = TestCharacterFactory.CreateCombatCharacter("Warrior", maxHp: 100, atk: 20);
+
+// Character with CharacterMover, optionally parented under a conveyor
+var conveyor = TestCharacterFactory.CreateConveyor();
+var mover = TestCharacterFactory.CreateMoverCharacter("Runner", moveSpeed: 3f, parent: conveyor.transform);
+
+// Simple anchor Transform
+var anchor = TestCharacterFactory.CreateAnchor("SpawnPoint", position: new Vector2(5, 0));
+```
+
+If the new feature needs a component not yet covered by TestCharacterFactory, **add a new factory method** to it rather than duplicating setup code across tests.
+
+### Edit Mode Test Pattern
+
+Edit Mode tests use `[Test]` (not `[UnityTest]`), run synchronously, and use `Object.DestroyImmediate` in TearDown:
+
+```csharp
+namespace RogueliteAutoBattler.Tests.EditMode
+{
+    public class NewFeatureTests
+    {
+        private GameObject _go;
+
+        [SetUp]
+        public void SetUp()
+        {
+            _go = new GameObject("Test");
+            // Add components, initialize...
+        }
+
+        [TearDown]
+        public void TearDown()
+        {
+            if (_go != null) Object.DestroyImmediate(_go);
+        }
+
+        [Test]
+        public void Method_Condition_ExpectedResult()
+        {
+            // Arrange, Act, Assert
+        }
+    }
+}
+```
+
+### Running Both Test Suites
+
+After writing tests, sync the worktree (see above), then run the appropriate suite. If you wrote Edit Mode tests, also run them:
+```bash
+"/c/Program Files/Unity/Hub/Editor/6000.3.6f1/Editor/Unity.exe" \
+  -runTests -batchmode -nographics \
+  -projectPath "C:/Users/donic/RiderProjects/Roguelite-2D-tests" \
+  -testPlatform EditMode \
+  -testResults "C:/Users/donic/RiderProjects/Roguelite-2D-tests/editmode-results.xml" \
+  -logFile "C:/Users/donic/RiderProjects/Roguelite-2D-tests/editmode-log.txt"
+```
+
 ## Naming Convention
 
 - Test files: `<Feature>Tests.cs` or `<Feature>ScenarioTests.cs`
 - Test methods: `Scenario_Action_ExpectedResult` or `Feature_Condition_ExpectedResult`
 
+## Git Worktree for Test Execution
+
+Unity Editor locks the main project directory when open, which prevents batch-mode test runs. To solve this, a **git worktree** is set up at a separate path dedicated to running tests. The worktree shares the same git history but has its own working directory and Library folder.
+
+| | Path |
+|---|---|
+| **Main project** (Editor open here) | `C:/Users/donic/RiderProjects/Roguelite-2D` |
+| **Test worktree** (batch mode runs here) | `C:/Users/donic/RiderProjects/Roguelite-2D-tests` |
+
+**The worktree only sees committed and pushed code.** Before running any tests, you MUST ensure:
+1. All changes are **committed** on the current branch
+2. The branch is **pushed** to origin
+3. The worktree is **synced** to the latest pushed code
+
+### Syncing the worktree
+
+Before every test run, execute this to sync the worktree with the current branch:
+```bash
+cd "C:/Users/donic/RiderProjects/Roguelite-2D-tests" && git fetch origin && git checkout <branch> && git reset --hard origin/<branch>
+```
+Replace `<branch>` with the current feature branch name (e.g., `feature/12-combat-flow`).
+
+To find the current branch name from the main project:
+```bash
+git -C "C:/Users/donic/RiderProjects/Roguelite-2D" branch --show-current
+```
+
 ## Running Tests — MANDATORY
 
-**ALWAYS run tests via Unity CLI after writing them.**
+**ALWAYS run tests via Unity CLI after writing them.** Tests run on the **worktree** path, not the main project.
 
 ```bash
 "/c/Program Files/Unity/Hub/Editor/6000.3.6f1/Editor/Unity.exe" \
   -runTests -batchmode -nographics \
-  -projectPath "<project-path>" \
+  -projectPath "C:/Users/donic/RiderProjects/Roguelite-2D-tests" \
   -testPlatform PlayMode \
-  -testResults "<project-path>/playmode-results.xml" \
-  -logFile "<project-path>/playmode-log.txt"
+  -testResults "C:/Users/donic/RiderProjects/Roguelite-2D-tests/playmode-results.xml" \
+  -logFile "C:/Users/donic/RiderProjects/Roguelite-2D-tests/playmode-log.txt"
 ```
 
 - **Exit code 0** = all passed. **Exit code 2** = some failed.
 - Parse the XML results file to report pass/fail counts and failure details.
-- If tests fail, fix them and re-run until all pass.
-- **Important:** Unity must NOT be open when running batch mode. If the command exits immediately with a very short log (~23 lines), Unity was likely already open. Report this to the user.
+- If tests fail, fix the code **in the main project**, commit, push, sync worktree, and re-run until all pass.
+- **Important:** The worktree eliminates the "Unity already open" problem for the main project. If batch mode still fails, check that no other Unity instance has the worktree path open.
 
 ## When Invoked
 
@@ -279,10 +382,100 @@ For testing input → handler → game state. Use fake accounts + InputTestFixtu
 3. **Check asmdef** — Ensure InputSystem references are present for input tests
 4. **Determine progression level** — Pick the right fake account preset for the scenario
 5. **Write tests** — API-level first, then input-level for critical flows
-6. **Run tests via CLI** — ALWAYS run and verify they pass
-7. **Report** — List what was tested, pass/fail results, any issues
+6. **Ensure changes are committed and pushed** — The worktree only sees pushed code
+7. **Sync the worktree** — `cd "C:/Users/donic/RiderProjects/Roguelite-2D-tests" && git fetch origin && git checkout <branch> && git reset --hard origin/<branch>`
+8. **Run tests via CLI on the worktree** — ALWAYS run and verify they pass
+9. **Report** — List what was tested, pass/fail results, any issues
+
+## Component-Disabled Tests Require a Companion Integration Test
+
+**CRITICAL RULE**: When a test disables a Unity component (Animator, Rigidbody2D, Collider2D, etc.) to isolate a behavior, you MUST ALSO write a companion test that keeps that component **active** to validate the behavior under real conditions.
+
+**Why this matters**: Disabling components to "avoid interference" masks real bugs instead of catching them. The Animator, physics engine, and other systems interact with game logic every frame at runtime. A test that passes only with the Animator disabled is not testing real gameplay -- it is testing a fantasy scenario that never occurs in the actual game.
+
+**The pattern that causes bugs** (NEVER do this alone):
+```csharp
+// BAD: This test passes but hides a real bug
+[UnityTest]
+public IEnumerator WeaponSprite_Changes_WhenEquipped()
+{
+    var unit = CreateUnit();
+    unit.GetComponentInChildren<Animator>().enabled = false; // "avoid interference"
+    unit.ApplyWeaponSprite(newSprite);
+    yield return null;
+    Assert.AreEqual(newSprite, unit.WeaponRenderer.sprite); // PASSES -- but in-game the Animator overwrites this every frame
+}
+```
+
+**The correct approach** (isolation test + integration test):
+```csharp
+// Test 1: Isolation -- verify the assignment logic works
+[UnityTest]
+public IEnumerator WeaponSprite_Changes_WhenEquipped_Isolated()
+{
+    var unit = CreateUnit();
+    unit.GetComponentInChildren<Animator>().enabled = false;
+    unit.ApplyWeaponSprite(newSprite);
+    yield return null;
+    Assert.AreEqual(newSprite, unit.WeaponRenderer.sprite);
+}
+
+// Test 2: Integration -- verify it SURVIVES the Animator (the real scenario)
+[UnityTest]
+public IEnumerator WeaponSprite_SurvivesAnimatorFrames()
+{
+    var unit = CreateUnit();
+    // Animator stays ACTIVE -- this is the real condition
+    unit.ApplyWeaponSprite(newSprite);
+    yield return null; // Let Animator run at least one frame
+    yield return null; // Second frame to confirm persistence
+    Assert.AreEqual(newSprite, unit.WeaponRenderer.sprite,
+        "Sprite was overwritten by Animator PPtrCurve -- need LateUpdate re-apply");
+}
+```
+
+**When you disable any component in a test, ask yourself**: "Does the game ever run with this component disabled?" If the answer is no, you MUST add a companion test with the component active.
+
+**Specific high-risk components to watch for**:
+- **Animator** -- PPtrCurves override SpriteRenderer.sprite every frame; animation clips override Transform values
+- **Rigidbody2D** -- physics velocity, gravity, and collision responses affect position
+- **Canvas / CanvasGroup** -- UI visibility and raycasting depend on these being active
 
 ## Rules
+
+### Code Style — No Comments
+- **NEVER write comments** — no `//`, no `/* */`, no `/// <summary>`. Use verbose, self-documenting test method names and variable names instead. The only acceptable comments are `// TODO:` for critical unresolved issues.
+
+### CRITICAL — Tests Are Safety Nets, Not Obstacles
+
+Tests verify that the app behaves correctly. The goal is that **the final test suite produces the same results** — same behaviors validated, same coverage. Never weaken tests just to make them green.
+
+**When a test fails after code changes, follow this process:**
+
+1. **REPORT** the failure clearly (test name, expected vs actual)
+2. **ANALYZE** the cause — is this:
+   - **A regression?** → Fix the code, not the test. Report the issue.
+   - **A signature change?** (e.g., method went from 1 to 2 arguments) → Adapt the test to call the new API. This is fine — the test still validates the same behavior.
+   - **A removed feature?** → The test is obsolete. Remove it. No point testing something that no longer exists.
+   - **A stale test assumption?** (e.g., test expected behavior X, but behavior was deliberately changed to Y) → Explain your reasoning, then update the test to validate the NEW intended behavior.
+3. **The key question:** Does the updated test suite still validate the same (or better) coverage of real behavior? If yes → proceed. If the change REDUCES coverage or hides a bug → STOP and report.
+
+**What you MAY do without approval:**
+- Write **new** tests
+- Adapt test setup for API changes (renamed classes, changed signatures, new parameters) — as long as the test still validates the same behavior
+- Remove tests for features that were deliberately removed
+- Fix test **compilation errors** caused by refactoring
+- Modify test **infrastructure** (imports, SetUp, TearDown, helper methods)
+
+**What you must NEVER do:**
+- Change an assertion's expected value JUST to make it green without understanding why it changed
+- Weaken a tolerance (e.g., `delta: 0.01f` to `delta: 1.0f`) without justification
+- Add `[Ignore]` to a failing test
+- Remove a test for a feature that still exists
+
+**Why this rule exists:** The goal is coherence. The final test suite must validate the same real behaviors. Adapting tests to match legitimate changes is pragmatic. Blindly changing tests to pass is catastrophic.
+
+---
 
 - Always clean up spawned GameObjects in TearDown
 - Always create an **orthographic Camera** for 2D visual observation

@@ -25,31 +25,32 @@
 Doc detaille : `Assets/doc/premier-jet-roguelite.html`
 
 # Project Structure
-Generated: 2026-03-24
+Generated: 2026-03-29 (cleanup sweep)
 
 Assets/
-├── Animations/  (23 files: .anim + .controller)
+├── Animations/  (24 files: .anim + .controller)
 ├── Audio/  (empty)
 ├── Data/
-│   ├── Adventurers/
-│   │   └── WarriorStats.asset
+│   ├── Adventurers/  (empty)
 │   ├── Buildings/  (empty)
-│   ├── Enemies/
-│   │   └── EnemyStats.asset
-│   ├── LevelDatabase.asset
+│   ├── Enemies/  (empty)
 │   ├── LootTables/  (empty)
+│   ├── DamageNumberConfig.asset
+│   ├── LevelDatabase.asset
 │   └── TeamDatabase.asset
 ├── doc/
-│   ├── MedievalFantasyCharacters/  (28 files)
+│   ├── MedievalFantasyCharacters/  (14 files)
 │   ├── architecture-ui.md
 │   ├── combat.jpeg
 │   ├── exemple_HUD.jpg
 │   ├── plan-issue-6.md
 │   ├── plan-issue-40.md
 │   ├── plan-issue-59.md
+│   ├── plan-issue-80.md
 │   ├── plan-level-scroll-transition.md
 │   └── premier-jet-roguelite.html
 ├── Fonts/  (empty)
+├── MedievalFantasyCharacters/  (empty)
 ├── Prefabs/
 │   ├── Characters/  (5 prefabs: Elk, Horse, Wildboar, Wolf, sampleCharacterHuman)
 │   ├── Effects/  (empty)
@@ -57,32 +58,52 @@ Assets/
 ├── Scenes/
 │   └── GameScene.unity
 ├── Scripts/
+│   ├── RogueliteAutoBattler.Runtime.asmdef
+│   ├── AssemblyInfo.cs
 │   ├── Adventurers/  (empty)
 │   ├── Combat/
 │   │   ├── AnimHashes.cs
 │   │   ├── AnimationEventRelay.cs
+│   │   ├── AttackSlotRegistry.cs
+│   │   ├── CharacterAppearance.cs
 │   │   ├── CharacterMover.cs
+│   │   ├── CoinFly.cs
+│   │   ├── CoinFlyBootstrap.cs
+│   │   ├── CoinFlyService.cs
 │   │   ├── CombatController.cs
 │   │   ├── CombatSetupHelper.cs
 │   │   ├── CombatSpawnManager.cs
 │   │   ├── CombatStats.cs
+│   │   ├── DamageNumber.cs
+│   │   ├── DamageNumberBootstrap.cs
+│   │   ├── DamageNumberService.cs
+│   │   ├── DamageNumberSettingsPersistence.cs
 │   │   ├── FormationLayout.cs
+│   │   ├── GoldFormatter.cs
+│   │   ├── GoldWallet.cs
 │   │   ├── GroundFitter.cs
 │   │   ├── HealthBar.cs
 │   │   ├── LevelManager.cs
 │   │   ├── ScreenAnchor.cs
+│   │   ├── SortingLayers.cs
 │   │   ├── TargetFinder.cs
+│   │   ├── VisualEquipmentTestLoop.cs
 │   │   └── WorldConveyor.cs
-│   ├── Core/  (empty)
+│   ├── Core/
+│   │   ├── CanvasFactory.cs
+│   │   └── GameBootstrap.cs
 │   ├── Editor/
+│   │   ├── RogueliteAutoBattler.Editor.asmdef
+│   │   ├── BootstrapSceneBuilder.cs
 │   │   ├── CombatHudBuilder.cs
 │   │   ├── CombatWorldBuilder.cs
 │   │   ├── EditorUIFactory.cs
 │   │   ├── GameDesignerWindow.cs
+│   │   ├── SettingsWindow.cs
 │   │   └── SetupNavigationSceneEditor.cs
 │   ├── Items/  (empty)
 │   ├── ScriptableObjects/
-│   │   ├── CharacterStats.cs
+│   │   ├── DamageNumberConfig.cs
 │   │   ├── LevelDataTypes.cs
 │   │   ├── LevelDatabase.cs
 │   │   └── TeamDatabase.cs
@@ -96,7 +117,8 @@ Assets/
 │   │   │   └── UIScreen.cs
 │   │   ├── Screens/
 │   │   │   ├── Combat/
-│   │   │   │   └── CombatScreen.cs
+│   │   │   │   ├── CombatScreen.cs
+│   │   │   │   └── DamageNumberSettingsPanel.cs
 │   │   │   ├── Guild/
 │   │   │   │   └── GuildScreen.cs
 │   │   │   ├── Shop/
@@ -105,7 +127,8 @@ Assets/
 │   │   │   │   └── SkillTreeScreen.cs
 │   │   │   └── Village/
 │   │   │       └── VillageScreen.cs
-│   │   └── Widgets/  (empty)
+│   │   └── Widgets/
+│   │       └── GoldHudBadge.cs
 │   └── Village/  (empty)
 ├── Settings/
 │   ├── DefaultVolumeProfile.asset
@@ -117,15 +140,47 @@ Assets/
 │   ├── UniversalRenderPipelineGlobalSettings.asset
 │   └── UniversalRP.asset
 ├── Sprites/
-│   ├── Characters/  (155 files)
+│   ├── Characters/  (156 files)
 │   ├── Effects/  (25 files)
 │   ├── Environment/
 │   │   ├── grid_ground.png
 │   │   ├── grid_ground_blue.png
 │   │   └── placeholder_white.png
-│   ├── Items/  (53 files)
+│   ├── Items/  (54 files)
 │   └── UI/  (empty)
-├── _Recovery/  (1 file)
+├── Tests/
+│   ├── EditMode/
+│   │   ├── Tests.EditMode.asmdef
+│   │   ├── EditModeTestBase.cs
+│   │   ├── CombatStatsDamageEventTests.cs
+│   │   ├── CombatStatsTests.cs
+│   │   ├── FormationLayoutTests.cs
+│   │   ├── RecalculateFormationTests.cs
+│   │   ├── GoldFormatterTests.cs
+│   │   └── TargetFinderTests.cs
+│   └── PlayMode/
+│       ├── Tests.PlayMode.asmdef
+│       ├── TestUtils/
+│       │   ├── PlayModeTestBase.cs
+│       │   └── TestCharacterFactory.cs
+│       ├── CharacterAppearanceTests.cs
+│       ├── CharacterMoverTests.cs
+│       ├── CanvasFactoryTests.cs
+│       ├── CoinFlyServiceTests.cs
+│       ├── CoinFlyTests.cs
+│       ├── CombatControllerTests.cs
+│       ├── CombatStatsRegenTests.cs
+│       ├── DamageNumberServiceTests.cs
+│       ├── DamageNumberTests.cs
+│       ├── FormationRecalculationTests.cs
+│       ├── GameBootstrapTests.cs
+│       ├── GoldHudBadgeTests.cs
+│       ├── GoldWalletTests.cs
+│       ├── HealthBarTrailTests.cs
+│       ├── LevelManagerDefeatTests.cs
+│       ├── VisualEquipmentTestLoopTests.cs
+│       └── WorldConveyorTests.cs
+├── _Recovery/  (2 files)
 └── TextMesh Pro/  (173 files — TMP package: fonts, shaders, examples)
 
 ProjectSettings/  (Unity defaults)

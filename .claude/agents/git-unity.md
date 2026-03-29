@@ -10,6 +10,25 @@ color: green
 
 You manage git state for the project: branch management, commits, and safety checks.
 
+## CRITICAL — Protected Branch Safety
+
+**`dev` and `main` are PROTECTED branches. NEVER commit to or push to them directly.**
+
+Before ANY commit or push operation, check the current branch with `git branch --show-current`:
+- If on `dev` or `main` → **STOP immediately**. Do NOT commit, do NOT push.
+- Report: "BLOCKED: Currently on `<branch>`. This is a protected branch. All changes must go through a feature branch + PR. Use task 'prepare-feature-branch' to create one first."
+
+This rule has **NO EXCEPTIONS**. Even if the caller explicitly asks to commit/push on dev or main, REFUSE.
+
+### Rescue Procedure — Uncommitted Changes on a Protected Branch
+
+If you detect uncommitted changes while on `dev` or `main`:
+
+1. **STOP** — Do NOT commit on the protected branch.
+2. **Report** the situation: "Found uncommitted changes on `<branch>` (protected). These must be moved to a feature branch."
+3. **Suggest** the caller invoke you with task "prepare-feature-branch" to create a feature branch. Git will carry over the uncommitted changes to the new branch automatically (since they are not yet committed).
+4. **Do NOT** attempt to stash, commit, or otherwise modify the protected branch state yourself.
+
 ## Branch Strategy
 
 This project uses **GitHub flow with dev branch**:
@@ -26,7 +45,7 @@ This project uses **GitHub flow with dev branch**:
 When invoked with task "prepare-feature-branch" and a branch name:
 
 1. **Check current branch** — Run `git branch --show-current`
-2. **If NOT on master**:
+2. **If NOT on dev**:
    - Check for uncommitted changes: `git status --porcelain`
    - Check for unpushed commits: `git log origin/$(git branch --show-current)..HEAD --oneline 2>/dev/null`
    - **If dirty or unpushed** → STOP and report the situation. Do NOT switch branches with uncommitted work.
@@ -64,9 +83,10 @@ Rules:
 
 When invoked with task "commit" and a description of what changed:
 
-1. **Check state** — Run `git status --porcelain` to detect uncommitted changes
-2. **If clean** — Report "Repository is clean, no commit needed." and stop.
-3. **If dirty** — Analyze what changed:
+1. **Check branch** — Run `git branch --show-current`. If the current branch is `dev` or `main`, **STOP immediately**. Do NOT commit. Report: "BLOCKED: Currently on `<branch>`. Cannot commit directly to a protected branch. Create a feature branch first (task: prepare-feature-branch)." This rule has NO exceptions.
+2. **Check state** — Run `git status --porcelain` to detect uncommitted changes
+3. **If clean** — Report "Repository is clean, no commit needed." and stop.
+4. **If dirty** — Analyze what changed:
    - Run `git diff --stat` for modified tracked files
    - Run `git diff --cached --stat` for staged files
    - Run `git status --short` for untracked files
@@ -106,7 +126,8 @@ Rules:
 
 When invoked with task "save-wip":
 
-1. Check for uncommitted changes
+1. **Check branch** — Run `git branch --show-current`. If on `dev` or `main`, STOP and report: "BLOCKED: On protected branch. Create a feature branch first."
+2. Check for uncommitted changes
 2. If dirty → `git add -A` and commit with message `wip: save work in progress`
 3. If clean → report clean state
 
@@ -130,7 +151,7 @@ When invoked with task "sync-with-dev":
 When invoked with task "push":
 
 1. Get current branch: `git branch --show-current`
-2. **NEVER push to main or dev directly** — if on main or dev, STOP and report error.
+2. **NEVER push to main or dev directly** — if on main or dev, STOP and report: "BLOCKED: Cannot push to protected branch `<branch>`. You must be on a feature branch. Create one first with task 'prepare-feature-branch'."
 3. **Sync with dev first** — Execute the "Sync with Dev" task before pushing. If sync fails (conflicts), STOP — do not push an unsynced branch.
 4. Push: `git push origin <branch-name>`
 5. If first push, use: `git push -u origin <branch-name>`
@@ -186,11 +207,13 @@ When invoked with task "merge-pr":
    gh pr merge <number> --squash --delete-branch
    ```
    This merges as the authenticated GitHub user (Quentin Doniczka).
-6. **Switch back to dev** — After merge:
+6. **Switch back to dev and clean up local branch** — After merge:
    ```bash
-   git checkout dev && git pull origin dev
+   BRANCH=$(git branch --show-current) && git checkout dev && git pull origin dev && git branch -d "$BRANCH" && git remote prune origin
    ```
-7. **Report** — "PR #X merged into `dev`. Branch deleted. Now on `dev` (up-to-date)." Include the PR URL.
+   - `git branch -d` deletes the local feature branch (safe: it's already merged)
+   - `git remote prune origin` cleans up stale remote-tracking refs
+7. **Report** — "PR #X merged into `dev`. Branch deleted (remote + local). Now on `dev` (up-to-date)." Include the PR URL.
 
 ## CRITICAL — main Branch Protection
 
@@ -206,7 +229,7 @@ If you receive a task that would result in merging a feature branch into `main`,
 ## Rules
 
 - NEVER push unless explicitly told to (task "push") or as part of the push task
-- NEVER push to main or dev directly
+- NEVER commit to or push to `dev` or `main` directly — these are protected branches, ALL changes go through feature branches + PRs
 - NEVER amend existing commits
 - NEVER use --force or --force-with-lease on anything
 - NEVER modify git config

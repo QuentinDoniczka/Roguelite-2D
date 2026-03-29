@@ -2,13 +2,8 @@ using UnityEngine;
 
 namespace RogueliteAutoBattler.Combat
 {
-    /// <summary>
-    /// Positions this GameObject at a screen-relative (viewport) position in world space.
-    /// Place at scene root (outside CombatWorld) so it stays fixed regardless of world scroll.
-    /// </summary>
     public class ScreenAnchor : MonoBehaviour
     {
-        [Tooltip("Viewport position (0,0 = bottom-left, 1,1 = top-right).")]
         [SerializeField] private Vector2 _viewportPosition = new Vector2(0.5f, 0.5f);
 
         private Camera _camera;
@@ -47,6 +42,7 @@ namespace RogueliteAutoBattler.Combat
             _lastAspect = _camera.aspect;
         }
 
+#if UNITY_EDITOR
         private void OnDrawGizmos()
         {
             Gizmos.color = new Color(1f, 1f, 0f, 0.5f);
@@ -54,5 +50,6 @@ namespace RogueliteAutoBattler.Combat
                 new Vector3(transform.position.x, transform.position.y - 10f, 0f),
                 new Vector3(transform.position.x, transform.position.y + 10f, 0f));
         }
+#endif
     }
 }
