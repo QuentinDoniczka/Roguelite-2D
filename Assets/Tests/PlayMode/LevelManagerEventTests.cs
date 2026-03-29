@@ -59,8 +59,11 @@ namespace RogueliteAutoBattler.Tests.PlayMode
 
             int firedStage = -1;
             int firedLevel = -1;
+            bool alreadyCaptured = false;
             _levelManager.OnLevelStarted += (stage, level) =>
             {
+                if (alreadyCaptured) return;
+                alreadyCaptured = true;
                 firedStage = stage;
                 firedLevel = level;
             };
@@ -135,13 +138,19 @@ namespace RogueliteAutoBattler.Tests.PlayMode
         {
             _levelManager = CreateLevelManagerWithTwoLevels();
 
+            int capturedLevelIndex = -1;
+            _levelManager.OnLevelStarted += (stage, level) =>
+            {
+                capturedLevelIndex = _levelManager.CurrentLevelIndex;
+            };
+
             _levelManager.ApplyStage(0);
             _levelManager.StartLevel(1);
 
             yield return null;
 
-            Assert.AreEqual(1, _levelManager.CurrentLevelIndex,
-                "CurrentLevelIndex should be 1 after StartLevel(1).");
+            Assert.AreEqual(1, capturedLevelIndex,
+                "CurrentLevelIndex should be 1 at the moment OnLevelStarted fires for StartLevel(1).");
         }
     }
 }
