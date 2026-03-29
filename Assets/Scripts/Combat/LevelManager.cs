@@ -210,8 +210,13 @@ namespace RogueliteAutoBattler.Combat
             int goldAmount = data.GoldDrop;
             if (goldAmount > 0)
             {
-                components.Stats.OnDied += () => { if (_goldWallet != null) _goldWallet.Add(goldAmount); };
-                components.Stats.OnDied += () => { CoinFlyService.Show(enemyTransform.position); };
+                components.Stats.OnDied += () =>
+                {
+                    CoinFlyService.Show(enemyTransform.position, () =>
+                    {
+                        if (_goldWallet != null) _goldWallet.Add(goldAmount);
+                    });
+                };
             }
 
             components.Controller.SetAttackRange(data.AttackRange);
