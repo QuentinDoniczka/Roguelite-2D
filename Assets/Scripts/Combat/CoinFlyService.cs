@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using RogueliteAutoBattler.UI.Widgets;
 using UnityEngine;
@@ -38,7 +39,7 @@ namespace RogueliteAutoBattler.Combat
             _isInitialized = true;
         }
 
-        public static void Show(Vector3 worldPosition)
+        public static void Show(Vector3 worldPosition, Action onComplete = null)
         {
             if (!_isInitialized)
                 return;
@@ -58,13 +59,15 @@ namespace RogueliteAutoBattler.Combat
                 ? _pool.Dequeue()
                 : CreateInstance();
 
-            coin.Play(startLocal, targetLocal, Duration, OnCoinArrived);
+            coin.Play(startLocal, targetLocal, Duration, () => OnCoinArrived(onComplete));
         }
 
-        private static void OnCoinArrived()
+        private static void OnCoinArrived(Action onComplete)
         {
             if (_targetBadgeComponent != null)
-                _targetBadgeComponent.Punch();
+                _targetBadgeComponent.Punch(onComplete);
+            else
+                onComplete?.Invoke();
         }
 
         private static CoinFly CreateInstance()

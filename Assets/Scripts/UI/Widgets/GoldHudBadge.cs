@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using RogueliteAutoBattler.Combat;
 using TMPro;
@@ -41,7 +42,7 @@ namespace RogueliteAutoBattler.UI.Widgets
                 _label.text = GoldFormatter.Format(total);
         }
 
-        public void Punch()
+        public void Punch(Action onComplete = null)
         {
             if (_rectTransform == null)
                 return;
@@ -49,10 +50,10 @@ namespace RogueliteAutoBattler.UI.Widgets
             if (_punchCoroutine != null)
                 StopCoroutine(_punchCoroutine);
 
-            _punchCoroutine = StartCoroutine(PunchCoroutine());
+            _punchCoroutine = StartCoroutine(PunchCoroutine(onComplete));
         }
 
-        private IEnumerator PunchCoroutine()
+        private IEnumerator PunchCoroutine(Action onComplete)
         {
             const float peakScale = 1.15f;
             const float halfDuration = 0.075f;
@@ -81,6 +82,7 @@ namespace RogueliteAutoBattler.UI.Widgets
 
             _rectTransform.localScale = Vector3.one;
             _punchCoroutine = null;
+            onComplete?.Invoke();
         }
     }
 }
