@@ -214,14 +214,14 @@ Si une section est vide (ex: aucun fichier supprime), ne pas l'afficher.
 
 **Apres le rapport** :
 a) Delegue a `git-unity` avec la tache "commit" pour commiter tous les changements avec un message Conventional Commits qui reference l'Issue (ex: `feat(combat): add auto-battle flow (#12)`).
-b) Delegue a `git-unity` avec la tache "push" pour pusher la **branche feature** (sync auto avec dev avant de push). Le push cible toujours la branche feature courante, JAMAIS `dev` ni `main` directement.
-   - Si le sync detecte des conflits, delegue a `dev-unity` pour les resoudre, puis relance le push.
-c) **STOP — Demande de validation a l'utilisateur.** Affiche :
-   - "Branche pushee. Teste dans Unity et confirme que tout fonctionne. Dis 'ok' pour creer la PR et merger."
+b) **STOP — Demande de validation a l'utilisateur.** Affiche :
+   - "Changements commites. Teste dans Unity et confirme que tout fonctionne. Dis 'ok' pour push + PR + merge."
    - **Liste concrete de ce qu'il faut tester** : basee sur les changements de l'Issue, decrire 3-5 scenarios de test manuels que l'utilisateur doit verifier dans Unity (ex: "Lance Play, verifie que les allies ne se stackent pas sur le meme ennemi"). Etre specifique au contexte de l'Issue, pas generique.
-   - **Ne PAS creer de PR ni merger avant la validation.**
-d) **Apres validation utilisateur** — Delegue a `git-unity` avec la tache "create-pr" pour creer la PR.
-e) **Merge** — Delegue a `git-unity` avec la tache "merge-pr" :
+   - **Ne PAS push, creer de PR, ni merger avant la validation.**
+c) **Apres validation utilisateur ("ok")** — Enchainer automatiquement :
+   1. Delegue a `git-unity` avec la tache "push" pour pusher la **branche feature** (sync auto avec dev avant de push). Le push cible toujours la branche feature courante, JAMAIS `dev` ni `main` directement. Si le sync detecte des conflits, delegue a `dev-unity` pour les resoudre, puis relance le push.
+   2. Delegue a `git-unity` avec la tache "create-pr" pour creer la PR.
+d) **Merge** — Delegue a `git-unity` avec la tache "merge-pr" :
    - L'agent verifie que la CI passe sur la PR
    - Si CI verte → squash merge automatique (merge en tant que Quentin Doniczka via `gh`)
    - Si CI rouge → STOP, rapporte les erreurs. On corrige et on relance.
@@ -270,7 +270,7 @@ Ces agents ne sont **jamais** lances automatiquement dans le workflow. L'utilisa
 - **Conventional Commits** — tous les commits suivent le format `<type>(<scope>): <description>`. Inclure le numero d'Issue quand applicable (ex: `(#12)`).
 - **GitHub flow** — `dev` = branche d'integration. Les feature branches sont TOUJOURS creees depuis `dev`. Les PRs ciblent `dev` avec Squash and merge. `main` = branche stable/release.
 - **Branches protegees** — `dev` et `main` sont des branches protegees. JAMAIS de commit ni de push direct dessus. Toutes les modifications passent par une branche feature/fix/refactor/chore + PR. Cela s'applique aussi aux modifications d'agents (etape 9) et aux taches de refactoring sans Issue.
-- **Push + merge automatique** — apres commit sur la **branche feature**, le lead enchaine push → PR → merge sans demander. Si CI echoue ou conflit, on s'arrete et on corrige.
+- **Push + merge apres validation** — apres commit, le lead STOP et attend la validation utilisateur. Apres "ok", il enchaine push → PR → merge. Si CI echoue ou conflit, on s'arrete et on corrige.
 - **Merge strategy** — pour sync avec dev, toujours `git merge origin/dev` (jamais rebase). Les merge commits sur la feature branch disparaissent au squash merge de la PR.
 - **GitHub Boards** — chaque Issue travaillee doit etre tracee : In Progress au debut, Done au push.
 - **2D uniquement** — tous les agents doivent utiliser des composants 2D (Rigidbody2D, Collider2D, SpriteRenderer, etc.)
