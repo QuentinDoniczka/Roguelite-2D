@@ -88,12 +88,12 @@ namespace RogueliteAutoBattler.Tests.PlayMode
         {
             yield return null;
 
-            _levelManager.StartLevel(0);
+            _levelManager.StartLevel(1);
             yield return new WaitForSeconds(0.3f);
 
             Assert.Greater(_badge.AnnouncementAlpha, 0.9f,
                 "Announcement should be nearly fully visible after fade-in completes.");
-            Assert.AreEqual("Stage 1 - Level 1", _badge.AnnouncementText);
+            Assert.AreEqual("Stage 1 - Level 2", _badge.AnnouncementText);
         }
 
         [UnityTest]
@@ -101,7 +101,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
         {
             yield return null;
 
-            _levelManager.StartLevel(0);
+            _levelManager.StartLevel(1);
             yield return new WaitForSeconds(2.0f);
 
             Assert.Less(_badge.AnnouncementAlpha, 0.05f,
