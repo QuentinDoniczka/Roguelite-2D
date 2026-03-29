@@ -6,7 +6,6 @@ using RogueliteAutoBattler.UI.Screens.SkillTree;
 using RogueliteAutoBattler.UI.Screens.Village;
 using TMPro;
 using UnityEditor;
-using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
@@ -34,32 +33,6 @@ namespace RogueliteAutoBattler.Editor
         internal static readonly Color InfoBg = (Color)new Color32(30, 30, 40, 240);
         private static readonly Color BtnHighlighted = (Color)new Color32(220, 220, 220, 255);
         private static readonly Color BtnPressed = (Color)new Color32(180, 180, 180, 255);
-
-        [MenuItem("Roguelite/Setup Navigation UI")]
-        private static void SetupNavigationUI()
-        {
-            Canvas existingCanvas =
-                Object.FindFirstObjectByType<Canvas>(FindObjectsInactive.Include);
-            if (existingCanvas != null)
-            {
-                if (!EditorUtility.DisplayDialog("Canvas Exists", "Replace existing Canvas?", "Replace", "Cancel"))
-                    return;
-            }
-
-            Undo.IncrementCurrentGroup();
-            int undoGroup = Undo.GetCurrentGroup();
-            Undo.SetCurrentGroupName("Setup Navigation UI");
-
-            DestroyExistingSceneContent(existingCanvas);
-
-            BuildSceneContent(out Canvas canvas, out Transform combatWorld,
-                out NavigationManager navigationManager, out Camera mainCamera);
-
-            Undo.CollapseUndoOperations(undoGroup);
-            EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
-            Selection.activeGameObject = canvas.gameObject;
-            Debug.Log("[SetupNavigationUI] Done. Press Play — click tabs to switch panels.");
-        }
 
         internal static void DestroyExistingSceneContent(Canvas existingCanvas)
         {
