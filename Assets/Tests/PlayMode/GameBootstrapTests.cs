@@ -10,126 +10,111 @@ namespace RogueliteAutoBattler.Tests.PlayMode
 {
     public class GameBootstrapTests : PlayModeTestBase
     {
-        private Canvas _canvas;
-        private Transform _combatWorld;
-        private NavigationManager _navigationManager;
-        private Camera _mainCamera;
-
         [SetUp]
         public void SetUp()
         {
-            var canvasGo = Track(new GameObject("TestCanvas"));
-            _canvas = canvasGo.AddComponent<Canvas>();
+            GameBootstrap.ResetForTest();
+        }
 
-            _combatWorld = Track(new GameObject("TestCombatWorld")).transform;
-
-            var navGo = new GameObject("TestNavigationManager");
-            navGo.SetActive(false);
-            Track(navGo);
-            _navigationManager = navGo.AddComponent<NavigationManager>();
-
-            var camGo = Track(new GameObject("TestCamera"));
-            _mainCamera = camGo.AddComponent<Camera>();
-            _mainCamera.orthographic = true;
+        [TearDown]
+        public void TearDown()
+        {
+            GameBootstrap.ResetForTest();
         }
 
         [UnityTest]
-        public IEnumerator Awake_AllRefsAssigned_NoErrors()
+        public IEnumerator Initialize_FindsAllSceneRefs()
         {
-            var go = new GameObject("Bootstrap");
-            go.SetActive(false);
-            Track(go);
+            var canvasGo = Track(new GameObject("UICanvas"));
+            canvasGo.AddComponent<Canvas>();
 
-            var bootstrap = go.AddComponent<GameBootstrap>();
-            bootstrap.SetRefs(_canvas, _combatWorld, _navigationManager, _mainCamera);
+            var combatWorldGo = Track(new GameObject("CombatWorld"));
 
-            go.SetActive(true);
+            var navGo = new GameObject("NavigationManager");
+            navGo.SetActive(false);
+            Track(navGo);
+            navGo.AddComponent<NavigationManager>();
+
+            var camGo = Track(new GameObject("MainCamera"));
+            var cam = camGo.AddComponent<Camera>();
+            cam.tag = "MainCamera";
             yield return null;
 
+            GameBootstrap.Initialize();
+
+            Assert.IsNotNull(GameBootstrap.Canvas);
+            Assert.IsNotNull(GameBootstrap.CombatWorld);
+            Assert.AreEqual(combatWorldGo.transform, GameBootstrap.CombatWorld);
+            Assert.IsNotNull(GameBootstrap.MainCamera);
             LogAssert.NoUnexpectedReceived();
         }
 
         [UnityTest]
-        public IEnumerator Awake_MissingCanvas_LogsError()
+        public IEnumerator Initialize_MissingCombatWorld_LogsError()
         {
-            var go = new GameObject("Bootstrap");
-            go.SetActive(false);
-            Track(go);
+            var canvasGo = Track(new GameObject("UICanvas"));
+            canvasGo.AddComponent<Canvas>();
 
-            var bootstrap = go.AddComponent<GameBootstrap>();
-            bootstrap.SetRefs(null, _combatWorld, _navigationManager, _mainCamera);
-
-            LogAssert.Expect(LogType.Error, new Regex("_canvas"));
-
-            go.SetActive(true);
+            var camGo = Track(new GameObject("MainCamera"));
+            var cam = camGo.AddComponent<Camera>();
+            cam.tag = "MainCamera";
             yield return null;
+
+            LogAssert.Expect(LogType.Error, new Regex("CombatWorld"));
+
+            GameBootstrap.Initialize();
         }
 
         [UnityTest]
-        public IEnumerator Awake_MissingCombatWorld_LogsError()
+        public IEnumerator Initialize_MissingNavigationManager_LogsError()
         {
-            var go = new GameObject("Bootstrap");
-            go.SetActive(false);
-            Track(go);
+            var canvasGo = Track(new GameObject("UICanvas"));
+            canvasGo.AddComponent<Canvas>();
 
-            var bootstrap = go.AddComponent<GameBootstrap>();
-            bootstrap.SetRefs(_canvas, null, _navigationManager, _mainCamera);
+            Track(new GameObject("CombatWorld"));
 
-            LogAssert.Expect(LogType.Error, new Regex("_combatWorld"));
-
-            go.SetActive(true);
+            var camGo = Track(new GameObject("MainCamera"));
+            var cam = camGo.AddComponent<Camera>();
+            cam.tag = "MainCamera";
             yield return null;
+
+            LogAssert.Expect(LogType.Error, new Regex("NavigationManager"));
+
+            GameBootstrap.Initialize();
         }
 
         [UnityTest]
-        public IEnumerator Awake_MissingNavigationManager_LogsError()
+        public IEnumerator Initialize_NoCanvas_SkipsValidation()
         {
-            var go = new GameObject("Bootstrap");
-            go.SetActive(false);
-            Track(go);
-
-            var bootstrap = go.AddComponent<GameBootstrap>();
-            bootstrap.SetRefs(_canvas, _combatWorld, null, _mainCamera);
-
-            LogAssert.Expect(LogType.Error, new Regex("_navigationManager"));
-
-            go.SetActive(true);
             yield return null;
+
+            GameBootstrap.Initialize();
+
+            Assert.IsNull(GameBootstrap.Canvas);
+            LogAssert.NoUnexpectedReceived();
         }
 
         [UnityTest]
-        public IEnumerator Awake_MissingCamera_LogsError()
+        public IEnumerator ResetForTest_ClearsAllRefs()
         {
-            var go = new GameObject("Bootstrap");
-            go.SetActive(false);
-            Track(go);
+            var canvasGo = Track(new GameObject("UICanvas"));
+            canvasGo.AddComponent<Canvas>();
+            Track(new GameObject("CombatWorld"));
 
-            var bootstrap = go.AddComponent<GameBootstrap>();
-            bootstrap.SetRefs(_canvas, _combatWorld, _navigationManager, null);
-
-            LogAssert.Expect(LogType.Error, new Regex("_mainCamera"));
-
-            go.SetActive(true);
-            yield return null;
-        }
-
-        [UnityTest]
-        public IEnumerator Properties_ExposeSerializedFields()
-        {
-            var go = new GameObject("Bootstrap");
-            go.SetActive(false);
-            Track(go);
-
-            var bootstrap = go.AddComponent<GameBootstrap>();
-            bootstrap.SetRefs(_canvas, _combatWorld, _navigationManager, _mainCamera);
-
-            go.SetActive(true);
+            var camGo = Track(new GameObject("MainCamera"));
+            var cam = camGo.AddComponent<Camera>();
+            cam.tag = "MainCamera";
             yield return null;
 
-            Assert.AreEqual(_canvas, bootstrap.Canvas);
-            Assert.AreEqual(_combatWorld, bootstrap.CombatWorld);
-            Assert.AreEqual(_navigationManager, bootstrap.NavigationManager);
-            Assert.AreEqual(_mainCamera, bootstrap.MainCamera);
+            GameBootstrap.Initialize();
+            Assert.IsNotNull(GameBootstrap.Canvas);
+
+            GameBootstrap.ResetForTest();
+
+            Assert.IsNull(GameBootstrap.Canvas);
+            Assert.IsNull(GameBootstrap.CombatWorld);
+            Assert.IsNull(GameBootstrap.NavigationManager);
+            Assert.IsNull(GameBootstrap.MainCamera);
         }
     }
 }
