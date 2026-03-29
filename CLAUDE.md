@@ -25,7 +25,7 @@
 Doc detaille : `Assets/doc/premier-jet-roguelite.html`
 
 # Project Structure
-Generated: 2026-03-29 (cleanup sweep)
+Generated: 2026-03-29 (battle indicator)
 
 Assets/
 ├── Animations/  (24 files: .anim + .controller)
@@ -128,6 +128,7 @@ Assets/
 │   │   │   └── Village/
 │   │   │       └── VillageScreen.cs
 │   │   └── Widgets/
+│   │       ├── BattleIndicatorBadge.cs
 │   │       └── GoldHudBadge.cs
 │   └── Village/  (empty)
 ├── Settings/
@@ -163,9 +164,10 @@ Assets/
 │       ├── TestUtils/
 │       │   ├── PlayModeTestBase.cs
 │       │   └── TestCharacterFactory.cs
+│       ├── BattleIndicatorBadgeTests.cs
+│       ├── CanvasFactoryTests.cs
 │       ├── CharacterAppearanceTests.cs
 │       ├── CharacterMoverTests.cs
-│       ├── CanvasFactoryTests.cs
 │       ├── CoinFlyServiceTests.cs
 │       ├── CoinFlyTests.cs
 │       ├── CombatControllerTests.cs
@@ -178,6 +180,7 @@ Assets/
 │       ├── GoldWalletTests.cs
 │       ├── HealthBarTrailTests.cs
 │       ├── LevelManagerDefeatTests.cs
+│       ├── LevelManagerEventTests.cs
 │       ├── VisualEquipmentTestLoopTests.cs
 │       └── WorldConveyorTests.cs
 ├── _Recovery/  (2 files)

@@ -34,6 +34,15 @@ namespace RogueliteAutoBattler.Data
         public string StageName => stageName;
         public Sprite Terrain => terrain;
         public List<LevelData> Levels => levels;
+
+        private StageData() { }
+
+        internal StageData(string stageName, Sprite terrain, List<LevelData> levels)
+        {
+            this.stageName = stageName;
+            this.terrain = terrain;
+            this.levels = levels;
+        }
     }
 
     [Serializable]
@@ -44,6 +53,14 @@ namespace RogueliteAutoBattler.Data
 
         public string LevelName => levelName;
         public List<WaveData> Waves => waves;
+
+        private LevelData() { }
+
+        internal LevelData(string levelName, List<WaveData> waves)
+        {
+            this.levelName = levelName;
+            this.waves = waves;
+        }
     }
 
     [Serializable]
@@ -56,6 +73,15 @@ namespace RogueliteAutoBattler.Data
         public string WaveName => waveName;
         public float SpawnDelay => spawnDelay;
         public List<EnemySpawnData> Enemies => enemies;
+
+        private WaveData() { }
+
+        internal WaveData(string waveName, float spawnDelay, List<EnemySpawnData> enemies)
+        {
+            this.waveName = waveName;
+            this.spawnDelay = spawnDelay;
+            this.enemies = enemies;
+        }
     }
 
     [Serializable]
@@ -86,6 +112,15 @@ namespace RogueliteAutoBattler.Data
         public float ColliderRadius => colliderRadius;
         public int GoldDrop => goldDrop;
         public AppearanceData Appearance => appearance;
+
+        private EnemySpawnData() { }
+
+        internal EnemySpawnData(string enemyName, int hp, int atk)
+        {
+            this.enemyName = enemyName;
+            this.hp = hp;
+            this.atk = atk;
+        }
     }
 
     [Serializable]

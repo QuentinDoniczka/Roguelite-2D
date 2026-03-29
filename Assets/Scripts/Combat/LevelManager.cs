@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using RogueliteAutoBattler.Data;
 using UnityEngine;
@@ -31,6 +32,14 @@ namespace RogueliteAutoBattler.Combat
         [SerializeField] private Transform _teamHomeAnchor;
         [SerializeField] private Transform _enemiesHomeAnchor;
         [SerializeField] private Transform _combatTriggerZone;
+
+        public event Action<int, int> OnStageStarted;
+        public event Action<int, int> OnLevelStarted;
+        // Reserved for future wave-based UI (progress dots, boss wave warning)
+        public event Action<int, int, int> OnWaveSpawned;
+
+        public int CurrentStageIndex => _currentStageIndex;
+        public int CurrentLevelIndex => _currentLevelIndex;
 
         private const float FallbackEnemySpawnX = 1f;
 
@@ -93,6 +102,8 @@ namespace RogueliteAutoBattler.Combat
                 Debug.Log($"[{nameof(LevelManager)}] Applied terrain '{stage.Terrain.name}' for stage '{stage.StageName}'");
 #endif
             }
+
+            OnStageStarted?.Invoke(_currentStageIndex, _currentLevelIndex);
         }
 
         public void StartLevel(int levelIndex)
@@ -126,6 +137,8 @@ namespace RogueliteAutoBattler.Combat
             _currentLevelIndex = levelIndex;
             _aliveEnemyCount = 0;
             _levelInProgress = true;
+
+            OnLevelStarted?.Invoke(_currentStageIndex, _currentLevelIndex);
 
             var level = stage.Levels[levelIndex];
             _pendingWaveCount = level.Waves.Count;
@@ -165,6 +178,8 @@ namespace RogueliteAutoBattler.Combat
                 Vector2 offset = homePositions[i] - anchorPos;
                 SpawnEnemy(wave.Enemies[i], spawnPositions[i], offset);
             }
+
+            OnWaveSpawned?.Invoke(_currentStageIndex, _currentLevelIndex, waveIndex);
 
             _pendingWaveCount--;
             CheckLevelComplete();
@@ -442,12 +457,13 @@ namespace RogueliteAutoBattler.Combat
         internal int AliveAllyCount => _aliveAllyCount;
         internal bool LevelInProgress => _levelInProgress;
 
-        internal void InitializeForTest(Transform teamContainer, Transform enemiesContainer, Transform teamHomeAnchor = null, Transform enemiesHomeAnchor = null)
+        internal void InitializeForTest(Transform teamContainer, Transform enemiesContainer, Transform teamHomeAnchor = null, Transform enemiesHomeAnchor = null, LevelDatabase levelDatabase = null)
         {
             _teamContainer = teamContainer;
             _enemiesContainer = enemiesContainer;
             if (teamHomeAnchor != null) _teamHomeAnchor = teamHomeAnchor;
             if (enemiesHomeAnchor != null) _enemiesHomeAnchor = enemiesHomeAnchor;
+            if (levelDatabase != null) _levelDatabase = levelDatabase;
             _levelInProgress = true;
         }
 
