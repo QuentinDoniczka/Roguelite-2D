@@ -134,6 +134,31 @@ namespace RogueliteAutoBattler.Tests.PlayMode
         }
 
         [UnityTest]
+        public IEnumerator OnWaveSpawned_FiresWithCorrectIndices()
+        {
+            _levelManager = CreateLevelManagerWithTwoLevels();
+
+            int firedStage = -1;
+            int firedLevel = -1;
+            int firedWave = -1;
+            _levelManager.OnWaveSpawned += (stage, level, wave) =>
+            {
+                firedStage = stage;
+                firedLevel = level;
+                firedWave = wave;
+            };
+
+            _levelManager.ApplyStage(0);
+            _levelManager.StartLevel(0);
+
+            yield return null;
+
+            Assert.AreEqual(0, firedStage, "OnWaveSpawned should fire with stage index 0.");
+            Assert.AreEqual(0, firedLevel, "OnWaveSpawned should fire with level index 0.");
+            Assert.AreEqual(0, firedWave, "OnWaveSpawned should fire with wave index 0.");
+        }
+
+        [UnityTest]
         public IEnumerator CurrentLevelIndex_ReflectsStartedLevel()
         {
             _levelManager = CreateLevelManagerWithTwoLevels();
