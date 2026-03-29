@@ -67,6 +67,9 @@ namespace RogueliteAutoBattler.Combat
                 _appliedShield = shield;
                 _shieldRenderer.sprite = shield;
             }
+
+            _hasOverride = _appliedHead != null || _appliedHat != null
+                        || _appliedWeapon != null || _appliedShield != null;
         }
 
         public void ApplyAppearance(AppearanceData appearance)
@@ -76,8 +79,12 @@ namespace RogueliteAutoBattler.Combat
                 appearance.WeaponSprite, appearance.ShieldSprite);
         }
 
+        private bool _hasOverride;
+
         private void LateUpdate()
         {
+            if (!_hasOverride) return;
+
             if (_appliedHead != null && _headRenderer != null)
                 _headRenderer.sprite = _appliedHead;
 

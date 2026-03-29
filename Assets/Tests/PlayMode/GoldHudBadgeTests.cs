@@ -1,5 +1,4 @@
 using System.Collections;
-using System.Collections.Generic;
 using NUnit.Framework;
 using RogueliteAutoBattler.Combat;
 using RogueliteAutoBattler.UI.Widgets;
@@ -9,21 +8,21 @@ using UnityEngine.TestTools;
 
 namespace RogueliteAutoBattler.Tests.PlayMode
 {
-    public class GoldHudBadgeTests
+    public class GoldHudBadgeTests : PlayModeTestBase
     {
-        private readonly List<GameObject> _spawned = new List<GameObject>();
         private GoldWallet _wallet;
         private TMP_Text _label;
+        private GoldHudBadge _badge;
 
         [SetUp]
         public void SetUp()
         {
             var walletGo = new GameObject("GoldWallet");
-            _spawned.Add(walletGo);
+            Track(walletGo);
             _wallet = walletGo.AddComponent<GoldWallet>();
 
             var canvasGo = new GameObject("TestCanvas");
-            _spawned.Add(canvasGo);
+            Track(canvasGo);
             canvasGo.AddComponent<Canvas>();
 
             var badgeGo = new GameObject("GoldBadge");
@@ -34,19 +33,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             labelGo.transform.SetParent(badgeGo.transform);
             _label = labelGo.AddComponent<TextMeshProUGUI>();
 
-            badgeGo.AddComponent<GoldHudBadge>();
-        }
-
-        [TearDown]
-        public void TearDown()
-        {
-            foreach (var go in _spawned)
-            {
-                if (go != null)
-                    Object.DestroyImmediate(go);
-            }
-
-            _spawned.Clear();
+            _badge = badgeGo.AddComponent<GoldHudBadge>();
         }
 
         [UnityTest]
@@ -84,12 +71,11 @@ namespace RogueliteAutoBattler.Tests.PlayMode
         {
             yield return null;
 
-            GoldHudBadge badge = Object.FindObjectsByType<GoldHudBadge>(FindObjectsSortMode.None)[0];
-            badge.Punch();
+            _badge.Punch();
 
             yield return new WaitForSeconds(0.08f);
 
-            RectTransform badgeRect = badge.GetComponent<RectTransform>();
+            RectTransform badgeRect = _badge.GetComponent<RectTransform>();
             Assert.Greater(badgeRect.localScale.x, 1.0f,
                 "Scale should be greater than 1.0 during punch peak");
 

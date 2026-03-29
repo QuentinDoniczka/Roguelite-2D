@@ -212,6 +212,7 @@ namespace RogueliteAutoBattler.Combat
             {
                 components.Stats.OnDied += () =>
                 {
+                    if (enemyTransform == null) return;
                     CoinFlyService.Show(enemyTransform.position, () =>
                     {
                         if (_goldWallet != null) _goldWallet.Add(goldAmount);
