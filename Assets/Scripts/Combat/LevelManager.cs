@@ -22,7 +22,7 @@ namespace RogueliteAutoBattler.Combat
         [SerializeField] private Transform _teamContainer;
 
         [Header("Scroll Transition")]
-        [SerializeField] private float _scrollDistance = 2f;
+        [SerializeField] private float _scrollDistance = 3f;
 
         [Header("Enemy Spawn")]
         [SerializeField] private float _enemySpawnOffscreenX = 1f;
@@ -317,34 +317,31 @@ namespace RogueliteAutoBattler.Combat
             }
         }
 
+        private const float SpawnSpeedThreshold = 0.3f;
+
         private IEnumerator LevelTransitionCoroutine()
         {
             if (_conveyor != null)
             {
-                bool enemiesSpawned = false;
-                void OnDecel()
-                {
-                    if (enemiesSpawned) return;
-                    enemiesSpawned = true;
-#if UNITY_EDITOR
-                    Debug.Log($"[{nameof(LevelManager)}] Deceleration started. Spawning level {_currentLevelIndex}.");
-#endif
-                    StartLevel(_currentLevelIndex);
-                }
+                bool decelStarted = false;
+                void OnDecel() => decelStarted = true;
 
                 _conveyor.OnDecelerationStarted += OnDecel;
                 _conveyor.ScrollBy(_scrollDistance);
 
-                yield return new WaitUntil(() => !_conveyor.IsScrolling);
+                yield return new WaitUntil(() =>
+                    !_conveyor.IsScrolling ||
+                    (decelStarted && _conveyor.CurrentSpeed <= SpawnSpeedThreshold));
+
                 _conveyor.OnDecelerationStarted -= OnDecel;
 
-                if (!enemiesSpawned)
-                {
 #if UNITY_EDITOR
-                    Debug.Log($"[{nameof(LevelManager)}] Scroll ended without decel phase. Spawning level {_currentLevelIndex}.");
+                Debug.Log($"[{nameof(LevelManager)}] Spawning level {_currentLevelIndex} (speed: {_conveyor.CurrentSpeed:F2}).");
 #endif
-                    StartLevel(_currentLevelIndex);
-                }
+                StartLevel(_currentLevelIndex);
+
+                if (_conveyor.IsScrolling)
+                    yield return new WaitUntil(() => !_conveyor.IsScrolling);
             }
             else
             {
