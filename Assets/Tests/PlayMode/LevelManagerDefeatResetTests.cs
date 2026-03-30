@@ -28,25 +28,25 @@ namespace RogueliteAutoBattler.Tests.PlayMode
 
             _conveyor = _combatWorldGo.AddComponent<WorldConveyor>();
 
-            var teamContainerGo = new GameObject(CombatSpawnManager.TeamContainerName);
+            var teamContainerGo = new GameObject(CombatSetupHelper.TeamContainerName);
             teamContainerGo.transform.SetParent(_combatWorldGo.transform, false);
             _teamContainer = teamContainerGo.transform;
 
-            var enemiesContainerGo = new GameObject(CombatSpawnManager.EnemiesContainerName);
+            var enemiesContainerGo = new GameObject(CombatSetupHelper.EnemiesContainerName);
             enemiesContainerGo.transform.SetParent(_combatWorldGo.transform, false);
             _enemiesContainer = enemiesContainerGo.transform;
 
-            var teamHomeGo = new GameObject(CombatSpawnManager.TeamHomeAnchorName);
+            var teamHomeGo = new GameObject(CombatSetupHelper.TeamHomeAnchorName);
             teamHomeGo.transform.SetParent(_combatWorldGo.transform, false);
             teamHomeGo.transform.position = new Vector3(-3f, 0f, 0f);
             _teamHomeAnchor = teamHomeGo.transform;
 
-            var enemiesHomeGo = new GameObject(CombatSpawnManager.EnemiesHomeAnchorName);
+            var enemiesHomeGo = new GameObject(CombatSetupHelper.EnemiesHomeAnchorName);
             enemiesHomeGo.transform.SetParent(_combatWorldGo.transform, false);
             enemiesHomeGo.transform.position = new Vector3(3f, 0f, 0f);
             _enemiesHomeAnchor = enemiesHomeGo.transform;
 
-            var triggerZoneGo = new GameObject(CombatSpawnManager.CombatTriggerZoneName);
+            var triggerZoneGo = new GameObject(CombatSetupHelper.CombatTriggerZoneName);
             triggerZoneGo.transform.SetParent(_combatWorldGo.transform, false);
             triggerZoneGo.transform.position = new Vector3(10f, 0f, 0f);
             triggerZoneGo.AddComponent<BoxCollider2D>();
