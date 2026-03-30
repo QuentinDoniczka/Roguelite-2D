@@ -65,7 +65,10 @@ namespace RogueliteAutoBattler.Combat
             var characterTransform = character.transform;
             bool ally = isAlly;
             combatStats.OnDamageTaken += (damage, _) =>
-                DamageNumberService.Show(characterTransform.position, damage, ally);
+            {
+                if (characterTransform != null)
+                    DamageNumberService.Show(characterTransform.position, damage, ally);
+            };
 
             return new CharacterComponents
             {

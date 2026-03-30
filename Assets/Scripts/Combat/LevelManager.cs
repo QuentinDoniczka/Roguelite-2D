@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using RogueliteAutoBattler.Data;
 using UnityEngine;
@@ -22,7 +23,7 @@ namespace RogueliteAutoBattler.Combat
         [SerializeField] private Transform _teamContainer;
 
         [Header("Scroll Transition")]
-        [SerializeField] private float _scrollDistance = 2f;
+        [SerializeField] private float _scrollDistance = 3f;
 
         [Header("Enemy Spawn")]
         [SerializeField] private float _enemySpawnOffscreenX = 1f;
@@ -31,6 +32,13 @@ namespace RogueliteAutoBattler.Combat
         [SerializeField] private Transform _teamHomeAnchor;
         [SerializeField] private Transform _enemiesHomeAnchor;
         [SerializeField] private Transform _combatTriggerZone;
+
+        public event Action<int, int> OnStageStarted;
+        public event Action<int, int> OnLevelStarted;
+        public event Action<int, int, int> OnWaveSpawned;
+
+        public int CurrentStageIndex => _currentStageIndex;
+        public int CurrentLevelIndex => _currentLevelIndex;
 
         private const float FallbackEnemySpawnX = 1f;
 
@@ -93,6 +101,8 @@ namespace RogueliteAutoBattler.Combat
                 Debug.Log($"[{nameof(LevelManager)}] Applied terrain '{stage.Terrain.name}' for stage '{stage.StageName}'");
 #endif
             }
+
+            OnStageStarted?.Invoke(_currentStageIndex, _currentLevelIndex);
         }
 
         public void StartLevel(int levelIndex)
@@ -126,6 +136,8 @@ namespace RogueliteAutoBattler.Combat
             _currentLevelIndex = levelIndex;
             _aliveEnemyCount = 0;
             _levelInProgress = true;
+
+            OnLevelStarted?.Invoke(_currentStageIndex, _currentLevelIndex);
 
             var level = stage.Levels[levelIndex];
             _pendingWaveCount = level.Waves.Count;
@@ -165,6 +177,8 @@ namespace RogueliteAutoBattler.Combat
                 Vector2 offset = homePositions[i] - anchorPos;
                 SpawnEnemy(wave.Enemies[i], spawnPositions[i], offset);
             }
+
+            OnWaveSpawned?.Invoke(_currentStageIndex, _currentLevelIndex, waveIndex);
 
             _pendingWaveCount--;
             CheckLevelComplete();
@@ -212,6 +226,7 @@ namespace RogueliteAutoBattler.Combat
             {
                 components.Stats.OnDied += () =>
                 {
+                    if (enemyTransform == null) return;
                     CoinFlyService.Show(enemyTransform.position, () =>
                     {
                         if (_goldWallet != null) _goldWallet.Add(goldAmount);
@@ -316,34 +331,31 @@ namespace RogueliteAutoBattler.Combat
             }
         }
 
+        private const float SpawnSpeedThreshold = 0.3f;
+
         private IEnumerator LevelTransitionCoroutine()
         {
             if (_conveyor != null)
             {
-                bool enemiesSpawned = false;
-                void OnDecel()
-                {
-                    if (enemiesSpawned) return;
-                    enemiesSpawned = true;
-#if UNITY_EDITOR
-                    Debug.Log($"[{nameof(LevelManager)}] Deceleration started. Spawning level {_currentLevelIndex}.");
-#endif
-                    StartLevel(_currentLevelIndex);
-                }
+                bool decelStarted = false;
+                void OnDecel() => decelStarted = true;
 
                 _conveyor.OnDecelerationStarted += OnDecel;
                 _conveyor.ScrollBy(_scrollDistance);
 
-                yield return new WaitUntil(() => !_conveyor.IsScrolling);
+                yield return new WaitUntil(() =>
+                    !_conveyor.IsScrolling ||
+                    (decelStarted && _conveyor.CurrentSpeed <= SpawnSpeedThreshold));
+
                 _conveyor.OnDecelerationStarted -= OnDecel;
 
-                if (!enemiesSpawned)
-                {
 #if UNITY_EDITOR
-                    Debug.Log($"[{nameof(LevelManager)}] Scroll ended without decel phase. Spawning level {_currentLevelIndex}.");
+                Debug.Log($"[{nameof(LevelManager)}] Spawning level {_currentLevelIndex} (speed: {_conveyor.CurrentSpeed:F2}).");
 #endif
-                    StartLevel(_currentLevelIndex);
-                }
+                StartLevel(_currentLevelIndex);
+
+                if (_conveyor.IsScrolling)
+                    yield return new WaitUntil(() => !_conveyor.IsScrolling);
             }
             else
             {
@@ -444,12 +456,13 @@ namespace RogueliteAutoBattler.Combat
         internal int AliveAllyCount => _aliveAllyCount;
         internal bool LevelInProgress => _levelInProgress;
 
-        internal void InitializeForTest(Transform teamContainer, Transform enemiesContainer, Transform teamHomeAnchor = null, Transform enemiesHomeAnchor = null)
+        internal void InitializeForTest(Transform teamContainer, Transform enemiesContainer, Transform teamHomeAnchor = null, Transform enemiesHomeAnchor = null, LevelDatabase levelDatabase = null)
         {
             _teamContainer = teamContainer;
             _enemiesContainer = enemiesContainer;
             if (teamHomeAnchor != null) _teamHomeAnchor = teamHomeAnchor;
             if (enemiesHomeAnchor != null) _enemiesHomeAnchor = enemiesHomeAnchor;
+            if (levelDatabase != null) _levelDatabase = levelDatabase;
             _levelInProgress = true;
         }
 

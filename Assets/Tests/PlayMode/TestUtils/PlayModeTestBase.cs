@@ -20,7 +20,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             foreach (var go in _created)
             {
                 if (go != null)
-                    Object.Destroy(go);
+                    Object.DestroyImmediate(go);
             }
 
             _created.Clear();

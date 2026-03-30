@@ -15,12 +15,6 @@ namespace RogueliteAutoBattler.Combat
         [Header("Anchors")]
         [SerializeField] private Transform _teamHomeAnchor;
 
-        public const string TeamContainerName = CombatSetupHelper.TeamContainerName;
-        public const string EnemiesContainerName = CombatSetupHelper.EnemiesContainerName;
-        public const string TeamHomeAnchorName = CombatSetupHelper.TeamHomeAnchorName;
-        public const string EnemiesHomeAnchorName = CombatSetupHelper.EnemiesHomeAnchorName;
-        public const string CombatTriggerZoneName = CombatSetupHelper.CombatTriggerZoneName;
-
         private static readonly Vector3 FacingRightScale = new Vector3(-1f, 1f, 1f);
 
         private void Start()

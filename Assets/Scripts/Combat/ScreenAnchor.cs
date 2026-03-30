@@ -42,6 +42,7 @@ namespace RogueliteAutoBattler.Combat
             _lastAspect = _camera.aspect;
         }
 
+#if UNITY_EDITOR
         private void OnDrawGizmos()
         {
             Gizmos.color = new Color(1f, 1f, 0f, 0.5f);
@@ -49,5 +50,6 @@ namespace RogueliteAutoBattler.Combat
                 new Vector3(transform.position.x, transform.position.y - 10f, 0f),
                 new Vector3(transform.position.x, transform.position.y + 10f, 0f));
         }
+#endif
     }
 }

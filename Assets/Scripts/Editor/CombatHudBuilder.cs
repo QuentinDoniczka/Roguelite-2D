@@ -13,6 +13,7 @@ namespace RogueliteAutoBattler.Editor
     {
         private const int HudFontSize = 28;
         private const int BattleFontSize = 40;
+        private const int AnnouncementFontSize = 56;
 
         private static readonly Color HudBarBg = (Color)new Color32(0, 0, 0, 160);
 
@@ -84,12 +85,61 @@ namespace RogueliteAutoBattler.Editor
             battleRect.anchorMax = new Vector2(0.8f, 0.90f);
             battleRect.offsetMin = Vector2.zero;
             battleRect.offsetMax = Vector2.zero;
-            TextMeshProUGUI battleTmp = battleGo.AddComponent<TextMeshProUGUI>();
-            battleTmp.text = "Battle 10-19";
-            battleTmp.fontSize = BattleFontSize;
-            battleTmp.color = Color.white;
-            battleTmp.alignment = TextAlignmentOptions.Center;
-            battleTmp.fontStyle = FontStyles.Bold;
+            BattleIndicatorBadge badge = battleGo.AddComponent<BattleIndicatorBadge>();
+
+            var compactLabelGo = new GameObject("CompactLabel");
+            GameObjectUtility.SetParentAndAlign(compactLabelGo, battleGo);
+            EditorUIFactory.Stretch(compactLabelGo.AddComponent<RectTransform>());
+            TextMeshProUGUI compactTmp = compactLabelGo.AddComponent<TextMeshProUGUI>();
+            compactTmp.text = "1-1";
+            compactTmp.fontSize = BattleFontSize;
+            compactTmp.color = Color.white;
+            compactTmp.alignment = TextAlignmentOptions.Center;
+            compactTmp.fontStyle = FontStyles.Bold;
+
+            var announcementOverlayGo = new GameObject("AnnouncementOverlay");
+            GameObjectUtility.SetParentAndAlign(announcementOverlayGo, go);
+            RectTransform announcementOverlayRect = announcementOverlayGo.AddComponent<RectTransform>();
+            announcementOverlayRect.anchorMin = new Vector2(0.1f, 0.35f);
+            announcementOverlayRect.anchorMax = new Vector2(0.9f, 0.65f);
+            announcementOverlayRect.offsetMin = Vector2.zero;
+            announcementOverlayRect.offsetMax = Vector2.zero;
+            CanvasGroup announcementCanvasGroup = announcementOverlayGo.AddComponent<CanvasGroup>();
+            announcementCanvasGroup.alpha = 0f;
+            announcementCanvasGroup.blocksRaycasts = false;
+            announcementCanvasGroup.interactable = false;
+
+            var announcementLabelGo = new GameObject("AnnouncementLabel");
+            GameObjectUtility.SetParentAndAlign(announcementLabelGo, announcementOverlayGo);
+            EditorUIFactory.Stretch(announcementLabelGo.AddComponent<RectTransform>());
+            TextMeshProUGUI announcementTmp = announcementLabelGo.AddComponent<TextMeshProUGUI>();
+            announcementTmp.text = "";
+            announcementTmp.fontSize = AnnouncementFontSize;
+            announcementTmp.color = Color.white;
+            announcementTmp.alignment = TextAlignmentOptions.Center;
+            announcementTmp.fontStyle = FontStyles.Bold;
+
+            var badgeSO = new SerializedObject(badge);
+
+            var compactLabelProp = badgeSO.FindProperty("_compactLabel");
+            if (compactLabelProp == null)
+                Debug.LogError($"[{nameof(CombatHudBuilder)}] SerializedProperty '_compactLabel' not found on BattleIndicatorBadge.");
+            else
+                compactLabelProp.objectReferenceValue = compactTmp;
+
+            var announcementLabelProp = badgeSO.FindProperty("_announcementLabel");
+            if (announcementLabelProp == null)
+                Debug.LogError($"[{nameof(CombatHudBuilder)}] SerializedProperty '_announcementLabel' not found on BattleIndicatorBadge.");
+            else
+                announcementLabelProp.objectReferenceValue = announcementTmp;
+
+            var announcementGroupProp = badgeSO.FindProperty("_announcementGroup");
+            if (announcementGroupProp == null)
+                Debug.LogError($"[{nameof(CombatHudBuilder)}] SerializedProperty '_announcementGroup' not found on BattleIndicatorBadge.");
+            else
+                announcementGroupProp.objectReferenceValue = announcementCanvasGroup;
+
+            badgeSO.ApplyModifiedProperties();
 
             return screen;
         }

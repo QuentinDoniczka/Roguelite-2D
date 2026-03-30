@@ -44,6 +44,7 @@ namespace RogueliteAutoBattler.Combat
         private float _trailTargetRatio;
         private float _trailElapsed;
         private bool _isTrailLerping;
+        private bool _fillDirty = true;
 
         private void Awake()
         {
@@ -132,6 +133,7 @@ namespace RogueliteAutoBattler.Combat
             _trailTargetRatio = newRatio;
             _trailElapsed = 0f;
             _isTrailLerping = true;
+            _fillDirty = true;
         }
 
         private void LateUpdate()
@@ -141,11 +143,15 @@ namespace RogueliteAutoBattler.Combat
 
             ApplyFlipCompensation(_pivotTransform);
 
+            if (!_fillDirty && !_isTrailLerping)
+                return;
+
             float ratio = (float)_stats.CurrentHp / _stats.MaxHp;
 
             var scale = _fillTransform.localScale;
             scale.x = _barWidth * ratio;
             _fillTransform.localScale = scale;
+            _fillDirty = false;
 
             if (_isTrailLerping)
             {

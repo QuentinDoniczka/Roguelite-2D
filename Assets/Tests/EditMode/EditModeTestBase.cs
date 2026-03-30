@@ -15,7 +15,7 @@ namespace RogueliteAutoBattler.Tests.EditMode
         }
 
         [TearDown]
-        public void TearDown()
+        public virtual void TearDown()
         {
             foreach (var go in _created)
             {
