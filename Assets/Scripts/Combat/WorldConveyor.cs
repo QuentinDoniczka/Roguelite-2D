@@ -12,6 +12,7 @@ namespace RogueliteAutoBattler.Combat
         private bool _isScrolling;
         private bool _decelerating;
         private Rigidbody2D _rb;
+        private Vector2 _initialPosition;
 
         [Header("Defaults")]
         [SerializeField] private float _defaultMaxSpeed = 1f;
@@ -33,6 +34,7 @@ namespace RogueliteAutoBattler.Combat
         {
             _rb = GetComponent<Rigidbody2D>();
             _rb.bodyType = RigidbodyType2D.Kinematic;
+            _initialPosition = _rb.position;
         }
 
         public void ScrollBy(float distance)
@@ -115,6 +117,14 @@ namespace RogueliteAutoBattler.Combat
             {
                 _rb.MovePosition(new Vector2(posX + direction * step, _rb.position.y));
             }
+        }
+
+        public void ResetPosition()
+        {
+            _isScrolling = false;
+            _decelerating = false;
+            _currentSpeed = 0f;
+            _rb.position = _initialPosition;
         }
 
         private void Arrive()
