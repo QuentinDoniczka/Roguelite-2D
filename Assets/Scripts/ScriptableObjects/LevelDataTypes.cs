@@ -31,9 +31,9 @@ namespace RogueliteAutoBattler.Data
         [SerializeField] private Sprite terrain;
         [SerializeField] private List<LevelData> levels = new List<LevelData>();
 
-        public string StageName => stageName;
-        public Sprite Terrain => terrain;
-        public List<LevelData> Levels => levels;
+        public string StageName { get => stageName; internal set => stageName = value; }
+        public Sprite Terrain { get => terrain; internal set => terrain = value; }
+        public List<LevelData> Levels { get => levels; internal set => levels = value; }
     }
 
     [Serializable]
@@ -42,8 +42,8 @@ namespace RogueliteAutoBattler.Data
         [SerializeField] private string levelName = "New Level";
         [SerializeField] private List<WaveData> waves = new List<WaveData>();
 
-        public string LevelName => levelName;
-        public List<WaveData> Waves => waves;
+        public string LevelName { get => levelName; internal set => levelName = value; }
+        public List<WaveData> Waves { get => waves; internal set => waves = value; }
     }
 
     [Serializable]
@@ -53,9 +53,9 @@ namespace RogueliteAutoBattler.Data
         [SerializeField] private float spawnDelay;
         [SerializeField] private List<EnemySpawnData> enemies = new List<EnemySpawnData>();
 
-        public string WaveName => waveName;
-        public float SpawnDelay => spawnDelay;
-        public List<EnemySpawnData> Enemies => enemies;
+        public string WaveName { get => waveName; internal set => waveName = value; }
+        public float SpawnDelay { get => spawnDelay; internal set => spawnDelay = value; }
+        public List<EnemySpawnData> Enemies { get => enemies; internal set => enemies = value; }
     }
 
     [Serializable]
@@ -75,16 +75,16 @@ namespace RogueliteAutoBattler.Data
         [Header("Appearance")]
         [SerializeField] private AppearanceData appearance = new AppearanceData();
 
-        public string EnemyName => enemyName;
-        public GameObject Prefab => prefab;
-        public int Hp => hp;
-        public int Atk => atk;
-        public float AttackSpeed => attackSpeed;
-        public float MoveSpeed => moveSpeed;
-        public float AttackRange => attackRange;
-        public AttackType AttackType => attackType;
-        public float ColliderRadius => colliderRadius;
-        public int GoldDrop => goldDrop;
+        public string EnemyName { get => enemyName; internal set => enemyName = value; }
+        public GameObject Prefab { get => prefab; internal set => prefab = value; }
+        public int Hp { get => hp; internal set => hp = value; }
+        public int Atk { get => atk; internal set => atk = value; }
+        public float AttackSpeed { get => attackSpeed; internal set => attackSpeed = value; }
+        public float MoveSpeed { get => moveSpeed; internal set => moveSpeed = value; }
+        public float AttackRange { get => attackRange; internal set => attackRange = value; }
+        public AttackType AttackType { get => attackType; internal set => attackType = value; }
+        public float ColliderRadius { get => colliderRadius; internal set => colliderRadius = value; }
+        public int GoldDrop { get => goldDrop; internal set => goldDrop = value; }
         public AppearanceData Appearance => appearance;
     }
 
@@ -103,14 +103,14 @@ namespace RogueliteAutoBattler.Data
         [Header("Appearance")]
         [SerializeField] private AppearanceData appearance = new AppearanceData();
 
-        public string AllyName => allyName;
-        public GameObject Prefab => prefab;
-        public int MaxHp => maxHp;
-        public int Atk => atk;
-        public float AttackSpeed => attackSpeed;
-        public float MoveSpeed => moveSpeed;
-        public float RegenHpPerSecond => regenHpPerSecond;
-        public float ColliderRadius => colliderRadius;
+        public string AllyName { get => allyName; internal set => allyName = value; }
+        public GameObject Prefab { get => prefab; internal set => prefab = value; }
+        public int MaxHp { get => maxHp; internal set => maxHp = value; }
+        public int Atk { get => atk; internal set => atk = value; }
+        public float AttackSpeed { get => attackSpeed; internal set => attackSpeed = value; }
+        public float MoveSpeed { get => moveSpeed; internal set => moveSpeed = value; }
+        public float RegenHpPerSecond { get => regenHpPerSecond; internal set => regenHpPerSecond = value; }
+        public float ColliderRadius { get => colliderRadius; internal set => colliderRadius = value; }
         public AppearanceData Appearance => appearance;
     }
 }

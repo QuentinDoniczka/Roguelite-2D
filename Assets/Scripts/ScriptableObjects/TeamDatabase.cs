@@ -8,6 +8,6 @@ namespace RogueliteAutoBattler.Data
     {
         [SerializeField] private List<AllySpawnData> allies = new List<AllySpawnData>();
 
-        public List<AllySpawnData> Allies => allies;
+        public List<AllySpawnData> Allies { get => allies; internal set => allies = value; }
     }
 }
