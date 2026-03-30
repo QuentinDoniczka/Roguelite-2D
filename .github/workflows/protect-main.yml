@@ -1,0 +1,23 @@
+name: Protect main branch
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  check-source-branch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Block non-release PRs to main
+        run: |
+          SOURCE="${{ github.head_ref }}"
+          echo "Source branch: $SOURCE"
+
+          if [[ "$SOURCE" == hotfix/* ]] || [[ "$SOURCE" == release/* ]]; then
+            echo "Allowed: $SOURCE can target main."
+          else
+            echo "BLOCKED: '$SOURCE' cannot target main."
+            echo "Only hotfix/* and release/* branches may merge into main."
+            echo "Feature branches must target dev."
+            exit 1
+          fi

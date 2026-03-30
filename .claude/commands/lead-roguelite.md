@@ -220,7 +220,7 @@ b) **STOP — Demande de validation a l'utilisateur.** Affiche :
    - **Ne PAS push, creer de PR, ni merger avant la validation.**
 c) **Apres validation utilisateur ("ok")** — Enchainer automatiquement :
    1. Delegue a `git-unity` avec la tache "push" pour pusher la **branche feature** (sync auto avec dev avant de push). Le push cible toujours la branche feature courante, JAMAIS `dev` ni `main` directement. Si le sync detecte des conflits, delegue a `dev-unity` pour les resoudre, puis relance le push.
-   2. Delegue a `git-unity` avec la tache "create-pr" pour creer la PR.
+   2. Delegue a `git-unity` avec la tache "create-pr" pour creer la PR (target: `dev` — JAMAIS `main`).
 d) **Merge** — Delegue a `git-unity` avec la tache "merge-pr" :
    - L'agent verifie que la CI passe sur la PR
    - Si CI verte → squash merge automatique (merge en tant que Quentin Doniczka via `gh`)
