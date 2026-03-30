@@ -25,10 +25,15 @@
 Doc detaille : `Assets/doc/premier-jet-roguelite.html`
 
 # Project Structure
-Generated: 2026-03-29 (updated #97)
+Generated: 2026-03-30 (updated #31)
+
+.github/
+└── workflows/
+    ├── protect-dev.yml
+    └── protect-main.yml
 
 Assets/
-├── Animations/  (24 files: .anim + .controller)
+├── Animations/  (23 files: .anim + .controller)
 ├── Audio/  (empty)
 ├── Data/
 │   ├── Adventurers/
@@ -45,6 +50,7 @@ Assets/
 │   ├── combat.jpeg
 │   ├── exemple_HUD.jpg
 │   ├── plan-issue-6.md
+│   ├── plan-issue-31.md
 │   ├── plan-issue-40.md
 │   ├── plan-issue-59.md
 │   ├── plan-issue-80.md
@@ -142,13 +148,13 @@ Assets/
 │   ├── UniversalRenderPipelineGlobalSettings.asset
 │   └── UniversalRP.asset
 ├── Sprites/
-│   ├── Characters/  (156 files)
+│   ├── Characters/  (155 files)
 │   ├── Effects/  (25 files)
 │   ├── Environment/
 │   │   ├── grid_ground.png
 │   │   ├── grid_ground_blue.png
 │   │   └── placeholder_white.png
-│   ├── Items/  (54 files)
+│   ├── Items/  (53 files)
 │   └── UI/  (empty)
 ├── Tests/
 │   ├── EditMode/
@@ -172,6 +178,7 @@ Assets/
 │       ├── CoinFlyServiceTests.cs
 │       ├── CoinFlyTests.cs
 │       ├── CombatControllerTests.cs
+│       ├── CombatSpawnManagerTests.cs
 │       ├── CombatStatsRegenTests.cs
 │       ├── DamageNumberServiceTests.cs
 │       ├── DamageNumberTests.cs
@@ -180,11 +187,12 @@ Assets/
 │       ├── GoldHudBadgeTests.cs
 │       ├── GoldWalletTests.cs
 │       ├── HealthBarTrailTests.cs
+│       ├── LevelManagerDefeatResetTests.cs
 │       ├── LevelManagerDefeatTests.cs
 │       ├── LevelManagerEventTests.cs
 │       ├── VisualEquipmentTestLoopTests.cs
 │       └── WorldConveyorTests.cs
-├── _Recovery/  (2 files)
+├── _Recovery/  (1 file)
 └── TextMesh Pro/  (173 files — TMP package: fonts, shaders, examples)
 
 ProjectSettings/  (Unity defaults)
