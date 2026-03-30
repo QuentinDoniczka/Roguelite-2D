@@ -6,7 +6,7 @@ namespace RogueliteAutoBattler.Data
     [CreateAssetMenu(fileName = "DamageNumberConfig", menuName = "Roguelite/Damage Number Config")]
     public class DamageNumberConfig : ScriptableObject
     {
-        private const float DefaultFontSize = 1.25f;
+        private const float DefaultFontSize = 1f;
         private const float DefaultLifetime = 0.8f;
         private const float DefaultSlideDistance = 0.5f;
         private const float DefaultSpawnOffsetY = 0.3f;
