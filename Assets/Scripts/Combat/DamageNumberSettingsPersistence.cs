@@ -8,7 +8,6 @@ namespace RogueliteAutoBattler.Combat
         private const string HasSavedKey = "DmgNum_HasSaved";
         private const string FontSizeKey = "DmgNum_FontSize";
         private const string LifetimeKey = "DmgNum_Lifetime";
-        private const string SlideDistanceKey = "DmgNum_SlideDistance";
         private const string SpawnOffsetYKey = "DmgNum_SpawnOffsetY";
         private const string AllyColorRKey = "DmgNum_AllyR";
         private const string AllyColorGKey = "DmgNum_AllyG";
@@ -23,7 +22,6 @@ namespace RogueliteAutoBattler.Combat
         {
             PlayerPrefs.SetFloat(FontSizeKey, config.FontSize);
             PlayerPrefs.SetFloat(LifetimeKey, config.Lifetime);
-            PlayerPrefs.SetFloat(SlideDistanceKey, config.SlideDistance);
             PlayerPrefs.SetFloat(SpawnOffsetYKey, config.SpawnOffsetY);
             PlayerPrefs.SetFloat(AllyColorRKey, config.AllyDamageColor.r);
             PlayerPrefs.SetFloat(AllyColorGKey, config.AllyDamageColor.g);
@@ -44,7 +42,6 @@ namespace RogueliteAutoBattler.Combat
 
             config.FontSize = PlayerPrefs.GetFloat(FontSizeKey, config.FontSize);
             config.Lifetime = PlayerPrefs.GetFloat(LifetimeKey, config.Lifetime);
-            config.SlideDistance = PlayerPrefs.GetFloat(SlideDistanceKey, config.SlideDistance);
             config.SpawnOffsetY = PlayerPrefs.GetFloat(SpawnOffsetYKey, config.SpawnOffsetY);
             config.AllyDamageColor = new Color(
                 PlayerPrefs.GetFloat(AllyColorRKey, config.AllyDamageColor.r),
@@ -63,7 +60,6 @@ namespace RogueliteAutoBattler.Combat
             PlayerPrefs.DeleteKey(HasSavedKey);
             PlayerPrefs.DeleteKey(FontSizeKey);
             PlayerPrefs.DeleteKey(LifetimeKey);
-            PlayerPrefs.DeleteKey(SlideDistanceKey);
             PlayerPrefs.DeleteKey(SpawnOffsetYKey);
             PlayerPrefs.DeleteKey(AllyColorRKey);
             PlayerPrefs.DeleteKey(AllyColorGKey);
