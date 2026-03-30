@@ -34,9 +34,7 @@ namespace RogueliteAutoBattler.Editor
         private static readonly Color32 GridColorA = new Color32(45, 90, 39, 255);
         private static readonly Color32 GridColorB = new Color32(61, 122, 55, 255);
 
-        private const string GridBlueSpritePath = "Assets/Sprites/Environment/grid_ground_blue.png";
-        private static readonly Color32 GridBlueColorA = new Color32(30, 60, 120, 255);
-        private static readonly Color32 GridBlueColorB = new Color32(45, 85, 160, 255);
+        private const string BackgroundSpritePath = "Assets/Sprites/Environment/backgroundtest.png";
 
         internal static Camera ConfigureMainCamera()
         {
@@ -288,9 +286,9 @@ namespace RogueliteAutoBattler.Editor
             return go.transform;
         }
 
-        internal static Sprite CreateOrLoadBlueGridSprite()
+        internal static Sprite LoadBackgroundSprite()
         {
-            return CreateOrLoadCheckerboardSprite(GridBlueSpritePath, GridBlueColorA, GridBlueColorB);
+            return AssetDatabase.LoadAssetAtPath<Sprite>(BackgroundSpritePath);
         }
 
         internal static Sprite CreateOrLoadGridSprite()
