@@ -29,9 +29,7 @@ Generated: 2026-03-30 (updated #31)
 
 .github/
 └── workflows/
-    ├── protect-main.yml
-    ├── unity-activate.yml
-    └── unity-tests.yml
+    └── protect-main.yml
 
 Assets/
 ├── Animations/  (23 files: .anim + .controller)

@@ -1,48 +1,36 @@
 # Plan Issue #31 — CI/CD Pipeline
 
 ## Overview
-GitHub Actions CI/CD pipeline for Unity 2D project with branch protection.
+GitHub Actions branch protection for Unity 2D project. Tests are run locally by agents, not in CI.
 
 ## Architecture Decisions
 
-### Test Runner
-- **Game CI** (`game-ci/unity-test-runner@v4`) — community-maintained, proven with Unity 6000.x
-- Image auto-resolved by game-ci from `unityVersion: 6000.3.6f1`
-- Matrix strategy: EditMode and PlayMode run in parallel
-
 ### Branch Protection
-- `main`: protected by `protect-main.yml` — only `release/*` and `hotfix/*` branches can target it
-- `dev`: required status checks — `Tests (EditMode)` and `Tests (PlayMode)` must pass
+- `main`: protected by `protect-main.yml` workflow + GitHub branch protection rules
+  - Only `release/*` and `hotfix/*` branches can target it (workflow check)
+  - `check-source-branch` required status check
+  - PR required, no direct push, enforce admins
+- `dev`: protected by GitHub branch protection rules
+  - PR required, no direct push, enforce admins
+  - No CI tests required (agents run tests locally before merge)
 
-### Cache Strategy
-- Unity `Library/` folder cached per test mode
-- Key: hash of `Assets/Scripts/**`, `Assets/Settings/**`, `Packages/manifest.json`, `Packages/packages-lock.json`, `ProjectSettings/*.asset`
-- Fallback restore key for partial cache hits
-
-### Unity License
-- Personal license activation via `unity-activate.yml` (manual dispatch)
-- `.ulf` file stored as `UNITY_LICENSE` GitHub Secret
-- License may expire periodically — re-run activation workflow when needed
+### Why no CI tests?
+- Unity license activation for CI is complex and fragile (Personal license .ulf expiry)
+- Agents already run EditMode and PlayMode tests locally before every merge
+- Branch protection ensures no direct pushes bypass the PR workflow
 
 ## Workflows
 
 | File | Trigger | Purpose |
 |------|---------|---------|
-| `unity-tests.yml` | PR to `dev` | Run EditMode + PlayMode tests |
-| `unity-activate.yml` | Manual dispatch | Generate `.alf` for license activation |
 | `protect-main.yml` | PR to `main` | Block non-release/hotfix PRs |
 
-## GitHub Secrets Required
+## GitHub Branch Protection Rules (configured via API)
 
-| Secret | Value |
-|--------|-------|
-| `UNITY_LICENSE` | Contents of `.ulf` license file |
-| `UNITY_EMAIL` | Unity account email |
-| `UNITY_PASSWORD` | Unity account password |
-
-## License Renewal Process
-1. Go to Actions tab → "Unity License Activation" → Run workflow
-2. Download the `.alf` artifact
-3. Go to https://license.unity3d.com/manual
-4. Upload `.alf`, download `.ulf`
-5. Update `UNITY_LICENSE` secret with `.ulf` contents
+| Rule | `main` | `dev` |
+|------|--------|-------|
+| PR required | Yes | Yes |
+| Enforce admins | Yes | Yes |
+| Force push blocked | Yes | Yes |
+| Deletion blocked | Yes | Yes |
+| Required status check | `check-source-branch` | None |
