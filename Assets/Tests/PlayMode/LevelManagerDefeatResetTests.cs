@@ -57,11 +57,9 @@ namespace RogueliteAutoBattler.Tests.PlayMode
 
             var allyPrefab = TestCharacterFactory.CreateAllyPrefab("AllyPrefab");
             Track(allyPrefab);
-            allyPrefab.SetActive(false);
 
             var enemyPrefab = TestCharacterFactory.CreateAllyPrefab("EnemyPrefab");
             Track(enemyPrefab);
-            enemyPrefab.SetActive(false);
 
             var teamDb = TestCharacterFactory.CreateTeamDatabase(allyCount, allyPrefab);
             var levelDb = TestCharacterFactory.CreateLevelDatabase(enemyCount, enemyPrefab);
