@@ -21,6 +21,8 @@ namespace RogueliteAutoBattler.Editor
         private static readonly GUIContent LabelSpawnOffsetY = new GUIContent("Spawn Offset Y");
         private static readonly GUIContent LabelAllyColor = new GUIContent("Ally Color");
         private static readonly GUIContent LabelEnemyColor = new GUIContent("Enemy Color");
+        private static readonly GUIContent LabelOutlineWidth = new GUIContent("Outline Width");
+        private static readonly GUIContent LabelOutlineColor = new GUIContent("Outline Color");
         private static readonly GUIContent LabelSortingOrder = new GUIContent("Sorting Order");
         private static readonly GUIContent LabelPoolSize = new GUIContent("Pool Size");
 
@@ -37,6 +39,8 @@ namespace RogueliteAutoBattler.Editor
         private SerializedProperty _propSpawnOffsetY;
         private SerializedProperty _propAllyDamageColor;
         private SerializedProperty _propEnemyDamageColor;
+        private SerializedProperty _propOutlineWidth;
+        private SerializedProperty _propOutlineColor;
         private SerializedProperty _propSortingOrder;
         private SerializedProperty _propInitialPoolSize;
 
@@ -74,6 +78,8 @@ namespace RogueliteAutoBattler.Editor
             _propSpawnOffsetY = _serializedConfig.FindProperty("_spawnOffsetY");
             _propAllyDamageColor = _serializedConfig.FindProperty("_allyDamageColor");
             _propEnemyDamageColor = _serializedConfig.FindProperty("_enemyDamageColor");
+            _propOutlineWidth = _serializedConfig.FindProperty("_outlineWidth");
+            _propOutlineColor = _serializedConfig.FindProperty("_outlineColor");
             _propSortingOrder = _serializedConfig.FindProperty("_sortingOrder");
             _propInitialPoolSize = _serializedConfig.FindProperty("_initialPoolSize");
         }
@@ -103,6 +109,10 @@ namespace RogueliteAutoBattler.Editor
             EditorGUILayout.PropertyField(_propSlideDirection, LabelSlideDirection);
             EditorGUILayout.PropertyField(_propSlideDistance, LabelSlideDistance);
             EditorGUILayout.PropertyField(_propSpawnOffsetY, LabelSpawnOffsetY);
+            EditorGUILayout.Space(SectionSpacing);
+
+            EditorGUILayout.PropertyField(_propOutlineWidth, LabelOutlineWidth);
+            EditorGUILayout.PropertyField(_propOutlineColor, LabelOutlineColor);
             EditorGUILayout.Space(SectionSpacing);
 
             EditorGUILayout.PropertyField(_propAllyDamageColor, LabelAllyColor);

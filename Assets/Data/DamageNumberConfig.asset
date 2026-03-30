@@ -13,6 +13,7 @@ MonoBehaviour:
   m_Name: DamageNumberConfig
   m_EditorClassIdentifier: RogueliteAutoBattler.Runtime::RogueliteAutoBattler.Data.DamageNumberConfig
   _enabled: 1
+  _font: {fileID: 0}
   _fontSize: 1
   _lifetime: 0.8
   _slideDirection: {x: 0, y: 1}

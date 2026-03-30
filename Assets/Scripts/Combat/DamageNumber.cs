@@ -37,6 +37,8 @@ namespace RogueliteAutoBattler.Combat
             if (config.Font != null)
                 _tmp.font = config.Font;
             _tmp.fontSize = config.FontSize;
+            _tmp.outlineWidth = config.OutlineWidth;
+            _tmp.outlineColor = config.OutlineColor;
             _tmp.sortingLayerID = _effectsSortingLayerId;
             _tmp.sortingOrder = config.SortingOrder;
             gameObject.SetActive(true);

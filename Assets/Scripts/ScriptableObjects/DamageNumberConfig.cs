@@ -6,11 +6,12 @@ namespace RogueliteAutoBattler.Data
     [CreateAssetMenu(fileName = "DamageNumberConfig", menuName = "Roguelite/Damage Number Config")]
     public class DamageNumberConfig : ScriptableObject
     {
-        private const float DefaultFontSize = 1f;
+        private const float DefaultFontSize = 5f;
         private const float DefaultLifetime = 0.8f;
         private const float DefaultSlideDistance = 0.5f;
         private const float DefaultSpawnOffsetY = 0.3f;
-        private static readonly Color DefaultAllyDamageColor = new Color(1f, 0.2f, 0.2f, 1f);
+        private const float DefaultOutlineWidth = 0.2f;
+        private static readonly Color DefaultAllyDamageColor = Color.white;
         private static readonly Color DefaultEnemyDamageColor = Color.white;
 
         [Header("General")]
@@ -29,6 +30,10 @@ namespace RogueliteAutoBattler.Data
         [SerializeField] private Color _allyDamageColor = DefaultAllyDamageColor;
         [SerializeField] private Color _enemyDamageColor = DefaultEnemyDamageColor;
 
+        [Header("Outline")]
+        [SerializeField, Range(0f, 1f)] private float _outlineWidth = DefaultOutlineWidth;
+        [SerializeField] private Color _outlineColor = Color.black;
+
         [Header("Rendering")]
         [SerializeField] private int _sortingOrder = 20;
 
@@ -46,6 +51,8 @@ namespace RogueliteAutoBattler.Data
         public float SlideDistance { get => _slideDistance; set => _slideDistance = value; }
         public Color AllyDamageColor { get => _allyDamageColor; set => _allyDamageColor = value; }
         public Color EnemyDamageColor { get => _enemyDamageColor; set => _enemyDamageColor = value; }
+        public float OutlineWidth => _outlineWidth;
+        public Color OutlineColor => _outlineColor;
         public int SortingOrder => _sortingOrder;
         public int InitialPoolSize => _initialPoolSize;
         public float SpawnOffsetY { get => _spawnOffsetY; set => _spawnOffsetY = value; }
@@ -58,6 +65,8 @@ namespace RogueliteAutoBattler.Data
             _spawnOffsetY = DefaultSpawnOffsetY;
             _allyDamageColor = DefaultAllyDamageColor;
             _enemyDamageColor = DefaultEnemyDamageColor;
+            _outlineWidth = DefaultOutlineWidth;
+            _outlineColor = Color.black;
         }
     }
 }
