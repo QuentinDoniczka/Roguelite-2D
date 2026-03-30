@@ -96,7 +96,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
         }
 
         [UnityTest]
-        public IEnumerator DefeatReset_AfterDelay_EnemiesContainerIsEmpty()
+        public IEnumerator DefeatReset_AfterDelay_OldEnemiesReplacedByNewWave()
         {
             CreateFullCombatSetup(allyCount: 2, enemyCount: 2);
 
@@ -110,8 +110,17 @@ namespace RogueliteAutoBattler.Tests.PlayMode
 
             yield return new WaitForSeconds(LevelManager.DefeatResetDelay + 1f);
 
-            Assert.AreEqual(0, _enemiesContainer.childCount,
-                "Enemies container should be empty after defeat reset.");
+            Assert.AreEqual(2, _enemiesContainer.childCount,
+                "Enemies container should have new wave enemies after defeat reset.");
+
+            for (int i = 0; i < _enemiesContainer.childCount; i++)
+            {
+                var enemy = _enemiesContainer.GetChild(i);
+                Assert.IsTrue(enemy.TryGetComponent<CombatStats>(out var stats),
+                    $"New enemy {enemy.name} should have CombatStats.");
+                Assert.AreEqual(stats.MaxHp, stats.CurrentHp,
+                    $"New enemy {enemy.name} should have full HP.");
+            }
         }
 
         [UnityTest]
