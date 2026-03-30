@@ -219,13 +219,24 @@ When invoked with task "merge-pr":
    gh pr merge <number> --squash --delete-branch
    ```
    This merges as the authenticated GitHub user (Quentin Doniczka).
-6. **Switch back to dev and clean up local branch** — After merge:
+6. **Switch back to dev and clean up** — After merge:
    ```bash
    BRANCH=$(git branch --show-current) && git checkout dev && git pull origin dev && git branch -d "$BRANCH" && git remote prune origin
    ```
    - `git branch -d` deletes the local feature branch (safe: it's already merged)
    - `git remote prune origin` cleans up stale remote-tracking refs
-7. **Report** — "PR #X merged into `dev`. Branch deleted (remote + local). Now on `dev` (up-to-date)." Include the PR URL.
+7. **Post-merge cleanup — Delete ALL stale branches** — This step is MANDATORY after every merge:
+   a) **Delete all local branches except `dev` and `main`**:
+      ```bash
+      git branch | grep -v '^\* dev$' | grep -v '  main$' | grep -v '  dev$' | xargs -r git branch -D 2>/dev/null || true
+      ```
+   b) **Check for orphan remote branches** (any branch on origin besides `dev` and `main`):
+      ```bash
+      git branch -r | grep -v 'origin/HEAD' | grep -v 'origin/dev' | grep -v 'origin/main' | sed 's|origin/||' | xargs -r -I{} git push origin --delete {} 2>/dev/null || true
+      ```
+   c) **Final prune**: `git remote prune origin`
+   d) **Report orphans** — If any remote branches were deleted in step (b), list them in the report: "Cleaned up stale remote branches: `<list>`". If none found, say "No stale branches found."
+8. **Report** — "PR #X merged into `dev`. Branch deleted (remote + local). Now on `dev` (up-to-date)." Include the PR URL and the orphan cleanup summary from step 7d.
 
 ## Rules
 
