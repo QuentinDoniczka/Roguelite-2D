@@ -191,5 +191,51 @@ namespace RogueliteAutoBattler.Tests
             teamDb.Allies = allyList;
             return teamDb;
         }
+
+        public static LevelDatabase CreateLevelDatabase(int enemyCount, GameObject enemyPrefab)
+        {
+            var levelDb = ScriptableObject.CreateInstance<LevelDatabase>();
+
+            var enemies = new List<EnemySpawnData>();
+            for (int i = 0; i < enemyCount; i++)
+            {
+                var enemy = new EnemySpawnData
+                {
+                    EnemyName = $"Enemy_{i}",
+                    Prefab = enemyPrefab,
+                    Hp = 50,
+                    Atk = 5,
+                    AttackSpeed = 1f,
+                    MoveSpeed = 2f,
+                    AttackRange = 1f,
+                    ColliderRadius = 0.3f,
+                    GoldDrop = 10
+                };
+                enemies.Add(enemy);
+            }
+
+            var wave = new WaveData
+            {
+                WaveName = "Wave_0",
+                SpawnDelay = 0f,
+                Enemies = enemies
+            };
+
+            var level = new LevelData
+            {
+                LevelName = "Level_0",
+                Waves = new List<WaveData> { wave }
+            };
+
+            var stage = new StageData
+            {
+                StageName = "Stage_0",
+                Terrain = null,
+                Levels = new List<LevelData> { level }
+            };
+
+            levelDb.Stages = new List<StageData> { stage };
+            return levelDb;
+        }
     }
 }
