@@ -490,8 +490,6 @@ namespace RogueliteAutoBattler.Combat
 
         internal int AliveAllyCount => _aliveAllyCount;
         internal bool LevelInProgress => _levelInProgress;
-        internal int CurrentStageIndex => _currentStageIndex;
-        internal int CurrentLevelIndex => _currentLevelIndex;
 
         internal void InitializeForTest(Transform teamContainer, Transform enemiesContainer, Transform teamHomeAnchor = null, Transform enemiesHomeAnchor = null, LevelDatabase levelDatabase = null)
         {
