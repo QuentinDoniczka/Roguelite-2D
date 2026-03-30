@@ -3,6 +3,7 @@ using System.Collections;
 using RogueliteAutoBattler.Data;
 using TMPro;
 using UnityEngine;
+using static TMPro.ShaderUtilities;
 
 namespace RogueliteAutoBattler.Combat
 {
@@ -37,8 +38,9 @@ namespace RogueliteAutoBattler.Combat
             if (config.Font != null)
                 _tmp.font = config.Font;
             _tmp.fontSize = config.FontSize;
-            _tmp.outlineWidth = config.OutlineWidth;
-            _tmp.outlineColor = config.OutlineColor;
+            _tmp.fontMaterial.SetFloat(ID_OutlineWidth, config.OutlineWidth);
+            _tmp.fontMaterial.SetColor(ID_OutlineColor, config.OutlineColor);
+            _tmp.ForceMeshUpdate();
             _tmp.sortingLayerID = _effectsSortingLayerId;
             _tmp.sortingOrder = config.SortingOrder;
             gameObject.SetActive(true);
