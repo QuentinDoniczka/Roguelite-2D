@@ -1,0 +1,27 @@
+name: Protect dev branch
+
+on:
+  pull_request:
+    branches: [dev]
+
+jobs:
+  check-source-branch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Block non-feature PRs to dev
+        run: |
+          SOURCE="${{ github.head_ref }}"
+          echo "Source branch: $SOURCE"
+
+          if [[ "$SOURCE" == feature/* ]] || \
+             [[ "$SOURCE" == fix/* ]] || \
+             [[ "$SOURCE" == refactor/* ]] || \
+             [[ "$SOURCE" == chore/* ]] || \
+             [[ "$SOURCE" == test/* ]]; then
+            echo "Allowed: $SOURCE can target dev."
+          else
+            echo "BLOCKED: '$SOURCE' cannot target dev."
+            echo "Only feature/*, fix/*, refactor/*, chore/*, test/* branches may merge into dev."
+            echo "Release and hotfix branches must target main."
+            exit 1
+          fi

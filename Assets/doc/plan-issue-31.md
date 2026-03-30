@@ -19,11 +19,19 @@ GitHub Actions branch protection for Unity 2D project. Tests are run locally by 
 - Agents already run EditMode and PlayMode tests locally before every merge
 - Branch protection ensures no direct pushes bypass the PR workflow
 
+## Branch Naming Conventions
+
+| Target | Allowed branches |
+|--------|-----------------|
+| `dev` | `feature/*`, `fix/*`, `refactor/*`, `chore/*`, `test/*` |
+| `main` | `release/*`, `hotfix/*` |
+
 ## Workflows
 
 | File | Trigger | Purpose |
 |------|---------|---------|
 | `protect-main.yml` | PR to `main` | Block non-release/hotfix PRs |
+| `protect-dev.yml` | PR to `dev` | Block non-feature/fix/refactor/chore/test PRs |
 
 ## GitHub Branch Protection Rules (configured via API)
 
@@ -33,4 +41,4 @@ GitHub Actions branch protection for Unity 2D project. Tests are run locally by 
 | Enforce admins | Yes | Yes |
 | Force push blocked | Yes | Yes |
 | Deletion blocked | Yes | Yes |
-| Required status check | `check-source-branch` | None |
+| Required status check | `check-source-branch` | `check-source-branch` |
