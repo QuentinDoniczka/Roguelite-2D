@@ -1,4 +1,6 @@
+using System.Collections.Generic;
 using RogueliteAutoBattler.Combat;
+using RogueliteAutoBattler.Data;
 using UnityEngine;
 
 namespace RogueliteAutoBattler.Tests
@@ -147,6 +149,47 @@ namespace RogueliteAutoBattler.Tests
                 go.transform.position = position.Value;
 
             return go;
+        }
+
+        public static GameObject CreateAllyPrefab(string name = "AllyPrefab")
+        {
+            var go = new GameObject(name);
+
+            var rb = go.AddComponent<Rigidbody2D>();
+            rb.gravityScale = 0f;
+            rb.constraints = RigidbodyConstraints2D.FreezeRotation;
+
+            go.AddComponent<CircleCollider2D>();
+
+            var visual = new GameObject("Visual");
+            visual.transform.SetParent(go.transform, false);
+            visual.AddComponent<SpriteRenderer>();
+
+            return go;
+        }
+
+        public static TeamDatabase CreateTeamDatabase(int allyCount, GameObject prefab)
+        {
+            var teamDb = ScriptableObject.CreateInstance<TeamDatabase>();
+
+            var allyList = new List<AllySpawnData>();
+            for (int i = 0; i < allyCount; i++)
+            {
+                var ally = new AllySpawnData
+                {
+                    AllyName = $"Ally_{i}",
+                    Prefab = prefab,
+                    MaxHp = 100,
+                    Atk = 10,
+                    AttackSpeed = 1f,
+                    MoveSpeed = 2f,
+                    ColliderRadius = 0.3f
+                };
+                allyList.Add(ally);
+            }
+
+            teamDb.Allies = allyList;
+            return teamDb;
         }
     }
 }

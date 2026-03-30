@@ -25,6 +25,11 @@ namespace RogueliteAutoBattler.Combat
 
         private void Start()
         {
+            SpawnAllies();
+        }
+
+        public void SpawnAllies()
+        {
             if (_teamDatabase == null || _teamDatabase.Allies.Count == 0)
             {
                 Debug.LogWarning($"[{nameof(CombatSpawnManager)}] No TeamDatabase assigned or no allies configured!", this);
@@ -44,6 +49,30 @@ namespace RogueliteAutoBattler.Combat
                 Vector2 offset = positions[i] - anchorPos;
                 SpawnAlly(allies[i], teamAnchor, positions[i], offset);
             }
+        }
+
+        public void RespawnAllies()
+        {
+            DestroyAllChildren(_teamContainer);
+            SpawnAllies();
+        }
+
+        private static void DestroyAllChildren(Transform container)
+        {
+            if (container == null)
+                return;
+
+            for (int i = container.childCount - 1; i >= 0; i--)
+            {
+                Object.Destroy(container.GetChild(i).gameObject);
+            }
+        }
+
+        internal void InitializeForTest(TeamDatabase teamDatabase, Transform teamContainer, Transform teamHomeAnchor)
+        {
+            _teamDatabase = teamDatabase;
+            _teamContainer = teamContainer;
+            _teamHomeAnchor = teamHomeAnchor;
         }
 
         private void SpawnAlly(AllySpawnData data, Transform homeAnchor, Vector2 spawnPos, Vector2 homeOffset)
