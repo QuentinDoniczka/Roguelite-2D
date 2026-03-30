@@ -8,7 +8,8 @@ namespace RogueliteAutoBattler.Data
     {
         private const float DefaultFontSize = 5f;
         private const float DefaultLifetime = 0.8f;
-        private const float DefaultSlideDistance = 0.5f;
+        private const float DefaultArcHeight = 1f;
+        private const float DefaultArcWidth = 0.8f;
         private const float DefaultSpawnOffsetY = 0.3f;
         private const float DefaultOutlineWidth = 0.2f;
         private static readonly Color DefaultAllyDamageColor = Color.white;
@@ -23,8 +24,10 @@ namespace RogueliteAutoBattler.Data
 
         [Header("Animation")]
         [SerializeField] private float _lifetime = DefaultLifetime;
-        [SerializeField] private Vector2 _slideDirection = new Vector2(0f, 1f);
-        [SerializeField] private float _slideDistance = DefaultSlideDistance;
+
+        [Header("Arc Animation")]
+        [SerializeField] private float _arcHeight = DefaultArcHeight;
+        [SerializeField] private float _arcWidth = DefaultArcWidth;
 
         [Header("Colors")]
         [SerializeField] private Color _allyDamageColor = DefaultAllyDamageColor;
@@ -47,8 +50,8 @@ namespace RogueliteAutoBattler.Data
         public TMP_FontAsset Font => _font;
         public float FontSize { get => _fontSize; set => _fontSize = value; }
         public float Lifetime { get => _lifetime; set => _lifetime = value; }
-        public Vector2 SlideDirection => _slideDirection;
-        public float SlideDistance { get => _slideDistance; set => _slideDistance = value; }
+        public float ArcHeight => _arcHeight;
+        public float ArcWidth => _arcWidth;
         public Color AllyDamageColor { get => _allyDamageColor; set => _allyDamageColor = value; }
         public Color EnemyDamageColor { get => _enemyDamageColor; set => _enemyDamageColor = value; }
         public float OutlineWidth => _outlineWidth;
@@ -61,7 +64,6 @@ namespace RogueliteAutoBattler.Data
         {
             _fontSize = DefaultFontSize;
             _lifetime = DefaultLifetime;
-            _slideDistance = DefaultSlideDistance;
             _spawnOffsetY = DefaultSpawnOffsetY;
             _allyDamageColor = DefaultAllyDamageColor;
             _enemyDamageColor = DefaultEnemyDamageColor;

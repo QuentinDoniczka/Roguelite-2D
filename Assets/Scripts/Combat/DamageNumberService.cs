@@ -32,12 +32,13 @@ namespace RogueliteAutoBattler.Combat
 
             Color color = isAlly ? _config.AllyDamageColor : _config.EnemyDamageColor;
             Vector3 spawnPosition = worldPosition + new Vector3(0f, _config.SpawnOffsetY, 0f);
+            float arcDirection = isAlly ? -1f : 1f;
 
             DamageNumber instance = _pool.Count > 0
                 ? _pool.Dequeue()
                 : CreateInstance();
 
-            instance.Play(spawnPosition, value, color, _config);
+            instance.Play(spawnPosition, value, color, _config, arcDirection);
         }
 
         private static DamageNumber CreateInstance()

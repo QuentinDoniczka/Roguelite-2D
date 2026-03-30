@@ -14,13 +14,11 @@ namespace RogueliteAutoBattler.UI.Screens.Combat
         [Header("Sliders")]
         [SerializeField] private Slider _fontSizeSlider;
         [SerializeField] private Slider _lifetimeSlider;
-        [SerializeField] private Slider _slideDistanceSlider;
         [SerializeField] private Slider _spawnOffsetYSlider;
 
         [Header("Slider Labels")]
         [SerializeField] private TMP_Text _fontSizeLabel;
         [SerializeField] private TMP_Text _lifetimeLabel;
-        [SerializeField] private TMP_Text _slideDistanceLabel;
         [SerializeField] private TMP_Text _spawnOffsetYLabel;
 
         [Header("Color Buttons")]
@@ -61,8 +59,6 @@ namespace RogueliteAutoBattler.UI.Screens.Combat
         private const float FontSizeSliderMax = 20f;
         private const float LifetimeSliderMin = 0.2f;
         private const float LifetimeSliderMax = 3f;
-        private const float SlideDistanceSliderMin = 0.1f;
-        private const float SlideDistanceSliderMax = 2f;
         private const float SpawnOffsetYSliderMin = 0f;
         private const float SpawnOffsetYSliderMax = 1f;
 
@@ -72,12 +68,10 @@ namespace RogueliteAutoBattler.UI.Screens.Combat
         {
             SetupSlider(_fontSizeSlider, FontSizeSliderMin, FontSizeSliderMax);
             SetupSlider(_lifetimeSlider, LifetimeSliderMin, LifetimeSliderMax);
-            SetupSlider(_slideDistanceSlider, SlideDistanceSliderMin, SlideDistanceSliderMax);
             SetupSlider(_spawnOffsetYSlider, SpawnOffsetYSliderMin, SpawnOffsetYSliderMax);
 
             _fontSizeSlider.onValueChanged.AddListener(OnFontSizeChanged);
             _lifetimeSlider.onValueChanged.AddListener(OnLifetimeChanged);
-            _slideDistanceSlider.onValueChanged.AddListener(OnSlideDistanceChanged);
             _spawnOffsetYSlider.onValueChanged.AddListener(OnSpawnOffsetYChanged);
 
             BindColorButtons(_allyColorButtons, AllyColorPresets, true);
@@ -115,12 +109,10 @@ namespace RogueliteAutoBattler.UI.Screens.Combat
 
             _fontSizeSlider.SetValueWithoutNotify(_config.FontSize);
             _lifetimeSlider.SetValueWithoutNotify(_config.Lifetime);
-            _slideDistanceSlider.SetValueWithoutNotify(_config.SlideDistance);
             _spawnOffsetYSlider.SetValueWithoutNotify(_config.SpawnOffsetY);
 
             UpdateLabel(_fontSizeLabel, _config.FontSize);
             UpdateLabel(_lifetimeLabel, _config.Lifetime);
-            UpdateLabel(_slideDistanceLabel, _config.SlideDistance);
             UpdateLabel(_spawnOffsetYLabel, _config.SpawnOffsetY);
 
             HighlightActiveColors();
@@ -137,13 +129,6 @@ namespace RogueliteAutoBattler.UI.Screens.Combat
         {
             _config.Lifetime = value;
             UpdateLabel(_lifetimeLabel, value);
-            Save();
-        }
-
-        private void OnSlideDistanceChanged(float value)
-        {
-            _config.SlideDistance = value;
-            UpdateLabel(_slideDistanceLabel, value);
             Save();
         }
 

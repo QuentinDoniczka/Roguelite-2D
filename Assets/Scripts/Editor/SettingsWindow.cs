@@ -16,8 +16,8 @@ namespace RogueliteAutoBattler.Editor
         private static readonly GUIContent LabelFont = new GUIContent("Font (TMP)");
         private static readonly GUIContent LabelFontSize = new GUIContent("Font Size");
         private static readonly GUIContent LabelLifetime = new GUIContent("Lifetime (s)");
-        private static readonly GUIContent LabelSlideDirection = new GUIContent("Slide Direction");
-        private static readonly GUIContent LabelSlideDistance = new GUIContent("Slide Distance");
+        private static readonly GUIContent LabelArcHeight = new GUIContent("Arc Height");
+        private static readonly GUIContent LabelArcWidth = new GUIContent("Arc Width");
         private static readonly GUIContent LabelSpawnOffsetY = new GUIContent("Spawn Offset Y");
         private static readonly GUIContent LabelAllyColor = new GUIContent("Ally Color");
         private static readonly GUIContent LabelEnemyColor = new GUIContent("Enemy Color");
@@ -34,8 +34,8 @@ namespace RogueliteAutoBattler.Editor
         private SerializedProperty _propFont;
         private SerializedProperty _propFontSize;
         private SerializedProperty _propLifetime;
-        private SerializedProperty _propSlideDirection;
-        private SerializedProperty _propSlideDistance;
+        private SerializedProperty _propArcHeight;
+        private SerializedProperty _propArcWidth;
         private SerializedProperty _propSpawnOffsetY;
         private SerializedProperty _propAllyDamageColor;
         private SerializedProperty _propEnemyDamageColor;
@@ -73,8 +73,8 @@ namespace RogueliteAutoBattler.Editor
             _propFont = _serializedConfig.FindProperty("_font");
             _propFontSize = _serializedConfig.FindProperty("_fontSize");
             _propLifetime = _serializedConfig.FindProperty("_lifetime");
-            _propSlideDirection = _serializedConfig.FindProperty("_slideDirection");
-            _propSlideDistance = _serializedConfig.FindProperty("_slideDistance");
+            _propArcHeight = _serializedConfig.FindProperty("_arcHeight");
+            _propArcWidth = _serializedConfig.FindProperty("_arcWidth");
             _propSpawnOffsetY = _serializedConfig.FindProperty("_spawnOffsetY");
             _propAllyDamageColor = _serializedConfig.FindProperty("_allyDamageColor");
             _propEnemyDamageColor = _serializedConfig.FindProperty("_enemyDamageColor");
@@ -106,8 +106,8 @@ namespace RogueliteAutoBattler.Editor
             EditorGUILayout.PropertyField(_propFont, LabelFont);
             EditorGUILayout.PropertyField(_propFontSize, LabelFontSize);
             EditorGUILayout.PropertyField(_propLifetime, LabelLifetime);
-            EditorGUILayout.PropertyField(_propSlideDirection, LabelSlideDirection);
-            EditorGUILayout.PropertyField(_propSlideDistance, LabelSlideDistance);
+            EditorGUILayout.PropertyField(_propArcHeight, LabelArcHeight);
+            EditorGUILayout.PropertyField(_propArcWidth, LabelArcWidth);
             EditorGUILayout.PropertyField(_propSpawnOffsetY, LabelSpawnOffsetY);
             EditorGUILayout.Space(SectionSpacing);
 
