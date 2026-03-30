@@ -18,6 +18,8 @@ namespace RogueliteAutoBattler.Editor
         private static readonly GUIContent LabelLifetime = new GUIContent("Lifetime (s)");
         private static readonly GUIContent LabelArcHeight = new GUIContent("Arc Height");
         private static readonly GUIContent LabelArcWidth = new GUIContent("Arc Width");
+        private static readonly GUIContent LabelArcHeightRandom = new GUIContent("Arc Height Random");
+        private static readonly GUIContent LabelArcWidthRandom = new GUIContent("Arc Width Random");
         private static readonly GUIContent LabelSpawnOffsetY = new GUIContent("Spawn Offset Y");
         private static readonly GUIContent LabelAllyColor = new GUIContent("Ally Color");
         private static readonly GUIContent LabelEnemyColor = new GUIContent("Enemy Color");
@@ -36,6 +38,8 @@ namespace RogueliteAutoBattler.Editor
         private SerializedProperty _propLifetime;
         private SerializedProperty _propArcHeight;
         private SerializedProperty _propArcWidth;
+        private SerializedProperty _propArcHeightRandomness;
+        private SerializedProperty _propArcWidthRandomness;
         private SerializedProperty _propSpawnOffsetY;
         private SerializedProperty _propAllyDamageColor;
         private SerializedProperty _propEnemyDamageColor;
@@ -75,6 +79,8 @@ namespace RogueliteAutoBattler.Editor
             _propLifetime = _serializedConfig.FindProperty("_lifetime");
             _propArcHeight = _serializedConfig.FindProperty("_arcHeight");
             _propArcWidth = _serializedConfig.FindProperty("_arcWidth");
+            _propArcHeightRandomness = _serializedConfig.FindProperty("_arcHeightRandomness");
+            _propArcWidthRandomness = _serializedConfig.FindProperty("_arcWidthRandomness");
             _propSpawnOffsetY = _serializedConfig.FindProperty("_spawnOffsetY");
             _propAllyDamageColor = _serializedConfig.FindProperty("_allyDamageColor");
             _propEnemyDamageColor = _serializedConfig.FindProperty("_enemyDamageColor");
@@ -108,6 +114,8 @@ namespace RogueliteAutoBattler.Editor
             EditorGUILayout.PropertyField(_propLifetime, LabelLifetime);
             EditorGUILayout.PropertyField(_propArcHeight, LabelArcHeight);
             EditorGUILayout.PropertyField(_propArcWidth, LabelArcWidth);
+            EditorGUILayout.PropertyField(_propArcHeightRandomness, LabelArcHeightRandom);
+            EditorGUILayout.PropertyField(_propArcWidthRandomness, LabelArcWidthRandom);
             EditorGUILayout.PropertyField(_propSpawnOffsetY, LabelSpawnOffsetY);
             EditorGUILayout.Space(SectionSpacing);
 

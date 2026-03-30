@@ -34,11 +34,14 @@ namespace RogueliteAutoBattler.Combat
             Vector3 spawnPosition = worldPosition + new Vector3(0f, _config.SpawnOffsetY, 0f);
             float arcDirection = isAlly ? -1f : 1f;
 
+            float arcHeight = _config.ArcHeight + Random.Range(-_config.ArcHeightRandomness, _config.ArcHeightRandomness);
+            float arcWidth = _config.ArcWidth + Random.Range(-_config.ArcWidthRandomness, _config.ArcWidthRandomness);
+
             DamageNumber instance = _pool.Count > 0
                 ? _pool.Dequeue()
                 : CreateInstance();
 
-            instance.Play(spawnPosition, value, color, _config, arcDirection);
+            instance.Play(spawnPosition, value, color, _config, arcDirection, arcHeight, arcWidth);
         }
 
         private static DamageNumber CreateInstance()

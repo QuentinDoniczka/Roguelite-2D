@@ -28,6 +28,8 @@ namespace RogueliteAutoBattler.Data
         [Header("Arc Animation")]
         [SerializeField] private float _arcHeight = DefaultArcHeight;
         [SerializeField] private float _arcWidth = DefaultArcWidth;
+        [SerializeField, Range(0f, 2f)] private float _arcHeightRandomness;
+        [SerializeField, Range(0f, 2f)] private float _arcWidthRandomness;
 
         [Header("Colors")]
         [SerializeField] private Color _allyDamageColor = DefaultAllyDamageColor;
@@ -52,6 +54,8 @@ namespace RogueliteAutoBattler.Data
         public float Lifetime { get => _lifetime; set => _lifetime = value; }
         public float ArcHeight => _arcHeight;
         public float ArcWidth => _arcWidth;
+        public float ArcHeightRandomness => _arcHeightRandomness;
+        public float ArcWidthRandomness => _arcWidthRandomness;
         public Color AllyDamageColor { get => _allyDamageColor; set => _allyDamageColor = value; }
         public Color EnemyDamageColor { get => _enemyDamageColor; set => _enemyDamageColor = value; }
         public float OutlineWidth => _outlineWidth;

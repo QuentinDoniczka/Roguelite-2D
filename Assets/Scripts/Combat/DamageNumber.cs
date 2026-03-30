@@ -27,10 +27,13 @@ namespace RogueliteAutoBattler.Combat
             _returnToPool = returnToPool;
         }
 
-        public void Play(Vector3 worldPosition, int damageValue, Color color, DamageNumberConfig config, float arcDirectionSign = 1f)
+        public void Play(Vector3 worldPosition, int damageValue, Color color, DamageNumberConfig config, float arcDirectionSign = 1f, float arcHeight = -1f, float arcWidth = -1f)
         {
             if (_activeCoroutine != null)
                 StopCoroutine(_activeCoroutine);
+
+            float resolvedArcHeight = arcHeight < 0f ? config.ArcHeight : arcHeight;
+            float resolvedArcWidth = arcWidth < 0f ? config.ArcWidth : arcWidth;
 
             transform.position = worldPosition;
             _tmp.text = damageValue.ToString();
@@ -44,10 +47,10 @@ namespace RogueliteAutoBattler.Combat
             _tmp.sortingLayerID = _effectsSortingLayerId;
             _tmp.sortingOrder = config.SortingOrder;
             gameObject.SetActive(true);
-            _activeCoroutine = StartCoroutine(AnimateCoroutine(config, arcDirectionSign));
+            _activeCoroutine = StartCoroutine(AnimateCoroutine(config, arcDirectionSign, resolvedArcHeight, resolvedArcWidth));
         }
 
-        private IEnumerator AnimateCoroutine(DamageNumberConfig config, float directionSign)
+        private IEnumerator AnimateCoroutine(DamageNumberConfig config, float directionSign, float arcHeight, float arcWidth)
         {
             Vector3 startPos = transform.localPosition;
             float elapsed = 0f;
@@ -57,8 +60,8 @@ namespace RogueliteAutoBattler.Combat
                 elapsed += Time.deltaTime;
                 float t = Mathf.Clamp01(elapsed / config.Lifetime);
 
-                float x = startPos.x + config.ArcWidth * t * directionSign;
-                float y = startPos.y + config.ArcHeight * 4f * t * (1f - t);
+                float x = startPos.x + arcWidth * t * directionSign;
+                float y = startPos.y + arcHeight * 4f * t * (1f - t);
 
                 transform.localPosition = new Vector3(x, y, startPos.z);
 
