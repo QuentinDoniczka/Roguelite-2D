@@ -7,9 +7,10 @@ namespace RogueliteAutoBattler.Data
     public class DamageNumberConfig : ScriptableObject
     {
         private const float DefaultFontSize = 5f;
-        private const float DefaultLifetime = 0.8f;
+        private const float DefaultLifetime = 0.6f;
         private const float DefaultArcHeight = 1f;
         private const float DefaultArcWidth = 0.8f;
+        private const float DefaultArcRandomness = 0.1f;
         private const float DefaultSpawnOffsetY = 0.3f;
         private const float DefaultOutlineWidth = 0.2f;
         private static readonly Color DefaultAllyDamageColor = Color.white;
@@ -28,8 +29,8 @@ namespace RogueliteAutoBattler.Data
         [Header("Arc Animation")]
         [SerializeField] private float _arcHeight = DefaultArcHeight;
         [SerializeField] private float _arcWidth = DefaultArcWidth;
-        [SerializeField, Range(0f, 2f)] private float _arcHeightRandomness;
-        [SerializeField, Range(0f, 2f)] private float _arcWidthRandomness;
+        [SerializeField, Range(0f, 2f)] private float _arcHeightRandomness = DefaultArcRandomness;
+        [SerializeField, Range(0f, 2f)] private float _arcWidthRandomness = DefaultArcRandomness;
 
         [Header("Colors")]
         [SerializeField] private Color _allyDamageColor = DefaultAllyDamageColor;
