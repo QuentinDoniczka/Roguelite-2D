@@ -1,4 +1,6 @@
+using System.Collections.Generic;
 using RogueliteAutoBattler.Combat;
+using RogueliteAutoBattler.Data;
 using UnityEngine;
 
 namespace RogueliteAutoBattler.Tests
@@ -147,6 +149,73 @@ namespace RogueliteAutoBattler.Tests
                 go.transform.position = position.Value;
 
             return go;
+        }
+
+        public static GameObject CreateCharacterPrefab(string name = "CharacterPrefab")
+        {
+            var go = new GameObject(name);
+
+            var rb = go.AddComponent<Rigidbody2D>();
+            rb.gravityScale = 0f;
+            rb.constraints = RigidbodyConstraints2D.FreezeRotation;
+
+            go.AddComponent<CircleCollider2D>();
+            AddVisualChild(go);
+
+            return go;
+        }
+
+        public static TeamDatabase CreateTeamDatabase(int allyCount, GameObject prefab)
+        {
+            var teamDb = ScriptableObject.CreateInstance<TeamDatabase>();
+
+            var allyList = new List<AllySpawnData>();
+            for (int i = 0; i < allyCount; i++)
+            {
+                var ally = new AllySpawnData
+                {
+                    AllyName = $"Ally_{i}",
+                    Prefab = prefab,
+                    MaxHp = 100,
+                    Atk = 10,
+                    AttackSpeed = 1f,
+                    MoveSpeed = 2f,
+                    ColliderRadius = 0.3f
+                };
+                allyList.Add(ally);
+            }
+
+            teamDb.Allies = allyList;
+            return teamDb;
+        }
+
+        public static LevelDatabase CreateLevelDatabase(int enemyCount, GameObject enemyPrefab)
+        {
+            var levelDb = ScriptableObject.CreateInstance<LevelDatabase>();
+
+            var enemies = new List<EnemySpawnData>();
+            for (int i = 0; i < enemyCount; i++)
+            {
+                var enemy = new EnemySpawnData($"Enemy_{i}", 50, 5)
+                {
+                    Prefab = enemyPrefab,
+                    AttackSpeed = 1f,
+                    MoveSpeed = 2f,
+                    AttackRange = 1f,
+                    ColliderRadius = 0.3f,
+                    GoldDrop = 10
+                };
+                enemies.Add(enemy);
+            }
+
+            var wave = new WaveData("Wave_0", 0f, enemies);
+
+            var level = new LevelData("Level_0", new List<WaveData> { wave });
+
+            var stage = new StageData("Stage_0", null, new List<LevelData> { level });
+
+            levelDb.Stages = new List<StageData> { stage };
+            return levelDb;
         }
     }
 }

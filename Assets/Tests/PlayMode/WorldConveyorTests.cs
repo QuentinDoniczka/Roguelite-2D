@@ -118,6 +118,33 @@ namespace RogueliteAutoBattler.Tests.PlayMode
         }
 
         [UnityTest]
+        public IEnumerator ResetPosition_AfterScroll_ReturnsToInitialPosition()
+        {
+            var go = Track(TestCharacterFactory.CreateConveyor("TestConveyor"));
+            var conveyor = go.GetComponent<WorldConveyor>();
+
+            yield return null;
+
+            float initialX = go.transform.position.x;
+
+            conveyor.ScrollBy(5f, 10f, 20f);
+
+            yield return new WaitForSeconds(ScrollTimeout);
+
+            Assert.That(go.transform.position.x, Is.Not.EqualTo(initialX).Within(0.01f),
+                "Sanity: conveyor should have moved after scroll.");
+
+            conveyor.ResetPosition();
+
+            Assert.IsFalse(conveyor.IsScrolling,
+                "IsScrolling should be false after ResetPosition.");
+            Assert.That(go.transform.position.x, Is.EqualTo(initialX).Within(0.01f),
+                "Conveyor X position should return to initial position after ResetPosition.");
+            Assert.That(conveyor.CurrentSpeed, Is.EqualTo(0f).Within(0.01f),
+                "CurrentSpeed should be zero after ResetPosition.");
+        }
+
+        [UnityTest]
         public IEnumerator ScrollBy_ZeroDistance_DoesNotScroll()
         {
             var go = Track(TestCharacterFactory.CreateConveyor("TestConveyor"));

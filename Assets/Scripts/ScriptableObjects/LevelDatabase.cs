@@ -8,6 +8,6 @@ namespace RogueliteAutoBattler.Data
     {
         [SerializeField] private List<StageData> stages = new List<StageData>();
 
-        public List<StageData> Stages => stages;
+        public List<StageData> Stages { get => stages; internal set => stages = value; }
     }
 }

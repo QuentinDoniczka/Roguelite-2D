@@ -48,6 +48,12 @@ namespace RogueliteAutoBattler.Combat
         private bool _levelInProgress;
         private WorldConveyor _conveyor;
         private GoldWallet _goldWallet;
+        private CombatSpawnManager _spawnManager;
+
+        [Header("Defeat Reset")]
+        [SerializeField] private float _defeatResetDelay = 1.5f;
+
+        internal float DefeatResetDelay => _defeatResetDelay;
 
         private float CombatZoneX => _combatTriggerZone != null ? _combatTriggerZone.position.x : float.MaxValue;
 
@@ -65,6 +71,7 @@ namespace RogueliteAutoBattler.Combat
             if (_enemiesHomeAnchor == null)
                 _enemiesHomeAnchor = GameObject.Find(CombatSetupHelper.EnemiesHomeAnchorName)?.transform;
             _conveyor = GetComponent<WorldConveyor>();
+            _spawnManager = GetComponent<CombatSpawnManager>();
             var wallets = FindObjectsByType<GoldWallet>(FindObjectsSortMode.None);
             if (wallets.Length > 0) _goldWallet = wallets[0];
             ApplyStage(_currentStageIndex);
@@ -160,6 +167,8 @@ namespace RogueliteAutoBattler.Combat
 #endif
                 yield return new WaitForSeconds(wave.SpawnDelay);
             }
+
+            if (!_levelInProgress) yield break;
 
 #if UNITY_EDITOR
             Debug.Log($"[{nameof(LevelManager)}] Spawning wave {waveIndex} '{wave.WaveName}' ({wave.Enemies.Count} enemies).");
@@ -433,6 +442,32 @@ namespace RogueliteAutoBattler.Combat
             ClearEnemyTargets();
             AttackSlotRegistry.Clear();
             CombatSetupHelper.RecalculateFormation(_enemiesContainer, _enemiesHomeAnchor, facingRight: false);
+            StartCoroutine(DefeatResetCoroutine());
+        }
+
+        private IEnumerator DefeatResetCoroutine()
+        {
+            yield return new WaitForSeconds(_defeatResetDelay);
+
+            CombatSetupHelper.DestroyAllChildren(_enemiesContainer);
+
+            if (_conveyor != null)
+                _conveyor.ResetPosition();
+
+            _currentStageIndex = 0;
+            _currentLevelIndex = 0;
+
+            ApplyStage(0);
+
+            _aliveEnemyCount = 0;
+            _pendingWaveCount = 0;
+
+            _spawnManager.RespawnAllies();
+
+            yield return null;
+
+            WireAllyDeathTracking();
+            StartLevel(0);
         }
 
         private void WireAllyDeathTracking()
@@ -464,6 +499,11 @@ namespace RogueliteAutoBattler.Combat
             if (enemiesHomeAnchor != null) _enemiesHomeAnchor = enemiesHomeAnchor;
             if (levelDatabase != null) _levelDatabase = levelDatabase;
             _levelInProgress = true;
+        }
+
+        internal void SetSpawnManagerForTest(CombatSpawnManager spawnManager)
+        {
+            _spawnManager = spawnManager;
         }
 
         internal void WireAllyDeathTrackingForTest() => WireAllyDeathTracking();

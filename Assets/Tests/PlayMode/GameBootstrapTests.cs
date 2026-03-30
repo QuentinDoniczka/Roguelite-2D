@@ -17,9 +17,10 @@ namespace RogueliteAutoBattler.Tests.PlayMode
         }
 
         [TearDown]
-        public void TearDown()
+        public override void TearDown()
         {
             GameBootstrap.ResetForTest();
+            base.TearDown();
         }
 
         [UnityTest]
