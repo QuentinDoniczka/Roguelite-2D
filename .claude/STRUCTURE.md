@@ -1,18 +1,17 @@
 # Project Structure
-Generated: 2026-03-30 (updated #106)
+Generated: 2026-03-29 (updated #97)
 
 Assets/
-├── Animations/  (23 files: .anim + .controller)
+├── Animations/  (24 files: .anim + .controller)
 ├── Audio/  (empty)
 ├── Data/
 │   ├── Adventurers/
 │   │   └── WarriorStats.asset
 │   ├── Buildings/  (empty)
-│   ├── Enemies/
-│   │   └── EnemyStats.asset
-│   ├── LevelDatabase.asset
-│   ├── DamageNumberConfig.asset
+│   ├── Enemies/  (empty)
 │   ├── LootTables/  (empty)
+│   ├── DamageNumberConfig.asset
+│   ├── LevelDatabase.asset
 │   └── TeamDatabase.asset
 ├── doc/
 │   ├── MedievalFantasyCharacters/  (14 files)
@@ -79,7 +78,6 @@ Assets/
 │   │   └── SetupNavigationSceneEditor.cs
 │   ├── Items/  (empty)
 │   ├── ScriptableObjects/
-│   │   ├── CharacterStats.cs
 │   │   ├── DamageNumberConfig.cs
 │   │   ├── LevelDataTypes.cs
 │   │   ├── LevelDatabase.cs
@@ -105,6 +103,7 @@ Assets/
 │   │   │   └── Village/
 │   │   │       └── VillageScreen.cs
 │   │   └── Widgets/
+│   │       ├── BattleIndicatorBadge.cs
 │   │       └── GoldHudBadge.cs
 │   └── Village/  (empty)
 ├── Settings/
@@ -117,13 +116,13 @@ Assets/
 │   ├── UniversalRenderPipelineGlobalSettings.asset
 │   └── UniversalRP.asset
 ├── Sprites/
-│   ├── Characters/  (155 files)
+│   ├── Characters/  (156 files)
 │   ├── Effects/  (25 files)
 │   ├── Environment/
 │   │   ├── grid_ground.png
 │   │   ├── grid_ground_blue.png
 │   │   └── placeholder_white.png
-│   ├── Items/  (53 files)
+│   ├── Items/  (54 files)
 │   └── UI/  (empty)
 ├── Tests/
 │   ├── EditMode/
@@ -140,13 +139,13 @@ Assets/
 │       ├── TestUtils/
 │       │   ├── PlayModeTestBase.cs
 │       │   └── TestCharacterFactory.cs
+│       ├── BattleIndicatorBadgeTests.cs
 │       ├── CanvasFactoryTests.cs
 │       ├── CharacterAppearanceTests.cs
 │       ├── CharacterMoverTests.cs
 │       ├── CoinFlyServiceTests.cs
 │       ├── CoinFlyTests.cs
 │       ├── CombatControllerTests.cs
-│       ├── CombatSpawnManagerTests.cs
 │       ├── CombatStatsRegenTests.cs
 │       ├── DamageNumberServiceTests.cs
 │       ├── DamageNumberTests.cs
@@ -155,11 +154,11 @@ Assets/
 │       ├── GoldHudBadgeTests.cs
 │       ├── GoldWalletTests.cs
 │       ├── HealthBarTrailTests.cs
-│       ├── LevelManagerDefeatResetTests.cs
 │       ├── LevelManagerDefeatTests.cs
+│       ├── LevelManagerEventTests.cs
 │       ├── VisualEquipmentTestLoopTests.cs
 │       └── WorldConveyorTests.cs
-├── _Recovery/  (1 file)
+├── _Recovery/  (2 files)
 └── TextMesh Pro/  (173 files — TMP package: fonts, shaders, examples)
 
 ProjectSettings/  (Unity defaults)

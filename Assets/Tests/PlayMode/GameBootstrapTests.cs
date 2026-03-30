@@ -61,6 +61,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             yield return null;
 
             LogAssert.Expect(LogType.Error, new Regex("CombatWorld"));
+            LogAssert.Expect(LogType.Error, new Regex("NavigationManager"));
 
             GameBootstrap.Initialize();
         }
@@ -105,6 +106,8 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             var cam = camGo.AddComponent<Camera>();
             cam.tag = "MainCamera";
             yield return null;
+
+            LogAssert.Expect(LogType.Error, new Regex("NavigationManager"));
 
             GameBootstrap.Initialize();
             Assert.IsNotNull(GameBootstrap.Canvas);

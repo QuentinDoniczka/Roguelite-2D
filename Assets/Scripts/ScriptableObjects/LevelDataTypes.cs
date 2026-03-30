@@ -34,6 +34,15 @@ namespace RogueliteAutoBattler.Data
         public string StageName { get => stageName; internal set => stageName = value; }
         public Sprite Terrain { get => terrain; internal set => terrain = value; }
         public List<LevelData> Levels { get => levels; internal set => levels = value; }
+
+        private StageData() { }
+
+        internal StageData(string stageName, Sprite terrain, List<LevelData> levels)
+        {
+            this.stageName = stageName;
+            this.terrain = terrain;
+            this.levels = levels;
+        }
     }
 
     [Serializable]
@@ -44,6 +53,14 @@ namespace RogueliteAutoBattler.Data
 
         public string LevelName { get => levelName; internal set => levelName = value; }
         public List<WaveData> Waves { get => waves; internal set => waves = value; }
+
+        private LevelData() { }
+
+        internal LevelData(string levelName, List<WaveData> waves)
+        {
+            this.levelName = levelName;
+            this.waves = waves;
+        }
     }
 
     [Serializable]
@@ -56,6 +73,15 @@ namespace RogueliteAutoBattler.Data
         public string WaveName { get => waveName; internal set => waveName = value; }
         public float SpawnDelay { get => spawnDelay; internal set => spawnDelay = value; }
         public List<EnemySpawnData> Enemies { get => enemies; internal set => enemies = value; }
+
+        private WaveData() { }
+
+        internal WaveData(string waveName, float spawnDelay, List<EnemySpawnData> enemies)
+        {
+            this.waveName = waveName;
+            this.spawnDelay = spawnDelay;
+            this.enemies = enemies;
+        }
     }
 
     [Serializable]
@@ -86,6 +112,15 @@ namespace RogueliteAutoBattler.Data
         public float ColliderRadius { get => colliderRadius; internal set => colliderRadius = value; }
         public int GoldDrop { get => goldDrop; internal set => goldDrop = value; }
         public AppearanceData Appearance => appearance;
+
+        private EnemySpawnData() { }
+
+        internal EnemySpawnData(string enemyName, int hp, int atk)
+        {
+            this.enemyName = enemyName;
+            this.hp = hp;
+            this.atk = atk;
+        }
     }
 
     [Serializable]

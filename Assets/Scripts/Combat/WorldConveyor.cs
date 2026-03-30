@@ -20,7 +20,7 @@ namespace RogueliteAutoBattler.Combat
 
         [Header("Defaults")]
         [SerializeField] private float _defaultMaxSpeed = 1f;
-        [SerializeField] private float _defaultAcceleration = 0.5f;
+        [SerializeField] private float _defaultAcceleration = 0.3f;
 
         public float CurrentSpeed => _currentSpeed;
         public float MaxSpeed => _maxSpeed;

@@ -99,11 +99,11 @@ namespace RogueliteAutoBattler.Editor
                 Debug.LogWarning($"[{nameof(CombatWorldBuilder)}] Shader 'Sprite-Unlit-Default' not found. Ground may render black.");
             groundGo.AddComponent<GroundFitter>();
 
-            var teamGo = new GameObject(CombatSpawnManager.TeamContainerName);
+            var teamGo = new GameObject(CombatSetupHelper.TeamContainerName);
             teamGo.transform.SetParent(root.transform, false);
             Undo.RegisterCreatedObjectUndo(teamGo, "Create CombatWorld");
 
-            var enemiesGo = new GameObject(CombatSpawnManager.EnemiesContainerName);
+            var enemiesGo = new GameObject(CombatSetupHelper.EnemiesContainerName);
             enemiesGo.transform.SetParent(root.transform, false);
             Undo.RegisterCreatedObjectUndo(enemiesGo, "Create CombatWorld");
 
@@ -165,9 +165,9 @@ namespace RogueliteAutoBattler.Editor
             if (levelDb != null)
                 EditorUIFactory.SetObj(soLevelManager, "_levelDatabase", levelDb);
 
-            var teamAnchor = FindOrCreateHomeAnchor(CombatSpawnManager.TeamHomeAnchorName, new Vector2(0.12f, 0.70f));
-            var enemiesAnchor = FindOrCreateHomeAnchor(CombatSpawnManager.EnemiesHomeAnchorName, new Vector2(0.88f, 0.70f));
-            var combatTrigger = FindOrCreateHomeAnchor(CombatSpawnManager.CombatTriggerZoneName, new Vector2(1f, 0.5f));
+            var teamAnchor = FindOrCreateHomeAnchor(CombatSetupHelper.TeamHomeAnchorName, new Vector2(0.12f, 0.70f));
+            var enemiesAnchor = FindOrCreateHomeAnchor(CombatSetupHelper.EnemiesHomeAnchorName, new Vector2(0.88f, 0.70f));
+            var combatTrigger = FindOrCreateHomeAnchor(CombatSetupHelper.CombatTriggerZoneName, new Vector2(1f, 0.5f));
 
             EditorUIFactory.SetObj(soSpawnManager, "_teamHomeAnchor", teamAnchor);
             soSpawnManager.ApplyModifiedProperties();
