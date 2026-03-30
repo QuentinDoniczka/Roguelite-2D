@@ -42,7 +42,10 @@ namespace RogueliteAutoBattler.Combat
         private GoldWallet _goldWallet;
         private CombatSpawnManager _spawnManager;
 
-        internal const float DefeatResetDelay = 1.5f;
+        [Header("Defeat Reset")]
+        [SerializeField] private float _defeatResetDelay = 1.5f;
+
+        internal float DefeatResetDelay => _defeatResetDelay;
 
         private float CombatZoneX => _combatTriggerZone != null ? _combatTriggerZone.position.x : float.MaxValue;
 
@@ -432,15 +435,9 @@ namespace RogueliteAutoBattler.Combat
 
         private IEnumerator DefeatResetCoroutine()
         {
-            yield return new WaitForSeconds(DefeatResetDelay);
+            yield return new WaitForSeconds(_defeatResetDelay);
 
-            for (int i = _enemiesContainer.childCount - 1; i >= 0; i--)
-                Object.Destroy(_enemiesContainer.GetChild(i).gameObject);
-
-            for (int i = _teamContainer.childCount - 1; i >= 0; i--)
-                Object.Destroy(_teamContainer.GetChild(i).gameObject);
-
-            AttackSlotRegistry.Clear();
+            CombatSetupHelper.DestroyAllChildren(_enemiesContainer);
 
             if (_conveyor != null)
                 _conveyor.ResetPosition();

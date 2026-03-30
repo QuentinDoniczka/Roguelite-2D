@@ -151,7 +151,7 @@ namespace RogueliteAutoBattler.Tests
             return go;
         }
 
-        public static GameObject CreateAllyPrefab(string name = "AllyPrefab")
+        public static GameObject CreateCharacterPrefab(string name = "CharacterPrefab")
         {
             var go = new GameObject(name);
 
@@ -160,10 +160,7 @@ namespace RogueliteAutoBattler.Tests
             rb.constraints = RigidbodyConstraints2D.FreezeRotation;
 
             go.AddComponent<CircleCollider2D>();
-
-            var visual = new GameObject("Visual");
-            visual.transform.SetParent(go.transform, false);
-            visual.AddComponent<SpriteRenderer>();
+            AddVisualChild(go);
 
             return go;
         }

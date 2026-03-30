@@ -28,7 +28,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             var anchorGo = Track(new GameObject("TeamHomeAnchor"));
             _teamHomeAnchor = anchorGo.transform;
 
-            _allyPrefab = Track(TestCharacterFactory.CreateAllyPrefab());
+            _allyPrefab = Track(TestCharacterFactory.CreateCharacterPrefab());
         }
 
         private void ExpectSpawnWarnings(int allyCount)

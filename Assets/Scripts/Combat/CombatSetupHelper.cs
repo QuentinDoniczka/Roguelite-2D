@@ -119,6 +119,17 @@ namespace RogueliteAutoBattler.Combat
             }
         }
 
+        public static void DestroyAllChildren(Transform container)
+        {
+            if (container == null)
+                return;
+
+            for (int i = container.childCount - 1; i >= 0; i--)
+            {
+                Object.Destroy(container.GetChild(i).gameObject);
+            }
+        }
+
         public static void FindContainersIfNeeded(Transform parent, ref Transform teamContainer, ref Transform enemiesContainer, string callerName)
         {
             if (teamContainer == null)

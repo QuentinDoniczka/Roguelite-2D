@@ -1,5 +1,5 @@
 # Project Structure
-Generated: 2026-03-28 (updated #93)
+Generated: 2026-03-30 (updated #106)
 
 Assets/
 ├── Animations/  (23 files: .anim + .controller)
@@ -43,6 +43,9 @@ Assets/
 │   │   ├── AttackSlotRegistry.cs
 │   │   ├── CharacterAppearance.cs
 │   │   ├── CharacterMover.cs
+│   │   ├── CoinFly.cs
+│   │   ├── CoinFlyBootstrap.cs
+│   │   ├── CoinFlyService.cs
 │   │   ├── CombatController.cs
 │   │   ├── CombatSetupHelper.cs
 │   │   ├── CombatSpawnManager.cs
@@ -52,19 +55,22 @@ Assets/
 │   │   ├── DamageNumberService.cs
 │   │   ├── DamageNumberSettingsPersistence.cs
 │   │   ├── FormationLayout.cs
+│   │   ├── GoldFormatter.cs
+│   │   ├── GoldWallet.cs
 │   │   ├── GroundFitter.cs
 │   │   ├── HealthBar.cs
 │   │   ├── LevelManager.cs
 │   │   ├── ScreenAnchor.cs
 │   │   ├── SortingLayers.cs
 │   │   ├── TargetFinder.cs
-│   │   ├── GoldFormatter.cs
-│   │   ├── GoldWallet.cs
 │   │   ├── VisualEquipmentTestLoop.cs
 │   │   └── WorldConveyor.cs
-│   ├── Core/  (empty)
+│   ├── Core/
+│   │   ├── CanvasFactory.cs
+│   │   └── GameBootstrap.cs
 │   ├── Editor/
 │   │   ├── RogueliteAutoBattler.Editor.asmdef
+│   │   ├── BootstrapSceneBuilder.cs
 │   │   ├── CombatHudBuilder.cs
 │   │   ├── CombatWorldBuilder.cs
 │   │   ├── EditorUIFactory.cs
@@ -134,16 +140,22 @@ Assets/
 │       ├── TestUtils/
 │       │   ├── PlayModeTestBase.cs
 │       │   └── TestCharacterFactory.cs
+│       ├── CanvasFactoryTests.cs
 │       ├── CharacterAppearanceTests.cs
 │       ├── CharacterMoverTests.cs
+│       ├── CoinFlyServiceTests.cs
+│       ├── CoinFlyTests.cs
 │       ├── CombatControllerTests.cs
+│       ├── CombatSpawnManagerTests.cs
 │       ├── CombatStatsRegenTests.cs
 │       ├── DamageNumberServiceTests.cs
 │       ├── DamageNumberTests.cs
 │       ├── FormationRecalculationTests.cs
+│       ├── GameBootstrapTests.cs
 │       ├── GoldHudBadgeTests.cs
 │       ├── GoldWalletTests.cs
 │       ├── HealthBarTrailTests.cs
+│       ├── LevelManagerDefeatResetTests.cs
 │       ├── LevelManagerDefeatTests.cs
 │       ├── VisualEquipmentTestLoopTests.cs
 │       └── WorldConveyorTests.cs

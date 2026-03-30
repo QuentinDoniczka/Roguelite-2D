@@ -10,7 +10,6 @@ namespace RogueliteAutoBattler.Combat
 
         [Header("Containers")]
         [SerializeField] private Transform _teamContainer;
-        [SerializeField] private Transform _enemiesContainer;
 
         [Header("Anchors")]
         [SerializeField] private Transform _teamHomeAnchor;
@@ -32,11 +31,14 @@ namespace RogueliteAutoBattler.Combat
         {
             if (_teamDatabase == null || _teamDatabase.Allies.Count == 0)
             {
+#if UNITY_EDITOR
                 Debug.LogWarning($"[{nameof(CombatSpawnManager)}] No TeamDatabase assigned or no allies configured!", this);
+#endif
                 return;
             }
 
-            CombatSetupHelper.FindContainersIfNeeded(transform, ref _teamContainer, ref _enemiesContainer, nameof(CombatSpawnManager));
+            Transform unusedEnemiesContainer = null;
+            CombatSetupHelper.FindContainersIfNeeded(transform, ref _teamContainer, ref unusedEnemiesContainer, nameof(CombatSpawnManager));
 
             Transform teamAnchor = _teamHomeAnchor;
             Vector2 anchorPos = teamAnchor != null ? (Vector2)teamAnchor.position : Vector2.zero;
@@ -53,19 +55,8 @@ namespace RogueliteAutoBattler.Combat
 
         public void RespawnAllies()
         {
-            DestroyAllChildren(_teamContainer);
+            CombatSetupHelper.DestroyAllChildren(_teamContainer);
             SpawnAllies();
-        }
-
-        private static void DestroyAllChildren(Transform container)
-        {
-            if (container == null)
-                return;
-
-            for (int i = container.childCount - 1; i >= 0; i--)
-            {
-                Object.Destroy(container.GetChild(i).gameObject);
-            }
         }
 
         internal void InitializeForTest(TeamDatabase teamDatabase, Transform teamContainer, Transform teamHomeAnchor)
@@ -79,7 +70,9 @@ namespace RogueliteAutoBattler.Combat
         {
             if (data.Prefab == null)
             {
+#if UNITY_EDITOR
                 Debug.LogWarning($"[{nameof(CombatSpawnManager)}] Ally '{data.AllyName}' has no prefab assigned.");
+#endif
                 return;
             }
 

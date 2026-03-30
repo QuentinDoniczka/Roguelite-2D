@@ -5,6 +5,10 @@ namespace RogueliteAutoBattler.Combat
     [RequireComponent(typeof(Rigidbody2D))]
     public class WorldConveyor : MonoBehaviour
     {
+        private const float ArrivalThreshold = 0.01f;
+        private const float BrakingDistanceBuffer = 0.1f;
+        private const float MinimumScrollSpeed = 0.1f;
+
         private float _targetX;
         private float _currentSpeed;
         private float _maxSpeed;
@@ -78,7 +82,7 @@ namespace RogueliteAutoBattler.Combat
             float posX = _rb.position.x;
             float remaining = Mathf.Abs(_targetX - posX);
 
-            if (remaining < 0.01f)
+            if (remaining < ArrivalThreshold)
             {
                 Arrive();
                 return;
@@ -87,7 +91,7 @@ namespace RogueliteAutoBattler.Combat
             float dt = Time.fixedDeltaTime;
             float brakingDist = (_currentSpeed * _currentSpeed) / (2f * _acceleration);
 
-            if (remaining <= brakingDist + 0.1f)
+            if (remaining <= brakingDist + BrakingDistanceBuffer)
             {
                 if (!_decelerating)
                 {
@@ -96,8 +100,8 @@ namespace RogueliteAutoBattler.Combat
                 }
 
                 _currentSpeed -= _acceleration * dt;
-                if (_currentSpeed < 0.1f)
-                    _currentSpeed = 0.1f;
+                if (_currentSpeed < MinimumScrollSpeed)
+                    _currentSpeed = MinimumScrollSpeed;
             }
             else if (_currentSpeed < _maxSpeed)
             {

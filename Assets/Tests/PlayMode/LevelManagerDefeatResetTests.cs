@@ -55,10 +55,10 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             groundGo.transform.SetParent(_combatWorldGo.transform, false);
             groundGo.AddComponent<SpriteRenderer>();
 
-            var allyPrefab = TestCharacterFactory.CreateAllyPrefab("AllyPrefab");
+            var allyPrefab = TestCharacterFactory.CreateCharacterPrefab("AllyPrefab");
             Track(allyPrefab);
 
-            var enemyPrefab = TestCharacterFactory.CreateAllyPrefab("EnemyPrefab");
+            var enemyPrefab = TestCharacterFactory.CreateCharacterPrefab("EnemyPrefab");
             Track(enemyPrefab);
 
             var teamDb = TestCharacterFactory.CreateTeamDatabase(allyCount, allyPrefab);
@@ -108,7 +108,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
 
             KillAllAllies();
 
-            yield return new WaitForSeconds(LevelManager.DefeatResetDelay + 1f);
+            yield return new WaitForSeconds(_levelManager.DefeatResetDelay + 1f);
 
             Assert.AreEqual(2, _enemiesContainer.childCount,
                 "Enemies container should have new wave enemies after defeat reset.");
@@ -136,7 +136,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
 
             KillAllAllies();
 
-            yield return new WaitForSeconds(LevelManager.DefeatResetDelay + 1f);
+            yield return new WaitForSeconds(_levelManager.DefeatResetDelay + 1f);
 
             Assert.Greater(_teamContainer.childCount, 0,
                 "Team container should have respawned allies after defeat reset.");
@@ -164,7 +164,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
 
             KillAllAllies();
 
-            yield return new WaitForSeconds(LevelManager.DefeatResetDelay + 1f);
+            yield return new WaitForSeconds(_levelManager.DefeatResetDelay + 1f);
 
             Assert.AreEqual(0, _levelManager.CurrentStageIndex,
                 "CurrentStageIndex should be 0 after defeat reset.");
@@ -191,7 +191,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             Assert.IsFalse(_levelManager.LevelInProgress,
                 "LevelInProgress should be false immediately after all allies die.");
 
-            yield return new WaitForSeconds(LevelManager.DefeatResetDelay + 1f);
+            yield return new WaitForSeconds(_levelManager.DefeatResetDelay + 1f);
 
             Assert.IsTrue(_levelManager.LevelInProgress,
                 "LevelInProgress should be true after defeat reset completes.");
@@ -215,7 +215,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
 
             KillAllAllies();
 
-            yield return new WaitForSeconds(LevelManager.DefeatResetDelay + 1f);
+            yield return new WaitForSeconds(_levelManager.DefeatResetDelay + 1f);
 
             Assert.AreEqual(500, goldWallet.Gold,
                 "GoldWallet should retain its gold after defeat reset.");
