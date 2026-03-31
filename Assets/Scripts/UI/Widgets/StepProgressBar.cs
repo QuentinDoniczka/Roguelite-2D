@@ -18,7 +18,6 @@ namespace RogueliteAutoBattler.UI.Widgets
         [SerializeField] private float _sphereSize = 16f;
         [SerializeField] private float _lineHeight = 3f;
         [SerializeField] private float _lineMinWidth = 4f;
-        [SerializeField] private float _linePreferredWidth = 20f;
 
         private LevelManager _levelManager;
         private HorizontalLayoutGroup _layoutGroup;
@@ -72,7 +71,7 @@ namespace RogueliteAutoBattler.UI.Widgets
 
             _layoutGroup.childAlignment = TextAnchor.MiddleCenter;
             _layoutGroup.childControlWidth = true;
-            _layoutGroup.childControlHeight = false;
+            _layoutGroup.childControlHeight = true;
             _layoutGroup.childForceExpandWidth = false;
             _layoutGroup.childForceExpandHeight = false;
             _layoutGroup.spacing = 0;
@@ -95,18 +94,27 @@ namespace RogueliteAutoBattler.UI.Widgets
 
                 if (i < totalSteps - 1)
                 {
+                    var lineWrapperGo = new GameObject($"LineWrapper_{i}");
+                    lineWrapperGo.transform.SetParent(transform, false);
+
+                    var wrapperLayout = lineWrapperGo.AddComponent<LayoutElement>();
+                    wrapperLayout.flexibleWidth = 1;
+                    wrapperLayout.minWidth = _lineMinWidth;
+                    wrapperLayout.preferredHeight = _sphereSize;
+                    wrapperLayout.minHeight = _sphereSize;
+
                     var lineGo = new GameObject($"Line_{i}");
-                    lineGo.transform.SetParent(transform, false);
+                    lineGo.transform.SetParent(lineWrapperGo.transform, false);
 
                     var lineImage = lineGo.AddComponent<Image>();
+
+                    var lineRect = lineGo.GetComponent<RectTransform>();
+                    lineRect.anchorMin = new Vector2(0f, 0.5f);
+                    lineRect.anchorMax = new Vector2(1f, 0.5f);
+                    lineRect.sizeDelta = new Vector2(0f, _lineHeight);
+                    lineRect.anchoredPosition = Vector2.zero;
                     lineImage.raycastTarget = false;
                     _lines.Add(lineImage);
-
-                    var lineLayout = lineGo.AddComponent<LayoutElement>();
-                    lineLayout.preferredWidth = _linePreferredWidth;
-                    lineLayout.minWidth = _lineMinWidth;
-                    lineLayout.minHeight = _lineHeight;
-                    lineLayout.preferredHeight = _lineHeight;
                 }
             }
 

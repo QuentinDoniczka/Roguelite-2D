@@ -100,7 +100,7 @@ namespace RogueliteAutoBattler.Editor
             HorizontalLayoutGroup stepBarLayout = stepBarGo.AddComponent<HorizontalLayoutGroup>();
             stepBarLayout.childAlignment = TextAnchor.MiddleCenter;
             stepBarLayout.childControlWidth = true;
-            stepBarLayout.childControlHeight = false;
+            stepBarLayout.childControlHeight = true;
             stepBarLayout.childForceExpandWidth = false;
             stepBarLayout.childForceExpandHeight = false;
             stepBarLayout.spacing = 0;
