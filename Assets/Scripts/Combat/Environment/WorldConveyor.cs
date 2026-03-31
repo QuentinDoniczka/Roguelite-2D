@@ -16,6 +16,7 @@ namespace RogueliteAutoBattler.Combat.Environment
         private float _acceleration;
         private bool _isScrolling;
         private bool _decelerating;
+        private bool _hasScrolled;
         private Rigidbody2D _rb;
         private Vector2 _initialPosition;
 
@@ -37,7 +38,7 @@ namespace RogueliteAutoBattler.Combat.Environment
             get
             {
                 float totalDistance = Mathf.Abs(_targetX - _scrollStartX);
-                if (totalDistance < ArrivalThreshold) return _isScrolling ? 0f : 1f;
+                if (totalDistance < ArrivalThreshold) return _hasScrolled && !_isScrolling ? 1f : 0f;
                 float traveled = Mathf.Abs(_rb.position.x - _scrollStartX);
                 return Mathf.Clamp01(traveled / totalDistance);
             }
@@ -86,6 +87,7 @@ namespace RogueliteAutoBattler.Combat.Environment
             _currentSpeed = 0f;
             _isScrolling = true;
             _decelerating = false;
+            _hasScrolled = true;
             OnScrollStarted?.Invoke();
         }
 
@@ -143,6 +145,7 @@ namespace RogueliteAutoBattler.Combat.Environment
             _isScrolling = false;
             _decelerating = false;
             _currentSpeed = 0f;
+            _hasScrolled = false;
             _scrollStartX = _initialPosition.x;
             _rb.position = _initialPosition;
             transform.position = new Vector3(_initialPosition.x, _initialPosition.y, transform.position.z);

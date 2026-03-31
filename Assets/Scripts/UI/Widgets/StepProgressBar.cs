@@ -267,7 +267,7 @@ namespace RogueliteAutoBattler.UI.Widgets
             Rebuild(_levelManager.TotalStepsInCurrentLevel, _levelManager.CurrentStepIndex);
         }
 
-        internal void SimulateStepChange(int stepIndex) => UpdateVisuals(stepIndex);
+        internal void SimulateStepChange(int stepIndex) => OnStepChanged(stepIndex);
 
         internal int SphereCount => _spheres.Count;
         internal int LineCount => _lines.Count;
