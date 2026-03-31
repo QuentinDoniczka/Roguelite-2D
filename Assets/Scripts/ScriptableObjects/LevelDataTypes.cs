@@ -49,16 +49,34 @@ namespace RogueliteAutoBattler.Data
     public class LevelData
     {
         [SerializeField] private string levelName = "New Level";
-        [SerializeField] private List<WaveData> waves = new List<WaveData>();
+        [SerializeField] private List<StepData> steps = new List<StepData>();
 
         public string LevelName { get => levelName; internal set => levelName = value; }
-        public List<WaveData> Waves { get => waves; internal set => waves = value; }
+        public List<StepData> Steps { get => steps; internal set => steps = value; }
 
         private LevelData() { }
 
-        internal LevelData(string levelName, List<WaveData> waves)
+        internal LevelData(string levelName, List<StepData> steps)
         {
             this.levelName = levelName;
+            this.steps = steps;
+        }
+    }
+
+    [Serializable]
+    public class StepData
+    {
+        [SerializeField] private string stepName = "New Step";
+        [SerializeField] private List<WaveData> waves = new List<WaveData>();
+
+        public string StepName { get => stepName; internal set => stepName = value; }
+        public List<WaveData> Waves { get => waves; internal set => waves = value; }
+
+        private StepData() { }
+
+        internal StepData(string stepName, List<WaveData> waves)
+        {
+            this.stepName = stepName;
             this.waves = waves;
         }
     }

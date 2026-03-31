@@ -25,7 +25,7 @@
 Doc detaille : `Assets/doc/premier-jet-roguelite.html`
 
 # Project Structure
-Generated: 2026-03-31 (updated refactor/combat-folder-reorganization)
+Generated: 2026-03-31 (updated feature/117-step-progress-bar + StepData model)
 
 .github/
 └── workflows/
@@ -33,11 +33,10 @@ Generated: 2026-03-31 (updated refactor/combat-folder-reorganization)
     └── protect-main.yml
 
 Assets/
-├── Animations/  (24 files: .anim + .controller)
+├── Animations/  (23 files: .anim + .controller)
 ├── Audio/  (empty)
 ├── Data/
-│   ├── Adventurers/
-│   │   └── WarriorStats.asset
+│   ├── Adventurers/  (empty)
 │   ├── Buildings/  (empty)
 │   ├── Enemies/  (empty)
 │   ├── LootTables/  (empty)
@@ -59,7 +58,7 @@ Assets/
 ├── Fonts/  (empty)
 ├── MedievalFantasyCharacters/  (empty)
 ├── Prefabs/
-│   ├── Characters/  (6 prefabs)
+│   ├── Characters/  (5 prefabs)
 │   ├── Effects/  (empty)
 │   └── UI/  (empty)
 ├── Scenes/
@@ -142,7 +141,8 @@ Assets/
 │   │   │       └── VillageScreen.cs
 │   │   └── Widgets/
 │   │       ├── BattleIndicatorBadge.cs
-│   │       └── GoldHudBadge.cs
+│   │       ├── GoldHudBadge.cs
+│   │       └── StepProgressBar.cs
 │   └── Village/  (empty)
 ├── Settings/
 │   ├── DefaultVolumeProfile.asset
@@ -154,13 +154,14 @@ Assets/
 │   ├── UniversalRenderPipelineGlobalSettings.asset
 │   └── UniversalRP.asset
 ├── Sprites/
-│   ├── Characters/  (156 files)
+│   ├── Characters/  (155 files)
 │   ├── Effects/  (25 files)
 │   ├── Environment/
+│   │   ├── backgroundtest.png
 │   │   ├── grid_ground.png
 │   │   ├── grid_ground_blue.png
 │   │   └── placeholder_white.png
-│   ├── Items/  (54 files)
+│   ├── Items/  (53 files)
 │   └── UI/  (empty)
 ├── Tests/
 │   ├── EditMode/
@@ -193,9 +194,12 @@ Assets/
 │       ├── GoldHudBadgeTests.cs
 │       ├── GoldWalletTests.cs
 │       ├── HealthBarTrailTests.cs
+│       ├── LevelManagerTotalLevelsTests.cs
+│       ├── StepProgressBarTests.cs
 │       ├── LevelManagerDefeatResetTests.cs
 │       ├── LevelManagerDefeatTests.cs
 │       ├── LevelManagerEventTests.cs
+│       ├── LevelManagerStepTransitionTests.cs
 │       ├── VisualEquipmentTestLoopTests.cs
 │       └── WorldConveyorTests.cs
 ├── _Recovery/  (3 files)

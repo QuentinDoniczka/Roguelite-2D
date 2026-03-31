@@ -1,7 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using NUnit.Framework;
-using RogueliteAutoBattler.Combat.Core;
 using RogueliteAutoBattler.Combat.Environment;
 using RogueliteAutoBattler.Combat.Levels;
 using RogueliteAutoBattler.Data;
@@ -22,9 +21,10 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             _levelDatabase = ScriptableObject.CreateInstance<LevelDatabase>();
 
             var emptyWave = new WaveData("EmptyWave", 0f, new List<EnemySpawnData>());
+            var emptyStep = new StepData("Step0", new List<WaveData> { emptyWave });
 
-            var level0 = new LevelData("Level0", new List<WaveData> { emptyWave });
-            var level1 = new LevelData("Level1", new List<WaveData> { emptyWave });
+            var level0 = new LevelData("Level0", new List<StepData> { emptyStep });
+            var level1 = new LevelData("Level1", new List<StepData> { emptyStep });
 
             var stage = new StageData("Stage0", null, new List<LevelData> { level0, level1 });
             _levelDatabase.Stages.Add(stage);
@@ -143,8 +143,11 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             int firedStage = -1;
             int firedLevel = -1;
             int firedWave = -1;
+            bool alreadyCaptured = false;
             _levelManager.OnWaveSpawned += (stage, level, wave) =>
             {
+                if (alreadyCaptured) return;
+                alreadyCaptured = true;
                 firedStage = stage;
                 firedLevel = level;
                 firedWave = wave;

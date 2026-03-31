@@ -342,6 +342,7 @@ namespace RogueliteAutoBattler.Editor
         private SerializedObject _levelSerializedDatabase;
         private int _levelSelectedStageIndex = -1;
         private int _levelSelectedLevelIndex = -1;
+        private int _levelSelectedStepIndex  = -1;
         private Vector2 _levelWavesScrollPos;
         private readonly Dictionary<string, bool> _levelFoldouts = new Dictionary<string, bool>();
 
@@ -369,6 +370,7 @@ namespace RogueliteAutoBattler.Editor
             _levelSerializedDatabase = db != null ? new SerializedObject(db) : null;
             _levelSelectedStageIndex = -1;
             _levelSelectedLevelIndex = -1;
+            _levelSelectedStepIndex  = -1;
             _levelFoldouts.Clear();
             Repaint();
         }
@@ -469,6 +471,7 @@ namespace RogueliteAutoBattler.Editor
                             {
                                 _levelSelectedStageIndex = i;
                                 _levelSelectedLevelIndex = -1;
+                                _levelSelectedStepIndex  = -1;
                             }
                         }
 
@@ -482,6 +485,7 @@ namespace RogueliteAutoBattler.Editor
                                 stagesProp.DeleteArrayElementAtIndex(i);
                                 _levelSelectedStageIndex = Mathf.Clamp(_levelSelectedStageIndex, -1, stagesProp.arraySize - 1);
                                 _levelSelectedLevelIndex = -1;
+                                _levelSelectedStepIndex  = -1;
                                 EditorUtility.SetDirty(_levelDatabase);
                                 break;
                             }
@@ -540,8 +544,9 @@ namespace RogueliteAutoBattler.Editor
                     levelsProp.arraySize++;
                     var newLevel = levelsProp.GetArrayElementAtIndex(levelsProp.arraySize - 1);
                     newLevel.FindPropertyRelative("levelName").stringValue = $"Level {levelsProp.arraySize}";
-                    newLevel.FindPropertyRelative("waves").arraySize = 0;
+                    newLevel.FindPropertyRelative("steps").arraySize = 0;
                     _levelSelectedLevelIndex = levelsProp.arraySize - 1;
+                    _levelSelectedStepIndex  = -1;
                     EditorUtility.SetDirty(_levelDatabase);
                 }
 
@@ -557,7 +562,10 @@ namespace RogueliteAutoBattler.Editor
                     GUILayout.BeginHorizontal();
                     {
                         if (GUILayout.Button(label, style, GUILayout.Height(LevelRowHeight)))
+                        {
                             _levelSelectedLevelIndex = i;
+                            _levelSelectedStepIndex  = -1;
+                        }
 
                         if (GUILayout.Button("-",
                                 GUILayout.Width(LevelSmallButtonWidth),
@@ -568,6 +576,7 @@ namespace RogueliteAutoBattler.Editor
                             {
                                 levelsProp.DeleteArrayElementAtIndex(i);
                                 _levelSelectedLevelIndex = Mathf.Clamp(_levelSelectedLevelIndex, -1, levelsProp.arraySize - 1);
+                                _levelSelectedStepIndex  = -1;
                                 EditorUtility.SetDirty(_levelDatabase);
                                 break;
                             }
@@ -594,7 +603,7 @@ namespace RogueliteAutoBattler.Editor
         {
             GUILayout.BeginVertical();
             {
-                DrawPanelHeader("Waves & Enemies");
+                DrawPanelHeader("Steps & Waves");
 
                 if (stagesProp == null
                     || _levelSelectedStageIndex < 0
@@ -618,46 +627,130 @@ namespace RogueliteAutoBattler.Editor
                     return;
                 }
 
-                SerializedProperty wavesProp = levelsProp
+                SerializedProperty stepsProp = levelsProp
                     .GetArrayElementAtIndex(_levelSelectedLevelIndex)
-                    .FindPropertyRelative("waves");
+                    .FindPropertyRelative("steps");
 
-                if (wavesProp == null)
+                if (stepsProp == null)
                 {
-                    Debug.LogError("[LevelDesigner] Property 'waves' not found on LevelData.");
+                    Debug.LogError("[LevelDesigner] Property 'steps' not found on LevelData.");
                     GUILayout.EndVertical();
                     return;
                 }
 
-                if (GUILayout.Button("+ Add Wave", GUILayout.Height(LevelAddButtonHeight)))
-                {
-                    wavesProp.arraySize++;
-                    var newWave = wavesProp.GetArrayElementAtIndex(wavesProp.arraySize - 1);
-                    newWave.FindPropertyRelative("waveName").stringValue    = $"Wave {wavesProp.arraySize}";
-                    newWave.FindPropertyRelative("spawnDelay").floatValue   = 0f;
-                    newWave.FindPropertyRelative("enemies").arraySize       = 0;
-                    EditorUtility.SetDirty(_levelDatabase);
-                }
+                DrawStepsList(stepsProp);
 
-                _levelWavesScrollPos = EditorGUILayout.BeginScrollView(_levelWavesScrollPos);
+                GUILayout.Space(6f);
+
+                if (_levelSelectedStepIndex >= 0 && _levelSelectedStepIndex < stepsProp.arraySize)
                 {
-                    bool waveListModified = false;
-                    for (int wi = 0; wi < wavesProp.arraySize; wi++)
+                    SerializedProperty wavesProp = stepsProp
+                        .GetArrayElementAtIndex(_levelSelectedStepIndex)
+                        .FindPropertyRelative("waves");
+
+                    if (wavesProp == null)
                     {
-                        if (DrawWave(wavesProp, wi))
-                        {
-                            waveListModified = true;
-                            break;
-                        }
-                        GUILayout.Space(4f);
+                        Debug.LogError("[LevelDesigner] Property 'waves' not found on StepData.");
                     }
-
-                    if (!waveListModified && wavesProp.arraySize == 0)
-                        EditorGUILayout.HelpBox("No waves. Add one above.", MessageType.None);
+                    else
+                    {
+                        DrawWavesList(wavesProp);
+                    }
                 }
-                EditorGUILayout.EndScrollView();
+                else
+                {
+                    EditorGUILayout.HelpBox("Select a step to view its waves.", MessageType.None);
+                }
             }
             GUILayout.EndVertical();
+        }
+
+        private void DrawStepsList(SerializedProperty stepsProp)
+        {
+            EditorGUILayout.LabelField("Steps", EditorStyles.boldLabel);
+
+            if (GUILayout.Button("+ Add Step", GUILayout.Height(LevelAddButtonHeight)))
+            {
+                stepsProp.arraySize++;
+                var newStep = stepsProp.GetArrayElementAtIndex(stepsProp.arraySize - 1);
+                newStep.FindPropertyRelative("stepName").stringValue = $"Step {stepsProp.arraySize}";
+                newStep.FindPropertyRelative("waves").arraySize = 0;
+                _levelSelectedStepIndex = stepsProp.arraySize - 1;
+                EditorUtility.SetDirty(_levelDatabase);
+            }
+
+            for (int i = 0; i < stepsProp.arraySize; i++)
+            {
+                var stepProp = stepsProp.GetArrayElementAtIndex(i);
+                string stepLabel = stepProp.FindPropertyRelative("stepName").stringValue;
+                if (string.IsNullOrEmpty(stepLabel)) stepLabel = $"Step {i + 1}";
+
+                bool isSelected = (i == _levelSelectedStepIndex);
+                GUIStyle style = isSelected ? GetSelectedRowStyle() : GUI.skin.button;
+
+                GUILayout.BeginHorizontal();
+                {
+                    if (GUILayout.Button(stepLabel, style, GUILayout.Height(LevelRowHeight)))
+                        _levelSelectedStepIndex = i;
+
+                    if (GUILayout.Button("-",
+                            GUILayout.Width(LevelSmallButtonWidth),
+                            GUILayout.Height(LevelRowHeight)))
+                    {
+                        if (EditorUtility.DisplayDialog("Remove Step",
+                                $"Remove '{stepLabel}'?", "Remove", "Cancel"))
+                        {
+                            stepsProp.DeleteArrayElementAtIndex(i);
+                            _levelSelectedStepIndex = Mathf.Clamp(_levelSelectedStepIndex, -1, stepsProp.arraySize - 1);
+                            EditorUtility.SetDirty(_levelDatabase);
+                            break;
+                        }
+                    }
+                }
+                GUILayout.EndHorizontal();
+            }
+
+            if (_levelSelectedStepIndex >= 0 && _levelSelectedStepIndex < stepsProp.arraySize)
+            {
+                var stepNameProp = stepsProp
+                    .GetArrayElementAtIndex(_levelSelectedStepIndex)
+                    .FindPropertyRelative("stepName");
+                GUILayout.Label("Step Name:", EditorStyles.miniLabel);
+                stepNameProp.stringValue = EditorGUILayout.TextField(stepNameProp.stringValue);
+            }
+        }
+
+        private void DrawWavesList(SerializedProperty wavesProp)
+        {
+            EditorGUILayout.LabelField("Waves & Enemies", EditorStyles.boldLabel);
+
+            if (GUILayout.Button("+ Add Wave", GUILayout.Height(LevelAddButtonHeight)))
+            {
+                wavesProp.arraySize++;
+                var newWave = wavesProp.GetArrayElementAtIndex(wavesProp.arraySize - 1);
+                newWave.FindPropertyRelative("waveName").stringValue  = $"Wave {wavesProp.arraySize}";
+                newWave.FindPropertyRelative("spawnDelay").floatValue = 0f;
+                newWave.FindPropertyRelative("enemies").arraySize     = 0;
+                EditorUtility.SetDirty(_levelDatabase);
+            }
+
+            _levelWavesScrollPos = EditorGUILayout.BeginScrollView(_levelWavesScrollPos);
+            {
+                bool waveListModified = false;
+                for (int wi = 0; wi < wavesProp.arraySize; wi++)
+                {
+                    if (DrawWave(wavesProp, wi))
+                    {
+                        waveListModified = true;
+                        break;
+                    }
+                    GUILayout.Space(4f);
+                }
+
+                if (!waveListModified && wavesProp.arraySize == 0)
+                    EditorGUILayout.HelpBox("No waves. Add one above.", MessageType.None);
+            }
+            EditorGUILayout.EndScrollView();
         }
 
         private bool DrawWave(SerializedProperty wavesProp, int wi)
@@ -746,19 +839,31 @@ namespace RogueliteAutoBattler.Editor
                 for (int li = startLevel; li >= 0; li--)
                 {
                     var level = levels.GetArrayElementAtIndex(li);
-                    var waves = level.FindPropertyRelative("waves");
-                    if (waves == null) continue;
+                    var steps = level.FindPropertyRelative("steps");
+                    if (steps == null) continue;
 
-                    int startWave = (si == _levelSelectedStageIndex && li == _levelSelectedLevelIndex)
-                        ? currentWaveIndex - 1
-                        : waves.arraySize - 1;
+                    int startStep = (si == _levelSelectedStageIndex && li == _levelSelectedLevelIndex)
+                        ? _levelSelectedStepIndex
+                        : steps.arraySize - 1;
 
-                    for (int wi2 = startWave; wi2 >= 0; wi2--)
+                    for (int sti = startStep; sti >= 0; sti--)
                     {
-                        var wave    = waves.GetArrayElementAtIndex(wi2);
-                        var enemies = wave.FindPropertyRelative("enemies");
-                        if (enemies != null && enemies.arraySize > 0)
-                            return enemies.GetArrayElementAtIndex(enemies.arraySize - 1);
+                        var step  = steps.GetArrayElementAtIndex(sti);
+                        var waves = step.FindPropertyRelative("waves");
+                        if (waves == null) continue;
+
+                        bool isCurrentStep = si == _levelSelectedStageIndex
+                                             && li == _levelSelectedLevelIndex
+                                             && sti == _levelSelectedStepIndex;
+                        int startWave = isCurrentStep ? currentWaveIndex - 1 : waves.arraySize - 1;
+
+                        for (int wi2 = startWave; wi2 >= 0; wi2--)
+                        {
+                            var wave    = waves.GetArrayElementAtIndex(wi2);
+                            var enemies = wave.FindPropertyRelative("enemies");
+                            if (enemies != null && enemies.arraySize > 0)
+                                return enemies.GetArrayElementAtIndex(enemies.arraySize - 1);
+                        }
                     }
                 }
             }

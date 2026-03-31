@@ -129,6 +129,7 @@ namespace RogueliteAutoBattler.Combat.Environment
             _decelerating = false;
             _currentSpeed = 0f;
             _rb.position = _initialPosition;
+            transform.position = new Vector3(_initialPosition.x, _initialPosition.y, transform.position.z);
         }
 
         private void Arrive()

@@ -23,17 +23,18 @@ namespace RogueliteAutoBattler.UI.Widgets
         private LevelManager _levelManager;
         private Coroutine _announcementCoroutine;
         private RectTransform _announcementRect;
-        private int _currentWaveIndex;
+        private bool _initializedForTest;
 
         private void Start()
         {
+            if (_initializedForTest) return;
+
             var managers = FindObjectsByType<LevelManager>(FindObjectsSortMode.None);
             if (managers.Length > 0)
             {
                 _levelManager = managers[0];
                 _levelManager.OnLevelStarted += OnLevelChanged;
-                _levelManager.OnWaveSpawned += OnWaveChanged;
-                UpdateCompactLabel(_levelManager.CurrentStageIndex, _levelManager.CurrentLevelIndex, 0);
+                UpdateCompactLabel(_levelManager.CurrentStageIndex, _levelManager.CurrentLevelIndex);
             }
 
             if (_announcementGroup != null)
@@ -48,27 +49,19 @@ namespace RogueliteAutoBattler.UI.Widgets
             if (_levelManager != null)
             {
                 _levelManager.OnLevelStarted -= OnLevelChanged;
-                _levelManager.OnWaveSpawned -= OnWaveChanged;
             }
         }
 
         private void OnLevelChanged(int stageIndex, int levelIndex)
         {
-            _currentWaveIndex = 0;
-            UpdateCompactLabel(stageIndex, levelIndex, 0);
+            UpdateCompactLabel(stageIndex, levelIndex);
             PlayAnnouncement(stageIndex, levelIndex);
         }
 
-        private void OnWaveChanged(int stageIndex, int levelIndex, int waveIndex)
-        {
-            _currentWaveIndex = waveIndex;
-            UpdateCompactLabel(stageIndex, levelIndex, waveIndex);
-        }
-
-        private void UpdateCompactLabel(int stageIndex, int levelIndex, int waveIndex)
+        private void UpdateCompactLabel(int stageIndex, int levelIndex)
         {
             if (_compactLabel != null)
-                _compactLabel.text = $"{stageIndex + 1}-{levelIndex + 1}-{waveIndex + 1}";
+                _compactLabel.text = $"{stageIndex + 1}-{levelIndex + 1}";
         }
 
         private void PlayAnnouncement(int stageIndex, int levelIndex)
@@ -145,14 +138,14 @@ namespace RogueliteAutoBattler.UI.Widgets
 
         internal void InitializeForTest(LevelManager levelManager, TMP_Text compactLabel, TMP_Text announcementLabel, CanvasGroup announcementGroup)
         {
+            _initializedForTest = true;
             _levelManager = levelManager;
             _compactLabel = compactLabel;
             _announcementLabel = announcementLabel;
             _announcementGroup = announcementGroup;
 
             _levelManager.OnLevelStarted += OnLevelChanged;
-            _levelManager.OnWaveSpawned += OnWaveChanged;
-            UpdateCompactLabel(_levelManager.CurrentStageIndex, _levelManager.CurrentLevelIndex, 0);
+            UpdateCompactLabel(_levelManager.CurrentStageIndex, _levelManager.CurrentLevelIndex);
 
             if (_announcementGroup != null)
             {

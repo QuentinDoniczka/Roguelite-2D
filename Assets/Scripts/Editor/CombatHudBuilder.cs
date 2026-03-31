@@ -55,24 +55,11 @@ namespace RogueliteAutoBattler.Editor
 
             var bootstrap = go.AddComponent<CoinFlyBootstrap>();
             var bootstrapSO = new SerializedObject(bootstrap);
-            var coinContainerProp = bootstrapSO.FindProperty("_coinContainer");
-            if (coinContainerProp == null)
-                Debug.LogError($"[{nameof(CombatHudBuilder)}] SerializedProperty '_coinContainer' not found on CoinFlyBootstrap.");
-            else
-                coinContainerProp.objectReferenceValue = coinFlyPoolRect;
-
-            var targetBadgeProp = bootstrapSO.FindProperty("_targetBadge");
-            if (targetBadgeProp == null)
-                Debug.LogError($"[{nameof(CombatHudBuilder)}] SerializedProperty '_targetBadge' not found on CoinFlyBootstrap.");
-            else
-                targetBadgeProp.objectReferenceValue = goldBadge != null ? goldBadge.GetComponent<RectTransform>() : null;
-
-            var coinSpriteProp = bootstrapSO.FindProperty("_coinSprite");
-            if (coinSpriteProp == null)
-                Debug.LogError($"[{nameof(CombatHudBuilder)}] SerializedProperty '_coinSprite' not found on CoinFlyBootstrap.");
-            else
-                coinSpriteProp.objectReferenceValue = AssetDatabase.GetBuiltinExtraResource<Sprite>("UI/Skin/Knob.psd");
-
+            EditorUIFactory.SetObj(bootstrapSO, "_coinContainer", coinFlyPoolRect);
+            EditorUIFactory.SetObj(bootstrapSO, "_targetBadge",
+                goldBadge != null ? goldBadge.GetComponent<RectTransform>() : null);
+            EditorUIFactory.SetObj(bootstrapSO, "_coinSprite",
+                AssetDatabase.GetBuiltinExtraResource<Sprite>("UI/Skin/Knob.psd"));
             bootstrapSO.ApplyModifiedProperties();
 
             CreateCurrencyBadge(go.transform, "Diamond", "211",
@@ -90,13 +77,39 @@ namespace RogueliteAutoBattler.Editor
 
             var compactLabelGo = new GameObject("CompactLabel");
             GameObjectUtility.SetParentAndAlign(compactLabelGo, battleGo);
-            EditorUIFactory.Stretch(compactLabelGo.AddComponent<RectTransform>());
+            RectTransform compactLabelRect = compactLabelGo.AddComponent<RectTransform>();
+            compactLabelRect.anchorMin = new Vector2(0f, 0.4f);
+            compactLabelRect.anchorMax = new Vector2(1f, 1f);
+            compactLabelRect.offsetMin = Vector2.zero;
+            compactLabelRect.offsetMax = Vector2.zero;
             TextMeshProUGUI compactTmp = compactLabelGo.AddComponent<TextMeshProUGUI>();
             compactTmp.text = "1-1";
             compactTmp.fontSize = BattleFontSize;
             compactTmp.color = Color.white;
             compactTmp.alignment = TextAlignmentOptions.Center;
             compactTmp.fontStyle = FontStyles.Bold;
+
+            var stepBarGo = new GameObject("StepProgressBar");
+            stepBarGo.transform.SetParent(battleGo.transform, false);
+            RectTransform stepBarRect = stepBarGo.AddComponent<RectTransform>();
+            stepBarRect.anchorMin = new Vector2(0.1f, 0.05f);
+            stepBarRect.anchorMax = new Vector2(0.9f, 0.35f);
+            stepBarRect.offsetMin = Vector2.zero;
+            stepBarRect.offsetMax = Vector2.zero;
+
+            HorizontalLayoutGroup stepBarLayout = stepBarGo.AddComponent<HorizontalLayoutGroup>();
+            stepBarLayout.childAlignment = TextAnchor.MiddleCenter;
+            stepBarLayout.childControlWidth = true;
+            stepBarLayout.childControlHeight = true;
+            stepBarLayout.childForceExpandWidth = false;
+            stepBarLayout.childForceExpandHeight = false;
+            stepBarLayout.spacing = 0;
+
+            StepProgressBar stepBar = stepBarGo.AddComponent<StepProgressBar>();
+            var stepBarSo = new SerializedObject(stepBar);
+            EditorUIFactory.SetObj(stepBarSo, "_sphereSprite",
+                AssetDatabase.GetBuiltinExtraResource<Sprite>("UI/Skin/Knob.psd"));
+            stepBarSo.ApplyModifiedPropertiesWithoutUndo();
 
             var announcementOverlayGo = new GameObject("AnnouncementOverlay");
             GameObjectUtility.SetParentAndAlign(announcementOverlayGo, go);
@@ -121,25 +134,9 @@ namespace RogueliteAutoBattler.Editor
             announcementTmp.fontStyle = FontStyles.Bold;
 
             var badgeSO = new SerializedObject(badge);
-
-            var compactLabelProp = badgeSO.FindProperty("_compactLabel");
-            if (compactLabelProp == null)
-                Debug.LogError($"[{nameof(CombatHudBuilder)}] SerializedProperty '_compactLabel' not found on BattleIndicatorBadge.");
-            else
-                compactLabelProp.objectReferenceValue = compactTmp;
-
-            var announcementLabelProp = badgeSO.FindProperty("_announcementLabel");
-            if (announcementLabelProp == null)
-                Debug.LogError($"[{nameof(CombatHudBuilder)}] SerializedProperty '_announcementLabel' not found on BattleIndicatorBadge.");
-            else
-                announcementLabelProp.objectReferenceValue = announcementTmp;
-
-            var announcementGroupProp = badgeSO.FindProperty("_announcementGroup");
-            if (announcementGroupProp == null)
-                Debug.LogError($"[{nameof(CombatHudBuilder)}] SerializedProperty '_announcementGroup' not found on BattleIndicatorBadge.");
-            else
-                announcementGroupProp.objectReferenceValue = announcementCanvasGroup;
-
+            EditorUIFactory.SetObj(badgeSO, "_compactLabel", compactTmp);
+            EditorUIFactory.SetObj(badgeSO, "_announcementLabel", announcementTmp);
+            EditorUIFactory.SetObj(badgeSO, "_announcementGroup", announcementCanvasGroup);
             badgeSO.ApplyModifiedProperties();
 
             return screen;

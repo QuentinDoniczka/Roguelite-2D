@@ -1,7 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using NUnit.Framework;
-using RogueliteAutoBattler.Combat.Core;
 using RogueliteAutoBattler.Combat.Environment;
 using RogueliteAutoBattler.Combat.Levels;
 using RogueliteAutoBattler.Data;
@@ -26,8 +25,9 @@ namespace RogueliteAutoBattler.Tests.PlayMode
         {
             _levelDatabase = ScriptableObject.CreateInstance<LevelDatabase>();
             var wave = new WaveData("W1", 0f, new List<EnemySpawnData>());
-            var level1 = new LevelData("Level1", new List<WaveData> { wave });
-            var level2 = new LevelData("Level2", new List<WaveData> { wave });
+            var step = new StepData("Step0", new List<WaveData> { wave });
+            var level1 = new LevelData("Level1", new List<StepData> { step });
+            var level2 = new LevelData("Level2", new List<StepData> { step });
             var stage = new StageData("Stage1", null, new List<LevelData> { level1, level2 });
             _levelDatabase.Stages.Add(stage);
 
@@ -80,7 +80,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
         {
             yield return null;
 
-            Assert.AreEqual("1-1-1", _badge.CompactText);
+            Assert.AreEqual("1-1", _badge.CompactText);
         }
 
         [UnityTest]
@@ -91,7 +91,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             _levelManager.StartLevel(1);
             yield return null;
 
-            Assert.AreEqual("1-2-1", _badge.CompactText);
+            Assert.AreEqual("1-2", _badge.CompactText);
         }
 
         [UnityTest]
@@ -124,8 +124,8 @@ namespace RogueliteAutoBattler.Tests.PlayMode
         {
             yield return null;
 
-            Assert.AreEqual("1-1-1", _badge.CompactText,
-                "Display should be 1-indexed (1-1-1) not 0-indexed (0-0-0).");
+            Assert.AreEqual("1-1", _badge.CompactText,
+                "Display should be 1-indexed (1-1) not 0-indexed (0-0).");
         }
     }
 }
