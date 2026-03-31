@@ -48,25 +48,17 @@ namespace RogueliteAutoBattler.Combat.Levels
         public int CurrentLevelIndex => _currentLevelIndex;
         public int CurrentStepIndex => _currentStepIndex;
 
-        public int TotalStepsInCurrentLevel
-        {
-            get
-            {
-                if (_levelDatabase == null || _levelDatabase.Stages == null) return 0;
-                if (_currentStageIndex < 0 || _currentStageIndex >= _levelDatabase.Stages.Count) return 0;
-                var levels = _levelDatabase.Stages[_currentStageIndex].Levels;
-                if (levels == null || _currentLevelIndex < 0 || _currentLevelIndex >= levels.Count) return 0;
-                return levels[_currentLevelIndex].Steps.Count;
-            }
-        }
+        public int TotalStepsInCurrentLevel =>
+            TryGetCurrentLevel(out var level) ? level.Steps.Count : 0;
 
         public int TotalLevelsInCurrentStage =>
-            _levelDatabase != null && _levelDatabase.Stages != null &&
-            _currentStageIndex >= 0 && _currentStageIndex < _levelDatabase.Stages.Count
-                ? _levelDatabase.Stages[_currentStageIndex].Levels.Count
-                : 0;
+            TryGetCurrentStage(out var stage) ? stage.Levels.Count : 0;
 
         private const float FallbackEnemySpawnX = 1f;
+        private const float SpawnSpeedThreshold = 0.3f;
+
+        [Header("Defeat Reset")]
+        [SerializeField] private float _defeatResetDelay = 1.5f;
 
         private int _aliveEnemyCount;
         private int _aliveAllyCount;
@@ -76,13 +68,30 @@ namespace RogueliteAutoBattler.Combat.Levels
         private GoldWallet _goldWallet;
         private CombatSpawnManager _spawnManager;
 
-        [Header("Defeat Reset")]
-        [SerializeField] private float _defeatResetDelay = 1.5f;
-
         internal float DefeatResetDelay => _defeatResetDelay;
         internal float StepScrollDistance => _stepScrollDistance;
 
         private float CombatZoneX => _combatTriggerZone != null ? _combatTriggerZone.position.x : float.MaxValue;
+
+        private bool TryGetCurrentStage(out StageData stage)
+        {
+            stage = null;
+            if (_levelDatabase == null) return false;
+            var stages = _levelDatabase.Stages;
+            if (stages == null || _currentStageIndex < 0 || _currentStageIndex >= stages.Count) return false;
+            stage = stages[_currentStageIndex];
+            return true;
+        }
+
+        private bool TryGetCurrentLevel(out LevelData level)
+        {
+            level = null;
+            if (!TryGetCurrentStage(out var stage)) return false;
+            var levels = stage.Levels;
+            if (levels == null || _currentLevelIndex < 0 || _currentLevelIndex >= levels.Count) return false;
+            level = levels[_currentLevelIndex];
+            return true;
+        }
 
         private void FixedUpdate()
         {
@@ -141,16 +150,7 @@ namespace RogueliteAutoBattler.Combat.Levels
 
         public void StartLevel(int levelIndex)
         {
-            if (_levelDatabase == null)
-            {
-#if UNITY_EDITOR
-                Debug.LogWarning($"[{nameof(LevelManager)}] No LevelDatabase assigned.");
-#endif
-                return;
-            }
-
-            var stages = _levelDatabase.Stages;
-            if (stages == null || _currentStageIndex < 0 || _currentStageIndex >= stages.Count)
+            if (!TryGetCurrentStage(out var stage))
             {
 #if UNITY_EDITOR
                 Debug.LogWarning($"[{nameof(LevelManager)}] Current stage index {_currentStageIndex} out of range.");
@@ -158,7 +158,6 @@ namespace RogueliteAutoBattler.Combat.Levels
                 return;
             }
 
-            var stage = stages[_currentStageIndex];
             if (stage.Levels == null || levelIndex < 0 || levelIndex >= stage.Levels.Count)
             {
 #if UNITY_EDITOR
@@ -336,15 +335,10 @@ namespace RogueliteAutoBattler.Combat.Levels
         {
             if (!_levelInProgress || _pendingWaveCount > 0 || _aliveEnemyCount > 0) return;
 
-            var stages = _levelDatabase.Stages;
-            if (stages != null && _currentStageIndex >= 0 && _currentStageIndex < stages.Count)
+            if (TryGetCurrentLevel(out var level) && _currentStepIndex + 1 < level.Steps.Count)
             {
-                var level = stages[_currentStageIndex].Levels[_currentLevelIndex];
-                if (_currentStepIndex + 1 < level.Steps.Count)
-                {
-                    StartCoroutine(ScrollAndSpawnCoroutine(_stepScrollDistance, StartNextStep));
-                    return;
-                }
+                StartCoroutine(ScrollAndSpawnCoroutine(_stepScrollDistance, StartNextStep));
+                return;
             }
 
             _levelInProgress = false;
@@ -357,8 +351,7 @@ namespace RogueliteAutoBattler.Combat.Levels
             Debug.Log($"[{nameof(LevelManager)}] Level complete! Starting transition...");
 #endif
 
-            var stages = _levelDatabase.Stages;
-            if (stages == null || _currentStageIndex < 0 || _currentStageIndex >= stages.Count)
+            if (!TryGetCurrentStage(out var stage))
             {
 #if UNITY_EDITOR
                 Debug.LogWarning($"[{nameof(LevelManager)}] Stage index {_currentStageIndex} out of range on level complete.");
@@ -366,7 +359,6 @@ namespace RogueliteAutoBattler.Combat.Levels
                 return;
             }
 
-            var stage = stages[_currentStageIndex];
             _currentLevelIndex++;
 
             if (_currentLevelIndex < stage.Levels.Count)
@@ -381,13 +373,9 @@ namespace RogueliteAutoBattler.Combat.Levels
             }
         }
 
-        private const float SpawnSpeedThreshold = 0.3f;
-
         private void StartNextStep()
         {
-            var stages = _levelDatabase.Stages;
-            if (stages == null || _currentStageIndex < 0 || _currentStageIndex >= stages.Count) return;
-            var level = stages[_currentStageIndex].Levels[_currentLevelIndex];
+            if (!TryGetCurrentLevel(out var level)) return;
 
             _currentStepIndex++;
             var step = level.Steps[_currentStepIndex];
@@ -405,7 +393,7 @@ namespace RogueliteAutoBattler.Combat.Levels
             }
         }
 
-        private IEnumerator ScrollAndSpawnCoroutine(float scrollDistance, System.Action onReadyToSpawn)
+        private IEnumerator ScrollAndSpawnCoroutine(float scrollDistance, Action onReadyToSpawn)
         {
             _levelInProgress = false;
 
@@ -527,6 +515,7 @@ namespace RogueliteAutoBattler.Combat.Levels
 
             _currentStageIndex = 0;
             _currentLevelIndex = 0;
+            _currentStepIndex = 0;
 
             ApplyStage(0);
 
