@@ -17,11 +17,18 @@ namespace RogueliteAutoBattler.UI.Widgets
         [Header("Sizing")]
         [SerializeField] private float _sphereSize = 16f;
         [SerializeField] private float _lineHeight = 3f;
+        [SerializeField] private float _lineMinWidth = 4f;
 
         private LevelManager _levelManager;
+        private HorizontalLayoutGroup _layoutGroup;
         private readonly List<Image> _spheres = new List<Image>();
         private readonly List<Image> _lines = new List<Image>();
         private bool _initializedForTest;
+
+        private void Awake()
+        {
+            _layoutGroup = GetComponent<HorizontalLayoutGroup>();
+        }
 
         private void Start()
         {
@@ -52,16 +59,22 @@ namespace RogueliteAutoBattler.UI.Widgets
             _lines.Clear();
 
             for (int i = transform.childCount - 1; i >= 0; i--)
-                DestroyImmediate(transform.GetChild(i).gameObject);
+            {
+                GameObject child = transform.GetChild(i).gameObject;
+#if UNITY_EDITOR
+                if (!Application.isPlaying)
+                    DestroyImmediate(child);
+                else
+#endif
+                    Destroy(child);
+            }
 
-            var layoutGroup = GetComponent<HorizontalLayoutGroup>();
-
-            layoutGroup.childAlignment = TextAnchor.MiddleCenter;
-            layoutGroup.childControlWidth = true;
-            layoutGroup.childControlHeight = true;
-            layoutGroup.childForceExpandWidth = false;
-            layoutGroup.childForceExpandHeight = false;
-            layoutGroup.spacing = 0;
+            _layoutGroup.childAlignment = TextAnchor.MiddleCenter;
+            _layoutGroup.childControlWidth = true;
+            _layoutGroup.childControlHeight = false;
+            _layoutGroup.childForceExpandWidth = false;
+            _layoutGroup.childForceExpandHeight = false;
+            _layoutGroup.spacing = 0;
 
             for (int i = 0; i < totalSteps; i++)
             {
@@ -74,6 +87,8 @@ namespace RogueliteAutoBattler.UI.Widgets
                 _spheres.Add(sphereImage);
 
                 var sphereLayout = sphereGo.AddComponent<LayoutElement>();
+                sphereLayout.minWidth = _sphereSize;
+                sphereLayout.minHeight = _sphereSize;
                 sphereLayout.preferredWidth = _sphereSize;
                 sphereLayout.preferredHeight = _sphereSize;
 
@@ -88,6 +103,7 @@ namespace RogueliteAutoBattler.UI.Widgets
 
                     var lineLayout = lineGo.AddComponent<LayoutElement>();
                     lineLayout.flexibleWidth = 1;
+                    lineLayout.minWidth = _lineMinWidth;
                     lineLayout.minHeight = _lineHeight;
                     lineLayout.preferredHeight = _lineHeight;
                 }

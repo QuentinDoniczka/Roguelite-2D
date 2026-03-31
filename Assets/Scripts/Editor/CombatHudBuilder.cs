@@ -55,24 +55,11 @@ namespace RogueliteAutoBattler.Editor
 
             var bootstrap = go.AddComponent<CoinFlyBootstrap>();
             var bootstrapSO = new SerializedObject(bootstrap);
-            var coinContainerProp = bootstrapSO.FindProperty("_coinContainer");
-            if (coinContainerProp == null)
-                Debug.LogError($"[{nameof(CombatHudBuilder)}] SerializedProperty '_coinContainer' not found on CoinFlyBootstrap.");
-            else
-                coinContainerProp.objectReferenceValue = coinFlyPoolRect;
-
-            var targetBadgeProp = bootstrapSO.FindProperty("_targetBadge");
-            if (targetBadgeProp == null)
-                Debug.LogError($"[{nameof(CombatHudBuilder)}] SerializedProperty '_targetBadge' not found on CoinFlyBootstrap.");
-            else
-                targetBadgeProp.objectReferenceValue = goldBadge != null ? goldBadge.GetComponent<RectTransform>() : null;
-
-            var coinSpriteProp = bootstrapSO.FindProperty("_coinSprite");
-            if (coinSpriteProp == null)
-                Debug.LogError($"[{nameof(CombatHudBuilder)}] SerializedProperty '_coinSprite' not found on CoinFlyBootstrap.");
-            else
-                coinSpriteProp.objectReferenceValue = AssetDatabase.GetBuiltinExtraResource<Sprite>("UI/Skin/Knob.psd");
-
+            EditorUIFactory.SetObj(bootstrapSO, "_coinContainer", coinFlyPoolRect);
+            EditorUIFactory.SetObj(bootstrapSO, "_targetBadge",
+                goldBadge != null ? goldBadge.GetComponent<RectTransform>() : null);
+            EditorUIFactory.SetObj(bootstrapSO, "_coinSprite",
+                AssetDatabase.GetBuiltinExtraResource<Sprite>("UI/Skin/Knob.psd"));
             bootstrapSO.ApplyModifiedProperties();
 
             CreateCurrencyBadge(go.transform, "Diamond", "211",
@@ -113,18 +100,15 @@ namespace RogueliteAutoBattler.Editor
             HorizontalLayoutGroup stepBarLayout = stepBarGo.AddComponent<HorizontalLayoutGroup>();
             stepBarLayout.childAlignment = TextAnchor.MiddleCenter;
             stepBarLayout.childControlWidth = true;
-            stepBarLayout.childControlHeight = true;
+            stepBarLayout.childControlHeight = false;
             stepBarLayout.childForceExpandWidth = false;
             stepBarLayout.childForceExpandHeight = false;
             stepBarLayout.spacing = 0;
 
             StepProgressBar stepBar = stepBarGo.AddComponent<StepProgressBar>();
             var stepBarSo = new SerializedObject(stepBar);
-            var sphereSpriteProp = stepBarSo.FindProperty("_sphereSprite");
-            if (sphereSpriteProp == null)
-                Debug.LogError($"[{nameof(CombatHudBuilder)}] SerializedProperty '_sphereSprite' not found on StepProgressBar.");
-            else
-                sphereSpriteProp.objectReferenceValue = AssetDatabase.GetBuiltinExtraResource<Sprite>("UI/Skin/Knob.psd");
+            EditorUIFactory.SetObj(stepBarSo, "_sphereSprite",
+                AssetDatabase.GetBuiltinExtraResource<Sprite>("UI/Skin/Knob.psd"));
             stepBarSo.ApplyModifiedPropertiesWithoutUndo();
 
             var announcementOverlayGo = new GameObject("AnnouncementOverlay");
@@ -150,25 +134,9 @@ namespace RogueliteAutoBattler.Editor
             announcementTmp.fontStyle = FontStyles.Bold;
 
             var badgeSO = new SerializedObject(badge);
-
-            var compactLabelProp = badgeSO.FindProperty("_compactLabel");
-            if (compactLabelProp == null)
-                Debug.LogError($"[{nameof(CombatHudBuilder)}] SerializedProperty '_compactLabel' not found on BattleIndicatorBadge.");
-            else
-                compactLabelProp.objectReferenceValue = compactTmp;
-
-            var announcementLabelProp = badgeSO.FindProperty("_announcementLabel");
-            if (announcementLabelProp == null)
-                Debug.LogError($"[{nameof(CombatHudBuilder)}] SerializedProperty '_announcementLabel' not found on BattleIndicatorBadge.");
-            else
-                announcementLabelProp.objectReferenceValue = announcementTmp;
-
-            var announcementGroupProp = badgeSO.FindProperty("_announcementGroup");
-            if (announcementGroupProp == null)
-                Debug.LogError($"[{nameof(CombatHudBuilder)}] SerializedProperty '_announcementGroup' not found on BattleIndicatorBadge.");
-            else
-                announcementGroupProp.objectReferenceValue = announcementCanvasGroup;
-
+            EditorUIFactory.SetObj(badgeSO, "_compactLabel", compactTmp);
+            EditorUIFactory.SetObj(badgeSO, "_announcementLabel", announcementTmp);
+            EditorUIFactory.SetObj(badgeSO, "_announcementGroup", announcementCanvasGroup);
             badgeSO.ApplyModifiedProperties();
 
             return screen;
