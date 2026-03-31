@@ -44,6 +44,12 @@ namespace RogueliteAutoBattler.Combat.Levels
         public int CurrentStageIndex => _currentStageIndex;
         public int CurrentLevelIndex => _currentLevelIndex;
 
+        public int TotalLevelsInCurrentStage =>
+            _levelDatabase != null && _levelDatabase.Stages != null &&
+            _currentStageIndex >= 0 && _currentStageIndex < _levelDatabase.Stages.Count
+                ? _levelDatabase.Stages[_currentStageIndex].Levels.Count
+                : 0;
+
         private const float FallbackEnemySpawnX = 1f;
 
         private int _aliveEnemyCount;
