@@ -1,7 +1,9 @@
 using System.Collections;
 using System.Collections.Generic;
 using NUnit.Framework;
-using RogueliteAutoBattler.Combat;
+using RogueliteAutoBattler.Combat.Core;
+using RogueliteAutoBattler.Combat.Environment;
+using RogueliteAutoBattler.Combat.Levels;
 using RogueliteAutoBattler.Data;
 using RogueliteAutoBattler.UI.Widgets;
 using TMPro;

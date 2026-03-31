@@ -1,5 +1,7 @@
 using System.Collections.Generic;
-using RogueliteAutoBattler.Combat;
+using RogueliteAutoBattler.Combat.Core;
+using RogueliteAutoBattler.Combat.Environment;
+using RogueliteAutoBattler.Combat.Visuals;
 using RogueliteAutoBattler.Data;
 using UnityEngine;
 

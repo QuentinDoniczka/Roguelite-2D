@@ -1,6 +1,9 @@
 using System.Collections;
 using NUnit.Framework;
-using RogueliteAutoBattler.Combat;
+using RogueliteAutoBattler.Combat.Core;
+using RogueliteAutoBattler.Combat.Environment;
+using RogueliteAutoBattler.Combat.Levels;
+using RogueliteAutoBattler.Economy;
 using RogueliteAutoBattler.Tests;
 using UnityEngine;
 using UnityEngine.TestTools;
