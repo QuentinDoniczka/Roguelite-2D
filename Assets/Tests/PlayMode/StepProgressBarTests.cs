@@ -20,10 +20,10 @@ namespace RogueliteAutoBattler.Tests.PlayMode
         public void SetUp()
         {
             _levelDatabase = ScriptableObject.CreateInstance<LevelDatabase>();
-            var emptyWave = new WaveData("W1", 0f, new List<EnemySpawnData>());
-            var level0 = new LevelData("Level0", new List<WaveData> { emptyWave });
-            var level1 = new LevelData("Level1", new List<WaveData> { emptyWave });
-            var level2 = new LevelData("Level2", new List<WaveData> { emptyWave });
+            var delayedWave = new WaveData("W1", 999f, new List<EnemySpawnData>());
+            var level0 = new LevelData("Level0", new List<WaveData> { delayedWave });
+            var level1 = new LevelData("Level1", new List<WaveData> { delayedWave });
+            var level2 = new LevelData("Level2", new List<WaveData> { delayedWave });
             var stage = new StageData("Stage0", null, new List<LevelData> { level0, level1, level2 });
             _levelDatabase.Stages.Add(stage);
 
@@ -113,8 +113,8 @@ namespace RogueliteAutoBattler.Tests.PlayMode
         public IEnumerator SingleLevelStage_ShowsOneSphereNoLines()
         {
             var singleLevelDatabase = ScriptableObject.CreateInstance<LevelDatabase>();
-            var emptyWave = new WaveData("W1", 0f, new List<EnemySpawnData>());
-            var singleLevel = new LevelData("Level0", new List<WaveData> { emptyWave });
+            var delayedWave = new WaveData("W1", 999f, new List<EnemySpawnData>());
+            var singleLevel = new LevelData("Level0", new List<WaveData> { delayedWave });
             var singleStage = new StageData("Stage0", null, new List<LevelData> { singleLevel });
             singleLevelDatabase.Stages.Add(singleStage);
 
