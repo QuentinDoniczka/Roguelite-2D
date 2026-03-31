@@ -21,6 +21,7 @@ namespace RogueliteAutoBattler.Combat.Levels
         [Header("Stage / Level")]
         [SerializeField] private int _currentStageIndex;
         [SerializeField] private int _currentLevelIndex;
+        private int _currentStepIndex;
 
         [Header("Containers")]
         [SerializeField] private Transform _enemiesContainer;
@@ -39,10 +40,24 @@ namespace RogueliteAutoBattler.Combat.Levels
 
         public event Action<int, int> OnStageStarted;
         public event Action<int, int> OnLevelStarted;
+        public event Action<int> OnStepStarted;
         public event Action<int, int, int> OnWaveSpawned;
 
         public int CurrentStageIndex => _currentStageIndex;
         public int CurrentLevelIndex => _currentLevelIndex;
+        public int CurrentStepIndex => _currentStepIndex;
+
+        public int TotalStepsInCurrentLevel
+        {
+            get
+            {
+                if (_levelDatabase == null || _levelDatabase.Stages == null) return 0;
+                if (_currentStageIndex < 0 || _currentStageIndex >= _levelDatabase.Stages.Count) return 0;
+                var levels = _levelDatabase.Stages[_currentStageIndex].Levels;
+                if (levels == null || _currentLevelIndex < 0 || _currentLevelIndex >= levels.Count) return 0;
+                return levels[_currentLevelIndex].Steps.Count;
+            }
+        }
 
         public int TotalLevelsInCurrentStage =>
             _levelDatabase != null && _levelDatabase.Stages != null &&
@@ -157,14 +172,22 @@ namespace RogueliteAutoBattler.Combat.Levels
             OnLevelStarted?.Invoke(_currentStageIndex, _currentLevelIndex);
 
             var level = stage.Levels[levelIndex];
-            _pendingWaveCount = level.Waves.Count;
+            _currentStepIndex = 0;
+
+            if (level.Steps.Count == 0) return;
+
+            var step = level.Steps[_currentStepIndex];
+            _pendingWaveCount = step.Waves.Count;
+
+            OnStepStarted?.Invoke(_currentStepIndex);
+
 #if UNITY_EDITOR
-            Debug.Log($"[{nameof(LevelManager)}] Starting level '{level.LevelName}' with {level.Waves.Count} wave(s).");
+            Debug.Log($"[{nameof(LevelManager)}] Starting level '{level.LevelName}' step {_currentStepIndex} with {step.Waves.Count} wave(s).");
 #endif
 
-            for (int i = 0; i < level.Waves.Count; i++)
+            for (int i = 0; i < step.Waves.Count; i++)
             {
-                StartCoroutine(SpawnWaveCoroutine(level.Waves[i], i));
+                StartCoroutine(SpawnWaveCoroutine(step.Waves[i], i));
             }
         }
 
@@ -309,11 +332,30 @@ namespace RogueliteAutoBattler.Combat.Levels
 
         private void CheckLevelComplete()
         {
-            if (_levelInProgress && _pendingWaveCount <= 0 && _aliveEnemyCount <= 0)
+            if (!_levelInProgress || _pendingWaveCount > 0 || _aliveEnemyCount > 0) return;
+
+            var stages = _levelDatabase.Stages;
+            if (stages != null && _currentStageIndex >= 0 && _currentStageIndex < stages.Count)
             {
-                _levelInProgress = false;
-                OnLevelComplete();
+                var level = stages[_currentStageIndex].Levels[_currentLevelIndex];
+                if (_currentStepIndex + 1 < level.Steps.Count)
+                {
+                    _currentStepIndex++;
+                    var step = level.Steps[_currentStepIndex];
+                    _pendingWaveCount = step.Waves.Count;
+
+                    OnStepStarted?.Invoke(_currentStepIndex);
+
+                    for (int i = 0; i < step.Waves.Count; i++)
+                    {
+                        StartCoroutine(SpawnWaveCoroutine(step.Waves[i], i));
+                    }
+                    return;
+                }
             }
+
+            _levelInProgress = false;
+            OnLevelComplete();
         }
 
         private void OnLevelComplete()

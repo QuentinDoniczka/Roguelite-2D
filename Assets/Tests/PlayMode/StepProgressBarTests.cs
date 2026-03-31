@@ -21,10 +21,11 @@ namespace RogueliteAutoBattler.Tests.PlayMode
         {
             _levelDatabase = ScriptableObject.CreateInstance<LevelDatabase>();
             var delayedWave = new WaveData("W1", 999f, new List<EnemySpawnData>());
-            var level0 = new LevelData("Level0", new List<WaveData> { delayedWave });
-            var level1 = new LevelData("Level1", new List<WaveData> { delayedWave });
-            var level2 = new LevelData("Level2", new List<WaveData> { delayedWave });
-            var stage = new StageData("Stage0", null, new List<LevelData> { level0, level1, level2 });
+            var step0 = new StepData("Step0", new List<WaveData> { delayedWave });
+            var step1 = new StepData("Step1", new List<WaveData> { delayedWave });
+            var step2 = new StepData("Step2", new List<WaveData> { delayedWave });
+            var level = new LevelData("Level0", new List<StepData> { step0, step1, step2 });
+            var stage = new StageData("Stage0", null, new List<LevelData> { level });
             _levelDatabase.Stages.Add(stage);
 
             var levelManagerGo = new GameObject("LevelManager");
@@ -89,9 +90,9 @@ namespace RogueliteAutoBattler.Tests.PlayMode
         }
 
         [UnityTest]
-        public IEnumerator OnLevelStarted_UpdatesSphereColors()
+        public IEnumerator OnStepStarted_UpdatesSphereColors()
         {
-            _levelManager.StartLevel(1);
+            _progressBar.SimulateStepChange(1);
             yield return null;
 
             Assert.AreEqual(_progressBar.CompletedColor, _progressBar.GetSphereColor(0));
@@ -100,9 +101,9 @@ namespace RogueliteAutoBattler.Tests.PlayMode
         }
 
         [UnityTest]
-        public IEnumerator OnLevelStarted_UpdatesLineColors()
+        public IEnumerator OnStepStarted_UpdatesLineColors()
         {
-            _levelManager.StartLevel(1);
+            _progressBar.SimulateStepChange(1);
             yield return null;
 
             Assert.AreEqual(_progressBar.CompletedColor, _progressBar.GetLineColor(0));
@@ -110,11 +111,12 @@ namespace RogueliteAutoBattler.Tests.PlayMode
         }
 
         [UnityTest]
-        public IEnumerator SingleLevelStage_ShowsOneSphereNoLines()
+        public IEnumerator SingleStepLevel_ShowsOneSphereNoLines()
         {
             var singleLevelDatabase = ScriptableObject.CreateInstance<LevelDatabase>();
             var delayedWave = new WaveData("W1", 999f, new List<EnemySpawnData>());
-            var singleLevel = new LevelData("Level0", new List<WaveData> { delayedWave });
+            var singleStep = new StepData("Step0", new List<WaveData> { delayedWave });
+            var singleLevel = new LevelData("Level0", new List<StepData> { singleStep });
             var singleStage = new StageData("Stage0", null, new List<LevelData> { singleLevel });
             singleLevelDatabase.Stages.Add(singleStage);
 

@@ -31,9 +31,9 @@ namespace RogueliteAutoBattler.UI.Widgets
             if (managers.Length > 0)
             {
                 _levelManager = managers[0];
-                _levelManager.OnStageStarted += OnStageChanged;
                 _levelManager.OnLevelStarted += OnLevelChanged;
-                Rebuild(_levelManager.TotalLevelsInCurrentStage, _levelManager.CurrentLevelIndex);
+                _levelManager.OnStepStarted += OnStepChanged;
+                Rebuild(_levelManager.TotalStepsInCurrentLevel, _levelManager.CurrentStepIndex);
             }
         }
 
@@ -41,8 +41,8 @@ namespace RogueliteAutoBattler.UI.Widgets
         {
             if (_levelManager != null)
             {
-                _levelManager.OnStageStarted -= OnStageChanged;
                 _levelManager.OnLevelStarted -= OnLevelChanged;
+                _levelManager.OnStepStarted -= OnStepChanged;
             }
         }
 
@@ -114,14 +114,14 @@ namespace RogueliteAutoBattler.UI.Widgets
             }
         }
 
-        private void OnStageChanged(int stageIndex, int levelIndex)
-        {
-            Rebuild(_levelManager.TotalLevelsInCurrentStage, levelIndex);
-        }
-
         private void OnLevelChanged(int stageIndex, int levelIndex)
         {
-            UpdateVisuals(levelIndex);
+            Rebuild(_levelManager.TotalStepsInCurrentLevel, 0);
+        }
+
+        private void OnStepChanged(int stepIndex)
+        {
+            UpdateVisuals(stepIndex);
         }
 
         internal void InitializeForTest(LevelManager levelManager)
@@ -129,10 +129,12 @@ namespace RogueliteAutoBattler.UI.Widgets
             _initializedForTest = true;
             _levelManager = levelManager;
 
-            _levelManager.OnStageStarted += OnStageChanged;
             _levelManager.OnLevelStarted += OnLevelChanged;
-            Rebuild(_levelManager.TotalLevelsInCurrentStage, _levelManager.CurrentLevelIndex);
+            _levelManager.OnStepStarted += OnStepChanged;
+            Rebuild(_levelManager.TotalStepsInCurrentLevel, _levelManager.CurrentStepIndex);
         }
+
+        internal void SimulateStepChange(int stepIndex) => UpdateVisuals(stepIndex);
 
         internal int SphereCount => _spheres.Count;
         internal int LineCount => _lines.Count;

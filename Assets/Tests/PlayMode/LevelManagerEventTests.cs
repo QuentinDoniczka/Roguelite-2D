@@ -22,9 +22,10 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             _levelDatabase = ScriptableObject.CreateInstance<LevelDatabase>();
 
             var emptyWave = new WaveData("EmptyWave", 0f, new List<EnemySpawnData>());
+            var emptyStep = new StepData("Step0", new List<WaveData> { emptyWave });
 
-            var level0 = new LevelData("Level0", new List<WaveData> { emptyWave });
-            var level1 = new LevelData("Level1", new List<WaveData> { emptyWave });
+            var level0 = new LevelData("Level0", new List<StepData> { emptyStep });
+            var level1 = new LevelData("Level1", new List<StepData> { emptyStep });
 
             var stage = new StageData("Stage0", null, new List<LevelData> { level0, level1 });
             _levelDatabase.Stages.Add(stage);

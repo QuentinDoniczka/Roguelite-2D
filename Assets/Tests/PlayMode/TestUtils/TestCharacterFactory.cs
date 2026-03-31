@@ -212,7 +212,8 @@ namespace RogueliteAutoBattler.Tests
 
             var wave = new WaveData("Wave_0", 0f, enemies);
 
-            var level = new LevelData("Level_0", new List<WaveData> { wave });
+            var step = new StepData("Step_0", new List<WaveData> { wave });
+            var level = new LevelData("Level_0", new List<StepData> { step });
 
             var stage = new StageData("Stage_0", null, new List<LevelData> { level });
 
