@@ -209,23 +209,18 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             Assert.IsTrue(_levelManager.LevelInProgress,
                 "LevelInProgress should be true before killing enemies.");
 
-            bool capturedLevelInProgressDuringScroll = true;
-            _conveyor.OnDecelerationStarted += () =>
+            bool capturedLevelInProgressWhenStepStarted = true;
+            _levelManager.OnStepStarted += (stepIndex) =>
             {
-                capturedLevelInProgressDuringScroll = _levelManager.LevelInProgress;
+                capturedLevelInProgressWhenStepStarted = _levelManager.LevelInProgress;
             };
 
             KillAllEnemies();
 
-            yield return null;
-            yield return null;
-
-            bool levelInProgressRightAfterKill = _levelManager.LevelInProgress;
-
             yield return new WaitForSeconds(3f);
 
-            Assert.IsFalse(levelInProgressRightAfterKill,
-                "LevelInProgress should be false immediately after enemies die and scroll begins.");
+            Assert.IsFalse(capturedLevelInProgressWhenStepStarted,
+                "LevelInProgress should be false at the moment OnStepStarted fires during the scroll transition.");
         }
 
         [UnityTest]
