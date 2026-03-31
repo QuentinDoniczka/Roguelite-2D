@@ -20,9 +20,12 @@ namespace RogueliteAutoBattler.UI.Widgets
         private LevelManager _levelManager;
         private readonly List<Image> _spheres = new();
         private readonly List<Image> _lines = new();
+        private bool _initializedForTest;
 
         private void Start()
         {
+            if (_initializedForTest) return;
+
             var managers = FindObjectsByType<LevelManager>(FindObjectsSortMode.None);
             if (managers.Length > 0)
             {
@@ -123,6 +126,7 @@ namespace RogueliteAutoBattler.UI.Widgets
 
         internal void InitializeForTest(LevelManager levelManager)
         {
+            _initializedForTest = true;
             _levelManager = levelManager;
 
             if (_sphereSize == 0f) _sphereSize = 16f;
