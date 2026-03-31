@@ -80,7 +80,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
         {
             yield return null;
 
-            Assert.AreEqual("1-1-1", _badge.CompactText);
+            Assert.AreEqual("1-1", _badge.CompactText);
         }
 
         [UnityTest]
@@ -91,7 +91,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             _levelManager.StartLevel(1);
             yield return null;
 
-            Assert.AreEqual("1-2-1", _badge.CompactText);
+            Assert.AreEqual("1-2", _badge.CompactText);
         }
 
         [UnityTest]
@@ -124,7 +124,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
         {
             yield return null;
 
-            Assert.AreEqual("1-1-1", _badge.CompactText,
+            Assert.AreEqual("1-1", _badge.CompactText,
                 "Display should be 1-indexed (1-1-1) not 0-indexed (0-0-0).");
         }
     }
