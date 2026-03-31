@@ -25,7 +25,7 @@
 Doc detaille : `Assets/doc/premier-jet-roguelite.html`
 
 # Project Structure
-Generated: 2026-03-30 (updated #31)
+Generated: 2026-03-31 (updated refactor/combat-folder-reorganization)
 
 .github/
 └── workflows/
@@ -33,7 +33,7 @@ Generated: 2026-03-30 (updated #31)
     └── protect-main.yml
 
 Assets/
-├── Animations/  (23 files: .anim + .controller)
+├── Animations/  (24 files: .anim + .controller)
 ├── Audio/  (empty)
 ├── Data/
 │   ├── Adventurers/
@@ -59,7 +59,7 @@ Assets/
 ├── Fonts/  (empty)
 ├── MedievalFantasyCharacters/  (empty)
 ├── Prefabs/
-│   ├── Characters/  (5 prefabs: Elk, Horse, Wildboar, Wolf, sampleCharacterHuman)
+│   ├── Characters/  (6 prefabs)
 │   ├── Effects/  (empty)
 │   └── UI/  (empty)
 ├── Scenes/
@@ -69,36 +69,42 @@ Assets/
 │   ├── AssemblyInfo.cs
 │   ├── Adventurers/  (empty)
 │   ├── Combat/
-│   │   ├── AnimHashes.cs
-│   │   ├── AnimationEventRelay.cs
-│   │   ├── AttackSlotRegistry.cs
-│   │   ├── CharacterAppearance.cs
-│   │   ├── CharacterMover.cs
-│   │   ├── CoinFly.cs
-│   │   ├── CoinFlyBootstrap.cs
-│   │   ├── CoinFlyService.cs
-│   │   ├── CombatController.cs
-│   │   ├── CombatSetupHelper.cs
-│   │   ├── CombatSpawnManager.cs
-│   │   ├── CombatStats.cs
-│   │   ├── DamageNumber.cs
-│   │   ├── DamageNumberBootstrap.cs
-│   │   ├── DamageNumberService.cs
-│   │   ├── DamageNumberSettingsPersistence.cs
-│   │   ├── FormationLayout.cs
-│   │   ├── GoldFormatter.cs
-│   │   ├── GoldWallet.cs
-│   │   ├── GroundFitter.cs
-│   │   ├── HealthBar.cs
-│   │   ├── LevelManager.cs
-│   │   ├── ScreenAnchor.cs
-│   │   ├── SortingLayers.cs
-│   │   ├── TargetFinder.cs
-│   │   ├── VisualEquipmentTestLoop.cs
-│   │   └── WorldConveyor.cs
+│   │   ├── Core/
+│   │   │   ├── AnimHashes.cs
+│   │   │   ├── AnimationEventRelay.cs
+│   │   │   ├── AttackSlotRegistry.cs
+│   │   │   ├── CharacterMover.cs
+│   │   │   ├── CombatController.cs
+│   │   │   ├── CombatSetupHelper.cs
+│   │   │   ├── CombatSpawnManager.cs
+│   │   │   ├── CombatStats.cs
+│   │   │   ├── FormationLayout.cs
+│   │   │   └── TargetFinder.cs
+│   │   ├── Environment/
+│   │   │   ├── GroundFitter.cs
+│   │   │   ├── ScreenAnchor.cs
+│   │   │   └── WorldConveyor.cs
+│   │   ├── Levels/
+│   │   │   └── LevelManager.cs
+│   │   └── Visuals/
+│   │       ├── CharacterAppearance.cs
+│   │       ├── CoinFly.cs
+│   │       ├── CoinFlyBootstrap.cs
+│   │       ├── CoinFlyService.cs
+│   │       ├── DamageNumber.cs
+│   │       ├── DamageNumberBootstrap.cs
+│   │       ├── DamageNumberService.cs
+│   │       ├── DamageNumberSettingsPersistence.cs
+│   │       ├── HealthBar.cs
+│   │       └── VisualEquipmentTestLoop.cs
+│   ├── Common/
+│   │   └── SortingLayers.cs
 │   ├── Core/
 │   │   ├── CanvasFactory.cs
 │   │   └── GameBootstrap.cs
+│   ├── Economy/
+│   │   ├── GoldFormatter.cs
+│   │   └── GoldWallet.cs
 │   ├── Editor/
 │   │   ├── RogueliteAutoBattler.Editor.asmdef
 │   │   ├── BootstrapSceneBuilder.cs
@@ -148,13 +154,13 @@ Assets/
 │   ├── UniversalRenderPipelineGlobalSettings.asset
 │   └── UniversalRP.asset
 ├── Sprites/
-│   ├── Characters/  (155 files)
+│   ├── Characters/  (156 files)
 │   ├── Effects/  (25 files)
 │   ├── Environment/
 │   │   ├── grid_ground.png
 │   │   ├── grid_ground_blue.png
 │   │   └── placeholder_white.png
-│   ├── Items/  (53 files)
+│   ├── Items/  (54 files)
 │   └── UI/  (empty)
 ├── Tests/
 │   ├── EditMode/
@@ -192,7 +198,7 @@ Assets/
 │       ├── LevelManagerEventTests.cs
 │       ├── VisualEquipmentTestLoopTests.cs
 │       └── WorldConveyorTests.cs
-├── _Recovery/  (1 file)
+├── _Recovery/  (3 files)
 └── TextMesh Pro/  (173 files — TMP package: fonts, shaders, examples)
 
 ProjectSettings/  (Unity defaults)
