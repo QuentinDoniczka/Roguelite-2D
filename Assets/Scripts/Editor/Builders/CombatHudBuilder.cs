@@ -142,7 +142,7 @@ namespace RogueliteAutoBattler.Editor
             return screen;
         }
 
-        internal static void CreateCurrencyBadge(Transform parent, string name, string text,
+        private static void CreateCurrencyBadge(Transform parent, string name, string text,
             Vector2 anchorMin, Vector2 anchorMax, Color textColor)
         {
             var go = new GameObject(name);
@@ -193,7 +193,7 @@ namespace RogueliteAutoBattler.Editor
             labelLe.flexibleHeight = 1;
         }
 
-        internal static void CreateHudBadge(Transform parent, string name, string text,
+        private static void CreateHudBadge(Transform parent, string name, string text,
             Vector2 anchorMin, Vector2 anchorMax, Vector2 offsetMin, Vector2 offsetMax,
             TextAlignmentOptions alignment, Color? textColor = null)
         {

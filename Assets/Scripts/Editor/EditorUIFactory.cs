@@ -67,7 +67,7 @@ namespace RogueliteAutoBattler.Editor
         internal static SerializedProperty FindProp(SerializedObject so, string name)
         {
             SerializedProperty p = so.FindProperty(name);
-            if (p == null) Debug.LogError($"[SetupNavigationUI] Property '{name}' not found on {so.targetObject.GetType().Name}.");
+            if (p == null) Debug.LogError($"[{nameof(EditorUIFactory)}] Property '{name}' not found on {so.targetObject.GetType().Name}.");
             return p;
         }
 
@@ -103,6 +103,33 @@ namespace RogueliteAutoBattler.Editor
             prop.arraySize = count;
             for (int i = 0; i < count; i++)
                 prop.GetArrayElementAtIndex(i).objectReferenceValue = items[i];
+        }
+
+        private static readonly GUIContent AppearanceLabelHead   = new GUIContent("Head");
+        private static readonly GUIContent AppearanceLabelHat    = new GUIContent("Hat / Armor");
+        private static readonly GUIContent AppearanceLabelWeapon = new GUIContent("Weapon");
+        private static readonly GUIContent AppearanceLabelShield = new GUIContent("Shield");
+
+        internal static void DrawAppearanceFields(SerializedProperty parentProp)
+        {
+            var appearanceProp = parentProp.FindPropertyRelative("appearance");
+            if (appearanceProp == null)
+            {
+                Debug.LogError("[GameDesigner] Property 'appearance' not found.");
+                return;
+            }
+
+            EditorGUILayout.Space(4f);
+            EditorGUILayout.LabelField("Appearance", EditorStyles.boldLabel);
+
+            EditorGUILayout.PropertyField(
+                appearanceProp.FindPropertyRelative("headSprite"), AppearanceLabelHead);
+            EditorGUILayout.PropertyField(
+                appearanceProp.FindPropertyRelative("hatSprite"), AppearanceLabelHat);
+            EditorGUILayout.PropertyField(
+                appearanceProp.FindPropertyRelative("weaponSprite"), AppearanceLabelWeapon);
+            EditorGUILayout.PropertyField(
+                appearanceProp.FindPropertyRelative("shieldSprite"), AppearanceLabelShield);
         }
     }
 }

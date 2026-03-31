@@ -37,8 +37,6 @@ namespace RogueliteAutoBattler.Editor
         private static readonly Color32 GridColorA = new Color32(45, 90, 39, 255);
         private static readonly Color32 GridColorB = new Color32(61, 122, 55, 255);
 
-        private const string BackgroundSpritePath = "Assets/Sprites/Environment/backgroundtest.png";
-
         internal static Camera ConfigureMainCamera()
         {
             Camera cam = Camera.main;
@@ -123,8 +121,7 @@ namespace RogueliteAutoBattler.Editor
             EditorUIFactory.SetObj(soSpawnManager, "_teamContainer", teamGo.transform);
             EditorUIFactory.SetObj(soSpawnManager, "_enemiesContainer", enemiesGo.transform);
 
-            const string teamDbPath = "Assets/Data/TeamDatabase.asset";
-            var teamDb = AssetDatabase.LoadAssetAtPath<TeamDatabase>(teamDbPath);
+            var teamDb = AssetDatabase.LoadAssetAtPath<TeamDatabase>(TeamBuilderTab.TeamDatabaseDefaultPath);
             if (teamDb == null)
             {
                 teamDb = ScriptableObject.CreateInstance<TeamDatabase>();
@@ -135,23 +132,23 @@ namespace RogueliteAutoBattler.Editor
                 {
                     alliesProp.arraySize = 1;
                     var defaultAlly = alliesProp.GetArrayElementAtIndex(0);
-                    defaultAlly.FindPropertyRelative("allyName").stringValue = "Warrior";
-                    var defaultPrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Characters/sampleCharacterHuman.prefab");
+                    defaultAlly.FindPropertyRelative("allyName").stringValue = TeamBuilderTab.TeamDefaultAllyName;
+                    var defaultPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(TeamBuilderTab.TeamDefaultAllyPrefabPath);
                     if (defaultPrefab != null)
                         defaultAlly.FindPropertyRelative("prefab").objectReferenceValue = defaultPrefab;
                     else
                         Debug.LogWarning($"[{nameof(CombatWorldBuilder)}] sampleCharacterHuman.prefab not found — assign ally prefab manually.");
-                    defaultAlly.FindPropertyRelative("maxHp").intValue             = 100;
-                    defaultAlly.FindPropertyRelative("atk").intValue               = 10;
-                    defaultAlly.FindPropertyRelative("attackSpeed").floatValue     = 1f;
-                    defaultAlly.FindPropertyRelative("moveSpeed").floatValue       = 2f;
-                    defaultAlly.FindPropertyRelative("regenHpPerSecond").floatValue = 0f;
-                    defaultAlly.FindPropertyRelative("colliderRadius").floatValue  = 0.10f;
+                    defaultAlly.FindPropertyRelative("maxHp").intValue             = TeamBuilderTab.TeamDefaultMaxHp;
+                    defaultAlly.FindPropertyRelative("atk").intValue               = TeamBuilderTab.TeamDefaultAtk;
+                    defaultAlly.FindPropertyRelative("attackSpeed").floatValue     = TeamBuilderTab.TeamDefaultAttackSpeed;
+                    defaultAlly.FindPropertyRelative("moveSpeed").floatValue       = TeamBuilderTab.TeamDefaultMoveSpeed;
+                    defaultAlly.FindPropertyRelative("regenHpPerSecond").floatValue = TeamBuilderTab.TeamDefaultRegenHpPerSec;
+                    defaultAlly.FindPropertyRelative("colliderRadius").floatValue  = TeamBuilderTab.TeamDefaultColliderRadius;
                     soTeamDb.ApplyModifiedPropertiesWithoutUndo();
                 }
 
-                EditorUIFactory.EnsureDirectoryExists(teamDbPath);
-                AssetDatabase.CreateAsset(teamDb, teamDbPath);
+                EditorUIFactory.EnsureDirectoryExists(TeamBuilderTab.TeamDatabaseDefaultPath);
+                AssetDatabase.CreateAsset(teamDb, TeamBuilderTab.TeamDatabaseDefaultPath);
                 AssetDatabase.SaveAssets();
             }
             EditorUIFactory.SetObj(soSpawnManager, "_teamDatabase", teamDb);
@@ -162,12 +159,12 @@ namespace RogueliteAutoBattler.Editor
             EditorUIFactory.SetObj(soLevelManager, "_enemiesContainer", enemiesGo.transform);
             EditorUIFactory.SetObj(soLevelManager, "_teamContainer", teamGo.transform);
 
-            var levelDb = AssetDatabase.LoadAssetAtPath<LevelDatabase>("Assets/Data/LevelDatabase.asset");
+            var levelDb = AssetDatabase.LoadAssetAtPath<LevelDatabase>(LevelDesignerTab.LevelDatabaseDefaultPath);
             if (levelDb != null)
                 EditorUIFactory.SetObj(soLevelManager, "_levelDatabase", levelDb);
 
-            var teamAnchor = FindOrCreateHomeAnchor(CombatSetupHelper.TeamHomeAnchorName, new Vector2(0.12f, 0.70f));
-            var enemiesAnchor = FindOrCreateHomeAnchor(CombatSetupHelper.EnemiesHomeAnchorName, new Vector2(0.88f, 0.70f));
+            var teamAnchor = FindOrCreateHomeAnchor(CombatSetupHelper.TeamHomeAnchorName, new Vector2(0.12f, 0.63f));
+            var enemiesAnchor = FindOrCreateHomeAnchor(CombatSetupHelper.EnemiesHomeAnchorName, new Vector2(0.88f, 0.63f));
             var combatTrigger = FindOrCreateHomeAnchor(CombatSetupHelper.CombatTriggerZoneName, new Vector2(1f, 0.5f));
 
             EditorUIFactory.SetObj(soSpawnManager, "_teamHomeAnchor", teamAnchor);
@@ -180,13 +177,12 @@ namespace RogueliteAutoBattler.Editor
 
             AddVisualEquipmentTestLoop(root);
 
-            const string damageNumberConfigPath = "Assets/Data/DamageNumberConfig.asset";
-            var damageNumberConfig = AssetDatabase.LoadAssetAtPath<DamageNumberConfig>(damageNumberConfigPath);
+            var damageNumberConfig = AssetDatabase.LoadAssetAtPath<DamageNumberConfig>(SettingsWindow.ConfigPath);
             if (damageNumberConfig == null)
             {
                 damageNumberConfig = ScriptableObject.CreateInstance<DamageNumberConfig>();
-                EditorUIFactory.EnsureDirectoryExists(damageNumberConfigPath);
-                AssetDatabase.CreateAsset(damageNumberConfig, damageNumberConfigPath);
+                EditorUIFactory.EnsureDirectoryExists(SettingsWindow.ConfigPath);
+                AssetDatabase.CreateAsset(damageNumberConfig, SettingsWindow.ConfigPath);
                 AssetDatabase.SaveAssets();
             }
 
@@ -289,12 +285,7 @@ namespace RogueliteAutoBattler.Editor
             return go.transform;
         }
 
-        internal static Sprite LoadBackgroundSprite()
-        {
-            return AssetDatabase.LoadAssetAtPath<Sprite>(BackgroundSpritePath);
-        }
-
-        internal static Sprite CreateOrLoadGridSprite()
+        private static Sprite CreateOrLoadGridSprite()
         {
             return CreateOrLoadCheckerboardSprite(GridSpritePath, GridColorA, GridColorB);
         }

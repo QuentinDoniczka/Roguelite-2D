@@ -1,332 +1,19 @@
+using System.Collections.Generic;
 using RogueliteAutoBattler.Data;
 using UnityEditor;
 using UnityEngine;
-using System.Collections.Generic;
 
 namespace RogueliteAutoBattler.Editor
 {
-    public class GameDesignerWindow : EditorWindow
+    internal sealed class LevelDesignerTab
     {
-        private static readonly string[] TabNames = { "Party Builder", "Level Designer" };
-        private int _selectedTab;
-
-        private GUIStyle  _selectedRowStyle;
-        private Texture2D _selectedRowTexture;
-
-        [MenuItem("Roguelite/Game Designer")]
-        private static void OpenWindow()
-        {
-            var window = GetWindow<GameDesignerWindow>("Game Designer");
-            window.minSize = new Vector2(640, 420);
-            window.Show();
-        }
-
-        private void OnEnable()
-        {
-            TeamTryAutoLoadDatabase();
-            LevelTryAutoLoadDatabase();
-        }
-
-        private void OnDisable()
-        {
-            _teamSerializedDatabase = null;
-
-            _levelSerializedDatabase = null;
-
-            _selectedRowStyle = null;
-            if (_selectedRowTexture != null)
-            {
-                DestroyImmediate(_selectedRowTexture);
-                _selectedRowTexture = null;
-            }
-        }
-
-        private void OnGUI()
-        {
-            _selectedTab = GUILayout.Toolbar(_selectedTab, TabNames, EditorStyles.toolbarButton);
-            GUILayout.Space(2f);
-
-            switch (_selectedTab)
-            {
-                case 0: DrawTeamTab();  break;
-                case 1: DrawLevelTab(); break;
-            }
-        }
-
-        #region Team Builder
-
-        private const float TeamRowHeight        = 24f;
-        private const float TeamSmallButtonWidth = 24f;
-        private const float TeamAddButtonHeight  = 22f;
-        private const string TeamDefaultAllyPrefabPath = "Assets/Prefabs/Characters/sampleCharacterHuman.prefab";
-        private const string TeamDatabaseDefaultPath   = "Assets/Data/TeamDatabase.asset";
-
-        private const string TeamDefaultAllyName      = "Warrior";
-        private const int    TeamDefaultMaxHp          = 100;
-        private const int    TeamDefaultAtk            = 10;
-        private const float  TeamDefaultAttackSpeed    = 1f;
-        private const float  TeamDefaultMoveSpeed      = 2f;
-        private const float  TeamDefaultRegenHpPerSec  = 0f;
-
-        private TeamDatabase   _teamDatabase;
-        private SerializedObject _teamSerializedDatabase;
-        private Vector2 _teamScrollPos;
-        private readonly Dictionary<string, bool> _teamFoldouts = new Dictionary<string, bool>();
-
-        private void TeamTryAutoLoadDatabase()
-        {
-            var db = AssetDatabase.LoadAssetAtPath<TeamDatabase>(TeamDatabaseDefaultPath);
-            if (db == null)
-                db = TeamCreateDatabase(TeamDatabaseDefaultPath);
-            TeamSetDatabase(db);
-        }
-
-        private static TeamDatabase TeamCreateDatabase(string path)
-        {
-            EditorUIFactory.EnsureDirectoryExists(path);
-            var db = ScriptableObject.CreateInstance<TeamDatabase>();
-            AssetDatabase.CreateAsset(db, path);
-            AssetDatabase.SaveAssets();
-            Debug.Log($"[TeamBuilder] Created TeamDatabase at {path}");
-            return db;
-        }
-
-        private void TeamSetDatabase(TeamDatabase db)
-        {
-            _teamDatabase           = db;
-            _teamSerializedDatabase = db != null ? new SerializedObject(db) : null;
-            _teamFoldouts.Clear();
-            Repaint();
-        }
-
-        private void DrawTeamTab()
-        {
-            DrawTeamToolbar();
-
-            if (_teamDatabase == null)
-            {
-                EditorGUILayout.HelpBox(
-                    "No TeamDatabase assigned. Use the field above or click 'New DB'.",
-                    MessageType.Info);
-                return;
-            }
-
-            _teamSerializedDatabase.Update();
-
-            var alliesProp = _teamSerializedDatabase.FindProperty("allies");
-            if (alliesProp == null)
-            {
-                Debug.LogError("[TeamBuilder] Property 'allies' not found on TeamDatabase.");
-                EditorGUILayout.HelpBox("Property 'allies' not found — check TeamDatabase.", MessageType.Error);
-                return;
-            }
-
-            TeamDrawAddButton(alliesProp);
-            GUILayout.Space(4f);
-
-            _teamScrollPos = EditorGUILayout.BeginScrollView(_teamScrollPos);
-            {
-                bool listModified = false;
-                for (int i = 0; i < alliesProp.arraySize; i++)
-                {
-                    if (TeamDrawAlly(alliesProp, i))
-                    {
-                        listModified = true;
-                        break;
-                    }
-                    GUILayout.Space(2f);
-                }
-
-                if (!listModified && alliesProp.arraySize == 0)
-                    EditorGUILayout.HelpBox("No allies. Add one with '+ Add Ally'.", MessageType.None);
-            }
-            EditorGUILayout.EndScrollView();
-
-            if (_teamSerializedDatabase.ApplyModifiedProperties())
-                AssetDatabase.SaveAssets();
-        }
-
-        private void DrawTeamToolbar()
-        {
-            GUILayout.BeginHorizontal(EditorStyles.toolbar);
-            {
-                GUILayout.Label("PartyDatabase:", GUILayout.Width(95));
-
-                EditorGUI.BeginChangeCheck();
-                var newDb = (TeamDatabase)EditorGUILayout.ObjectField(
-                    _teamDatabase, typeof(TeamDatabase), false, GUILayout.Width(180));
-                if (EditorGUI.EndChangeCheck())
-                    TeamSetDatabase(newDb);
-
-                GUILayout.FlexibleSpace();
-
-                if (GUILayout.Button("New DB", EditorStyles.toolbarButton, GUILayout.Width(55)))
-                {
-                    string path = EditorUtility.SaveFilePanelInProject(
-                        "Create TeamDatabase", "TeamDatabase", "asset", "Choose location");
-                    if (!string.IsNullOrEmpty(path))
-                        TeamSetDatabase(TeamCreateDatabase(path));
-                }
-            }
-            GUILayout.EndHorizontal();
-        }
-
-        private void TeamDrawAddButton(SerializedProperty alliesProp)
-        {
-            if (GUILayout.Button("+ Add Ally", GUILayout.Height(TeamAddButtonHeight)))
-            {
-                bool wasEmpty = alliesProp.arraySize == 0;
-                alliesProp.arraySize++;
-                if (wasEmpty)
-                {
-                    var newAlly = alliesProp.GetArrayElementAtIndex(alliesProp.arraySize - 1);
-                    TeamInitAllyDefaults(newAlly);
-                }
-                EditorUtility.SetDirty(_teamDatabase);
-            }
-        }
-
-        private static void TeamInitAllyDefaults(SerializedProperty allyProp)
-        {
-            var nameProp = allyProp.FindPropertyRelative("allyName");
-            if (nameProp != null) nameProp.stringValue = TeamDefaultAllyName;
-
-            var prefabProp = allyProp.FindPropertyRelative("prefab");
-            if (prefabProp != null)
-            {
-                var defaultPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(TeamDefaultAllyPrefabPath);
-                prefabProp.objectReferenceValue = defaultPrefab;
-            }
-
-            TeamSetIntSafe(allyProp,   "maxHp",              TeamDefaultMaxHp);
-            TeamSetIntSafe(allyProp,   "atk",                TeamDefaultAtk);
-            TeamSetFloatSafe(allyProp, "attackSpeed",        TeamDefaultAttackSpeed);
-            TeamSetFloatSafe(allyProp, "moveSpeed",          TeamDefaultMoveSpeed);
-            TeamSetFloatSafe(allyProp, "regenHpPerSecond",   TeamDefaultRegenHpPerSec);
-            TeamSetFloatSafe(allyProp, "colliderRadius",    0.10f);
-        }
-
-        private bool TeamDrawAlly(SerializedProperty alliesProp, int index)
-        {
-            var allyProp = alliesProp.GetArrayElementAtIndex(index);
-            var nameProp = allyProp.FindPropertyRelative("allyName");
-
-            string foldoutKey = allyProp.propertyPath;
-            if (!_teamFoldouts.ContainsKey(foldoutKey))
-                _teamFoldouts[foldoutKey] = false;
-
-            string label = nameProp != null && !string.IsNullOrEmpty(nameProp.stringValue)
-                ? nameProp.stringValue
-                : $"Ally {index + 1}";
-
-            GUILayout.BeginHorizontal();
-            {
-                _teamFoldouts[foldoutKey] = EditorGUILayout.Foldout(
-                    _teamFoldouts[foldoutKey], label, true);
-
-                if (GUILayout.Button("-",
-                        GUILayout.Width(TeamSmallButtonWidth),
-                        GUILayout.Height(TeamRowHeight - 2)))
-                {
-                    if (EditorUtility.DisplayDialog("Remove Ally",
-                            $"Remove '{label}'?", "Remove", "Cancel"))
-                    {
-                        alliesProp.DeleteArrayElementAtIndex(index);
-                        _teamFoldouts.Remove(foldoutKey);
-                        EditorUtility.SetDirty(_teamDatabase);
-                        GUILayout.EndHorizontal();
-                        return true;
-                    }
-                }
-            }
-            GUILayout.EndHorizontal();
-
-            if (!_teamFoldouts[foldoutKey])
-                return false;
-
-            EditorGUI.indentLevel++;
-
-            if (nameProp != null)
-                nameProp.stringValue = EditorGUILayout.TextField("Name", nameProp.stringValue);
-            else
-                Debug.LogError("[TeamBuilder] Property 'allyName' not found on AllySpawnData.");
-
-            var prefabProp = allyProp.FindPropertyRelative("prefab");
-            if (prefabProp != null)
-                prefabProp.objectReferenceValue = EditorGUILayout.ObjectField(
-                    "Prefab", prefabProp.objectReferenceValue, typeof(GameObject), false);
-            else
-                Debug.LogError("[TeamBuilder] Property 'prefab' not found on AllySpawnData.");
-
-            var maxHpProp = allyProp.FindPropertyRelative("maxHp");
-            if (maxHpProp != null)
-                maxHpProp.intValue = EditorGUILayout.IntField("HP", maxHpProp.intValue);
-            else
-                Debug.LogError("[TeamBuilder] Property 'maxHp' not found on AllySpawnData.");
-
-            var atkProp = allyProp.FindPropertyRelative("atk");
-            if (atkProp != null)
-                atkProp.intValue = EditorGUILayout.IntField("ATK", atkProp.intValue);
-            else
-                Debug.LogError("[TeamBuilder] Property 'atk' not found on AllySpawnData.");
-
-            var attackSpeedProp = allyProp.FindPropertyRelative("attackSpeed");
-            if (attackSpeedProp != null)
-                attackSpeedProp.floatValue = EditorGUILayout.FloatField("Attack Speed", attackSpeedProp.floatValue);
-            else
-                Debug.LogError("[TeamBuilder] Property 'attackSpeed' not found on AllySpawnData.");
-
-            var moveSpeedProp = allyProp.FindPropertyRelative("moveSpeed");
-            if (moveSpeedProp != null)
-                moveSpeedProp.floatValue = EditorGUILayout.FloatField("Move Speed", moveSpeedProp.floatValue);
-            else
-                Debug.LogError("[TeamBuilder] Property 'moveSpeed' not found on AllySpawnData.");
-
-            var regenProp = allyProp.FindPropertyRelative("regenHpPerSecond");
-            if (regenProp != null)
-                regenProp.floatValue = EditorGUILayout.FloatField("Regen HP/s", regenProp.floatValue);
-            else
-                Debug.LogError("[TeamBuilder] Property 'regenHpPerSecond' not found on AllySpawnData.");
-
-            var colRadiusProp = allyProp.FindPropertyRelative("colliderRadius");
-            if (colRadiusProp != null)
-                colRadiusProp.floatValue = EditorGUILayout.FloatField("Collider Radius", colRadiusProp.floatValue);
-            else
-                Debug.LogError("[TeamBuilder] Property 'colliderRadius' not found on AllySpawnData.");
-
-            DrawAppearanceFields(allyProp);
-
-            EditorGUI.indentLevel--;
-            GUILayout.Space(2f);
-
-            return false;
-        }
-
-        private static void TeamSetIntSafe(SerializedProperty parent, string name, int value)
-        {
-            var p = parent.FindPropertyRelative(name);
-            if (p != null) p.intValue = value;
-            else Debug.LogError($"[TeamBuilder] Property '{name}' not found on AllySpawnData.");
-        }
-
-        private static void TeamSetFloatSafe(SerializedProperty parent, string name, float value)
-        {
-            var p = parent.FindPropertyRelative(name);
-            if (p != null) p.floatValue = value;
-            else Debug.LogError($"[TeamBuilder] Property '{name}' not found on AllySpawnData.");
-        }
-
-        #endregion
-
-        #region Level Designer
-
         private const float LevelColumnStagesWidth  = 150f;
         private const float LevelColumnLevelsWidth  = 150f;
         private const float LevelRowHeight          = 24f;
         private const float LevelSmallButtonWidth   = 24f;
         private const float LevelAddButtonHeight    = 22f;
         private const float LevelWaveHeaderHeight   = 26f;
-        private const string LevelDatabaseDefaultPath   = "Assets/Data/LevelDatabase.asset";
+        internal const string LevelDatabaseDefaultPath   = "Assets/Data/LevelDatabase.asset";
         private const string LevelDefaultEnemyPrefabPath = "Assets/Prefabs/Characters/sampleCharacterHuman.prefab";
 
         private const string LevelDefaultEnemyName       = "Enemy";
@@ -338,6 +25,15 @@ namespace RogueliteAutoBattler.Editor
         private const float  LevelDefaultEnemyColliderRadius = 0.10f;
         private const int    LevelDefaultEnemyGoldDrop       = 1;
 
+        private static readonly Color PanelHeaderDividerColor = new Color(0.4f, 0.4f, 0.4f, 1f);
+        private static readonly Color PanelDividerColor       = new Color(0.3f, 0.3f, 0.3f, 1f);
+        private static readonly Color SelectedRowColor        = new Color(0.24f, 0.49f, 0.91f, 1f);
+
+        private readonly EditorWindow _owner;
+
+        private GUIStyle  _selectedRowStyle;
+        private Texture2D _selectedRowTexture;
+
         private LevelDatabase    _levelDatabase;
         private SerializedObject _levelSerializedDatabase;
         private int _levelSelectedStageIndex = -1;
@@ -345,6 +41,56 @@ namespace RogueliteAutoBattler.Editor
         private int _levelSelectedStepIndex  = -1;
         private Vector2 _levelWavesScrollPos;
         private readonly Dictionary<string, bool> _levelFoldouts = new Dictionary<string, bool>();
+
+        internal LevelDesignerTab(EditorWindow owner)
+        {
+            _owner = owner;
+        }
+
+        internal void OnEnable()
+        {
+            LevelTryAutoLoadDatabase();
+        }
+
+        internal void OnDisable()
+        {
+            _levelSerializedDatabase = null;
+
+            _selectedRowStyle = null;
+            if (_selectedRowTexture != null)
+            {
+                Object.DestroyImmediate(_selectedRowTexture);
+                _selectedRowTexture = null;
+            }
+        }
+
+        internal void Draw()
+        {
+            DrawLevelToolbar();
+
+            if (_levelDatabase == null)
+            {
+                EditorGUILayout.HelpBox("No LevelDatabase assigned. Use the field above.", MessageType.Info);
+                return;
+            }
+
+            _levelSerializedDatabase.Update();
+
+            SerializedProperty stagesProp = _levelSerializedDatabase.FindProperty("stages");
+
+            GUILayout.BeginHorizontal();
+            {
+                DrawStagesPanel(stagesProp);
+                DrawDivider();
+                DrawLevelsPanel(stagesProp);
+                DrawDivider();
+                DrawWavesPanel(stagesProp);
+            }
+            GUILayout.EndHorizontal();
+
+            if (_levelSerializedDatabase.ApplyModifiedProperties())
+                AssetDatabase.SaveAssets();
+        }
 
         private void LevelTryAutoLoadDatabase()
         {
@@ -372,35 +118,7 @@ namespace RogueliteAutoBattler.Editor
             _levelSelectedLevelIndex = -1;
             _levelSelectedStepIndex  = -1;
             _levelFoldouts.Clear();
-            Repaint();
-        }
-
-        private void DrawLevelTab()
-        {
-            DrawLevelToolbar();
-
-            if (_levelDatabase == null)
-            {
-                EditorGUILayout.HelpBox("No LevelDatabase assigned. Use the field above.", MessageType.Info);
-                return;
-            }
-
-            _levelSerializedDatabase.Update();
-
-            SerializedProperty stagesProp = _levelSerializedDatabase.FindProperty("stages");
-
-            GUILayout.BeginHorizontal();
-            {
-                DrawStagesPanel(stagesProp);
-                DrawDivider();
-                DrawLevelsPanel(stagesProp);
-                DrawDivider();
-                DrawWavesPanel(stagesProp);
-            }
-            GUILayout.EndHorizontal();
-
-            if (_levelSerializedDatabase.ApplyModifiedProperties())
-                AssetDatabase.SaveAssets();
+            _owner.Repaint();
         }
 
         private void DrawLevelToolbar()
@@ -874,49 +592,63 @@ namespace RogueliteAutoBattler.Editor
         private static void CopyEnemyProperties(SerializedProperty source, SerializedProperty target)
         {
             var enemyName = target.FindPropertyRelative("enemyName");
-            if (enemyName != null) enemyName.stringValue = source.FindPropertyRelative("enemyName").stringValue;
+            var srcEnemyName = source.FindPropertyRelative("enemyName");
+            if (enemyName != null && srcEnemyName != null) enemyName.stringValue = srcEnemyName.stringValue;
 
             var prefab = target.FindPropertyRelative("prefab");
-            if (prefab != null) prefab.objectReferenceValue = source.FindPropertyRelative("prefab").objectReferenceValue;
+            var srcPrefab = source.FindPropertyRelative("prefab");
+            if (prefab != null && srcPrefab != null) prefab.objectReferenceValue = srcPrefab.objectReferenceValue;
 
             var hp = target.FindPropertyRelative("hp");
-            if (hp != null) hp.intValue = source.FindPropertyRelative("hp").intValue;
+            var srcHp = source.FindPropertyRelative("hp");
+            if (hp != null && srcHp != null) hp.intValue = srcHp.intValue;
 
             var atk = target.FindPropertyRelative("atk");
-            if (atk != null) atk.intValue = source.FindPropertyRelative("atk").intValue;
+            var srcAtk = source.FindPropertyRelative("atk");
+            if (atk != null && srcAtk != null) atk.intValue = srcAtk.intValue;
 
             var attackSpeed = target.FindPropertyRelative("attackSpeed");
-            if (attackSpeed != null) attackSpeed.floatValue = source.FindPropertyRelative("attackSpeed").floatValue;
+            var srcAttackSpeed = source.FindPropertyRelative("attackSpeed");
+            if (attackSpeed != null && srcAttackSpeed != null) attackSpeed.floatValue = srcAttackSpeed.floatValue;
 
             var moveSpeed = target.FindPropertyRelative("moveSpeed");
-            if (moveSpeed != null) moveSpeed.floatValue = source.FindPropertyRelative("moveSpeed").floatValue;
+            var srcMoveSpeed = source.FindPropertyRelative("moveSpeed");
+            if (moveSpeed != null && srcMoveSpeed != null) moveSpeed.floatValue = srcMoveSpeed.floatValue;
 
             var attackRange = target.FindPropertyRelative("attackRange");
-            if (attackRange != null) attackRange.floatValue = source.FindPropertyRelative("attackRange").floatValue;
+            var srcAttackRange = source.FindPropertyRelative("attackRange");
+            if (attackRange != null && srcAttackRange != null) attackRange.floatValue = srcAttackRange.floatValue;
 
             var attackType = target.FindPropertyRelative("attackType");
-            if (attackType != null) attackType.enumValueIndex = source.FindPropertyRelative("attackType").enumValueIndex;
+            var srcAttackType = source.FindPropertyRelative("attackType");
+            if (attackType != null && srcAttackType != null) attackType.enumValueIndex = srcAttackType.enumValueIndex;
 
             var colRadius = target.FindPropertyRelative("colliderRadius");
-            if (colRadius != null) colRadius.floatValue = source.FindPropertyRelative("colliderRadius").floatValue;
+            var srcColRadius = source.FindPropertyRelative("colliderRadius");
+            if (colRadius != null && srcColRadius != null) colRadius.floatValue = srcColRadius.floatValue;
 
             var goldDrop = target.FindPropertyRelative("goldDrop");
-            if (goldDrop != null) goldDrop.intValue = source.FindPropertyRelative("goldDrop").intValue;
+            var srcGoldDrop = source.FindPropertyRelative("goldDrop");
+            if (goldDrop != null && srcGoldDrop != null) goldDrop.intValue = srcGoldDrop.intValue;
 
             var headSprite = target.FindPropertyRelative("appearance.headSprite");
-            if (headSprite != null) headSprite.objectReferenceValue = source.FindPropertyRelative("appearance.headSprite").objectReferenceValue;
+            var srcHeadSprite = source.FindPropertyRelative("appearance.headSprite");
+            if (headSprite != null && srcHeadSprite != null) headSprite.objectReferenceValue = srcHeadSprite.objectReferenceValue;
 
             var hatSprite = target.FindPropertyRelative("appearance.hatSprite");
-            if (hatSprite != null) hatSprite.objectReferenceValue = source.FindPropertyRelative("appearance.hatSprite").objectReferenceValue;
+            var srcHatSprite = source.FindPropertyRelative("appearance.hatSprite");
+            if (hatSprite != null && srcHatSprite != null) hatSprite.objectReferenceValue = srcHatSprite.objectReferenceValue;
 
             var weaponSprite = target.FindPropertyRelative("appearance.weaponSprite");
-            if (weaponSprite != null) weaponSprite.objectReferenceValue = source.FindPropertyRelative("appearance.weaponSprite").objectReferenceValue;
+            var srcWeaponSprite = source.FindPropertyRelative("appearance.weaponSprite");
+            if (weaponSprite != null && srcWeaponSprite != null) weaponSprite.objectReferenceValue = srcWeaponSprite.objectReferenceValue;
 
             var shieldSprite = target.FindPropertyRelative("appearance.shieldSprite");
-            if (shieldSprite != null) shieldSprite.objectReferenceValue = source.FindPropertyRelative("appearance.shieldSprite").objectReferenceValue;
+            var srcShieldSprite = source.FindPropertyRelative("appearance.shieldSprite");
+            if (shieldSprite != null && srcShieldSprite != null) shieldSprite.objectReferenceValue = srcShieldSprite.objectReferenceValue;
         }
 
-        private void InitEnemyDefaults(SerializedProperty newEnemy)
+        private static void InitEnemyDefaults(SerializedProperty newEnemy)
         {
             var enemyName = newEnemy.FindPropertyRelative("enemyName");
             if (enemyName != null) enemyName.stringValue = LevelDefaultEnemyName;
@@ -1046,7 +778,7 @@ namespace RogueliteAutoBattler.Editor
             else
                 Debug.LogError("[LevelDesigner] Property 'goldDrop' not found on EnemySpawnData.");
 
-            DrawAppearanceFields(enemyProp);
+            EditorUIFactory.DrawAppearanceFields(enemyProp);
 
             EditorGUI.indentLevel--;
             GUILayout.Space(2f);
@@ -1054,45 +786,19 @@ namespace RogueliteAutoBattler.Editor
             return false;
         }
 
-        private static void DrawAppearanceFields(SerializedProperty parentProp)
-        {
-            var appearanceProp = parentProp.FindPropertyRelative("appearance");
-            if (appearanceProp == null)
-            {
-                Debug.LogError("[GameDesigner] Property 'appearance' not found.");
-                return;
-            }
-
-            EditorGUILayout.Space(4f);
-            EditorGUILayout.LabelField("Appearance", EditorStyles.boldLabel);
-
-            EditorGUILayout.PropertyField(
-                appearanceProp.FindPropertyRelative("headSprite"), new GUIContent("Head"));
-            EditorGUILayout.PropertyField(
-                appearanceProp.FindPropertyRelative("hatSprite"), new GUIContent("Hat / Armor"));
-            EditorGUILayout.PropertyField(
-                appearanceProp.FindPropertyRelative("weaponSprite"), new GUIContent("Weapon"));
-            EditorGUILayout.PropertyField(
-                appearanceProp.FindPropertyRelative("shieldSprite"), new GUIContent("Shield"));
-        }
-
         private static void DrawPanelHeader(string title)
         {
             GUILayout.Label(title, EditorStyles.boldLabel);
             var rect = GUILayoutUtility.GetRect(1, 1, GUILayout.ExpandWidth(true));
-            EditorGUI.DrawRect(rect, new Color(0.4f, 0.4f, 0.4f, 1f));
+            EditorGUI.DrawRect(rect, PanelHeaderDividerColor);
             GUILayout.Space(4f);
         }
 
         private static void DrawDivider()
         {
             var rect = GUILayoutUtility.GetRect(1f, 1f, GUILayout.ExpandWidth(false), GUILayout.ExpandHeight(true));
-            EditorGUI.DrawRect(rect, new Color(0.3f, 0.3f, 0.3f, 1f));
+            EditorGUI.DrawRect(rect, PanelDividerColor);
         }
-
-        #endregion
-
-        #region Shared helpers
 
         private GUIStyle GetSelectedRowStyle()
         {
@@ -1102,7 +808,7 @@ namespace RogueliteAutoBattler.Editor
             if (_selectedRowTexture == null)
             {
                 _selectedRowTexture = new Texture2D(1, 1);
-                _selectedRowTexture.SetPixel(0, 0, new Color(0.24f, 0.49f, 0.91f, 1f));
+                _selectedRowTexture.SetPixel(0, 0, SelectedRowColor);
                 _selectedRowTexture.Apply();
             }
 
@@ -1113,7 +819,5 @@ namespace RogueliteAutoBattler.Editor
             _selectedRowStyle.hover.textColor   = Color.white;
             return _selectedRowStyle;
         }
-
-        #endregion
     }
 }
