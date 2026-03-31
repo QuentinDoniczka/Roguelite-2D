@@ -28,8 +28,8 @@ namespace RogueliteAutoBattler.Combat.Levels
         [SerializeField] private Transform _teamContainer;
 
         [Header("Scroll Transition")]
-        [SerializeField] private float _scrollDistance = 3f;
-        [SerializeField] private float _stepScrollDistance = 1.5f;
+        [SerializeField] private float _levelScrollDistance = 4f;
+        [SerializeField] private float _stepScrollDistance = 2f;
 
         [Header("Enemy Spawn")]
         [SerializeField] private float _enemySpawnOffscreenX = 1f;
@@ -349,7 +349,7 @@ namespace RogueliteAutoBattler.Combat.Levels
 
             if (_currentLevelIndex < stage.Levels.Count)
             {
-                StartCoroutine(ScrollAndSpawnCoroutine(_scrollDistance, () => StartLevel(_currentLevelIndex)));
+                StartCoroutine(ScrollAndSpawnCoroutine(_levelScrollDistance, () => StartLevel(_currentLevelIndex)));
             }
             else
             {
