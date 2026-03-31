@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using RogueliteAutoBattler.Combat.Environment;
 using RogueliteAutoBattler.Combat.Levels;
 using UnityEngine;
 using UnityEngine.UI;
@@ -20,10 +21,19 @@ namespace RogueliteAutoBattler.UI.Widgets
         [SerializeField] private float _lineMinWidth = 4f;
 
         private LevelManager _levelManager;
+        private WorldConveyor _conveyor;
         private HorizontalLayoutGroup _layoutGroup;
         private readonly List<Image> _spheres = new List<Image>();
         private readonly List<Image> _lines = new List<Image>();
         private bool _initializedForTest;
+
+        private int _currentStep;
+        private Image _scrollDot;
+        private RectTransform _scrollDotRect;
+        private int _dotFromIndex;
+        private int _dotToIndex;
+        private bool _dotActive;
+        private readonly Vector3[] _worldCorners = new Vector3[4];
 
         private void Awake()
         {
@@ -40,6 +50,7 @@ namespace RogueliteAutoBattler.UI.Widgets
                 _levelManager = managers[0];
                 _levelManager.OnLevelStarted += OnLevelChanged;
                 _levelManager.OnStepStarted += OnStepChanged;
+                WireConveyor();
                 Rebuild(_levelManager.TotalStepsInCurrentLevel, _levelManager.CurrentStepIndex);
             }
         }
@@ -51,6 +62,8 @@ namespace RogueliteAutoBattler.UI.Widgets
                 _levelManager.OnLevelStarted -= OnLevelChanged;
                 _levelManager.OnStepStarted -= OnStepChanged;
             }
+
+            UnwireConveyor();
         }
 
         private void Rebuild(int totalSteps, int currentStep)
@@ -119,10 +132,32 @@ namespace RogueliteAutoBattler.UI.Widgets
             }
 
             UpdateVisuals(currentStep);
+            CreateScrollDot();
+        }
+
+        private void CreateScrollDot()
+        {
+            var dotGo = new GameObject("ScrollDot");
+            dotGo.transform.SetParent(transform, false);
+
+            _scrollDot = dotGo.AddComponent<Image>();
+            _scrollDot.sprite = _sphereSprite;
+            _scrollDot.color = _currentColor;
+            _scrollDot.raycastTarget = false;
+
+            _scrollDotRect = dotGo.GetComponent<RectTransform>();
+            _scrollDotRect.sizeDelta = new Vector2(_sphereSize, _sphereSize);
+
+            var layout = dotGo.AddComponent<LayoutElement>();
+            layout.ignoreLayout = true;
+
+            dotGo.SetActive(false);
         }
 
         private void UpdateVisuals(int currentStep)
         {
+            _currentStep = currentStep;
+
             for (int i = 0; i < _spheres.Count; i++)
             {
                 if (i < currentStep)
@@ -146,7 +181,79 @@ namespace RogueliteAutoBattler.UI.Widgets
 
         private void OnStepChanged(int stepIndex)
         {
+            StopDotScroll();
             UpdateVisuals(stepIndex);
+        }
+
+        private void WireConveyor()
+        {
+            _conveyor = _levelManager != null ? _levelManager.GetComponent<WorldConveyor>() : null;
+            if (_conveyor != null)
+            {
+                _conveyor.OnScrollStarted += OnConveyorScrollStarted;
+                _conveyor.OnScrollComplete += OnConveyorScrollComplete;
+            }
+        }
+
+        private void UnwireConveyor()
+        {
+            if (_conveyor != null)
+            {
+                _conveyor.OnScrollStarted -= OnConveyorScrollStarted;
+                _conveyor.OnScrollComplete -= OnConveyorScrollComplete;
+            }
+        }
+
+        private void OnConveyorScrollStarted()
+        {
+            int toIndex = _currentStep + 1;
+            if (toIndex <= _spheres.Count)
+                StartDotScroll(_currentStep, toIndex);
+        }
+
+        private void OnConveyorScrollComplete()
+        {
+            StopDotScroll();
+        }
+
+        private void StartDotScroll(int fromIndex, int toIndex)
+        {
+            if (_scrollDot == null) return;
+            _dotFromIndex = fromIndex;
+            _dotToIndex = toIndex;
+            _dotActive = true;
+            _scrollDot.gameObject.SetActive(true);
+        }
+
+        private void StopDotScroll()
+        {
+            if (!_dotActive) return;
+            _dotActive = false;
+            if (_scrollDot != null)
+                _scrollDot.gameObject.SetActive(false);
+        }
+
+        private void LateUpdate()
+        {
+            if (!_dotActive || _conveyor == null || _scrollDotRect == null) return;
+            if (_dotFromIndex < 0 || _dotFromIndex >= _spheres.Count) return;
+
+            Vector3 fromPos = _spheres[_dotFromIndex].transform.position;
+            Vector3 toPos;
+
+            if (_dotToIndex < _spheres.Count)
+            {
+                toPos = _spheres[_dotToIndex].transform.position;
+            }
+            else
+            {
+                var parentRect = (RectTransform)transform;
+                parentRect.GetWorldCorners(_worldCorners);
+                toPos = new Vector3(_worldCorners[2].x, fromPos.y, fromPos.z);
+            }
+
+            float t = _conveyor.ScrollProgress;
+            _scrollDotRect.position = Vector3.Lerp(fromPos, toPos, t);
         }
 
         internal void InitializeForTest(LevelManager levelManager)
@@ -156,10 +263,11 @@ namespace RogueliteAutoBattler.UI.Widgets
 
             _levelManager.OnLevelStarted += OnLevelChanged;
             _levelManager.OnStepStarted += OnStepChanged;
+            WireConveyor();
             Rebuild(_levelManager.TotalStepsInCurrentLevel, _levelManager.CurrentStepIndex);
         }
 
-        internal void SimulateStepChange(int stepIndex) => UpdateVisuals(stepIndex);
+        internal void SimulateStepChange(int stepIndex) => OnStepChanged(stepIndex);
 
         internal int SphereCount => _spheres.Count;
         internal int LineCount => _lines.Count;
@@ -168,5 +276,6 @@ namespace RogueliteAutoBattler.UI.Widgets
         internal Color CompletedColor => _completedColor;
         internal Color CurrentColor => _currentColor;
         internal Color UpcomingColor => _upcomingColor;
+        internal bool IsScrollDotActive => _scrollDot != null && _scrollDot.gameObject.activeSelf;
     }
 }

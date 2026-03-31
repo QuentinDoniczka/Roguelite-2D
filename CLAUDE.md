@@ -25,7 +25,7 @@
 Doc detaille : `Assets/doc/premier-jet-roguelite.html`
 
 # Project Structure
-Generated: 2026-03-31 (updated feature/119-editor-refactor)
+Generated: 2026-03-31 (updated feature/121-progress-bar-minimap)
 
 .github/
 └── workflows/

@@ -10,11 +10,13 @@ namespace RogueliteAutoBattler.Combat.Environment
         private const float MinimumScrollSpeed = 0.1f;
 
         private float _targetX;
+        private float _scrollStartX;
         private float _currentSpeed;
         private float _maxSpeed;
         private float _acceleration;
         private bool _isScrolling;
         private bool _decelerating;
+        private bool _hasScrolled;
         private Rigidbody2D _rb;
         private Vector2 _initialPosition;
 
@@ -31,6 +33,18 @@ namespace RogueliteAutoBattler.Combat.Environment
 
         public bool IsScrolling => _isScrolling;
 
+        public float ScrollProgress
+        {
+            get
+            {
+                float totalDistance = Mathf.Abs(_targetX - _scrollStartX);
+                if (totalDistance < ArrivalThreshold) return _hasScrolled && !_isScrolling ? 1f : 0f;
+                float traveled = Mathf.Abs(_rb.position.x - _scrollStartX);
+                return Mathf.Clamp01(traveled / totalDistance);
+            }
+        }
+
+        public event System.Action OnScrollStarted;
         public event System.Action OnScrollComplete;
         public event System.Action OnDecelerationStarted;
 
@@ -66,12 +80,15 @@ namespace RogueliteAutoBattler.Combat.Environment
                 return;
             }
 
+            _scrollStartX = _rb.position.x;
             _targetX = _rb.position.x - distance;
             _maxSpeed = maxSpeed;
             _acceleration = acceleration;
             _currentSpeed = 0f;
             _isScrolling = true;
             _decelerating = false;
+            _hasScrolled = true;
+            OnScrollStarted?.Invoke();
         }
 
         private void FixedUpdate()
@@ -128,6 +145,8 @@ namespace RogueliteAutoBattler.Combat.Environment
             _isScrolling = false;
             _decelerating = false;
             _currentSpeed = 0f;
+            _hasScrolled = false;
+            _scrollStartX = _initialPosition.x;
             _rb.position = _initialPosition;
             transform.position = new Vector3(_initialPosition.x, _initialPosition.y, transform.position.z);
         }

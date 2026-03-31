@@ -111,6 +111,66 @@ namespace RogueliteAutoBattler.Tests.PlayMode
         }
 
         [UnityTest]
+        public IEnumerator Rebuild_CreatesScrollDot_Inactive()
+        {
+            yield return null;
+
+            Assert.IsFalse(_progressBar.IsScrollDotActive,
+                "ScrollDot should be inactive after Rebuild.");
+
+            var dotTransform = _progressBar.transform.Find("ScrollDot");
+            Assert.IsNotNull(dotTransform, "A child named ScrollDot should exist.");
+        }
+
+        [UnityTest]
+        public IEnumerator ScrollDot_BecomesActive_WhenConveyorScrollStarts()
+        {
+            yield return null;
+
+            var conveyor = _levelManager.GetComponent<WorldConveyor>();
+            conveyor.ScrollBy(2f, 10f, 20f);
+
+            yield return null;
+
+            Assert.IsTrue(_progressBar.IsScrollDotActive,
+                "ScrollDot should be active when conveyor starts scrolling.");
+        }
+
+        [UnityTest]
+        public IEnumerator ScrollDot_BecomesInactive_WhenStepChanges()
+        {
+            yield return null;
+
+            var conveyor = _levelManager.GetComponent<WorldConveyor>();
+            conveyor.ScrollBy(2f, 10f, 20f);
+
+            yield return null;
+            Assert.IsTrue(_progressBar.IsScrollDotActive);
+
+            _progressBar.SimulateStepChange(1);
+
+            Assert.IsFalse(_progressBar.IsScrollDotActive,
+                "ScrollDot should be inactive after step change.");
+        }
+
+        [UnityTest]
+        public IEnumerator ScrollDot_BecomesInactive_WhenConveyorScrollCompletes()
+        {
+            yield return null;
+
+            var conveyor = _levelManager.GetComponent<WorldConveyor>();
+            conveyor.ScrollBy(2f, 10f, 20f);
+
+            yield return null;
+            Assert.IsTrue(_progressBar.IsScrollDotActive);
+
+            yield return new WaitForSeconds(2f);
+
+            Assert.IsFalse(_progressBar.IsScrollDotActive,
+                "ScrollDot should be inactive after scroll completes.");
+        }
+
+        [UnityTest]
         public IEnumerator SingleStepLevel_ShowsOneSphereNoLines()
         {
             var singleLevelDatabase = ScriptableObject.CreateInstance<LevelDatabase>();
