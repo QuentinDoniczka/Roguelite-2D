@@ -196,7 +196,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
         }
 
         [UnityTest]
-        public IEnumerator StepTransition_LevelInProgressFalse_DuringScroll()
+        public IEnumerator StepTransition_LevelInProgressTrue_WhenOnStepStartedFires()
         {
             CreateTwoStepCombatSetup();
 
@@ -209,7 +209,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             Assert.IsTrue(_levelManager.LevelInProgress,
                 "LevelInProgress should be true before killing enemies.");
 
-            bool capturedLevelInProgressWhenStepStarted = true;
+            bool capturedLevelInProgressWhenStepStarted = false;
             _levelManager.OnStepStarted += (stepIndex) =>
             {
                 capturedLevelInProgressWhenStepStarted = _levelManager.LevelInProgress;
@@ -219,8 +219,8 @@ namespace RogueliteAutoBattler.Tests.PlayMode
 
             yield return new WaitForSeconds(3f);
 
-            Assert.IsFalse(capturedLevelInProgressWhenStepStarted,
-                "LevelInProgress should be false at the moment OnStepStarted fires during the scroll transition.");
+            Assert.IsTrue(capturedLevelInProgressWhenStepStarted,
+                "LevelInProgress should be true when OnStepStarted fires because _levelInProgress is restored before the spawn callback.");
         }
 
         [UnityTest]
