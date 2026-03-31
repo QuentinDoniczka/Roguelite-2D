@@ -18,6 +18,7 @@ namespace RogueliteAutoBattler.UI.Widgets
         [SerializeField] private float _sphereSize = 16f;
         [SerializeField] private float _lineHeight = 3f;
         [SerializeField] private float _lineMinWidth = 4f;
+        [SerializeField] private float _linePreferredWidth = 20f;
 
         private LevelManager _levelManager;
         private HorizontalLayoutGroup _layoutGroup;
@@ -102,7 +103,7 @@ namespace RogueliteAutoBattler.UI.Widgets
                     _lines.Add(lineImage);
 
                     var lineLayout = lineGo.AddComponent<LayoutElement>();
-                    lineLayout.flexibleWidth = 1;
+                    lineLayout.preferredWidth = _linePreferredWidth;
                     lineLayout.minWidth = _lineMinWidth;
                     lineLayout.minHeight = _lineHeight;
                     lineLayout.preferredHeight = _lineHeight;
