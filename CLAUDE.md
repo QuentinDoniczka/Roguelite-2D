@@ -154,14 +154,14 @@ Assets/
 │   ├── UniversalRenderPipelineGlobalSettings.asset
 │   └── UniversalRP.asset
 ├── Sprites/
-│   ├── Characters/  (156 files)
+│   ├── Characters/  (155 files)
 │   ├── Effects/  (25 files)
 │   ├── Environment/
 │   │   ├── backgroundtest.png
 │   │   ├── grid_ground.png
 │   │   ├── grid_ground_blue.png
 │   │   └── placeholder_white.png
-│   ├── Items/  (54 files)
+│   ├── Items/  (53 files)
 │   └── UI/  (empty)
 ├── Tests/
 │   ├── EditMode/
@@ -199,6 +199,7 @@ Assets/
 │       ├── LevelManagerDefeatResetTests.cs
 │       ├── LevelManagerDefeatTests.cs
 │       ├── LevelManagerEventTests.cs
+│       ├── LevelManagerStepTransitionTests.cs
 │       ├── VisualEquipmentTestLoopTests.cs
 │       └── WorldConveyorTests.cs
 ├── _Recovery/  (3 files)
