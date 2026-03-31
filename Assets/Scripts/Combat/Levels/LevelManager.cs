@@ -418,6 +418,7 @@ namespace RogueliteAutoBattler.Combat.Levels
 #if UNITY_EDITOR
                 Debug.Log($"[{nameof(LevelManager)}] Spawning after scroll (speed: {_conveyor.CurrentSpeed:F2}).");
 #endif
+                _levelInProgress = true;
                 onReadyToSpawn?.Invoke();
 
                 if (_conveyor.IsScrolling)
@@ -425,10 +426,9 @@ namespace RogueliteAutoBattler.Combat.Levels
             }
             else
             {
+                _levelInProgress = true;
                 onReadyToSpawn?.Invoke();
             }
-
-            _levelInProgress = true;
         }
 
         private void AssignAllyTargetsInZone()
