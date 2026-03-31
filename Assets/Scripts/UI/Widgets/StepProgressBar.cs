@@ -46,7 +46,7 @@ namespace RogueliteAutoBattler.UI.Widgets
             }
         }
 
-        private void Rebuild(int totalLevels, int currentLevel)
+        private void Rebuild(int totalSteps, int currentStep)
         {
             _spheres.Clear();
             _lines.Clear();
@@ -63,7 +63,7 @@ namespace RogueliteAutoBattler.UI.Widgets
             layoutGroup.childForceExpandHeight = false;
             layoutGroup.spacing = 0;
 
-            for (int i = 0; i < totalLevels; i++)
+            for (int i = 0; i < totalSteps; i++)
             {
                 var sphereGo = new GameObject($"Sphere_{i}");
                 sphereGo.transform.SetParent(transform, false);
@@ -77,7 +77,7 @@ namespace RogueliteAutoBattler.UI.Widgets
                 sphereLayout.preferredWidth = _sphereSize;
                 sphereLayout.preferredHeight = _sphereSize;
 
-                if (i < totalLevels - 1)
+                if (i < totalSteps - 1)
                 {
                     var lineGo = new GameObject($"Line_{i}");
                     lineGo.transform.SetParent(transform, false);
@@ -93,16 +93,16 @@ namespace RogueliteAutoBattler.UI.Widgets
                 }
             }
 
-            UpdateVisuals(currentLevel);
+            UpdateVisuals(currentStep);
         }
 
-        private void UpdateVisuals(int currentLevel)
+        private void UpdateVisuals(int currentStep)
         {
             for (int i = 0; i < _spheres.Count; i++)
             {
-                if (i < currentLevel)
+                if (i < currentStep)
                     _spheres[i].color = _completedColor;
-                else if (i == currentLevel)
+                else if (i == currentStep)
                     _spheres[i].color = _currentColor;
                 else
                     _spheres[i].color = _upcomingColor;
@@ -110,7 +110,7 @@ namespace RogueliteAutoBattler.UI.Widgets
 
             for (int i = 0; i < _lines.Count; i++)
             {
-                _lines[i].color = i < currentLevel ? _completedColor : _upcomingColor;
+                _lines[i].color = i < currentStep ? _completedColor : _upcomingColor;
             }
         }
 
