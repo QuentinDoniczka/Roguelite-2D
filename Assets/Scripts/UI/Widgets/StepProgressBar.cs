@@ -5,6 +5,7 @@ using UnityEngine.UI;
 
 namespace RogueliteAutoBattler.UI.Widgets
 {
+    [RequireComponent(typeof(HorizontalLayoutGroup))]
     public class StepProgressBar : MonoBehaviour
     {
         [Header("Visuals")]
@@ -18,8 +19,8 @@ namespace RogueliteAutoBattler.UI.Widgets
         [SerializeField] private float _lineHeight = 3f;
 
         private LevelManager _levelManager;
-        private readonly List<Image> _spheres = new();
-        private readonly List<Image> _lines = new();
+        private readonly List<Image> _spheres = new List<Image>();
+        private readonly List<Image> _lines = new List<Image>();
         private bool _initializedForTest;
 
         private void Start()
@@ -51,10 +52,9 @@ namespace RogueliteAutoBattler.UI.Widgets
             _lines.Clear();
 
             for (int i = transform.childCount - 1; i >= 0; i--)
-                Destroy(transform.GetChild(i).gameObject);
+                DestroyImmediate(transform.GetChild(i).gameObject);
 
-            if (!TryGetComponent<HorizontalLayoutGroup>(out var layoutGroup))
-                layoutGroup = gameObject.AddComponent<HorizontalLayoutGroup>();
+            var layoutGroup = GetComponent<HorizontalLayoutGroup>();
 
             layoutGroup.childAlignment = TextAnchor.MiddleCenter;
             layoutGroup.childControlWidth = true;
@@ -128,9 +128,6 @@ namespace RogueliteAutoBattler.UI.Widgets
         {
             _initializedForTest = true;
             _levelManager = levelManager;
-
-            if (_sphereSize == 0f) _sphereSize = 16f;
-            if (_lineHeight == 0f) _lineHeight = 3f;
 
             _levelManager.OnStageStarted += OnStageChanged;
             _levelManager.OnLevelStarted += OnLevelChanged;

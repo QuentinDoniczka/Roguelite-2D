@@ -1,7 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using NUnit.Framework;
-using RogueliteAutoBattler.Combat.Core;
 using RogueliteAutoBattler.Combat.Environment;
 using RogueliteAutoBattler.Combat.Levels;
 using RogueliteAutoBattler.Data;
@@ -125,7 +124,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             yield return null;
 
             Assert.AreEqual("1-1", _badge.CompactText,
-                "Display should be 1-indexed (1-1-1) not 0-indexed (0-0-0).");
+                "Display should be 1-indexed (1-1) not 0-indexed (0-0).");
         }
     }
 }

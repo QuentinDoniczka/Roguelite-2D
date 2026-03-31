@@ -23,8 +23,12 @@ namespace RogueliteAutoBattler.UI.Widgets
         private LevelManager _levelManager;
         private Coroutine _announcementCoroutine;
         private RectTransform _announcementRect;
+        private bool _initializedForTest;
+
         private void Start()
         {
+            if (_initializedForTest) return;
+
             var managers = FindObjectsByType<LevelManager>(FindObjectsSortMode.None);
             if (managers.Length > 0)
             {
@@ -134,6 +138,7 @@ namespace RogueliteAutoBattler.UI.Widgets
 
         internal void InitializeForTest(LevelManager levelManager, TMP_Text compactLabel, TMP_Text announcementLabel, CanvasGroup announcementGroup)
         {
+            _initializedForTest = true;
             _levelManager = levelManager;
             _compactLabel = compactLabel;
             _announcementLabel = announcementLabel;
