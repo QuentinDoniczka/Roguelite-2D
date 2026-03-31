@@ -90,13 +90,42 @@ namespace RogueliteAutoBattler.Editor
 
             var compactLabelGo = new GameObject("CompactLabel");
             GameObjectUtility.SetParentAndAlign(compactLabelGo, battleGo);
-            EditorUIFactory.Stretch(compactLabelGo.AddComponent<RectTransform>());
+            RectTransform compactLabelRect = compactLabelGo.AddComponent<RectTransform>();
+            compactLabelRect.anchorMin = new Vector2(0f, 0.4f);
+            compactLabelRect.anchorMax = new Vector2(1f, 1f);
+            compactLabelRect.offsetMin = Vector2.zero;
+            compactLabelRect.offsetMax = Vector2.zero;
             TextMeshProUGUI compactTmp = compactLabelGo.AddComponent<TextMeshProUGUI>();
             compactTmp.text = "1-1";
             compactTmp.fontSize = BattleFontSize;
             compactTmp.color = Color.white;
             compactTmp.alignment = TextAlignmentOptions.Center;
             compactTmp.fontStyle = FontStyles.Bold;
+
+            var stepBarGo = new GameObject("StepProgressBar");
+            stepBarGo.transform.SetParent(battleGo.transform, false);
+            RectTransform stepBarRect = stepBarGo.AddComponent<RectTransform>();
+            stepBarRect.anchorMin = new Vector2(0.1f, 0.05f);
+            stepBarRect.anchorMax = new Vector2(0.9f, 0.35f);
+            stepBarRect.offsetMin = Vector2.zero;
+            stepBarRect.offsetMax = Vector2.zero;
+
+            HorizontalLayoutGroup stepBarLayout = stepBarGo.AddComponent<HorizontalLayoutGroup>();
+            stepBarLayout.childAlignment = TextAnchor.MiddleCenter;
+            stepBarLayout.childControlWidth = true;
+            stepBarLayout.childControlHeight = true;
+            stepBarLayout.childForceExpandWidth = false;
+            stepBarLayout.childForceExpandHeight = false;
+            stepBarLayout.spacing = 0;
+
+            StepProgressBar stepBar = stepBarGo.AddComponent<StepProgressBar>();
+            var stepBarSo = new SerializedObject(stepBar);
+            var sphereSpriteProp = stepBarSo.FindProperty("_sphereSprite");
+            if (sphereSpriteProp == null)
+                Debug.LogError($"[{nameof(CombatHudBuilder)}] SerializedProperty '_sphereSprite' not found on StepProgressBar.");
+            else
+                sphereSpriteProp.objectReferenceValue = AssetDatabase.GetBuiltinExtraResource<Sprite>("UI/Skin/Knob.psd");
+            stepBarSo.ApplyModifiedPropertiesWithoutUndo();
 
             var announcementOverlayGo = new GameObject("AnnouncementOverlay");
             GameObjectUtility.SetParentAndAlign(announcementOverlayGo, go);
