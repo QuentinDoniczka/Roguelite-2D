@@ -14,10 +14,10 @@ using UnityEngine.UI;
 
 namespace RogueliteAutoBattler.Editor
 {
-    public static class SetupNavigationSceneEditor
+    internal static class SetupNavigationSceneEditor
     {
-        internal const float NavRatio = 0.08f;
-        internal const float InfoTop = 0.40f;
+        private const float NavRatio = 0.08f;
+        private const float InfoTop = 0.40f;
 
         private const int TabCount = 5;
 
@@ -30,7 +30,7 @@ namespace RogueliteAutoBattler.Editor
         private static readonly Color NavBarBg = (Color)new Color32(25, 25, 25, 255);
         private static readonly Color NavBtnNormal = (Color)new Color32(40, 40, 40, 255);
         private static readonly Color NavBtnSelected = (Color)new Color32(80, 80, 80, 255);
-        internal static readonly Color InfoBg = (Color)new Color32(30, 30, 40, 240);
+        private static readonly Color InfoBg = (Color)new Color32(30, 30, 40, 240);
         private static readonly Color BtnHighlighted = (Color)new Color32(220, 220, 220, 255);
         private static readonly Color BtnPressed = (Color)new Color32(180, 180, 180, 255);
 
@@ -83,7 +83,7 @@ namespace RogueliteAutoBattler.Editor
             Undo.RegisterCreatedObjectUndo(canvasGo, "UICanvas");
         }
 
-        internal static GameObject CreateEventSystem()
+        private static GameObject CreateEventSystem()
         {
             var go = new GameObject("EventSystem");
             go.AddComponent<EventSystem>();
@@ -91,7 +91,7 @@ namespace RogueliteAutoBattler.Editor
             return go;
         }
 
-        internal static UIScreen[] CreateTabPanels(Transform parent)
+        private static UIScreen[] CreateTabPanels(Transform parent)
         {
             var configs = new[]
             {
@@ -120,7 +120,7 @@ namespace RogueliteAutoBattler.Editor
             return screens;
         }
 
-        internal static UIScreen CreateInfoPanel(Transform parent, string name, string label, Color bg, bool visible = false)
+        private static UIScreen CreateInfoPanel(Transform parent, string name, string label, Color bg, bool visible = false)
         {
             var go = new GameObject(name);
             GameObjectUtility.SetParentAndAlign(go, parent.gameObject);
@@ -134,7 +134,7 @@ namespace RogueliteAutoBattler.Editor
             return screen;
         }
 
-        internal static UIScreen[] CreateTabInfoPanels(Transform parent)
+        private static UIScreen[] CreateTabInfoPanels(Transform parent)
         {
             var configs = new[]
             {
@@ -154,7 +154,7 @@ namespace RogueliteAutoBattler.Editor
             return screens;
         }
 
-        internal static GameObject CreateNavBar(Transform parent)
+        private static GameObject CreateNavBar(Transform parent)
         {
             var go = new GameObject("NavBar");
             GameObjectUtility.SetParentAndAlign(go, parent.gameObject);
@@ -177,7 +177,7 @@ namespace RogueliteAutoBattler.Editor
             return go;
         }
 
-        internal static TabButton[] CreateTabButtons(Transform parent)
+        private static TabButton[] CreateTabButtons(Transform parent)
         {
             var configs = new[]
             {
@@ -227,7 +227,7 @@ namespace RogueliteAutoBattler.Editor
             return buttons;
         }
 
-        internal static GameObject CreateNavigationManager(Transform parent, UIScreen defaultScreen, UIScreen defaultInfoScreen,
+        private static GameObject CreateNavigationManager(Transform parent, UIScreen defaultScreen, UIScreen defaultInfoScreen,
             TabButton[] tabButtons, UIScreen[] tabScreens, UIScreen[] infoScreens)
         {
             var go = new GameObject("NavigationManager");
@@ -246,7 +246,7 @@ namespace RogueliteAutoBattler.Editor
             return go;
         }
 
-        internal static void WireCancelAction(NavigationManager nav)
+        private static void WireCancelAction(NavigationManager nav)
         {
             InputActionReference cancelRef = FindActionRef(InputAssetPath, "UI", "Cancel");
             if (cancelRef == null)

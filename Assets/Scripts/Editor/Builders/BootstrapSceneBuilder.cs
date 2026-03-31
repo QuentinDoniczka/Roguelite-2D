@@ -4,10 +4,10 @@ using UnityEngine;
 
 namespace RogueliteAutoBattler.Editor
 {
-    public static class BootstrapSceneBuilder
+    internal static class BootstrapSceneBuilder
     {
         [MenuItem("Roguelite/Setup Game Scene")]
-        public static void SetupGameScene()
+        private static void SetupGameScene()
         {
             Canvas existingCanvas = Object.FindFirstObjectByType<Canvas>(FindObjectsInactive.Include);
             if (existingCanvas != null)

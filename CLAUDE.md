@@ -25,7 +25,7 @@
 Doc detaille : `Assets/doc/premier-jet-roguelite.html`
 
 # Project Structure
-Generated: 2026-03-31 (updated feature/117-step-progress-bar + StepData model)
+Generated: 2026-03-31 (updated feature/119-editor-refactor)
 
 .github/
 └── workflows/
@@ -33,7 +33,7 @@ Generated: 2026-03-31 (updated feature/117-step-progress-bar + StepData model)
     └── protect-main.yml
 
 Assets/
-├── Animations/  (23 files: .anim + .controller)
+├── Animations/  (24 files: .anim + .controller)
 ├── Audio/  (empty)
 ├── Data/
 │   ├── Adventurers/  (empty)
@@ -106,13 +106,17 @@ Assets/
 │   │   └── GoldWallet.cs
 │   ├── Editor/
 │   │   ├── RogueliteAutoBattler.Editor.asmdef
-│   │   ├── BootstrapSceneBuilder.cs
-│   │   ├── CombatHudBuilder.cs
-│   │   ├── CombatWorldBuilder.cs
 │   │   ├── EditorUIFactory.cs
-│   │   ├── GameDesignerWindow.cs
-│   │   ├── SettingsWindow.cs
-│   │   └── SetupNavigationSceneEditor.cs
+│   │   ├── Builders/
+│   │   │   ├── BootstrapSceneBuilder.cs
+│   │   │   ├── CombatHudBuilder.cs
+│   │   │   ├── CombatWorldBuilder.cs
+│   │   │   └── SetupNavigationSceneEditor.cs
+│   │   └── Windows/
+│   │       ├── GameDesignerWindow.cs
+│   │       ├── LevelDesignerTab.cs
+│   │       ├── SettingsWindow.cs
+│   │       └── TeamBuilderTab.cs
 │   ├── Items/  (empty)
 │   ├── ScriptableObjects/
 │   │   ├── DamageNumberConfig.cs
@@ -202,7 +206,7 @@ Assets/
 │       ├── LevelManagerStepTransitionTests.cs
 │       ├── VisualEquipmentTestLoopTests.cs
 │       └── WorldConveyorTests.cs
-├── _Recovery/  (3 files)
+├── _Recovery/  (4 files)
 └── TextMesh Pro/  (173 files — TMP package: fonts, shaders, examples)
 
 ProjectSettings/  (Unity defaults)

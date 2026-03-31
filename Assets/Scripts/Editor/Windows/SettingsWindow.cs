@@ -5,9 +5,9 @@ using UnityEngine;
 
 namespace RogueliteAutoBattler.Editor
 {
-    public class SettingsWindow : EditorWindow
+    internal sealed class SettingsWindow : EditorWindow
     {
-        private const string ConfigPath = "Assets/Data/DamageNumberConfig.asset";
+        internal const string ConfigPath = "Assets/Data/DamageNumberConfig.asset";
         private const float SectionSpacing = 8f;
         private const float HeaderSpacing = 4f;
         private static readonly Vector2 MinWindowSize = new Vector2(400, 340);
@@ -94,7 +94,7 @@ namespace RogueliteAutoBattler.Editor
         {
             if (_serializedConfig == null)
             {
-                EditorGUILayout.HelpBox("DamageNumberConfig not found at " + ConfigPath, MessageType.Warning);
+                EditorGUILayout.HelpBox($"DamageNumberConfig not found at {ConfigPath}", MessageType.Warning);
                 if (GUILayout.Button("Reload"))
                     OnEnable();
                 return;
