@@ -1,6 +1,6 @@
 using System;
 using System.Collections;
-using RogueliteAutoBattler.Combat;
+using RogueliteAutoBattler.Economy;
 using TMPro;
 using UnityEngine;
 

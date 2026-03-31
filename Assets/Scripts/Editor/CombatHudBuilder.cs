@@ -1,4 +1,5 @@
-using RogueliteAutoBattler.Combat;
+using RogueliteAutoBattler.Combat.Visuals;
+using RogueliteAutoBattler.Economy;
 using RogueliteAutoBattler.UI.Core;
 using RogueliteAutoBattler.UI.Screens.Combat;
 using RogueliteAutoBattler.UI.Widgets;

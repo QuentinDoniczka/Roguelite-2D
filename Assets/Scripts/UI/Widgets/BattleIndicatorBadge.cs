@@ -1,5 +1,5 @@
 using System.Collections;
-using RogueliteAutoBattler.Combat;
+using RogueliteAutoBattler.Combat.Levels;
 using TMPro;
 using UnityEngine;
 

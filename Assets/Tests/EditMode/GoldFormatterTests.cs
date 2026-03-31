@@ -1,5 +1,5 @@
 using NUnit.Framework;
-using RogueliteAutoBattler.Combat;
+using RogueliteAutoBattler.Economy;
 
 namespace RogueliteAutoBattler.Tests.EditMode
 {

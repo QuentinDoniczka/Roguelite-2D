@@ -1,6 +1,6 @@
 using System.Collections;
 using NUnit.Framework;
-using RogueliteAutoBattler.Combat;
+using RogueliteAutoBattler.Combat.Visuals;
 using RogueliteAutoBattler.Data;
 using TMPro;
 using UnityEngine;
