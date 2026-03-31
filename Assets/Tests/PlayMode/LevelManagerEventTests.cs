@@ -143,8 +143,11 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             int firedStage = -1;
             int firedLevel = -1;
             int firedWave = -1;
+            bool alreadyCaptured = false;
             _levelManager.OnWaveSpawned += (stage, level, wave) =>
             {
+                if (alreadyCaptured) return;
+                alreadyCaptured = true;
                 firedStage = stage;
                 firedLevel = level;
                 firedWave = wave;
