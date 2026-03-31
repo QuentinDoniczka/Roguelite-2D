@@ -175,21 +175,7 @@ namespace RogueliteAutoBattler.Combat.Levels
             var level = stage.Levels[levelIndex];
             _currentStepIndex = 0;
 
-            if (level.Steps.Count == 0) return;
-
-            var step = level.Steps[_currentStepIndex];
-            _pendingWaveCount = step.Waves.Count;
-
-            OnStepStarted?.Invoke(_currentStepIndex);
-
-#if UNITY_EDITOR
-            Debug.Log($"[{nameof(LevelManager)}] Starting level '{level.LevelName}' step {_currentStepIndex} with {step.Waves.Count} wave(s).");
-#endif
-
-            for (int i = 0; i < step.Waves.Count; i++)
-            {
-                StartCoroutine(SpawnWaveCoroutine(step.Waves[i], i));
-            }
+            SpawnStep(level);
         }
 
         private IEnumerator SpawnWaveCoroutine(WaveData wave, int waveIndex)
@@ -378,6 +364,20 @@ namespace RogueliteAutoBattler.Combat.Levels
             if (!TryGetCurrentLevel(out var level)) return;
 
             _currentStepIndex++;
+
+            SpawnStep(level);
+        }
+
+        private void SpawnStep(LevelData level)
+        {
+            if (_currentStepIndex < 0 || _currentStepIndex >= level.Steps.Count)
+            {
+#if UNITY_EDITOR
+                Debug.LogWarning($"[{nameof(LevelManager)}] Step index {_currentStepIndex} out of range for level '{level.LevelName}' ({level.Steps.Count} steps).");
+#endif
+                return;
+            }
+
             var step = level.Steps[_currentStepIndex];
             _pendingWaveCount = step.Waves.Count;
 
