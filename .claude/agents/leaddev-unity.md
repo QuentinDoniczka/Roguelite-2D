@@ -100,7 +100,7 @@ Root (Rigidbody2D, CharacterMover, CombatController — NO Animator, NO SpriteRe
 ## Proposed Changes
 
 ### Client-Side (Unity)
-For each class: path, purpose, type (MonoBehaviour/SO/plain C#/interface), key members, dependencies
+For each class: full sub-folder path (e.g., `Scripts/Combat/Visuals/`), namespace, purpose, type (MonoBehaviour/SO/plain C#/interface), key members, dependencies
 
 ### Server-Side (API) — if applicable
 For each class: endpoint or service, purpose, what it validates/generates
@@ -111,6 +111,26 @@ Data structures exchanged between client and server
 ## Implementation Order
 [Numbered, dependency-respecting order — client and server can be parallelized]
 ```
+
+## File Placement — Specify in Every Plan
+
+For every new file in the plan, you MUST specify the **full sub-folder path** based on its domain responsibility. Never specify just a top-level folder like `Scripts/Combat/`.
+
+1. **Read CLAUDE.md's Project Structure** before planning to know existing sub-folders
+2. **Assign each file to a sub-folder** based on what it does:
+   - Combat logic (controller, stats, targeting) → `Scripts/Combat/Core/`
+   - Level/wave orchestration → `Scripts/Combat/Levels/`
+   - Visual effects, health bars, appearances → `Scripts/Combat/Visuals/`
+   - World scrolling, ground, anchoring → `Scripts/Combat/Environment/`
+   - Gold, currency, economy → `Scripts/Economy/`
+   - Shared constants → `Scripts/Common/`
+   - Editor tools → `Scripts/Editor/`
+3. **If a new sub-folder is needed**, explicitly say so: "Create `Scripts/Combat/AI/` for AI-related classes"
+4. **Specify the namespace** matching the folder path: e.g., `RogueliteAutoBattler.Combat.Visuals`
+5. **Never leave file location ambiguous** — the dev agent must not guess where to put files
+
+**Anti-pattern** (WRONG): "Create `DamageNumber.cs` in `Scripts/Combat/`" when sub-folders exist.
+**Correct**: "Create `DamageNumber.cs` in `Scripts/Combat/Visuals/` with namespace `RogueliteAutoBattler.Combat.Visuals`"
 
 ## Rules
 
@@ -154,6 +174,8 @@ These files CAN and SHOULD be edited programmatically when the plan requires cha
 For each step, include:
 ```
 Step N: [description]
+- File: [full path, e.g., Assets/Scripts/Combat/Visuals/DamageNumber.cs]
+- Namespace: [e.g., RogueliteAutoBattler.Combat.Visuals]
 - Type: [C# code / Unity asset YAML / Editor script / Scene setup]
 - Agent: [dev-unity / dev-ux-unity]
 - Automation: [how it will be done programmatically]

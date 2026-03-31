@@ -122,6 +122,25 @@ private void SetMoving(bool isMoving)
 - Use `GetComponentInChildren<Animator>()` — the Animator is always on the Visual child
 - `transform.position` is acceptable only for non-animated objects (UI anchors, static environment pieces)
 
+## File Placement — Mandatory Before Creating Any File
+
+Before creating a new `.cs` file, you MUST:
+
+1. **Read CLAUDE.md's Project Structure** to see the current folder layout
+2. **Place the file in the correct sub-folder** based on its domain responsibility. Examples:
+   - Combat logic (controller, stats, targeting) → `Scripts/Combat/Core/`
+   - Level/wave orchestration → `Scripts/Combat/Levels/`
+   - Visual effects, health bars, appearances → `Scripts/Combat/Visuals/`
+   - World scrolling, ground, anchoring → `Scripts/Combat/Environment/`
+   - Gold, currency, economy → `Scripts/Economy/`
+   - Shared constants → `Scripts/Common/`
+   - Editor tools → `Scripts/Editor/`
+3. **Never place a file at the root of a folder that already has sub-folders** — find or create the right sub-folder
+4. **If no sub-folder fits** and the file represents a genuinely new domain concern, create a new sub-folder with a clear name
+5. **Namespace must match the folder path**: e.g., a file in `Scripts/Combat/Visuals/` uses namespace `RogueliteAutoBattler.Combat.Visuals`
+
+**Anti-pattern** (WRONG): dumping every new file into `Assets/Scripts/Combat/` regardless of domain.
+
 ## API Communication Patterns
 
 When implementing client-side code that talks to the server:
