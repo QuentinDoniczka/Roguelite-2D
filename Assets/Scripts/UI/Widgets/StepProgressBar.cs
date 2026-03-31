@@ -33,6 +33,7 @@ namespace RogueliteAutoBattler.UI.Widgets
         private int _dotFromIndex;
         private int _dotToIndex;
         private bool _dotActive;
+        private readonly Vector3[] _worldCorners = new Vector3[4];
 
         private void Awake()
         {
@@ -247,9 +248,8 @@ namespace RogueliteAutoBattler.UI.Widgets
             else
             {
                 var parentRect = (RectTransform)transform;
-                var corners = new Vector3[4];
-                parentRect.GetWorldCorners(corners);
-                toPos = new Vector3(corners[2].x, fromPos.y, fromPos.z);
+                parentRect.GetWorldCorners(_worldCorners);
+                toPos = new Vector3(_worldCorners[2].x, fromPos.y, fromPos.z);
             }
 
             float t = _conveyor.ScrollProgress;
@@ -277,23 +277,5 @@ namespace RogueliteAutoBattler.UI.Widgets
         internal Color CurrentColor => _currentColor;
         internal Color UpcomingColor => _upcomingColor;
         internal bool IsScrollDotActive => _scrollDot != null && _scrollDot.gameObject.activeSelf;
-
-        internal float ScrollDotNormalizedX
-        {
-            get
-            {
-                if (_scrollDotRect == null || _dotFromIndex < 0 || _dotFromIndex >= _spheres.Count)
-                    return 0f;
-
-                Vector3 fromPos = _spheres[_dotFromIndex].transform.position;
-                Vector3 toPos = _dotToIndex < _spheres.Count
-                    ? _spheres[_dotToIndex].transform.position
-                    : fromPos + Vector3.right;
-
-                float total = toPos.x - fromPos.x;
-                if (Mathf.Abs(total) < 0.001f) return 0f;
-                return Mathf.Clamp01((_scrollDotRect.position.x - fromPos.x) / total);
-            }
-        }
     }
 }
