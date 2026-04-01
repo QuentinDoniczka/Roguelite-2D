@@ -14,7 +14,11 @@ namespace RogueliteAutoBattler.Combat.Core
         [Header("Anchors")]
         [SerializeField] private Transform _teamHomeAnchor;
 
-        private static readonly Vector3 FacingRightScale = new Vector3(-1f, 1f, 1f);
+        private const float DefaultCharacterScale = 1.5f;
+        [Header("Scale")]
+        [SerializeField] private float _characterScale = DefaultCharacterScale;
+
+        public float CharacterScale => _characterScale;
 
         private void Start()
         {
@@ -38,7 +42,7 @@ namespace RogueliteAutoBattler.Combat.Core
             Vector2 anchorPos = teamAnchor != null ? (Vector2)teamAnchor.position : Vector2.zero;
 
             var allies = _teamDatabase.Allies;
-            Vector2[] positions = FormationLayout.GetPositions(anchorPos, allies.Count, facingRight: true);
+            Vector2[] positions = FormationLayout.GetPositions(anchorPos, allies.Count, facingRight: true, characterScale: _characterScale);
 
             for (int i = 0; i < allies.Count; i++)
             {
@@ -53,11 +57,12 @@ namespace RogueliteAutoBattler.Combat.Core
             SpawnAllies();
         }
 
-        internal void InitializeForTest(TeamDatabase teamDatabase, Transform teamContainer, Transform teamHomeAnchor)
+        internal void InitializeForTest(TeamDatabase teamDatabase, Transform teamContainer, Transform teamHomeAnchor, float characterScale = DefaultCharacterScale)
         {
             _teamDatabase = teamDatabase;
             _teamContainer = teamContainer;
             _teamHomeAnchor = teamHomeAnchor;
+            _characterScale = characterScale;
         }
 
         private void SpawnAlly(AllySpawnData data, Transform homeAnchor, Vector2 spawnPos, Vector2 homeOffset)
@@ -72,7 +77,7 @@ namespace RogueliteAutoBattler.Combat.Core
 
             var ally = Instantiate(data.Prefab, new Vector3(spawnPos.x, spawnPos.y, 0f), Quaternion.identity, _teamContainer);
             ally.name = data.AllyName;
-            ally.transform.localScale = FacingRightScale;
+            ally.transform.localScale = new Vector3(-_characterScale, _characterScale, 1f);
 
             var components = CombatSetupHelper.AssembleCharacter(
                 ally,
@@ -85,7 +90,8 @@ namespace RogueliteAutoBattler.Combat.Core
                 homeOffset,
                 data.ColliderRadius,
                 data.Appearance,
-                nameof(CombatSpawnManager));
+                nameof(CombatSpawnManager),
+                characterScale: _characterScale);
             components.Controller.SetAttackerFacing(true);
         }
     }

@@ -83,7 +83,7 @@ namespace RogueliteAutoBattler.Combat.Visuals
             var pivotGo = new GameObject("HealthBar_Pivot");
             pivotGo.transform.SetParent(transform, false);
             pivotGo.transform.localPosition = new Vector3(0f, _yOffset, 0f);
-            ApplyFlipCompensation(pivotGo.transform);
+            ApplyScaleCompensation(pivotGo.transform);
             _pivotTransform = pivotGo.transform;
 
             var bgGo = new GameObject("BG");
@@ -143,7 +143,7 @@ namespace RogueliteAutoBattler.Combat.Visuals
             if (!_hasStats || _stats.MaxHp <= 0)
                 return;
 
-            ApplyFlipCompensation(_pivotTransform);
+            ApplyScaleCompensation(_pivotTransform);
 
             if (!_fillDirty && !_isTrailLerping)
                 return;
@@ -172,11 +172,14 @@ namespace RogueliteAutoBattler.Combat.Visuals
             _trailFillTransform.localScale = trailScale;
         }
 
-        private void ApplyFlipCompensation(Transform pivot)
+        private void ApplyScaleCompensation(Transform pivot)
         {
             float sign = transform.localScale.x < 0f ? -1f : 1f;
+            float parentMagnitude = Mathf.Abs(transform.localScale.x);
+            float inverseScale = parentMagnitude > 0.001f ? 1f / parentMagnitude : 1f;
             var pivotScale = pivot.localScale;
-            pivotScale.x = sign;
+            pivotScale.x = sign * inverseScale;
+            pivotScale.y = inverseScale;
             pivot.localScale = pivotScale;
         }
 
@@ -202,7 +205,7 @@ namespace RogueliteAutoBattler.Combat.Visuals
             }
             else
             {
-                Debug.LogWarning($"[HealthBar] Shader '{UnlitShaderName}' not found. HP bar may render black. Falling back to default sprite material.");
+                Debug.LogWarning($"[{nameof(HealthBar)}] Shader '{UnlitShaderName}' not found. HP bar may render black. Falling back to default sprite material.");
             }
         }
     }

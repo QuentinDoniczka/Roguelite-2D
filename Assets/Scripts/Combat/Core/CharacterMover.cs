@@ -170,7 +170,8 @@ namespace RogueliteAutoBattler.Combat.Core
                 return;
 
             var s = transform.localScale;
-            s.x = directionX > 0f ? -1f : 1f;
+            float magnitude = Mathf.Abs(s.x);
+            s.x = directionX > 0f ? -magnitude : magnitude;
             transform.localScale = s;
         }
 

@@ -73,6 +73,8 @@ namespace RogueliteAutoBattler.Combat.Levels
 
         private float CombatZoneX => _combatTriggerZone != null ? _combatTriggerZone.position.x : float.MaxValue;
 
+        private float CharacterScale => _spawnManager != null ? _spawnManager.CharacterScale : 1f;
+
         private bool TryGetCurrentStage(out StageData stage)
         {
             stage = null;
@@ -198,8 +200,9 @@ namespace RogueliteAutoBattler.Combat.Levels
                 ? (Vector2)_enemiesHomeAnchor.position
                 : new Vector2(FallbackEnemySpawnX, 0f);
             Vector2 spawnAnchor = new Vector2(anchorPos.x + _enemySpawnOffscreenX, anchorPos.y);
-            Vector2[] spawnPositions = FormationLayout.GetPositions(spawnAnchor, wave.Enemies.Count, facingRight: false);
-            Vector2[] homePositions = FormationLayout.GetPositions(anchorPos, wave.Enemies.Count, facingRight: false);
+            float characterScale = CharacterScale;
+            Vector2[] spawnPositions = FormationLayout.GetPositions(spawnAnchor, wave.Enemies.Count, facingRight: false, characterScale: characterScale);
+            Vector2[] homePositions = FormationLayout.GetPositions(anchorPos, wave.Enemies.Count, facingRight: false, characterScale: characterScale);
 
             for (int i = 0; i < wave.Enemies.Count; i++)
             {
@@ -228,6 +231,9 @@ namespace RogueliteAutoBattler.Combat.Levels
             GameObject enemy = Instantiate(data.Prefab, spawnPosition, Quaternion.identity, _enemiesContainer);
             enemy.name = data.EnemyName;
 
+            float scale = CharacterScale;
+            enemy.transform.localScale = new Vector3(scale, scale, 1f);
+
             var components = CombatSetupHelper.AssembleCharacter(
                 enemy,
                 data.Hp,
@@ -241,7 +247,8 @@ namespace RogueliteAutoBattler.Combat.Levels
                 data.Appearance,
                 nameof(LevelManager),
                 healthBarFillColor: HealthBar.EnemyFillColor,
-                isAlly: false);
+                isAlly: false,
+                characterScale: scale);
 
             IgnoreCollisionWithOppositeTeam(enemy, _teamContainer);
 
@@ -399,7 +406,7 @@ namespace RogueliteAutoBattler.Combat.Levels
 
             ClearAllyTargets();
             AttackSlotRegistry.Clear();
-            CombatSetupHelper.RecalculateFormation(_teamContainer, _teamHomeAnchor, facingRight: true);
+            CombatSetupHelper.RecalculateFormation(_teamContainer, _teamHomeAnchor, facingRight: true, characterScale: CharacterScale);
 
             if (_conveyor != null && scrollDistance > 0f)
             {
@@ -500,7 +507,7 @@ namespace RogueliteAutoBattler.Combat.Levels
 #endif
             ClearEnemyTargets();
             AttackSlotRegistry.Clear();
-            CombatSetupHelper.RecalculateFormation(_enemiesContainer, _enemiesHomeAnchor, facingRight: false);
+            CombatSetupHelper.RecalculateFormation(_enemiesContainer, _enemiesHomeAnchor, facingRight: false, characterScale: CharacterScale);
             StartCoroutine(DefeatResetCoroutine());
         }
 
@@ -571,10 +578,10 @@ namespace RogueliteAutoBattler.Combat.Levels
         internal void ClearEnemyTargetsForTest() => ClearEnemyTargets();
 
         internal void RecalculateAllyFormationForTest() =>
-            CombatSetupHelper.RecalculateFormation(_teamContainer, _teamHomeAnchor, facingRight: true);
+            CombatSetupHelper.RecalculateFormation(_teamContainer, _teamHomeAnchor, facingRight: true, characterScale: CharacterScale);
 
         internal void RecalculateEnemyFormationForTest() =>
-            CombatSetupHelper.RecalculateFormation(_enemiesContainer, _enemiesHomeAnchor, facingRight: false);
+            CombatSetupHelper.RecalculateFormation(_enemiesContainer, _enemiesHomeAnchor, facingRight: false, characterScale: CharacterScale);
 
         private static void IgnoreCollisionWithOppositeTeam(GameObject character, Transform oppositeContainer)
         {

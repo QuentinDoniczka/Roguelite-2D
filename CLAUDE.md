@@ -25,7 +25,7 @@
 Doc detaille : `Assets/doc/premier-jet-roguelite.html`
 
 # Project Structure
-Generated: 2026-04-01 (updated feature/124-progress-bar-dot-jump)
+Generated: 2026-04-01 (updated feature/127-configurable-character-scale)
 
 .github/
 └── workflows/
