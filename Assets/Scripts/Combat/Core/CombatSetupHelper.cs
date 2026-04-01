@@ -8,7 +8,6 @@ namespace RogueliteAutoBattler.Combat.Core
     public struct CharacterComponents
     {
         public CombatStats Stats;
-        public CharacterMover Mover;
         public CombatController Controller;
     }
 
@@ -75,7 +74,6 @@ namespace RogueliteAutoBattler.Combat.Core
             return new CharacterComponents
             {
                 Stats = combatStats,
-                Mover = mover,
                 Controller = controller
             };
         }
@@ -93,7 +91,7 @@ namespace RogueliteAutoBattler.Combat.Core
             relay.Initialize(controller);
         }
 
-        public static void RecalculateFormation(Transform container, Transform homeAnchor, bool facingRight, float scaleFactor = 1f)
+        public static void RecalculateFormation(Transform container, Transform homeAnchor, bool facingRight, float characterScale = 1f)
         {
             if (container == null || homeAnchor == null)
                 return;
@@ -115,7 +113,7 @@ namespace RogueliteAutoBattler.Combat.Core
                 return;
 
             Vector2 anchorPos = (Vector2)homeAnchor.position;
-            Vector2[] positions = FormationLayout.GetPositions(anchorPos, aliveList.Count, facingRight, scaleFactor: scaleFactor);
+            Vector2[] positions = FormationLayout.GetPositions(anchorPos, aliveList.Count, facingRight, characterScale: characterScale);
 
             for (int i = 0; i < aliveList.Count; i++)
             {

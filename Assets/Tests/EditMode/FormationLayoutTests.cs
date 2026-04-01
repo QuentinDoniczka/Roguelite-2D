@@ -108,7 +108,7 @@ namespace RogueliteAutoBattler.Tests.EditMode
         [Test]
         public void GetPositions_WithScaleFactor_SpacingScaled()
         {
-            Vector2[] positions = FormationLayout.GetPositions(Vector2.zero, 3, true, scaleFactor: 1.5f);
+            Vector2[] positions = FormationLayout.GetPositions(Vector2.zero, 3, true, characterScale: 1.5f);
 
             Assert.AreEqual(3, positions.Length);
 
@@ -124,7 +124,7 @@ namespace RogueliteAutoBattler.Tests.EditMode
         [Test]
         public void GetPositions_SixUnits_WithScaleFactor_ColumnSpacingScaled()
         {
-            Vector2[] positions = FormationLayout.GetPositions(Vector2.zero, 6, facingRight: true, scaleFactor: 1.5f);
+            Vector2[] positions = FormationLayout.GetPositions(Vector2.zero, 6, facingRight: true, characterScale: 1.5f);
 
             Assert.AreEqual(6, positions.Length);
 

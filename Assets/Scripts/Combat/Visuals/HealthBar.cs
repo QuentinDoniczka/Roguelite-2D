@@ -205,7 +205,7 @@ namespace RogueliteAutoBattler.Combat.Visuals
             }
             else
             {
-                Debug.LogWarning($"[HealthBar] Shader '{UnlitShaderName}' not found. HP bar may render black. Falling back to default sprite material.");
+                Debug.LogWarning($"[{nameof(HealthBar)}] Shader '{UnlitShaderName}' not found. HP bar may render black. Falling back to default sprite material.");
             }
         }
     }

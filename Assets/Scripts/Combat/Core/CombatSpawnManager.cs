@@ -14,8 +14,9 @@ namespace RogueliteAutoBattler.Combat.Core
         [Header("Anchors")]
         [SerializeField] private Transform _teamHomeAnchor;
 
+        private const float DefaultCharacterScale = 1.5f;
         [Header("Scale")]
-        [SerializeField] private float _characterScale = 1.5f;
+        [SerializeField] private float _characterScale = DefaultCharacterScale;
 
         public float CharacterScale => _characterScale;
 
@@ -41,7 +42,7 @@ namespace RogueliteAutoBattler.Combat.Core
             Vector2 anchorPos = teamAnchor != null ? (Vector2)teamAnchor.position : Vector2.zero;
 
             var allies = _teamDatabase.Allies;
-            Vector2[] positions = FormationLayout.GetPositions(anchorPos, allies.Count, facingRight: true, scaleFactor: _characterScale);
+            Vector2[] positions = FormationLayout.GetPositions(anchorPos, allies.Count, facingRight: true, characterScale: _characterScale);
 
             for (int i = 0; i < allies.Count; i++)
             {
@@ -56,7 +57,7 @@ namespace RogueliteAutoBattler.Combat.Core
             SpawnAllies();
         }
 
-        internal void InitializeForTest(TeamDatabase teamDatabase, Transform teamContainer, Transform teamHomeAnchor, float characterScale = 1.5f)
+        internal void InitializeForTest(TeamDatabase teamDatabase, Transform teamContainer, Transform teamHomeAnchor, float characterScale = DefaultCharacterScale)
         {
             _teamDatabase = teamDatabase;
             _teamContainer = teamContainer;

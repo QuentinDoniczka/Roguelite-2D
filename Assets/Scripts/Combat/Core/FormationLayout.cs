@@ -14,12 +14,12 @@ namespace RogueliteAutoBattler.Combat.Core
             bool facingRight,
             float ySpacing = DefaultYSpacing,
             float columnSpacing = DefaultColumnSpacing,
-            float scaleFactor = 1f)
+            float characterScale = 1f)
         {
             if (count <= 0) return System.Array.Empty<Vector2>();
 
-            float scaledYSpacing = ySpacing * scaleFactor;
-            float scaledColumnSpacing = columnSpacing * scaleFactor;
+            float scaledYSpacing = ySpacing * characterScale;
+            float scaledColumnSpacing = columnSpacing * characterScale;
 
             var positions = new Vector2[count];
 
