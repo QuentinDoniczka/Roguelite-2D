@@ -200,8 +200,9 @@ namespace RogueliteAutoBattler.Combat.Levels
                 ? (Vector2)_enemiesHomeAnchor.position
                 : new Vector2(FallbackEnemySpawnX, 0f);
             Vector2 spawnAnchor = new Vector2(anchorPos.x + _enemySpawnOffscreenX, anchorPos.y);
-            Vector2[] spawnPositions = FormationLayout.GetPositions(spawnAnchor, wave.Enemies.Count, facingRight: false);
-            Vector2[] homePositions = FormationLayout.GetPositions(anchorPos, wave.Enemies.Count, facingRight: false);
+            float scaleFactor = CurrentScaleFactor;
+            Vector2[] spawnPositions = FormationLayout.GetPositions(spawnAnchor, wave.Enemies.Count, facingRight: false, scaleFactor: scaleFactor);
+            Vector2[] homePositions = FormationLayout.GetPositions(anchorPos, wave.Enemies.Count, facingRight: false, scaleFactor: scaleFactor);
 
             for (int i = 0; i < wave.Enemies.Count; i++)
             {
@@ -405,7 +406,7 @@ namespace RogueliteAutoBattler.Combat.Levels
 
             ClearAllyTargets();
             AttackSlotRegistry.Clear();
-            CombatSetupHelper.RecalculateFormation(_teamContainer, _teamHomeAnchor, facingRight: true);
+            CombatSetupHelper.RecalculateFormation(_teamContainer, _teamHomeAnchor, facingRight: true, scaleFactor: CurrentScaleFactor);
 
             if (_conveyor != null && scrollDistance > 0f)
             {
@@ -506,7 +507,7 @@ namespace RogueliteAutoBattler.Combat.Levels
 #endif
             ClearEnemyTargets();
             AttackSlotRegistry.Clear();
-            CombatSetupHelper.RecalculateFormation(_enemiesContainer, _enemiesHomeAnchor, facingRight: false);
+            CombatSetupHelper.RecalculateFormation(_enemiesContainer, _enemiesHomeAnchor, facingRight: false, scaleFactor: CurrentScaleFactor);
             StartCoroutine(DefeatResetCoroutine());
         }
 
@@ -577,10 +578,10 @@ namespace RogueliteAutoBattler.Combat.Levels
         internal void ClearEnemyTargetsForTest() => ClearEnemyTargets();
 
         internal void RecalculateAllyFormationForTest() =>
-            CombatSetupHelper.RecalculateFormation(_teamContainer, _teamHomeAnchor, facingRight: true);
+            CombatSetupHelper.RecalculateFormation(_teamContainer, _teamHomeAnchor, facingRight: true, scaleFactor: CurrentScaleFactor);
 
         internal void RecalculateEnemyFormationForTest() =>
-            CombatSetupHelper.RecalculateFormation(_enemiesContainer, _enemiesHomeAnchor, facingRight: false);
+            CombatSetupHelper.RecalculateFormation(_enemiesContainer, _enemiesHomeAnchor, facingRight: false, scaleFactor: CurrentScaleFactor);
 
         private static void IgnoreCollisionWithOppositeTeam(GameObject character, Transform oppositeContainer)
         {
