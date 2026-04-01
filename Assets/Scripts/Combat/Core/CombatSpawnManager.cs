@@ -14,7 +14,10 @@ namespace RogueliteAutoBattler.Combat.Core
         [Header("Anchors")]
         [SerializeField] private Transform _teamHomeAnchor;
 
-        private static readonly Vector3 FacingRightScale = new Vector3(-1f, 1f, 1f);
+        [Header("Scale")]
+        [SerializeField] private float _characterScale = 1.5f;
+
+        public float CharacterScale => _characterScale;
 
         private void Start()
         {
@@ -53,11 +56,12 @@ namespace RogueliteAutoBattler.Combat.Core
             SpawnAllies();
         }
 
-        internal void InitializeForTest(TeamDatabase teamDatabase, Transform teamContainer, Transform teamHomeAnchor)
+        internal void InitializeForTest(TeamDatabase teamDatabase, Transform teamContainer, Transform teamHomeAnchor, float characterScale = 1.5f)
         {
             _teamDatabase = teamDatabase;
             _teamContainer = teamContainer;
             _teamHomeAnchor = teamHomeAnchor;
+            _characterScale = characterScale;
         }
 
         private void SpawnAlly(AllySpawnData data, Transform homeAnchor, Vector2 spawnPos, Vector2 homeOffset)
@@ -72,7 +76,7 @@ namespace RogueliteAutoBattler.Combat.Core
 
             var ally = Instantiate(data.Prefab, new Vector3(spawnPos.x, spawnPos.y, 0f), Quaternion.identity, _teamContainer);
             ally.name = data.AllyName;
-            ally.transform.localScale = FacingRightScale;
+            ally.transform.localScale = new Vector3(-_characterScale, _characterScale, 1f);
 
             var components = CombatSetupHelper.AssembleCharacter(
                 ally,
