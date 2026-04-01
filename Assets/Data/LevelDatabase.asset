@@ -144,7 +144,25 @@ MonoBehaviour:
               weaponSprite: {fileID: 0}
               shieldSprite: {fileID: 0}
       - stepName: Step 5
-        waves: []
+        waves:
+        - waveName: Wave 1
+          spawnDelay: 0
+          enemies:
+          - enemyName: Enemy
+            prefab: {fileID: 1000000000000000001, guid: ade0afb480cc21d43ab799f99637abc6, type: 3}
+            hp: 10
+            atk: 2
+            attackSpeed: 1
+            moveSpeed: 1
+            attackRange: 0.5
+            attackType: 0
+            colliderRadius: 0.05
+            goldDrop: 1
+            appearance:
+              headSprite: {fileID: 0}
+              hatSprite: {fileID: 0}
+              weaponSprite: {fileID: 0}
+              shieldSprite: {fileID: 0}
     - levelName: Level 2
       steps:
       - stepName: Step 1
