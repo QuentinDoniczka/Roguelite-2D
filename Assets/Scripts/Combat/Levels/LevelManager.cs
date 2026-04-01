@@ -73,6 +73,8 @@ namespace RogueliteAutoBattler.Combat.Levels
 
         private float CombatZoneX => _combatTriggerZone != null ? _combatTriggerZone.position.x : float.MaxValue;
 
+        private float CurrentScaleFactor => _spawnManager != null ? _spawnManager.CharacterScale : 1f;
+
         private bool TryGetCurrentStage(out StageData stage)
         {
             stage = null;
@@ -244,7 +246,8 @@ namespace RogueliteAutoBattler.Combat.Levels
                 data.Appearance,
                 nameof(LevelManager),
                 healthBarFillColor: HealthBar.EnemyFillColor,
-                isAlly: false);
+                isAlly: false,
+                characterScale: scale);
 
             IgnoreCollisionWithOppositeTeam(enemy, _teamContainer);
 

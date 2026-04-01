@@ -34,7 +34,8 @@ namespace RogueliteAutoBattler.Combat.Core
             string callerName,
             Color? healthBarFillColor = null,
             Color? healthBarTrailColor = null,
-            bool isAlly = true)
+            bool isAlly = true,
+            float characterScale = 1f)
         {
             var combatStats = character.AddComponent<CombatStats>();
             combatStats.InitializeDirect(maxHp, atk, attackSpeed, regenHpPerSecond);
@@ -55,7 +56,7 @@ namespace RogueliteAutoBattler.Combat.Core
 
             var col = character.GetComponent<CircleCollider2D>();
             if (col != null)
-                col.radius = colliderRadius;
+                col.radius = colliderRadius / characterScale;
 
             var controller = character.AddComponent<CombatController>();
             WireAnimationRelay(character, controller, callerName);
@@ -92,7 +93,7 @@ namespace RogueliteAutoBattler.Combat.Core
             relay.Initialize(controller);
         }
 
-        public static void RecalculateFormation(Transform container, Transform homeAnchor, bool facingRight)
+        public static void RecalculateFormation(Transform container, Transform homeAnchor, bool facingRight, float scaleFactor = 1f)
         {
             if (container == null || homeAnchor == null)
                 return;
@@ -114,7 +115,7 @@ namespace RogueliteAutoBattler.Combat.Core
                 return;
 
             Vector2 anchorPos = (Vector2)homeAnchor.position;
-            Vector2[] positions = FormationLayout.GetPositions(anchorPos, aliveList.Count, facingRight);
+            Vector2[] positions = FormationLayout.GetPositions(anchorPos, aliveList.Count, facingRight, scaleFactor: scaleFactor);
 
             for (int i = 0; i < aliveList.Count; i++)
             {

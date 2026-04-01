@@ -13,25 +13,29 @@ namespace RogueliteAutoBattler.Combat.Core
             int count,
             bool facingRight,
             float ySpacing = DefaultYSpacing,
-            float columnSpacing = DefaultColumnSpacing)
+            float columnSpacing = DefaultColumnSpacing,
+            float scaleFactor = 1f)
         {
             if (count <= 0) return System.Array.Empty<Vector2>();
+
+            float scaledYSpacing = ySpacing * scaleFactor;
+            float scaledColumnSpacing = columnSpacing * scaleFactor;
 
             var positions = new Vector2[count];
 
             if (count <= MaxPerColumn)
             {
-                FillColumn(positions, 0, count, anchor.x, anchor.y, ySpacing);
+                FillColumn(positions, 0, count, anchor.x, anchor.y, scaledYSpacing);
             }
             else
             {
                 int frontCount = Mathf.CeilToInt(count / 2f);
                 int backCount = count - frontCount;
 
-                float backOffsetX = facingRight ? -columnSpacing : columnSpacing;
+                float backOffsetX = facingRight ? -scaledColumnSpacing : scaledColumnSpacing;
 
-                FillColumn(positions, 0, frontCount, anchor.x, anchor.y, ySpacing);
-                FillColumn(positions, frontCount, backCount, anchor.x + backOffsetX, anchor.y, ySpacing);
+                FillColumn(positions, 0, frontCount, anchor.x, anchor.y, scaledYSpacing);
+                FillColumn(positions, frontCount, backCount, anchor.x + backOffsetX, anchor.y, scaledYSpacing);
             }
 
             return positions;

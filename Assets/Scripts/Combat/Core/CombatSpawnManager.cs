@@ -41,7 +41,7 @@ namespace RogueliteAutoBattler.Combat.Core
             Vector2 anchorPos = teamAnchor != null ? (Vector2)teamAnchor.position : Vector2.zero;
 
             var allies = _teamDatabase.Allies;
-            Vector2[] positions = FormationLayout.GetPositions(anchorPos, allies.Count, facingRight: true);
+            Vector2[] positions = FormationLayout.GetPositions(anchorPos, allies.Count, facingRight: true, scaleFactor: _characterScale);
 
             for (int i = 0; i < allies.Count; i++)
             {
@@ -89,7 +89,8 @@ namespace RogueliteAutoBattler.Combat.Core
                 homeOffset,
                 data.ColliderRadius,
                 data.Appearance,
-                nameof(CombatSpawnManager));
+                nameof(CombatSpawnManager),
+                characterScale: _characterScale);
             components.Controller.SetAttackerFacing(true);
         }
     }
