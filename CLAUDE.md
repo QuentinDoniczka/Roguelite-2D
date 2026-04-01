@@ -25,7 +25,7 @@
 Doc detaille : `Assets/doc/premier-jet-roguelite.html`
 
 # Project Structure
-Generated: 2026-03-31 (updated feature/121-progress-bar-minimap)
+Generated: 2026-04-01 (updated feature/123-progress-bar-duplicate-dot)
 
 .github/
 └── workflows/
@@ -158,14 +158,15 @@ Assets/
 │   ├── UniversalRenderPipelineGlobalSettings.asset
 │   └── UniversalRP.asset
 ├── Sprites/
-│   ├── Characters/  (155 files)
+│   ├── Characters/  (156 files)
 │   ├── Effects/  (25 files)
 │   ├── Environment/
 │   │   ├── backgroundtest.png
 │   │   ├── grid_ground.png
 │   │   ├── grid_ground_blue.png
+│   │   ├── map.png
 │   │   └── placeholder_white.png
-│   ├── Items/  (53 files)
+│   ├── Items/  (54 files)
 │   └── UI/  (empty)
 ├── Tests/
 │   ├── EditMode/
@@ -206,7 +207,7 @@ Assets/
 │       ├── LevelManagerStepTransitionTests.cs
 │       ├── VisualEquipmentTestLoopTests.cs
 │       └── WorldConveyorTests.cs
-├── _Recovery/  (4 files)
+├── _Recovery/  (1 file)
 └── TextMesh Pro/  (173 files — TMP package: fonts, shaders, examples)
 
 ProjectSettings/  (Unity defaults)

@@ -12,6 +12,8 @@ namespace RogueliteAutoBattler.Tests.PlayMode
 {
     public class StepProgressBarTests : PlayModeTestBase
     {
+        private const float NeverSpawnDelay = 999f;
+
         private LevelManager _levelManager;
         private StepProgressBar _progressBar;
         private LevelDatabase _levelDatabase;
@@ -19,40 +21,50 @@ namespace RogueliteAutoBattler.Tests.PlayMode
         [SetUp]
         public void SetUp()
         {
-            _levelDatabase = ScriptableObject.CreateInstance<LevelDatabase>();
-            var delayedWave = new WaveData("W1", 999f, new List<EnemySpawnData>());
-            var step0 = new StepData("Step0", new List<WaveData> { delayedWave });
-            var step1 = new StepData("Step1", new List<WaveData> { delayedWave });
-            var step2 = new StepData("Step2", new List<WaveData> { delayedWave });
-            var level = new LevelData("Level0", new List<StepData> { step0, step1, step2 });
-            var stage = new StageData("Stage0", null, new List<LevelData> { level });
-            _levelDatabase.Stages.Add(stage);
+            (_levelDatabase, _levelManager, _progressBar) = BuildProgressBarSetup(3);
+        }
 
-            var levelManagerGo = new GameObject("LevelManager");
+        private (LevelDatabase database, LevelManager levelManager, StepProgressBar bar)
+            BuildProgressBarSetup(int stepCount, string prefix = "")
+        {
+            var database = ScriptableObject.CreateInstance<LevelDatabase>();
+            var delayedWave = new WaveData("W1", NeverSpawnDelay, new List<EnemySpawnData>());
+
+            var steps = new List<StepData>();
+            for (int i = 0; i < stepCount; i++)
+                steps.Add(new StepData("Step" + i, new List<WaveData> { delayedWave }));
+
+            var level = new LevelData("Level0", steps);
+            var stage = new StageData("Stage0", null, new List<LevelData> { level });
+            database.Stages.Add(stage);
+
+            var levelManagerGo = new GameObject(prefix + "LevelManager");
             levelManagerGo.AddComponent<WorldConveyor>();
-            _levelManager = levelManagerGo.AddComponent<LevelManager>();
-            _levelManager.enabled = false;
+            var levelManager = levelManagerGo.AddComponent<LevelManager>();
+            levelManager.enabled = false;
             Track(levelManagerGo);
 
-            var teamContainer = Track(new GameObject("Team"));
-            var enemiesContainer = Track(new GameObject("Enemies"));
-            _levelManager.InitializeForTest(
+            var teamContainer = Track(new GameObject(prefix + "Team"));
+            var enemiesContainer = Track(new GameObject(prefix + "Enemies"));
+            levelManager.InitializeForTest(
                 teamContainer.transform,
                 enemiesContainer.transform,
-                levelDatabase: _levelDatabase);
+                levelDatabase: database);
 
-            var canvasGo = new GameObject("TestCanvas");
+            var canvasGo = new GameObject(prefix + "Canvas");
             canvasGo.AddComponent<Canvas>();
             Track(canvasGo);
 
-            var barGo = new GameObject("StepProgressBar");
+            var barGo = new GameObject(prefix + "StepProgressBar");
             barGo.AddComponent<RectTransform>();
             barGo.transform.SetParent(canvasGo.transform);
 
-            _progressBar = barGo.AddComponent<StepProgressBar>();
-            _progressBar.InitializeForTest(_levelManager);
+            var bar = barGo.AddComponent<StepProgressBar>();
+            bar.InitializeForTest(levelManager);
 
-            _levelManager.ApplyStage(0);
+            levelManager.ApplyStage(0);
+
+            return (database, levelManager, bar);
         }
 
         public override void TearDown()
@@ -219,38 +231,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
         [UnityTest]
         public IEnumerator SingleStepLevel_ShowsOneSphereNoLines()
         {
-            var singleLevelDatabase = ScriptableObject.CreateInstance<LevelDatabase>();
-            var delayedWave = new WaveData("W1", 999f, new List<EnemySpawnData>());
-            var singleStep = new StepData("Step0", new List<WaveData> { delayedWave });
-            var singleLevel = new LevelData("Level0", new List<StepData> { singleStep });
-            var singleStage = new StageData("Stage0", null, new List<LevelData> { singleLevel });
-            singleLevelDatabase.Stages.Add(singleStage);
-
-            var singleLevelManagerGo = new GameObject("SingleLevelManager");
-            singleLevelManagerGo.AddComponent<WorldConveyor>();
-            var singleLevelManager = singleLevelManagerGo.AddComponent<LevelManager>();
-            singleLevelManager.enabled = false;
-            Track(singleLevelManagerGo);
-
-            var teamContainer = Track(new GameObject("SingleTeam"));
-            var enemiesContainer = Track(new GameObject("SingleEnemies"));
-            singleLevelManager.InitializeForTest(
-                teamContainer.transform,
-                enemiesContainer.transform,
-                levelDatabase: singleLevelDatabase);
-
-            var canvasGo = new GameObject("SingleCanvas");
-            canvasGo.AddComponent<Canvas>();
-            Track(canvasGo);
-
-            var barGo = new GameObject("SingleStepProgressBar");
-            barGo.AddComponent<RectTransform>();
-            barGo.transform.SetParent(canvasGo.transform);
-
-            var singleBar = barGo.AddComponent<StepProgressBar>();
-            singleBar.InitializeForTest(singleLevelManager);
-
-            singleLevelManager.ApplyStage(0);
+            var (singleLevelDatabase, _, singleBar) = BuildProgressBarSetup(1, "Single");
 
             yield return null;
 
