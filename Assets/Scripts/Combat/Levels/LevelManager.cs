@@ -228,6 +228,9 @@ namespace RogueliteAutoBattler.Combat.Levels
             GameObject enemy = Instantiate(data.Prefab, spawnPosition, Quaternion.identity, _enemiesContainer);
             enemy.name = data.EnemyName;
 
+            float scale = _spawnManager != null ? _spawnManager.CharacterScale : 1f;
+            enemy.transform.localScale = new Vector3(scale, scale, 1f);
+
             var components = CombatSetupHelper.AssembleCharacter(
                 enemy,
                 data.Hp,
