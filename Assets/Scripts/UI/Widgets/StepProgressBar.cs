@@ -163,7 +163,7 @@ namespace RogueliteAutoBattler.UI.Widgets
                 if (i < currentStep)
                     _spheres[i].color = _completedColor;
                 else if (i == currentStep)
-                    _spheres[i].color = _currentColor;
+                    _spheres[i].color = _dotActive ? _completedColor : _currentColor;
                 else
                     _spheres[i].color = _upcomingColor;
             }
@@ -223,6 +223,7 @@ namespace RogueliteAutoBattler.UI.Widgets
             _dotToIndex = toIndex;
             _dotActive = true;
             _scrollDot.gameObject.SetActive(true);
+            UpdateVisuals(_currentStep);
         }
 
         private void StopDotScroll()
@@ -268,6 +269,7 @@ namespace RogueliteAutoBattler.UI.Widgets
         }
 
         internal void SimulateStepChange(int stepIndex) => OnStepChanged(stepIndex);
+        internal void SimulateScrollStart() => OnConveyorScrollStarted();
 
         internal int SphereCount => _spheres.Count;
         internal int LineCount => _lines.Count;
