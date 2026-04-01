@@ -25,7 +25,7 @@
 Doc detaille : `Assets/doc/premier-jet-roguelite.html`
 
 # Project Structure
-Generated: 2026-04-01 (updated feature/123-progress-bar-duplicate-dot)
+Generated: 2026-04-01 (updated feature/124-progress-bar-dot-jump)
 
 .github/
 └── workflows/
