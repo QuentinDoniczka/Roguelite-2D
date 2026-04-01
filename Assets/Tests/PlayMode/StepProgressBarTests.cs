@@ -149,7 +149,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
         }
 
         [UnityTest]
-        public IEnumerator ScrollDot_BecomesInactive_WhenStepChanges()
+        public IEnumerator ScrollDot_RemainsActive_WhenStepChanges()
         {
             yield return null;
 
@@ -161,8 +161,8 @@ namespace RogueliteAutoBattler.Tests.PlayMode
 
             _progressBar.SimulateStepChange(1);
 
-            Assert.IsFalse(_progressBar.IsScrollDotActive,
-                "ScrollDot should be inactive after step change.");
+            Assert.IsTrue(_progressBar.IsScrollDotActive,
+                "ScrollDot should remain active after step change until scroll completes.");
         }
 
         [UnityTest]
@@ -197,7 +197,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
         }
 
         [UnityTest]
-        public IEnumerator DepartureSphere_ReturnsToCurrent_AfterStepChange()
+        public IEnumerator DepartureSphere_StaysCompleted_DuringActiveScroll_AfterStepChange()
         {
             yield return null;
 
@@ -207,9 +207,11 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             _progressBar.SimulateStepChange(1);
             yield return null;
 
-            Assert.IsFalse(_progressBar.IsScrollDotActive);
+            Assert.IsTrue(_progressBar.IsScrollDotActive,
+                "ScrollDot should remain active after step change until scroll completes.");
             Assert.AreEqual(_progressBar.CompletedColor, _progressBar.GetSphereColor(0));
-            Assert.AreEqual(_progressBar.CurrentColor, _progressBar.GetSphereColor(1));
+            Assert.AreEqual(_progressBar.CompletedColor, _progressBar.GetSphereColor(1),
+                "Current sphere should show CompletedColor while scroll dot is active.");
             Assert.AreEqual(_progressBar.UpcomingColor, _progressBar.GetSphereColor(2));
         }
 
