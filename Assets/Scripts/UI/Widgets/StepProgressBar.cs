@@ -68,6 +68,7 @@ namespace RogueliteAutoBattler.UI.Widgets
 
         private void Rebuild(int totalSteps, int currentStep)
         {
+            StopDotScroll();
             _spheres.Clear();
             _lines.Clear();
 
@@ -181,7 +182,6 @@ namespace RogueliteAutoBattler.UI.Widgets
 
         private void OnStepChanged(int stepIndex)
         {
-            StopDotScroll();
             UpdateVisuals(stepIndex);
         }
 
