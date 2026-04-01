@@ -171,6 +171,52 @@ namespace RogueliteAutoBattler.Tests.PlayMode
         }
 
         [UnityTest]
+        public IEnumerator DepartureSphere_BecomesCompletedColor_WhenScrollDotActive()
+        {
+            yield return null;
+
+            _progressBar.SimulateScrollStart();
+            yield return null;
+
+            Assert.AreEqual(_progressBar.CompletedColor, _progressBar.GetSphereColor(0));
+            Assert.AreEqual(_progressBar.UpcomingColor, _progressBar.GetSphereColor(1));
+            Assert.AreEqual(_progressBar.UpcomingColor, _progressBar.GetSphereColor(2));
+            Assert.IsTrue(_progressBar.IsScrollDotActive);
+        }
+
+        [UnityTest]
+        public IEnumerator DepartureSphere_ReturnsToCurrent_AfterStepChange()
+        {
+            yield return null;
+
+            _progressBar.SimulateScrollStart();
+            yield return null;
+
+            _progressBar.SimulateStepChange(1);
+            yield return null;
+
+            Assert.IsFalse(_progressBar.IsScrollDotActive);
+            Assert.AreEqual(_progressBar.CompletedColor, _progressBar.GetSphereColor(0));
+            Assert.AreEqual(_progressBar.CurrentColor, _progressBar.GetSphereColor(1));
+            Assert.AreEqual(_progressBar.UpcomingColor, _progressBar.GetSphereColor(2));
+        }
+
+        [UnityTest]
+        public IEnumerator DepartureSphere_BecomesCompletedColor_WhenScrollingFromMiddleStep()
+        {
+            _progressBar.SimulateStepChange(1);
+            yield return null;
+
+            _progressBar.SimulateScrollStart();
+            yield return null;
+
+            Assert.AreEqual(_progressBar.CompletedColor, _progressBar.GetSphereColor(0));
+            Assert.AreEqual(_progressBar.CompletedColor, _progressBar.GetSphereColor(1));
+            Assert.AreEqual(_progressBar.UpcomingColor, _progressBar.GetSphereColor(2));
+            Assert.IsTrue(_progressBar.IsScrollDotActive);
+        }
+
+        [UnityTest]
         public IEnumerator SingleStepLevel_ShowsOneSphereNoLines()
         {
             var singleLevelDatabase = ScriptableObject.CreateInstance<LevelDatabase>();
