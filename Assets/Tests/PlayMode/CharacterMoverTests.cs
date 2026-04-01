@@ -208,5 +208,38 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             Assert.That(charGo.transform.localScale.x, Is.EqualTo(1f).Within(0.01f),
                 "FlipToward(-1) should set localScale.x to 1 (face left, native).");
         }
+
+        [UnityTest]
+        public IEnumerator FlipToward_PreservesScaleMagnitude()
+        {
+            var charGo = Track(TestCharacterFactory.CreateMoverCharacter(
+                name: "ScaledFlipper",
+                moveSpeed: 2f,
+                position: new Vector2(0f, 0f)));
+
+            charGo.transform.localScale = new Vector3(1.5f, 1.5f, 1f);
+
+            var mover = charGo.GetComponent<CharacterMover>();
+
+            yield return null;
+
+            mover.FlipToward(1f);
+            yield return null;
+
+            Assert.That(charGo.transform.localScale.x, Is.EqualTo(-1.5f).Within(0.01f),
+                "FlipToward(+1) should flip to -1.5 preserving magnitude.");
+
+            mover.FlipToward(-1f);
+            yield return null;
+
+            Assert.That(charGo.transform.localScale.x, Is.EqualTo(1.5f).Within(0.01f),
+                "FlipToward(-1) should flip to +1.5 preserving magnitude.");
+
+            mover.FlipToward(1f);
+            yield return null;
+
+            Assert.That(charGo.transform.localScale.x, Is.EqualTo(-1.5f).Within(0.01f),
+                "FlipToward(+1) again should be -1.5 with no drift.");
+        }
     }
 }
