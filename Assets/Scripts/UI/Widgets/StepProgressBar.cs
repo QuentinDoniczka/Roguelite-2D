@@ -20,6 +20,8 @@ namespace RogueliteAutoBattler.UI.Widgets
         [SerializeField] private float _lineHeight = 3f;
         [SerializeField] private float _lineMinWidth = 4f;
 
+        private const float ScrollDotSizeMultiplier = 1.2f;
+
         private LevelManager _levelManager;
         private WorldConveyor _conveyor;
         private HorizontalLayoutGroup _layoutGroup;
@@ -147,7 +149,8 @@ namespace RogueliteAutoBattler.UI.Widgets
             _scrollDot.raycastTarget = false;
 
             _scrollDotRect = dotGo.GetComponent<RectTransform>();
-            _scrollDotRect.sizeDelta = new Vector2(_sphereSize, _sphereSize);
+            float dotSize = _sphereSize * ScrollDotSizeMultiplier;
+            _scrollDotRect.sizeDelta = new Vector2(dotSize, dotSize);
 
             var layout = dotGo.AddComponent<LayoutElement>();
             layout.ignoreLayout = true;
@@ -214,6 +217,7 @@ namespace RogueliteAutoBattler.UI.Widgets
         private void OnConveyorScrollComplete()
         {
             StopDotScroll();
+            UpdateVisuals(_currentStep);
         }
 
         private void StartDotScroll(int fromIndex, int toIndex)
@@ -223,6 +227,7 @@ namespace RogueliteAutoBattler.UI.Widgets
             _dotToIndex = toIndex;
             _dotActive = true;
             _scrollDot.gameObject.SetActive(true);
+            _scrollDot.transform.SetAsLastSibling();
             UpdateVisuals(_currentStep);
         }
 
