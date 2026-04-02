@@ -44,11 +44,11 @@ namespace RogueliteAutoBattler.Editor
         private readonly Dictionary<string, bool> _levelFoldouts = new Dictionary<string, bool>();
 
         private int _autoBuilderStepCount = 10;
-        private int _autoBuilderSpecialStepFrequency = 5;
+        private readonly List<int> _autoBuilderSpecialStepNumbers = new List<int>();
         private AutoBuilderStepParams _autoBuilderNormal  = new AutoBuilderStepParams(1, 5f, 3, 2, 2);
-        private AutoBuilderStepParams _autoBuilderSpecial = new AutoBuilderStepParams(1, 5f, 5, 2, 2);
+        private AutoBuilderStepParams _autoBuilderSpecial = new AutoBuilderStepParams(1, 5f, 5, 2, 1);
 
-        private const int AutoBuilderMinFrequency = 1;
+        private const int AutoBuilderMinAddFrequency = 1;
         private const int StepTypeNormalEnumIndex      = (int)StepType.Normal;
         private const int StepTypeSpecialEnumIndex     = (int)StepType.Special;
         private const int AttackTypeMeleeEnumIndex     = (int)AttackType.Melee;
@@ -507,9 +507,29 @@ namespace RogueliteAutoBattler.Editor
 
                 GUILayout.Space(4f);
                 EditorGUILayout.LabelField("Special Steps", EditorStyles.boldLabel);
-                _autoBuilderSpecialStepFrequency = Mathf.Max(AutoBuilderMinFrequency,
-                    EditorGUILayout.IntField("Special Every", _autoBuilderSpecialStepFrequency));
-                DrawAutoBuilderStepParamFields(ref _autoBuilderSpecial);
+                for (int si = 0; si < _autoBuilderSpecialStepNumbers.Count; si++)
+                {
+                    GUILayout.BeginHorizontal();
+                    _autoBuilderSpecialStepNumbers[si] = Mathf.Clamp(
+                        EditorGUILayout.IntField(_autoBuilderSpecialStepNumbers[si]),
+                        1, _autoBuilderStepCount);
+                    if (GUILayout.Button("-", GUILayout.Width(LevelSmallButtonWidth)))
+                    {
+                        _autoBuilderSpecialStepNumbers.RemoveAt(si);
+                        GUILayout.EndHorizontal();
+                        break;
+                    }
+                    GUILayout.EndHorizontal();
+                }
+                if (GUILayout.Button("+"))
+                {
+                    int nextValue = 1;
+                    while (_autoBuilderSpecialStepNumbers.Contains(nextValue)) nextValue++;
+                    nextValue = Mathf.Min(nextValue, _autoBuilderStepCount);
+                    if (!_autoBuilderSpecialStepNumbers.Contains(nextValue))
+                        _autoBuilderSpecialStepNumbers.Add(nextValue);
+                }
+                DrawAutoBuilderStepParamFields(ref _autoBuilderSpecial, showAddFrequency: false);
 
                 GUILayout.Space(6f);
 
@@ -521,7 +541,7 @@ namespace RogueliteAutoBattler.Editor
             GUILayout.EndVertical();
         }
 
-        private static void DrawAutoBuilderStepParamFields(ref AutoBuilderStepParams stepParams)
+        private static void DrawAutoBuilderStepParamFields(ref AutoBuilderStepParams stepParams, bool showAddFrequency = true)
         {
             stepParams.wavesPerStep = Mathf.Max(1,
                 EditorGUILayout.IntField("Waves", stepParams.wavesPerStep));
@@ -531,8 +551,11 @@ namespace RogueliteAutoBattler.Editor
                 EditorGUILayout.IntField("Enemies", stepParams.enemiesPerWave));
             stepParams.enemyAddCount = Mathf.Max(0,
                 EditorGUILayout.IntField("Add Count", stepParams.enemyAddCount));
-            stepParams.enemyAddFrequency = Mathf.Max(AutoBuilderMinFrequency,
-                EditorGUILayout.IntField("Add Every", stepParams.enemyAddFrequency));
+            if (showAddFrequency)
+            {
+                stepParams.enemyAddFrequency = Mathf.Max(AutoBuilderMinAddFrequency,
+                    EditorGUILayout.IntField("Add Every", stepParams.enemyAddFrequency));
+            }
         }
 
         private void ExecuteAutoBuilder(SerializedProperty stepsProp)
@@ -555,7 +578,7 @@ namespace RogueliteAutoBattler.Editor
             for (int i = 0; i < _autoBuilderStepCount; i++)
             {
                 int oneBasedIndex = i + 1;
-                bool isSpecialStep = oneBasedIndex % _autoBuilderSpecialStepFrequency == 0;
+                bool isSpecialStep = _autoBuilderSpecialStepNumbers.Contains(oneBasedIndex);
 
                 stepsProp.arraySize++;
                 var stepElement = stepsProp.GetArrayElementAtIndex(i);
@@ -573,13 +596,13 @@ namespace RogueliteAutoBattler.Editor
                 {
                     specialStepCounter++;
                     activeParams = _autoBuilderSpecial;
-                    stepCounter = specialStepCounter;
+                    stepCounter = specialStepCounter - 1;
                 }
                 else
                 {
                     normalStepCounter++;
                     activeParams = _autoBuilderNormal;
-                    stepCounter = normalStepCounter;
+                    stepCounter = normalStepCounter - 1;
                 }
 
                 int enemyCount = activeParams.ComputeEnemyCount(stepCounter);
