@@ -45,10 +45,13 @@ namespace RogueliteAutoBattler.Editor
 
         private int _autoBuilderStepCount = 10;
         private int _autoBuilderWavesPerStep = 1;
-        private int _autoBuilderSpecialStepFrequency = 5;
         private int _autoBuilderEnemiesPerWave = 3;
         private int _autoBuilderEnemyCountOverride = 5;
         private int _autoBuilderEnemyOverrideFrequency = 3;
+        private int _autoBuilderSpecialStepFrequency = 5;
+        private int _autoBuilderSpecialEnemiesPerWave = 5;
+        private int _autoBuilderSpecialEnemyCountOverride = 8;
+        private int _autoBuilderSpecialEnemyOverrideFrequency = 2;
 
         private const int AutoBuilderMinFrequency = 2;
         private const int StepTypeNormalEnumIndex      = (int)StepType.Normal;
@@ -504,14 +507,26 @@ namespace RogueliteAutoBattler.Editor
                     EditorGUILayout.IntField("Step Count", _autoBuilderStepCount));
                 _autoBuilderWavesPerStep = Mathf.Max(1,
                     EditorGUILayout.IntField("Waves Per Step", _autoBuilderWavesPerStep));
-                _autoBuilderSpecialStepFrequency = Mathf.Max(AutoBuilderMinFrequency,
-                    EditorGUILayout.IntField("Special Every", _autoBuilderSpecialStepFrequency));
+
+                GUILayout.Space(4f);
+                EditorGUILayout.LabelField("Normal Steps", EditorStyles.boldLabel);
                 _autoBuilderEnemiesPerWave = Mathf.Max(1,
                     EditorGUILayout.IntField("Enemies/Wave", _autoBuilderEnemiesPerWave));
                 _autoBuilderEnemyCountOverride = Mathf.Max(1,
                     EditorGUILayout.IntField("Override Count", _autoBuilderEnemyCountOverride));
                 _autoBuilderEnemyOverrideFrequency = Mathf.Max(AutoBuilderMinFrequency,
                     EditorGUILayout.IntField("Override Every", _autoBuilderEnemyOverrideFrequency));
+
+                GUILayout.Space(4f);
+                EditorGUILayout.LabelField("Special Steps", EditorStyles.boldLabel);
+                _autoBuilderSpecialStepFrequency = Mathf.Max(AutoBuilderMinFrequency,
+                    EditorGUILayout.IntField("Special Every", _autoBuilderSpecialStepFrequency));
+                _autoBuilderSpecialEnemiesPerWave = Mathf.Max(1,
+                    EditorGUILayout.IntField("Enemies/Wave", _autoBuilderSpecialEnemiesPerWave));
+                _autoBuilderSpecialEnemyCountOverride = Mathf.Max(1,
+                    EditorGUILayout.IntField("Override Count", _autoBuilderSpecialEnemyCountOverride));
+                _autoBuilderSpecialEnemyOverrideFrequency = Mathf.Max(AutoBuilderMinFrequency,
+                    EditorGUILayout.IntField("Override Every", _autoBuilderSpecialEnemyOverrideFrequency));
 
                 GUILayout.Space(6f);
 
@@ -537,12 +552,12 @@ namespace RogueliteAutoBattler.Editor
             Undo.RecordObject(_levelDatabase, "Auto-Build Level Steps");
 
             stepsProp.arraySize = 0;
+            int specialStepCounter = 0;
 
             for (int i = 0; i < _autoBuilderStepCount; i++)
             {
                 int oneBasedIndex = i + 1;
                 bool isSpecialStep = oneBasedIndex % _autoBuilderSpecialStepFrequency == 0;
-                bool hasEnemyOverride = oneBasedIndex % _autoBuilderEnemyOverrideFrequency == 0;
 
                 stepsProp.arraySize++;
                 var stepElement = stepsProp.GetArrayElementAtIndex(i);
@@ -554,9 +569,24 @@ namespace RogueliteAutoBattler.Editor
                 stepElement.FindPropertyRelative("stepType").enumValueIndex =
                     isSpecialStep ? StepTypeSpecialEnumIndex : StepTypeNormalEnumIndex;
 
-                int enemyCount = hasEnemyOverride
-                    ? _autoBuilderEnemyCountOverride
-                    : _autoBuilderEnemiesPerWave;
+                int enemyCount;
+                if (isSpecialStep)
+                {
+                    specialStepCounter++;
+                    bool hasSpecialOverride =
+                        specialStepCounter % _autoBuilderSpecialEnemyOverrideFrequency == 0;
+                    enemyCount = hasSpecialOverride
+                        ? _autoBuilderSpecialEnemyCountOverride
+                        : _autoBuilderSpecialEnemiesPerWave;
+                }
+                else
+                {
+                    bool hasEnemyOverride =
+                        oneBasedIndex % _autoBuilderEnemyOverrideFrequency == 0;
+                    enemyCount = hasEnemyOverride
+                        ? _autoBuilderEnemyCountOverride
+                        : _autoBuilderEnemiesPerWave;
+                }
 
                 var wavesProp = stepElement.FindPropertyRelative("waves");
                 wavesProp.arraySize = _autoBuilderWavesPerStep;
