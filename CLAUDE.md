@@ -25,7 +25,7 @@
 Doc detaille : `Assets/doc/premier-jet-roguelite.html`
 
 # Project Structure
-Generated: 2026-04-02 (updated feature/129-level-designer-auto-builder)
+Generated: 2026-04-02 (updated feature/131-level-designer-additive-scaling)
 
 .github/
 └── workflows/
@@ -207,7 +207,7 @@ Assets/
 │       ├── LevelManagerStepTransitionTests.cs
 │       ├── VisualEquipmentTestLoopTests.cs
 │       └── WorldConveyorTests.cs
-├── _Recovery/  (1 file)
+├── _Recovery/  (4 files)
 └── TextMesh Pro/  (173 files — TMP package: fonts, shaders, examples)
 
 ProjectSettings/  (Unity defaults)

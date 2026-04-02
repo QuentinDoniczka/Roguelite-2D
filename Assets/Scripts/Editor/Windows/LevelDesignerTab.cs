@@ -44,19 +44,11 @@ namespace RogueliteAutoBattler.Editor
         private readonly Dictionary<string, bool> _levelFoldouts = new Dictionary<string, bool>();
 
         private int _autoBuilderStepCount = 10;
-        private int _autoBuilderWavesPerStep = 1;
-        private float _autoBuilderWaveSpawnDelay = 5f;
-        private int _autoBuilderEnemiesPerWave = 3;
-        private int _autoBuilderEnemyCountOverride = 5;
-        private int _autoBuilderEnemyOverrideFrequency = 3;
         private int _autoBuilderSpecialStepFrequency = 5;
-        private int _autoBuilderSpecialWavesPerStep = 1;
-        private float _autoBuilderSpecialWaveSpawnDelay = 5f;
-        private int _autoBuilderSpecialEnemiesPerWave = 5;
-        private int _autoBuilderSpecialEnemyCountOverride = 8;
-        private int _autoBuilderSpecialEnemyOverrideFrequency = 2;
+        private AutoBuilderStepParams _autoBuilderNormal  = new AutoBuilderStepParams(1, 5f, 3, 2, 2);
+        private AutoBuilderStepParams _autoBuilderSpecial = new AutoBuilderStepParams(1, 5f, 5, 2, 2);
 
-        private const int AutoBuilderMinFrequency = 2;
+        private const int AutoBuilderMinFrequency = 1;
         private const int StepTypeNormalEnumIndex      = (int)StepType.Normal;
         private const int StepTypeSpecialEnumIndex     = (int)StepType.Special;
         private const int AttackTypeMeleeEnumIndex     = (int)AttackType.Melee;
@@ -511,31 +503,13 @@ namespace RogueliteAutoBattler.Editor
 
                 GUILayout.Space(4f);
                 EditorGUILayout.LabelField("Normal Steps", EditorStyles.boldLabel);
-                _autoBuilderWavesPerStep = Mathf.Max(1,
-                    EditorGUILayout.IntField("Waves", _autoBuilderWavesPerStep));
-                _autoBuilderWaveSpawnDelay = Mathf.Max(0f,
-                    EditorGUILayout.FloatField("Wave Delay (s)", _autoBuilderWaveSpawnDelay));
-                _autoBuilderEnemiesPerWave = Mathf.Max(1,
-                    EditorGUILayout.IntField("Enemies", _autoBuilderEnemiesPerWave));
-                _autoBuilderEnemyCountOverride = Mathf.Max(1,
-                    EditorGUILayout.IntField("Override Count", _autoBuilderEnemyCountOverride));
-                _autoBuilderEnemyOverrideFrequency = Mathf.Max(AutoBuilderMinFrequency,
-                    EditorGUILayout.IntField("Override Every", _autoBuilderEnemyOverrideFrequency));
+                DrawAutoBuilderStepParamFields(ref _autoBuilderNormal);
 
                 GUILayout.Space(4f);
                 EditorGUILayout.LabelField("Special Steps", EditorStyles.boldLabel);
                 _autoBuilderSpecialStepFrequency = Mathf.Max(AutoBuilderMinFrequency,
                     EditorGUILayout.IntField("Special Every", _autoBuilderSpecialStepFrequency));
-                _autoBuilderSpecialWavesPerStep = Mathf.Max(1,
-                    EditorGUILayout.IntField("Waves", _autoBuilderSpecialWavesPerStep));
-                _autoBuilderSpecialWaveSpawnDelay = Mathf.Max(0f,
-                    EditorGUILayout.FloatField("Wave Delay (s)", _autoBuilderSpecialWaveSpawnDelay));
-                _autoBuilderSpecialEnemiesPerWave = Mathf.Max(1,
-                    EditorGUILayout.IntField("Enemies", _autoBuilderSpecialEnemiesPerWave));
-                _autoBuilderSpecialEnemyCountOverride = Mathf.Max(1,
-                    EditorGUILayout.IntField("Override Count", _autoBuilderSpecialEnemyCountOverride));
-                _autoBuilderSpecialEnemyOverrideFrequency = Mathf.Max(AutoBuilderMinFrequency,
-                    EditorGUILayout.IntField("Override Every", _autoBuilderSpecialEnemyOverrideFrequency));
+                DrawAutoBuilderStepParamFields(ref _autoBuilderSpecial);
 
                 GUILayout.Space(6f);
 
@@ -545,6 +519,20 @@ namespace RogueliteAutoBattler.Editor
                 GUILayout.FlexibleSpace();
             }
             GUILayout.EndVertical();
+        }
+
+        private static void DrawAutoBuilderStepParamFields(ref AutoBuilderStepParams stepParams)
+        {
+            stepParams.wavesPerStep = Mathf.Max(1,
+                EditorGUILayout.IntField("Waves", stepParams.wavesPerStep));
+            stepParams.waveSpawnDelay = Mathf.Max(0f,
+                EditorGUILayout.FloatField("Wave Delay (s)", stepParams.waveSpawnDelay));
+            stepParams.enemiesPerWave = Mathf.Max(1,
+                EditorGUILayout.IntField("Enemies", stepParams.enemiesPerWave));
+            stepParams.enemyAddCount = Mathf.Max(0,
+                EditorGUILayout.IntField("Add Count", stepParams.enemyAddCount));
+            stepParams.enemyAddFrequency = Mathf.Max(AutoBuilderMinFrequency,
+                EditorGUILayout.IntField("Add Every", stepParams.enemyAddFrequency));
         }
 
         private void ExecuteAutoBuilder(SerializedProperty stepsProp)
@@ -561,6 +549,7 @@ namespace RogueliteAutoBattler.Editor
             Undo.RecordObject(_levelDatabase, "Auto-Build Level Steps");
 
             stepsProp.arraySize = 0;
+            int normalStepCounter = 0;
             int specialStepCounter = 0;
 
             for (int i = 0; i < _autoBuilderStepCount; i++)
@@ -578,30 +567,24 @@ namespace RogueliteAutoBattler.Editor
                 stepElement.FindPropertyRelative("stepType").enumValueIndex =
                     isSpecialStep ? StepTypeSpecialEnumIndex : StepTypeNormalEnumIndex;
 
-                int enemyCount;
-                int wavesCount;
-                float waveDelay;
+                AutoBuilderStepParams activeParams;
+                int stepCounter;
                 if (isSpecialStep)
                 {
                     specialStepCounter++;
-                    bool hasSpecialOverride =
-                        specialStepCounter % _autoBuilderSpecialEnemyOverrideFrequency == 0;
-                    enemyCount = hasSpecialOverride
-                        ? _autoBuilderSpecialEnemyCountOverride
-                        : _autoBuilderSpecialEnemiesPerWave;
-                    wavesCount = _autoBuilderSpecialWavesPerStep;
-                    waveDelay = _autoBuilderSpecialWaveSpawnDelay;
+                    activeParams = _autoBuilderSpecial;
+                    stepCounter = specialStepCounter;
                 }
                 else
                 {
-                    bool hasEnemyOverride =
-                        oneBasedIndex % _autoBuilderEnemyOverrideFrequency == 0;
-                    enemyCount = hasEnemyOverride
-                        ? _autoBuilderEnemyCountOverride
-                        : _autoBuilderEnemiesPerWave;
-                    wavesCount = _autoBuilderWavesPerStep;
-                    waveDelay = _autoBuilderWaveSpawnDelay;
+                    normalStepCounter++;
+                    activeParams = _autoBuilderNormal;
+                    stepCounter = normalStepCounter;
                 }
+
+                int enemyCount = activeParams.ComputeEnemyCount(stepCounter);
+                int wavesCount = activeParams.wavesPerStep;
+                float waveDelay = activeParams.waveSpawnDelay;
 
                 var wavesProp = stepElement.FindPropertyRelative("waves");
                 wavesProp.arraySize = wavesCount;
@@ -988,6 +971,32 @@ namespace RogueliteAutoBattler.Editor
             _selectedRowStyle.hover.background  = _selectedRowTexture;
             _selectedRowStyle.hover.textColor   = Color.white;
             return _selectedRowStyle;
+        }
+
+        private struct AutoBuilderStepParams
+        {
+            internal int   wavesPerStep;
+            internal float waveSpawnDelay;
+            internal int   enemiesPerWave;
+            internal int   enemyAddCount;
+            internal int   enemyAddFrequency;
+
+            internal AutoBuilderStepParams(
+                int wavesPerStep, float waveSpawnDelay, int enemiesPerWave,
+                int enemyAddCount, int enemyAddFrequency)
+            {
+                this.wavesPerStep     = wavesPerStep;
+                this.waveSpawnDelay   = waveSpawnDelay;
+                this.enemiesPerWave   = enemiesPerWave;
+                this.enemyAddCount    = enemyAddCount;
+                this.enemyAddFrequency = enemyAddFrequency;
+            }
+
+            internal int ComputeEnemyCount(int stepCounter)
+            {
+                return enemiesPerWave
+                    + (stepCounter / enemyAddFrequency) * enemyAddCount;
+            }
         }
     }
 }
