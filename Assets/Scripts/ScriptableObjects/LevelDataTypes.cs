@@ -10,6 +10,12 @@ namespace RogueliteAutoBattler.Data
         Range
     }
 
+    public enum StepType
+    {
+        Normal,
+        Special
+    }
+
     [Serializable]
     public class AppearanceData
     {
@@ -67,16 +73,19 @@ namespace RogueliteAutoBattler.Data
     public class StepData
     {
         [SerializeField] private string stepName = "New Step";
+        [SerializeField] private StepType stepType = StepType.Normal;
         [SerializeField] private List<WaveData> waves = new List<WaveData>();
 
         public string StepName { get => stepName; internal set => stepName = value; }
+        public StepType StepType { get => stepType; internal set => stepType = value; }
         public List<WaveData> Waves { get => waves; internal set => waves = value; }
 
         private StepData() { }
 
-        internal StepData(string stepName, List<WaveData> waves)
+        internal StepData(string stepName, List<WaveData> waves, StepType stepType = StepType.Normal)
         {
             this.stepName = stepName;
+            this.stepType = stepType;
             this.waves = waves;
         }
     }
@@ -114,7 +123,7 @@ namespace RogueliteAutoBattler.Data
         [SerializeField] private float attackRange = 0.5f;
         [SerializeField] private AttackType attackType = AttackType.Melee;
         [SerializeField] private float colliderRadius = 0.10f;
-        [SerializeField] private int goldDrop;
+        [SerializeField] private int goldDrop = 1;
 
         [Header("Appearance")]
         [SerializeField] private AppearanceData appearance = new AppearanceData();

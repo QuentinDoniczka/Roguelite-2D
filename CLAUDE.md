@@ -25,7 +25,7 @@
 Doc detaille : `Assets/doc/premier-jet-roguelite.html`
 
 # Project Structure
-Generated: 2026-04-01 (updated feature/127-configurable-character-scale)
+Generated: 2026-04-02 (updated feature/129-level-designer-auto-builder)
 
 .github/
 └── workflows/
@@ -33,7 +33,7 @@ Generated: 2026-04-01 (updated feature/127-configurable-character-scale)
     └── protect-main.yml
 
 Assets/
-├── Animations/  (24 files: .anim + .controller)
+├── Animations/  (23 files: .anim + .controller)
 ├── Audio/  (empty)
 ├── Data/
 │   ├── Adventurers/  (empty)
@@ -158,7 +158,7 @@ Assets/
 │   ├── UniversalRenderPipelineGlobalSettings.asset
 │   └── UniversalRP.asset
 ├── Sprites/
-│   ├── Characters/  (156 files)
+│   ├── Characters/  (155 files)
 │   ├── Effects/  (25 files)
 │   ├── Environment/
 │   │   ├── backgroundtest.png
@@ -166,7 +166,7 @@ Assets/
 │   │   ├── grid_ground_blue.png
 │   │   ├── map.png
 │   │   └── placeholder_white.png
-│   ├── Items/  (54 files)
+│   ├── Items/  (53 files)
 │   └── UI/  (empty)
 ├── Tests/
 │   ├── EditMode/

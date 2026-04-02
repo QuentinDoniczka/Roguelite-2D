@@ -1,5 +1,5 @@
 # Project Structure
-Generated: 2026-03-31 (updated feature/117-step-progress-bar + StepData model)
+Generated: 2026-04-02 (updated feature/129-level-designer-auto-builder)
 
 .github/
 └── workflows/
@@ -80,13 +80,17 @@ Assets/
 │   │   └── GoldWallet.cs
 │   ├── Editor/
 │   │   ├── RogueliteAutoBattler.Editor.asmdef
-│   │   ├── BootstrapSceneBuilder.cs
-│   │   ├── CombatHudBuilder.cs
-│   │   ├── CombatWorldBuilder.cs
 │   │   ├── EditorUIFactory.cs
-│   │   ├── GameDesignerWindow.cs
-│   │   ├── SettingsWindow.cs
-│   │   └── SetupNavigationSceneEditor.cs
+│   │   ├── Builders/
+│   │   │   ├── BootstrapSceneBuilder.cs
+│   │   │   ├── CombatHudBuilder.cs
+│   │   │   ├── CombatWorldBuilder.cs
+│   │   │   └── SetupNavigationSceneEditor.cs
+│   │   └── Windows/
+│   │       ├── GameDesignerWindow.cs
+│   │       ├── LevelDesignerTab.cs
+│   │       ├── SettingsWindow.cs
+│   │       └── TeamBuilderTab.cs
 │   ├── Items/  (empty)
 │   ├── ScriptableObjects/
 │   │   ├── DamageNumberConfig.cs
@@ -134,6 +138,7 @@ Assets/
 │   │   ├── backgroundtest.png
 │   │   ├── grid_ground.png
 │   │   ├── grid_ground_blue.png
+│   │   ├── map.png
 │   │   └── placeholder_white.png
 │   ├── Items/  (53 files)
 │   └── UI/  (empty)
@@ -176,7 +181,7 @@ Assets/
 │       ├── LevelManagerStepTransitionTests.cs
 │       ├── VisualEquipmentTestLoopTests.cs
 │       └── WorldConveyorTests.cs
-├── _Recovery/  (3 files)
+├── _Recovery/  (1 file)
 └── TextMesh Pro/  (173 files — TMP package: fonts, shaders, examples)
 
 ProjectSettings/  (Unity defaults)
