@@ -7,8 +7,9 @@ namespace RogueliteAutoBattler.Editor
 {
     internal sealed class LevelDesignerTab
     {
-        private const float LevelColumnStagesWidth  = 150f;
-        private const float LevelColumnLevelsWidth  = 150f;
+        private const float LevelColumnStagesWidth       = 150f;
+        private const float LevelColumnLevelsWidth       = 150f;
+        private const float LevelColumnAutoBuilderWidth  = 180f;
         private const float LevelRowHeight          = 24f;
         private const float LevelSmallButtonWidth   = 24f;
         private const float LevelAddButtonHeight    = 22f;
@@ -42,7 +43,6 @@ namespace RogueliteAutoBattler.Editor
         private Vector2 _levelWavesScrollPos;
         private readonly Dictionary<string, bool> _levelFoldouts = new Dictionary<string, bool>();
 
-        private bool _autoBuilderFoldoutOpen;
         private int _autoBuilderStepCount = 10;
         private int _autoBuilderWavesPerStep = 1;
         private int _autoBuilderSpecialStepFrequency = 5;
@@ -96,6 +96,8 @@ namespace RogueliteAutoBattler.Editor
                 DrawStagesPanel(stagesProp);
                 DrawDivider();
                 DrawLevelsPanel(stagesProp);
+                DrawDivider();
+                DrawAutoBuilderColumn(stagesProp);
                 DrawDivider();
                 DrawWavesPanel(stagesProp);
             }
@@ -369,7 +371,6 @@ namespace RogueliteAutoBattler.Editor
                     return;
                 }
 
-                DrawAutoBuilderPanel(stepsProp);
                 DrawStepsList(stepsProp);
 
                 GUILayout.Space(6f);
@@ -461,36 +462,65 @@ namespace RogueliteAutoBattler.Editor
             }
         }
 
-        private void DrawAutoBuilderPanel(SerializedProperty stepsProp)
+        private void DrawAutoBuilderColumn(SerializedProperty stagesProp)
         {
-            EditorGUILayout.Space();
-            _autoBuilderFoldoutOpen = EditorGUILayout.Foldout(_autoBuilderFoldoutOpen, "Auto-Builder", true);
+            GUILayout.BeginVertical(GUILayout.Width(LevelColumnAutoBuilderWidth));
+            {
+                DrawPanelHeader("Auto-Builder");
 
-            if (!_autoBuilderFoldoutOpen)
-                return;
+                if (stagesProp == null
+                    || _levelSelectedStageIndex < 0
+                    || _levelSelectedStageIndex >= stagesProp.arraySize)
+                {
+                    EditorGUILayout.HelpBox("Select a stage.", MessageType.None);
+                    GUILayout.EndVertical();
+                    return;
+                }
 
-            EditorGUI.indentLevel++;
+                SerializedProperty levelsProp = stagesProp
+                    .GetArrayElementAtIndex(_levelSelectedStageIndex)
+                    .FindPropertyRelative("levels");
 
-            _autoBuilderStepCount = Mathf.Max(1,
-                EditorGUILayout.IntField("Step Count", _autoBuilderStepCount));
-            _autoBuilderWavesPerStep = Mathf.Max(1,
-                EditorGUILayout.IntField("Waves Per Step", _autoBuilderWavesPerStep));
-            _autoBuilderSpecialStepFrequency = Mathf.Max(AutoBuilderMinFrequency,
-                EditorGUILayout.IntField("Special Step Every", _autoBuilderSpecialStepFrequency));
-            _autoBuilderEnemiesPerWave = Mathf.Max(1,
-                EditorGUILayout.IntField("Enemies Per Wave", _autoBuilderEnemiesPerWave));
-            _autoBuilderEnemyCountOverride = Mathf.Max(1,
-                EditorGUILayout.IntField("Enemy Override Count", _autoBuilderEnemyCountOverride));
-            _autoBuilderEnemyOverrideFrequency = Mathf.Max(AutoBuilderMinFrequency,
-                EditorGUILayout.IntField("Enemy Override Every", _autoBuilderEnemyOverrideFrequency));
+                if (levelsProp == null
+                    || _levelSelectedLevelIndex < 0
+                    || _levelSelectedLevelIndex >= levelsProp.arraySize)
+                {
+                    EditorGUILayout.HelpBox("Select a level.", MessageType.None);
+                    GUILayout.EndVertical();
+                    return;
+                }
 
-            EditorGUILayout.Space();
+                SerializedProperty stepsProp = levelsProp
+                    .GetArrayElementAtIndex(_levelSelectedLevelIndex)
+                    .FindPropertyRelative("steps");
 
-            if (GUILayout.Button("Generate", GUILayout.Height(LevelRowHeight)))
-                ExecuteAutoBuilder(stepsProp);
+                if (stepsProp == null)
+                {
+                    GUILayout.EndVertical();
+                    return;
+                }
 
-            EditorGUI.indentLevel--;
-            EditorGUILayout.Space();
+                _autoBuilderStepCount = Mathf.Max(1,
+                    EditorGUILayout.IntField("Step Count", _autoBuilderStepCount));
+                _autoBuilderWavesPerStep = Mathf.Max(1,
+                    EditorGUILayout.IntField("Waves Per Step", _autoBuilderWavesPerStep));
+                _autoBuilderSpecialStepFrequency = Mathf.Max(AutoBuilderMinFrequency,
+                    EditorGUILayout.IntField("Special Every", _autoBuilderSpecialStepFrequency));
+                _autoBuilderEnemiesPerWave = Mathf.Max(1,
+                    EditorGUILayout.IntField("Enemies/Wave", _autoBuilderEnemiesPerWave));
+                _autoBuilderEnemyCountOverride = Mathf.Max(1,
+                    EditorGUILayout.IntField("Override Count", _autoBuilderEnemyCountOverride));
+                _autoBuilderEnemyOverrideFrequency = Mathf.Max(AutoBuilderMinFrequency,
+                    EditorGUILayout.IntField("Override Every", _autoBuilderEnemyOverrideFrequency));
+
+                GUILayout.Space(6f);
+
+                if (GUILayout.Button("Generate", GUILayout.Height(LevelRowHeight)))
+                    ExecuteAutoBuilder(stepsProp);
+
+                GUILayout.FlexibleSpace();
+            }
+            GUILayout.EndVertical();
         }
 
         private void ExecuteAutoBuilder(SerializedProperty stepsProp)
