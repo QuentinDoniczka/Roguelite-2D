@@ -42,6 +42,16 @@ namespace RogueliteAutoBattler.Editor
         private Vector2 _levelWavesScrollPos;
         private readonly Dictionary<string, bool> _levelFoldouts = new Dictionary<string, bool>();
 
+        private bool _autoBuilderFoldoutOpen;
+        private int _autoBuilderStepCount = 10;
+        private int _autoBuilderWavesPerStep = 1;
+        private int _autoBuilderSpecialStepFrequency = 5;
+        private int _autoBuilderEnemiesPerWave = 3;
+        private int _autoBuilderEnemyCountOverride = 5;
+        private int _autoBuilderEnemyOverrideFrequency = 3;
+
+        private const int AutoBuilderMinFrequency = 2;
+
         internal LevelDesignerTab(EditorWindow owner)
         {
             _owner = owner;
@@ -356,6 +366,7 @@ namespace RogueliteAutoBattler.Editor
                     return;
                 }
 
+                DrawAutoBuilderPanel(stepsProp);
                 DrawStepsList(stepsProp);
 
                 GUILayout.Space(6f);
@@ -403,6 +414,10 @@ namespace RogueliteAutoBattler.Editor
                 string stepLabel = stepProp.FindPropertyRelative("stepName").stringValue;
                 if (string.IsNullOrEmpty(stepLabel)) stepLabel = $"Step {i + 1}";
 
+                var stepTypeProp = stepProp.FindPropertyRelative("stepType");
+                if (stepTypeProp != null && stepTypeProp.enumValueIndex == 1)
+                    stepLabel = $"[S] {stepLabel}";
+
                 bool isSelected = (i == _levelSelectedStepIndex);
                 GUIStyle style = isSelected ? GetSelectedRowStyle() : GUI.skin.button;
 
@@ -430,12 +445,103 @@ namespace RogueliteAutoBattler.Editor
 
             if (_levelSelectedStepIndex >= 0 && _levelSelectedStepIndex < stepsProp.arraySize)
             {
-                var stepNameProp = stepsProp
-                    .GetArrayElementAtIndex(_levelSelectedStepIndex)
-                    .FindPropertyRelative("stepName");
+                var selectedStep = stepsProp.GetArrayElementAtIndex(_levelSelectedStepIndex);
+
+                var stepNameProp = selectedStep.FindPropertyRelative("stepName");
                 GUILayout.Label("Step Name:", EditorStyles.miniLabel);
                 stepNameProp.stringValue = EditorGUILayout.TextField(stepNameProp.stringValue);
+
+                var selectedStepTypeProp = selectedStep.FindPropertyRelative("stepType");
+                if (selectedStepTypeProp != null)
+                    EditorGUILayout.PropertyField(selectedStepTypeProp);
             }
+        }
+
+        private void DrawAutoBuilderPanel(SerializedProperty stepsProp)
+        {
+            EditorGUILayout.Space();
+            _autoBuilderFoldoutOpen = EditorGUILayout.Foldout(_autoBuilderFoldoutOpen, "Auto-Builder", true);
+
+            if (!_autoBuilderFoldoutOpen)
+                return;
+
+            EditorGUI.indentLevel++;
+
+            _autoBuilderStepCount = Mathf.Max(1,
+                EditorGUILayout.IntField("Step Count", _autoBuilderStepCount));
+            _autoBuilderWavesPerStep = Mathf.Max(1,
+                EditorGUILayout.IntField("Waves Per Step", _autoBuilderWavesPerStep));
+            _autoBuilderSpecialStepFrequency = Mathf.Max(AutoBuilderMinFrequency,
+                EditorGUILayout.IntField("Special Step Every", _autoBuilderSpecialStepFrequency));
+            _autoBuilderEnemiesPerWave = Mathf.Max(1,
+                EditorGUILayout.IntField("Enemies Per Wave", _autoBuilderEnemiesPerWave));
+            _autoBuilderEnemyCountOverride = Mathf.Max(1,
+                EditorGUILayout.IntField("Enemy Override Count", _autoBuilderEnemyCountOverride));
+            _autoBuilderEnemyOverrideFrequency = Mathf.Max(AutoBuilderMinFrequency,
+                EditorGUILayout.IntField("Enemy Override Every", _autoBuilderEnemyOverrideFrequency));
+
+            EditorGUILayout.Space();
+
+            if (GUILayout.Button("Generate", GUILayout.Height(24f)))
+                ExecuteAutoBuilder(stepsProp);
+
+            EditorGUI.indentLevel--;
+            EditorGUILayout.Space();
+        }
+
+        private void ExecuteAutoBuilder(SerializedProperty stepsProp)
+        {
+            bool shouldGenerate = EditorUtility.DisplayDialog(
+                "Generate Steps",
+                "This will replace all existing steps in this level.",
+                "Generate",
+                "Cancel");
+
+            if (!shouldGenerate)
+                return;
+
+            Undo.RecordObject(_levelDatabase, "Auto-Build Level Steps");
+
+            stepsProp.arraySize = 0;
+
+            for (int i = 0; i < _autoBuilderStepCount; i++)
+            {
+                int oneBasedIndex = i + 1;
+                bool isSpecialStep = oneBasedIndex % _autoBuilderSpecialStepFrequency == 0;
+                bool hasEnemyOverride = oneBasedIndex % _autoBuilderEnemyOverrideFrequency == 0;
+
+                stepsProp.arraySize++;
+                var stepElement = stepsProp.GetArrayElementAtIndex(i);
+
+                string stepName = isSpecialStep
+                    ? $"Step {oneBasedIndex} [Special]"
+                    : $"Step {oneBasedIndex}";
+                stepElement.FindPropertyRelative("stepName").stringValue = stepName;
+                stepElement.FindPropertyRelative("stepType").enumValueIndex = isSpecialStep ? 1 : 0;
+
+                int enemyCount = hasEnemyOverride
+                    ? _autoBuilderEnemyCountOverride
+                    : _autoBuilderEnemiesPerWave;
+
+                var wavesProp = stepElement.FindPropertyRelative("waves");
+                wavesProp.arraySize = _autoBuilderWavesPerStep;
+
+                for (int w = 0; w < _autoBuilderWavesPerStep; w++)
+                {
+                    var waveElement = wavesProp.GetArrayElementAtIndex(w);
+                    waveElement.FindPropertyRelative("waveName").stringValue = "Wave";
+                    waveElement.FindPropertyRelative("spawnDelay").floatValue = 0f;
+
+                    var enemiesProp = waveElement.FindPropertyRelative("enemies");
+                    enemiesProp.arraySize = enemyCount;
+
+                    for (int e = 0; e < enemyCount; e++)
+                        InitEnemyDefaults(enemiesProp.GetArrayElementAtIndex(e));
+                }
+            }
+
+            _levelSelectedStepIndex = 0;
+            EditorUtility.SetDirty(_levelDatabase);
         }
 
         private void DrawWavesList(SerializedProperty wavesProp)
