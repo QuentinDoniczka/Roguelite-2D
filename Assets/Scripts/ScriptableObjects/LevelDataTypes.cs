@@ -82,13 +82,7 @@ namespace RogueliteAutoBattler.Data
 
         private StepData() { }
 
-        internal StepData(string stepName, List<WaveData> waves)
-        {
-            this.stepName = stepName;
-            this.waves = waves;
-        }
-
-        internal StepData(string stepName, StepType stepType, List<WaveData> waves)
+        internal StepData(string stepName, List<WaveData> waves, StepType stepType = StepType.Normal)
         {
             this.stepName = stepName;
             this.stepType = stepType;
@@ -129,7 +123,7 @@ namespace RogueliteAutoBattler.Data
         [SerializeField] private float attackRange = 0.5f;
         [SerializeField] private AttackType attackType = AttackType.Melee;
         [SerializeField] private float colliderRadius = 0.10f;
-        [SerializeField] private int goldDrop;
+        [SerializeField] private int goldDrop = 1;
 
         [Header("Appearance")]
         [SerializeField] private AppearanceData appearance = new AppearanceData();

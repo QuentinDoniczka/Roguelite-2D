@@ -51,6 +51,9 @@ namespace RogueliteAutoBattler.Editor
         private int _autoBuilderEnemyOverrideFrequency = 3;
 
         private const int AutoBuilderMinFrequency = 2;
+        private const int StepTypeNormalEnumIndex      = (int)StepType.Normal;
+        private const int StepTypeSpecialEnumIndex     = (int)StepType.Special;
+        private const int AttackTypeMeleeEnumIndex     = (int)AttackType.Melee;
 
         internal LevelDesignerTab(EditorWindow owner)
         {
@@ -403,6 +406,7 @@ namespace RogueliteAutoBattler.Editor
                 stepsProp.arraySize++;
                 var newStep = stepsProp.GetArrayElementAtIndex(stepsProp.arraySize - 1);
                 newStep.FindPropertyRelative("stepName").stringValue = $"Step {stepsProp.arraySize}";
+                newStep.FindPropertyRelative("stepType").enumValueIndex = StepTypeNormalEnumIndex;
                 newStep.FindPropertyRelative("waves").arraySize = 0;
                 _levelSelectedStepIndex = stepsProp.arraySize - 1;
                 EditorUtility.SetDirty(_levelDatabase);
@@ -415,7 +419,7 @@ namespace RogueliteAutoBattler.Editor
                 if (string.IsNullOrEmpty(stepLabel)) stepLabel = $"Step {i + 1}";
 
                 var stepTypeProp = stepProp.FindPropertyRelative("stepType");
-                if (stepTypeProp != null && stepTypeProp.enumValueIndex == 1)
+                if (stepTypeProp != null && stepTypeProp.enumValueIndex == StepTypeSpecialEnumIndex)
                     stepLabel = $"[S] {stepLabel}";
 
                 bool isSelected = (i == _levelSelectedStepIndex);
@@ -482,7 +486,7 @@ namespace RogueliteAutoBattler.Editor
 
             EditorGUILayout.Space();
 
-            if (GUILayout.Button("Generate", GUILayout.Height(24f)))
+            if (GUILayout.Button("Generate", GUILayout.Height(LevelRowHeight)))
                 ExecuteAutoBuilder(stepsProp);
 
             EditorGUI.indentLevel--;
@@ -517,7 +521,8 @@ namespace RogueliteAutoBattler.Editor
                     ? $"Step {oneBasedIndex} [Special]"
                     : $"Step {oneBasedIndex}";
                 stepElement.FindPropertyRelative("stepName").stringValue = stepName;
-                stepElement.FindPropertyRelative("stepType").enumValueIndex = isSpecialStep ? 1 : 0;
+                stepElement.FindPropertyRelative("stepType").enumValueIndex =
+                    isSpecialStep ? StepTypeSpecialEnumIndex : StepTypeNormalEnumIndex;
 
                 int enemyCount = hasEnemyOverride
                     ? _autoBuilderEnemyCountOverride
@@ -695,63 +700,46 @@ namespace RogueliteAutoBattler.Editor
             return null;
         }
 
+        private static readonly string[] EnemyCopyPropertyPaths =
+        {
+            "enemyName", "prefab", "hp", "atk", "attackSpeed", "moveSpeed",
+            "attackRange", "attackType", "colliderRadius", "goldDrop",
+            "appearance.headSprite", "appearance.hatSprite",
+            "appearance.weaponSprite", "appearance.shieldSprite"
+        };
+
         private static void CopyEnemyProperties(SerializedProperty source, SerializedProperty target)
         {
-            var enemyName = target.FindPropertyRelative("enemyName");
-            var srcEnemyName = source.FindPropertyRelative("enemyName");
-            if (enemyName != null && srcEnemyName != null) enemyName.stringValue = srcEnemyName.stringValue;
+            foreach (string path in EnemyCopyPropertyPaths)
+                CopySerializedProperty(source, target, path);
+        }
 
-            var prefab = target.FindPropertyRelative("prefab");
-            var srcPrefab = source.FindPropertyRelative("prefab");
-            if (prefab != null && srcPrefab != null) prefab.objectReferenceValue = srcPrefab.objectReferenceValue;
+        private static void CopySerializedProperty(
+            SerializedProperty source, SerializedProperty target, string relativePath)
+        {
+            var srcProp = source.FindPropertyRelative(relativePath);
+            var dstProp = target.FindPropertyRelative(relativePath);
+            if (srcProp == null || dstProp == null)
+                return;
 
-            var hp = target.FindPropertyRelative("hp");
-            var srcHp = source.FindPropertyRelative("hp");
-            if (hp != null && srcHp != null) hp.intValue = srcHp.intValue;
-
-            var atk = target.FindPropertyRelative("atk");
-            var srcAtk = source.FindPropertyRelative("atk");
-            if (atk != null && srcAtk != null) atk.intValue = srcAtk.intValue;
-
-            var attackSpeed = target.FindPropertyRelative("attackSpeed");
-            var srcAttackSpeed = source.FindPropertyRelative("attackSpeed");
-            if (attackSpeed != null && srcAttackSpeed != null) attackSpeed.floatValue = srcAttackSpeed.floatValue;
-
-            var moveSpeed = target.FindPropertyRelative("moveSpeed");
-            var srcMoveSpeed = source.FindPropertyRelative("moveSpeed");
-            if (moveSpeed != null && srcMoveSpeed != null) moveSpeed.floatValue = srcMoveSpeed.floatValue;
-
-            var attackRange = target.FindPropertyRelative("attackRange");
-            var srcAttackRange = source.FindPropertyRelative("attackRange");
-            if (attackRange != null && srcAttackRange != null) attackRange.floatValue = srcAttackRange.floatValue;
-
-            var attackType = target.FindPropertyRelative("attackType");
-            var srcAttackType = source.FindPropertyRelative("attackType");
-            if (attackType != null && srcAttackType != null) attackType.enumValueIndex = srcAttackType.enumValueIndex;
-
-            var colRadius = target.FindPropertyRelative("colliderRadius");
-            var srcColRadius = source.FindPropertyRelative("colliderRadius");
-            if (colRadius != null && srcColRadius != null) colRadius.floatValue = srcColRadius.floatValue;
-
-            var goldDrop = target.FindPropertyRelative("goldDrop");
-            var srcGoldDrop = source.FindPropertyRelative("goldDrop");
-            if (goldDrop != null && srcGoldDrop != null) goldDrop.intValue = srcGoldDrop.intValue;
-
-            var headSprite = target.FindPropertyRelative("appearance.headSprite");
-            var srcHeadSprite = source.FindPropertyRelative("appearance.headSprite");
-            if (headSprite != null && srcHeadSprite != null) headSprite.objectReferenceValue = srcHeadSprite.objectReferenceValue;
-
-            var hatSprite = target.FindPropertyRelative("appearance.hatSprite");
-            var srcHatSprite = source.FindPropertyRelative("appearance.hatSprite");
-            if (hatSprite != null && srcHatSprite != null) hatSprite.objectReferenceValue = srcHatSprite.objectReferenceValue;
-
-            var weaponSprite = target.FindPropertyRelative("appearance.weaponSprite");
-            var srcWeaponSprite = source.FindPropertyRelative("appearance.weaponSprite");
-            if (weaponSprite != null && srcWeaponSprite != null) weaponSprite.objectReferenceValue = srcWeaponSprite.objectReferenceValue;
-
-            var shieldSprite = target.FindPropertyRelative("appearance.shieldSprite");
-            var srcShieldSprite = source.FindPropertyRelative("appearance.shieldSprite");
-            if (shieldSprite != null && srcShieldSprite != null) shieldSprite.objectReferenceValue = srcShieldSprite.objectReferenceValue;
+            switch (srcProp.propertyType)
+            {
+                case SerializedPropertyType.String:
+                    dstProp.stringValue = srcProp.stringValue;
+                    break;
+                case SerializedPropertyType.Integer:
+                    dstProp.intValue = srcProp.intValue;
+                    break;
+                case SerializedPropertyType.Float:
+                    dstProp.floatValue = srcProp.floatValue;
+                    break;
+                case SerializedPropertyType.Enum:
+                    dstProp.enumValueIndex = srcProp.enumValueIndex;
+                    break;
+                case SerializedPropertyType.ObjectReference:
+                    dstProp.objectReferenceValue = srcProp.objectReferenceValue;
+                    break;
+            }
         }
 
         private static void InitEnemyDefaults(SerializedProperty newEnemy)
@@ -775,7 +763,7 @@ namespace RogueliteAutoBattler.Editor
             if (attackRange != null) attackRange.floatValue = LevelDefaultEnemyAttackRange;
 
             var attackType = newEnemy.FindPropertyRelative("attackType");
-            if (attackType != null) attackType.enumValueIndex = 0;
+            if (attackType != null) attackType.enumValueIndex = AttackTypeMeleeEnumIndex;
 
             var colRadius = newEnemy.FindPropertyRelative("colliderRadius");
             if (colRadius != null) colRadius.floatValue = LevelDefaultEnemyColliderRadius;
