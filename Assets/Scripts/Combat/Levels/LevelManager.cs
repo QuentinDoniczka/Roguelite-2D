@@ -2,7 +2,6 @@ using System;
 using System.Collections;
 using RogueliteAutoBattler.Combat.Core;
 using RogueliteAutoBattler.Combat.Environment;
-using RogueliteAutoBattler.Combat.Visuals;
 using RogueliteAutoBattler.Data;
 using RogueliteAutoBattler.Economy;
 using UnityEngine;
@@ -61,19 +60,21 @@ namespace RogueliteAutoBattler.Combat.Levels
             return level.Steps[stepIndex].StepType;
         }
 
-        private const float FallbackEnemySpawnX = 1f;
         private const float SpawnSpeedThreshold = 0.3f;
 
         [Header("Defeat Reset")]
         [SerializeField] private float _defeatResetDelay = 1.5f;
 
-        private int _aliveEnemyCount;
-        private int _aliveAllyCount;
         private int _pendingWaveCount;
         private bool _levelInProgress;
         private WorldConveyor _conveyor;
         private GoldWallet _goldWallet;
         private CombatSpawnManager _spawnManager;
+        private WaitForSeconds _waitDefeatReset;
+
+        private EnemySpawner _enemySpawner;
+        private AllyTargetManager _allyTargetManager;
+        private DefeatHandler _defeatHandler;
 
         internal float DefeatResetDelay => _defeatResetDelay;
         internal float StepScrollDistance => _stepScrollDistance;
@@ -105,24 +106,62 @@ namespace RogueliteAutoBattler.Combat.Levels
         private void FixedUpdate()
         {
             if (!_levelInProgress) return;
-            AssignAllyTargetsInZone();
+            _allyTargetManager?.AssignAllyTargetsInZone();
         }
 
         private IEnumerator Start()
         {
             CombatSetupHelper.FindContainersIfNeeded(transform, ref _teamContainer, ref _enemiesContainer, nameof(LevelManager));
             if (_teamHomeAnchor == null)
-                _teamHomeAnchor = GameObject.Find(CombatSetupHelper.TeamHomeAnchorName)?.transform;
+            {
+                Debug.LogError($"[{nameof(LevelManager)}] TeamHomeAnchor not assigned!", this);
+                yield break;
+            }
             if (_enemiesHomeAnchor == null)
-                _enemiesHomeAnchor = GameObject.Find(CombatSetupHelper.EnemiesHomeAnchorName)?.transform;
+            {
+                Debug.LogError($"[{nameof(LevelManager)}] EnemiesHomeAnchor not assigned!", this);
+                yield break;
+            }
             _conveyor = GetComponent<WorldConveyor>();
             _spawnManager = GetComponent<CombatSpawnManager>();
+            _waitDefeatReset = new WaitForSeconds(_defeatResetDelay);
             var wallets = FindObjectsByType<GoldWallet>(FindObjectsSortMode.None);
             if (wallets.Length > 0) _goldWallet = wallets[0];
+
+            CreateHelpers();
+
             ApplyStage(_currentStageIndex);
             yield return new WaitUntil(() => TargetFinder.Closest(_teamContainer, Vector3.zero) != null);
             WireAllyDeathTracking();
             StartLevel(_currentLevelIndex);
+        }
+
+        private void CreateHelpers()
+        {
+            _allyTargetManager = new AllyTargetManager(
+                _teamContainer,
+                _enemiesContainer,
+                () => CombatZoneX);
+
+            _enemySpawner = new EnemySpawner(
+                _enemiesContainer,
+                _teamContainer,
+                _enemiesHomeAnchor,
+                () => CharacterScale,
+                () => _goldWallet,
+                _enemySpawnOffscreenX);
+            _enemySpawner.OnEnemyDied += OnEnemyDied;
+
+            _defeatHandler = new DefeatHandler(
+                _teamContainer,
+                _enemiesContainer,
+                _enemiesHomeAnchor,
+                _waitDefeatReset,
+                _conveyor,
+                _spawnManager,
+                () => CharacterScale,
+                _allyTargetManager);
+            _defeatHandler.OnAllAlliesDead += CheckLevelLost;
         }
 
         public void ApplyStage(int stageIndex)
@@ -176,7 +215,7 @@ namespace RogueliteAutoBattler.Combat.Levels
             }
 
             _currentLevelIndex = levelIndex;
-            _aliveEnemyCount = 0;
+            _enemySpawner.ResetAliveEnemyCount();
             _levelInProgress = true;
 
             OnLevelStarted?.Invoke(_currentStageIndex, _currentLevelIndex);
@@ -203,18 +242,14 @@ namespace RogueliteAutoBattler.Combat.Levels
             Debug.Log($"[{nameof(LevelManager)}] Spawning wave {waveIndex} '{wave.WaveName}' ({wave.Enemies.Count} enemies).");
 #endif
 
-            Vector2 anchorPos = _enemiesHomeAnchor != null
-                ? (Vector2)_enemiesHomeAnchor.position
-                : new Vector2(FallbackEnemySpawnX, 0f);
-            Vector2 spawnAnchor = new Vector2(anchorPos.x + _enemySpawnOffscreenX, anchorPos.y);
-            float characterScale = CharacterScale;
-            Vector2[] spawnPositions = FormationLayout.GetPositions(spawnAnchor, wave.Enemies.Count, facingRight: false, characterScale: characterScale);
-            Vector2[] homePositions = FormationLayout.GetPositions(anchorPos, wave.Enemies.Count, facingRight: false, characterScale: characterScale);
+            Vector2[] homePositions;
+            Vector2[] spawnPositions = _enemySpawner.CalculateSpawnPositions(wave.Enemies.Count, out homePositions);
+            Vector2 anchorPos = _enemySpawner.GetAnchorPosition();
 
             for (int i = 0; i < wave.Enemies.Count; i++)
             {
                 Vector2 offset = homePositions[i] - anchorPos;
-                SpawnEnemy(wave.Enemies[i], spawnPositions[i], offset);
+                _enemySpawner.SpawnEnemy(wave.Enemies[i], spawnPositions[i], offset, OnEnemySpawned);
             }
 
             OnWaveSpawned?.Invoke(_currentStageIndex, _currentLevelIndex, waveIndex);
@@ -223,117 +258,19 @@ namespace RogueliteAutoBattler.Combat.Levels
             CheckLevelComplete();
         }
 
-        private void SpawnEnemy(EnemySpawnData data, Vector2 spawnPos, Vector2 homeOffset)
+        private void OnEnemySpawned(Transform enemyTransform)
         {
-            if (data.Prefab == null)
-            {
-#if UNITY_EDITOR
-                Debug.LogWarning($"[{nameof(LevelManager)}] EnemySpawnData '{data.EnemyName}' has no prefab assigned.");
-#endif
-                return;
-            }
-
-            Vector3 spawnPosition = new Vector3(spawnPos.x, spawnPos.y, 0f);
-
-            GameObject enemy = Instantiate(data.Prefab, spawnPosition, Quaternion.identity, _enemiesContainer);
-            enemy.name = data.EnemyName;
-
-            float scale = CharacterScale;
-            enemy.transform.localScale = new Vector3(scale, scale, 1f);
-
-            var components = CombatSetupHelper.AssembleCharacter(
-                enemy,
-                data.Hp,
-                data.Atk,
-                data.AttackSpeed,
-                0f,
-                data.MoveSpeed,
-                _enemiesHomeAnchor,
-                homeOffset,
-                data.ColliderRadius,
-                data.Appearance,
-                nameof(LevelManager),
-                healthBarFillColor: HealthBar.EnemyFillColor,
-                isAlly: false,
-                characterScale: scale);
-
-            IgnoreCollisionWithOppositeTeam(enemy, _teamContainer);
-
-            _aliveEnemyCount++;
-            components.Stats.OnDied += OnEnemyDied;
-
-            var enemyTransform = enemy.transform;
-
-            int goldAmount = data.GoldDrop;
-            if (goldAmount > 0)
-            {
-                components.Stats.OnDied += () =>
-                {
-                    if (enemyTransform == null) return;
-                    CoinFlyService.Show(enemyTransform.position, () =>
-                    {
-                        if (_goldWallet != null) _goldWallet.Add(goldAmount);
-                    });
-                };
-            }
-
-            components.Controller.SetAttackRange(data.AttackRange);
-            components.Controller.SetAttackerFacing(false);
-            components.Controller.FindNewTarget = () => TargetFinder.LeastContested(_teamContainer, enemyTransform.position);
-
-            Transform allyTarget = TargetFinder.LeastContested(_teamContainer, enemyTransform.position);
-            if (allyTarget != null)
-                components.Controller.Target = allyTarget;
-#if UNITY_EDITOR
-            else
-                Debug.LogWarning($"[{nameof(LevelManager)}] No alive ally found for enemy '{data.EnemyName}' to target.");
-#endif
-
-            SetAllyTarget(enemy.transform);
-
-#if UNITY_EDITOR
-            Debug.Log($"[{nameof(LevelManager)}] Spawned enemy '{data.EnemyName}' at {spawnPosition}");
-#endif
-        }
-
-        private void SetAllyTarget(Transform firstEnemy)
-        {
-            if (_teamContainer == null)
-                return;
-
-            for (int i = 0; i < _teamContainer.childCount; i++)
-            {
-                var allyTransform = _teamContainer.GetChild(i);
-                if (!allyTransform.TryGetComponent<CombatStats>(out var allyStats) || allyStats.IsDead)
-                    continue;
-
-                if (!allyTransform.TryGetComponent<CharacterMover>(out var allyMover))
-                    continue;
-
-                bool needsTarget = allyMover.Target == null;
-                if (!needsTarget && allyMover.Target.TryGetComponent<CombatStats>(out var targetStats))
-                    needsTarget = targetStats.IsDead;
-
-                if (needsTarget)
-                {
-                    bool inZone = firstEnemy.position.x <= CombatZoneX;
-                    if (inZone && allyTransform.TryGetComponent<CombatController>(out var allyController))
-                        allyController.Target = firstEnemy;
-                }
-
-                WireAllyRetarget(allyTransform);
-            }
+            _allyTargetManager.SetAllyTarget(enemyTransform);
         }
 
         private void OnEnemyDied()
         {
-            _aliveEnemyCount--;
             CheckLevelComplete();
         }
 
         private void CheckLevelComplete()
         {
-            if (!_levelInProgress || _pendingWaveCount > 0 || _aliveEnemyCount > 0) return;
+            if (!_levelInProgress || _pendingWaveCount > 0 || _enemySpawner.AliveEnemyCount > 0) return;
 
             if (TryGetCurrentLevel(out var level) && _currentStepIndex + 1 < level.Steps.Count)
             {
@@ -411,7 +348,7 @@ namespace RogueliteAutoBattler.Combat.Levels
         {
             _levelInProgress = false;
 
-            ClearAllyTargets();
+            _allyTargetManager.ClearAllyTargets();
             AttackSlotRegistry.Clear();
             CombatSetupHelper.RecalculateFormation(_teamContainer, _teamHomeAnchor, facingRight: true, characterScale: CharacterScale);
 
@@ -445,124 +382,33 @@ namespace RogueliteAutoBattler.Combat.Levels
             }
         }
 
-        private void AssignAllyTargetsInZone()
-        {
-            if (_teamContainer == null || _enemiesContainer == null) return;
-
-            for (int i = 0; i < _teamContainer.childCount; i++)
-            {
-                var ally = _teamContainer.GetChild(i);
-                if (!ally.TryGetComponent<CombatController>(out var controller)) continue;
-                if (controller.Target != null) continue;
-                if (!ally.TryGetComponent<CombatStats>(out var stats) || stats.IsDead) continue;
-
-                Transform target = TargetFinder.LeastContested(_enemiesContainer, ally.position, float.MaxValue, CombatZoneX);
-                if (target != null)
-                {
-                    controller.Target = target;
-                    WireAllyRetarget(ally);
-                }
-            }
-        }
-
-        private void WireAllyRetarget(Transform ally)
-        {
-            if (!ally.TryGetComponent<CombatController>(out var controller)) return;
-            if (controller.FindNewTarget != null) return;
-
-            var allyRef = ally;
-            controller.FindNewTarget = () => TargetFinder.LeastContested(_enemiesContainer, allyRef.position, float.MaxValue, CombatZoneX);
-        }
-
-        private void ClearAllyTargets() => DisengageAll(_teamContainer);
-
-        private void ClearEnemyTargets() => DisengageAll(_enemiesContainer);
-
-        private static void DisengageAll(Transform container)
-        {
-            if (container == null) return;
-
-            for (int i = 0; i < container.childCount; i++)
-            {
-                var child = container.GetChild(i);
-                if (child.TryGetComponent<CombatController>(out var controller))
-                {
-                    controller.Disengage();
-                }
-            }
-        }
-
-        private void OnAllyDied()
-        {
-            _aliveAllyCount--;
-            CheckLevelLost();
-        }
-
         private void CheckLevelLost()
         {
-            if (_levelInProgress && _aliveAllyCount <= 0)
+            if (_levelInProgress && _defeatHandler.AliveAllyCount <= 0)
             {
                 _levelInProgress = false;
-                OnLevelLost();
+                _defeatHandler.HandleLevelLost();
+                StartCoroutine(_defeatHandler.DefeatResetCoroutine(
+                    (stage, level, step) =>
+                    {
+                        _currentStageIndex = stage;
+                        _currentLevelIndex = level;
+                        _currentStepIndex = step;
+                    },
+                    ApplyStage,
+                    StartLevel,
+                    WireAllyDeathTracking,
+                    _ => _enemySpawner.ResetAliveEnemyCount(),
+                    count => _pendingWaveCount = count));
             }
-        }
-
-        private void OnLevelLost()
-        {
-#if UNITY_EDITOR
-            Debug.Log($"[{nameof(LevelManager)}] Level lost! All allies defeated.");
-#endif
-            ClearEnemyTargets();
-            AttackSlotRegistry.Clear();
-            CombatSetupHelper.RecalculateFormation(_enemiesContainer, _enemiesHomeAnchor, facingRight: false, characterScale: CharacterScale);
-            StartCoroutine(DefeatResetCoroutine());
-        }
-
-        private IEnumerator DefeatResetCoroutine()
-        {
-            yield return new WaitForSeconds(_defeatResetDelay);
-
-            CombatSetupHelper.DestroyAllChildren(_enemiesContainer);
-
-            if (_conveyor != null)
-                _conveyor.ResetPosition();
-
-            _currentStageIndex = 0;
-            _currentLevelIndex = 0;
-            _currentStepIndex = 0;
-
-            ApplyStage(0);
-
-            _aliveEnemyCount = 0;
-            _pendingWaveCount = 0;
-
-            _spawnManager.RespawnAllies();
-
-            yield return null;
-
-            WireAllyDeathTracking();
-            StartLevel(0);
         }
 
         private void WireAllyDeathTracking()
         {
-            _aliveAllyCount = 0;
-
-            if (_teamContainer == null) return;
-
-            for (int i = 0; i < _teamContainer.childCount; i++)
-            {
-                var ally = _teamContainer.GetChild(i);
-                if (!ally.TryGetComponent<CombatStats>(out var stats) || stats.IsDead)
-                    continue;
-
-                stats.OnDied -= OnAllyDied;
-                stats.OnDied += OnAllyDied;
-                _aliveAllyCount++;
-            }
+            _defeatHandler.WireAllyDeathTracking();
         }
 
-        internal int AliveAllyCount => _aliveAllyCount;
+        internal int AliveAllyCount => _defeatHandler != null ? _defeatHandler.AliveAllyCount : 0;
         internal bool LevelInProgress => _levelInProgress;
 
         internal void InitializeForTest(Transform teamContainer, Transform enemiesContainer, Transform teamHomeAnchor = null, Transform enemiesHomeAnchor = null, LevelDatabase levelDatabase = null)
@@ -573,36 +419,38 @@ namespace RogueliteAutoBattler.Combat.Levels
             if (enemiesHomeAnchor != null) _enemiesHomeAnchor = enemiesHomeAnchor;
             if (levelDatabase != null) _levelDatabase = levelDatabase;
             _levelInProgress = true;
+            _waitDefeatReset = new WaitForSeconds(_defeatResetDelay);
+
+            CreateHelpers();
         }
 
         internal void SetSpawnManagerForTest(CombatSpawnManager spawnManager)
         {
             _spawnManager = spawnManager;
+
+            if (_defeatHandler != null)
+            {
+                _defeatHandler = new DefeatHandler(
+                    _teamContainer,
+                    _enemiesContainer,
+                    _enemiesHomeAnchor,
+                    _waitDefeatReset,
+                    _conveyor,
+                    _spawnManager,
+                    () => CharacterScale,
+                    _allyTargetManager);
+                _defeatHandler.OnAllAlliesDead += CheckLevelLost;
+            }
         }
 
         internal void WireAllyDeathTrackingForTest() => WireAllyDeathTracking();
-        internal void ClearAllyTargetsForTest() => ClearAllyTargets();
-        internal void ClearEnemyTargetsForTest() => ClearEnemyTargets();
+        internal void ClearAllyTargetsForTest() => _allyTargetManager.ClearAllyTargets();
+        internal void ClearEnemyTargetsForTest() => _allyTargetManager.ClearEnemyTargets();
 
         internal void RecalculateAllyFormationForTest() =>
             CombatSetupHelper.RecalculateFormation(_teamContainer, _teamHomeAnchor, facingRight: true, characterScale: CharacterScale);
 
         internal void RecalculateEnemyFormationForTest() =>
             CombatSetupHelper.RecalculateFormation(_enemiesContainer, _enemiesHomeAnchor, facingRight: false, characterScale: CharacterScale);
-
-        private static void IgnoreCollisionWithOppositeTeam(GameObject character, Transform oppositeContainer)
-        {
-            if (oppositeContainer == null) return;
-
-            var col = character.GetComponent<Collider2D>();
-            if (col == null) return;
-
-            for (int i = 0; i < oppositeContainer.childCount; i++)
-            {
-                var otherCol = oppositeContainer.GetChild(i).GetComponent<Collider2D>();
-                if (otherCol != null)
-                    Physics2D.IgnoreCollision(col, otherCol, true);
-            }
-        }
     }
 }
