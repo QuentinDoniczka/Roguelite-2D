@@ -5,8 +5,8 @@ namespace RogueliteAutoBattler.Combat.Core
 {
     public static class AttackSlotRegistry
     {
-        private const float FaceOffset = 0.25f;
-        private const float VerticalSpacing = 0.3f;
+        internal const float FaceOffset = 0.25f;
+        internal const float VerticalSpacing = 0.3f;
         private const int MaxFrontSlots = 5;
 
         private struct SlotEntry

@@ -111,7 +111,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
         [UnityTest]
         public IEnumerator AssembleCharacter_SetsColliderRadius()
         {
-            float expectedRadius = DefaultColliderRadius / 1f;
+            float expectedRadius = DefaultColliderRadius;
             AssembleDefaultCharacter();
 
             yield return null;

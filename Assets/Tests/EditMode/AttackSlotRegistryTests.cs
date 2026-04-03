@@ -6,9 +6,6 @@ namespace RogueliteAutoBattler.Tests.EditMode
 {
     public class AttackSlotRegistryTests : EditModeTestBase
     {
-        private const float FaceOffset = 0.25f;
-        private const float VerticalSpacing = 0.3f;
-
         [SetUp]
         public void SetUp()
         {
@@ -23,7 +20,7 @@ namespace RogueliteAutoBattler.Tests.EditMode
 
             Vector2 offset = AttackSlotRegistry.Acquire(target, attacker, attackerFacesRight: true);
 
-            Assert.AreEqual(-FaceOffset, offset.x, 0.001f);
+            Assert.AreEqual(-AttackSlotRegistry.FaceOffset, offset.x, 0.001f);
             Assert.AreEqual(0f, offset.y, 0.001f);
         }
 
@@ -51,7 +48,7 @@ namespace RogueliteAutoBattler.Tests.EditMode
             Vector2 offsetB = AttackSlotRegistry.Acquire(target, attackerB, attackerFacesRight: true);
 
             Assert.AreEqual(0f, offsetA.y, 0.001f);
-            Assert.AreEqual(VerticalSpacing, offsetB.y, 0.001f);
+            Assert.AreEqual(AttackSlotRegistry.VerticalSpacing, offsetB.y, 0.001f);
             Assert.AreNotEqual(offsetA, offsetB);
         }
 
@@ -117,7 +114,7 @@ namespace RogueliteAutoBattler.Tests.EditMode
             var overflowAttacker = Track(new GameObject("OverflowAttacker")).transform;
             Vector2 overflowOffset = AttackSlotRegistry.Acquire(target, overflowAttacker, attackerFacesRight: true);
 
-            Assert.AreEqual(FaceOffset, overflowOffset.x, 0.001f);
+            Assert.AreEqual(AttackSlotRegistry.FaceOffset, overflowOffset.x, 0.001f);
             Assert.AreEqual(0f, overflowOffset.y, 0.001f);
         }
 

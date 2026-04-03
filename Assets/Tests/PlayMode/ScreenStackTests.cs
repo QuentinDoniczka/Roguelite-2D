@@ -1,5 +1,6 @@
 using System.Collections;
 using NUnit.Framework;
+using RogueliteAutoBattler.Tests;
 using RogueliteAutoBattler.UI.Core;
 using UnityEngine;
 using UnityEngine.TestTools;
@@ -126,9 +127,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
 
         private UIScreen CreateScreen(string name = "Screen")
         {
-            var go = Track(new GameObject(name));
-            go.AddComponent<CanvasGroup>();
-            return go.AddComponent<UIScreen>();
+            return Track(TestCharacterFactory.CreateUIScreen(name)).GetComponent<UIScreen>();
         }
     }
 }
