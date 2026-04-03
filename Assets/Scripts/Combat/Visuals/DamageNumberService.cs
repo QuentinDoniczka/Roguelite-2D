@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+using RogueliteAutoBattler.Common;
 using RogueliteAutoBattler.Data;
 using UnityEngine;
 
@@ -6,28 +6,21 @@ namespace RogueliteAutoBattler.Combat.Visuals
 {
     public static class DamageNumberService
     {
-        private static readonly Queue<DamageNumber> _pool = new Queue<DamageNumber>();
+        private static readonly StaticPool<DamageNumber> _pool = new StaticPool<DamageNumber>();
         private static Transform _container;
         private static DamageNumberConfig _config;
-        private static bool _isInitialized;
 
         public static void Initialize(Transform effectsContainer, DamageNumberConfig config)
         {
             _container = effectsContainer;
             _config = config;
 
-            int poolSize = config.InitialPoolSize;
-            for (int i = 0; i < poolSize; i++)
-            {
-                _pool.Enqueue(CreateInstance());
-            }
-
-            _isInitialized = true;
+            _pool.Initialize(() => CreateInstance(), config.InitialPoolSize);
         }
 
         public static void Show(Vector3 worldPosition, int value, bool isAlly)
         {
-            if (!_isInitialized || !_config.Enabled)
+            if (!_pool.IsInitialized || !_config.Enabled)
                 return;
 
             Color color = isAlly ? _config.AllyDamageColor : _config.EnemyDamageColor;
@@ -37,10 +30,7 @@ namespace RogueliteAutoBattler.Combat.Visuals
             float arcHeight = _config.ArcHeight + Random.Range(-_config.ArcHeightRandomness, _config.ArcHeightRandomness);
             float arcWidth = _config.ArcWidth + Random.Range(-_config.ArcWidthRandomness, _config.ArcWidthRandomness);
 
-            DamageNumber instance = _pool.Count > 0
-                ? _pool.Dequeue()
-                : CreateInstance();
-
+            DamageNumber instance = _pool.Get();
             instance.Play(spawnPosition, value, color, _config, arcDirection, arcHeight, arcWidth);
         }
 
@@ -56,7 +46,7 @@ namespace RogueliteAutoBattler.Combat.Visuals
 
         private static void ReturnToPool(DamageNumber instance)
         {
-            _pool.Enqueue(instance);
+            _pool.Return(instance);
         }
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
@@ -65,7 +55,6 @@ namespace RogueliteAutoBattler.Combat.Visuals
             _pool.Clear();
             _container = null;
             _config = null;
-            _isInitialized = false;
         }
 
         internal static void ResetForTest()

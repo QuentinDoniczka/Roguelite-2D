@@ -118,7 +118,7 @@ Assets/
 │   │       ├── SettingsWindow.cs
 │   │       └── TeamBuilderTab.cs
 │   ├── Items/  (empty)
-│   ├── ScriptableObjects/
+│   ├── Data/
 │   │   ├── DamageNumberConfig.cs
 │   │   ├── LevelDataTypes.cs
 │   │   ├── LevelDatabase.cs
@@ -171,7 +171,6 @@ Assets/
 ├── Tests/
 │   ├── EditMode/
 │   │   ├── Tests.EditMode.asmdef
-│   │   ├── EditModeTestBase.cs
 │   │   ├── AttackSlotRegistryTests.cs
 │   │   ├── CombatStatsDamageEventTests.cs
 │   │   ├── CombatStatsTests.cs

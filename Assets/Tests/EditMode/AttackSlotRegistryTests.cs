@@ -1,10 +1,11 @@
 using NUnit.Framework;
 using RogueliteAutoBattler.Combat.Core;
+using RogueliteAutoBattler.Tests.PlayMode;
 using UnityEngine;
 
 namespace RogueliteAutoBattler.Tests.EditMode
 {
-    public class AttackSlotRegistryTests : EditModeTestBase
+    public class AttackSlotRegistryTests : PlayModeTestBase
     {
         [SetUp]
         public void SetUp()

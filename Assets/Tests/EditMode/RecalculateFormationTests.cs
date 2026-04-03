@@ -1,11 +1,11 @@
 using NUnit.Framework;
 using RogueliteAutoBattler.Combat.Core;
-using RogueliteAutoBattler.Tests;
+using RogueliteAutoBattler.Tests.PlayMode;
 using UnityEngine;
 
 namespace RogueliteAutoBattler.Tests.EditMode
 {
-    public class RecalculateFormationTests : EditModeTestBase
+    public class RecalculateFormationTests : PlayModeTestBase
     {
         private GameObject _container;
         private GameObject _anchor;

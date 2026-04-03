@@ -40,21 +40,24 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             float characterScale = 1f)
         {
             LogAssert.Expect(LogType.Warning, new Regex("No Animator found"));
-            return CombatSetupHelper.AssembleCharacter(
-                _characterPrefab,
-                DefaultMaxHp,
-                DefaultAtk,
-                DefaultAttackSpeed,
-                DefaultRegenHpPerSecond,
-                DefaultMoveSpeed,
-                _homeAnchor,
-                Vector2.zero,
-                DefaultColliderRadius,
-                _appearance,
-                "Test",
-                healthBarFillColor: fillColor,
-                healthBarTrailColor: trailColor,
-                characterScale: characterScale);
+            var config = new CharacterSetupConfig
+            {
+                MaxHp = DefaultMaxHp,
+                Atk = DefaultAtk,
+                AttackSpeed = DefaultAttackSpeed,
+                RegenHpPerSecond = DefaultRegenHpPerSecond,
+                MoveSpeed = DefaultMoveSpeed,
+                HomeAnchor = _homeAnchor,
+                HomeOffset = Vector2.zero,
+                ColliderRadius = DefaultColliderRadius,
+                Appearance = _appearance,
+                CallerName = "Test",
+                HealthBarFillColor = fillColor,
+                HealthBarTrailColor = trailColor,
+                IsAlly = true,
+                CharacterScale = characterScale
+            };
+            return CombatSetupHelper.AssembleCharacter(_characterPrefab, config);
         }
 
         [UnityTest]
@@ -129,19 +132,22 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             float expectedRadius = DefaultColliderRadius / customScale;
 
             LogAssert.Expect(LogType.Warning, new Regex("No Animator found"));
-            CombatSetupHelper.AssembleCharacter(
-                _characterPrefab,
-                DefaultMaxHp,
-                DefaultAtk,
-                DefaultAttackSpeed,
-                DefaultRegenHpPerSecond,
-                DefaultMoveSpeed,
-                _homeAnchor,
-                Vector2.zero,
-                DefaultColliderRadius,
-                _appearance,
-                "Test",
-                characterScale: customScale);
+            var config = new CharacterSetupConfig
+            {
+                MaxHp = DefaultMaxHp,
+                Atk = DefaultAtk,
+                AttackSpeed = DefaultAttackSpeed,
+                RegenHpPerSecond = DefaultRegenHpPerSecond,
+                MoveSpeed = DefaultMoveSpeed,
+                HomeAnchor = _homeAnchor,
+                HomeOffset = Vector2.zero,
+                ColliderRadius = DefaultColliderRadius,
+                Appearance = _appearance,
+                CallerName = "Test",
+                IsAlly = true,
+                CharacterScale = customScale
+            };
+            CombatSetupHelper.AssembleCharacter(_characterPrefab, config);
 
             yield return null;
 

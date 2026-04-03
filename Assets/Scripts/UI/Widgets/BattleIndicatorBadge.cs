@@ -20,6 +20,8 @@ namespace RogueliteAutoBattler.UI.Widgets
         private const float AnnouncementPeakScale = 1.1f;
         private const float AnnouncementStartScale = 0.7f;
 
+        private static readonly WaitForSeconds WaitAnnouncementHold = new WaitForSeconds(AnnouncementHoldDuration);
+
         private LevelManager _levelManager;
         private Coroutine _announcementCoroutine;
         private RectTransform _announcementRect;
@@ -29,6 +31,7 @@ namespace RogueliteAutoBattler.UI.Widgets
         {
             if (_initializedForTest) return;
 
+            // TODO: replace FindObjectsByType with serialized ref when DI is available
             var managers = FindObjectsByType<LevelManager>(FindObjectsSortMode.None);
             if (managers.Length > 0)
             {
@@ -103,7 +106,7 @@ namespace RogueliteAutoBattler.UI.Widgets
             if (announcementRect != null)
                 announcementRect.localScale = Vector3.one;
 
-            yield return new WaitForSeconds(AnnouncementHoldDuration);
+            yield return WaitAnnouncementHold;
 
             elapsed = 0f;
             while (elapsed < AnnouncementFadeOutDuration)

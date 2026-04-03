@@ -1,5 +1,5 @@
 using System;
-using System.Collections.Generic;
+using RogueliteAutoBattler.Common;
 using RogueliteAutoBattler.UI.Widgets;
 using UnityEngine;
 using UnityEngine.UI;
@@ -8,14 +8,13 @@ namespace RogueliteAutoBattler.Combat.Visuals
 {
     public static class CoinFlyService
     {
-        private static readonly Queue<CoinFly> _pool = new Queue<CoinFly>();
+        private static readonly StaticPool<CoinFly> _pool = new StaticPool<CoinFly>();
         private static RectTransform _container;
         private static RectTransform _targetBadge;
         private static GoldHudBadge _targetBadgeComponent;
         private static Camera _camera;
         private static Canvas _canvas;
         private static Sprite _coinSprite;
-        private static bool _isInitialized;
 
         private const int InitialPoolSize = 5;
         private const float Duration = 0.6f;
@@ -31,17 +30,12 @@ namespace RogueliteAutoBattler.Combat.Visuals
             _canvas = canvas;
             _coinSprite = coinSprite;
 
-            for (int i = 0; i < InitialPoolSize; i++)
-            {
-                _pool.Enqueue(CreateInstance());
-            }
-
-            _isInitialized = true;
+            _pool.Initialize(() => CreateInstance(), InitialPoolSize);
         }
 
         public static void Show(Vector3 worldPosition, Action onComplete = null)
         {
-            if (!_isInitialized)
+            if (!_pool.IsInitialized)
                 return;
 
             Vector3 screenPoint = _camera.WorldToScreenPoint(worldPosition);
@@ -55,10 +49,7 @@ namespace RogueliteAutoBattler.Combat.Visuals
             RectTransformUtility.ScreenPointToLocalPointInRectangle(
                 _container, targetScreenPoint, uiCamera, out Vector2 targetLocal);
 
-            CoinFly coin = _pool.Count > 0
-                ? _pool.Dequeue()
-                : CreateInstance();
-
+            CoinFly coin = _pool.Get();
             coin.Play(startLocal, targetLocal, Duration, () => OnCoinArrived(onComplete));
         }
 
@@ -91,7 +82,7 @@ namespace RogueliteAutoBattler.Combat.Visuals
 
         private static void ReturnToPool(CoinFly instance)
         {
-            _pool.Enqueue(instance);
+            _pool.Return(instance);
         }
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
@@ -104,7 +95,6 @@ namespace RogueliteAutoBattler.Combat.Visuals
             _camera = null;
             _canvas = null;
             _coinSprite = null;
-            _isInitialized = false;
         }
 
         internal static void ResetForTest()
