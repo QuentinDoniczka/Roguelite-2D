@@ -25,7 +25,7 @@
 Doc detaille : `Assets/doc/premier-jet-roguelite.html`
 
 # Project Structure
-Generated: 2026-04-02 (updated feature/131-level-designer-additive-scaling)
+Generated: 2026-04-02 (updated feature/133-manual-special-steps)
 
 .github/
 └── workflows/

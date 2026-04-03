@@ -25,14 +25,19 @@ namespace RogueliteAutoBattler.Tests.PlayMode
         }
 
         private (LevelDatabase database, LevelManager levelManager, StepProgressBar bar)
-            BuildProgressBarSetup(int stepCount, string prefix = "")
+            BuildProgressBarSetup(int stepCount, string prefix = "", HashSet<int> specialStepIndices = null)
         {
             var database = ScriptableObject.CreateInstance<LevelDatabase>();
             var delayedWave = new WaveData("W1", NeverSpawnDelay, new List<EnemySpawnData>());
 
             var steps = new List<StepData>();
             for (int i = 0; i < stepCount; i++)
-                steps.Add(new StepData("Step" + i, new List<WaveData> { delayedWave }));
+            {
+                var stepType = specialStepIndices != null && specialStepIndices.Contains(i)
+                    ? StepType.Special
+                    : StepType.Normal;
+                steps.Add(new StepData("Step" + i, new List<WaveData> { delayedWave }, stepType));
+            }
 
             var level = new LevelData("Level0", steps);
             var stage = new StageData("Stage0", null, new List<LevelData> { level });
@@ -241,6 +246,24 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             Assert.AreEqual(0, singleBar.LineCount);
 
             Object.DestroyImmediate(singleLevelDatabase);
+        }
+
+        [UnityTest]
+        public IEnumerator SpecialStep_HasLargerSphere()
+        {
+            var specialIndices = new HashSet<int> { 1 };
+            var (specialDb, _, specialBar) = BuildProgressBarSetup(3, "Special", specialIndices);
+
+            yield return null;
+
+            Assert.AreEqual(specialBar.SphereSize, specialBar.GetSpherePreferredWidth(0),
+                "Normal step should use default sphere size.");
+            Assert.AreEqual(specialBar.SpecialSphereSize, specialBar.GetSpherePreferredWidth(1),
+                "Special step should use larger sphere size.");
+            Assert.AreEqual(specialBar.SphereSize, specialBar.GetSpherePreferredWidth(2),
+                "Normal step should use default sphere size.");
+
+            Object.DestroyImmediate(specialDb);
         }
     }
 }

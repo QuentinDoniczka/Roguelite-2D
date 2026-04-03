@@ -54,6 +54,13 @@ namespace RogueliteAutoBattler.Combat.Levels
         public int TotalLevelsInCurrentStage =>
             TryGetCurrentStage(out var stage) ? stage.Levels.Count : 0;
 
+        public StepType GetStepType(int stepIndex)
+        {
+            if (!TryGetCurrentLevel(out var level)) return StepType.Normal;
+            if (stepIndex < 0 || stepIndex >= level.Steps.Count) return StepType.Normal;
+            return level.Steps[stepIndex].StepType;
+        }
+
         private const float FallbackEnemySpawnX = 1f;
         private const float SpawnSpeedThreshold = 0.3f;
 
