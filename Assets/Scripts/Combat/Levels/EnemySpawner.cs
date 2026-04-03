@@ -1,6 +1,7 @@
 using System;
 using RogueliteAutoBattler.Combat.Core;
 using RogueliteAutoBattler.Combat.Visuals;
+using RogueliteAutoBattler.Common;
 using RogueliteAutoBattler.Data;
 using RogueliteAutoBattler.Economy;
 using UnityEngine;
@@ -76,6 +77,7 @@ namespace RogueliteAutoBattler.Combat.Levels
 
             GameObject enemy = UnityEngine.Object.Instantiate(data.Prefab, spawnPosition, Quaternion.identity, _enemiesContainer);
             enemy.name = data.EnemyName;
+            enemy.layer = PhysicsLayers.EnemyLayer;
 
             float scale = _characterScaleProvider();
             enemy.transform.localScale = new Vector3(scale, scale, 1f);
@@ -97,8 +99,6 @@ namespace RogueliteAutoBattler.Combat.Levels
                 CharacterScale = scale
             };
             var components = CombatSetupHelper.AssembleCharacter(enemy, setupConfig);
-
-            IgnoreCollisionWithOppositeTeam(enemy, _teamContainer);
 
             AliveEnemyCount++;
             components.Stats.OnDied += HandleEnemyDied;
@@ -142,21 +142,6 @@ namespace RogueliteAutoBattler.Combat.Levels
         {
             AliveEnemyCount--;
             OnEnemyDied?.Invoke();
-        }
-
-        private static void IgnoreCollisionWithOppositeTeam(GameObject character, Transform oppositeContainer)
-        {
-            if (oppositeContainer == null) return;
-
-            var col = character.GetComponent<Collider2D>();
-            if (col == null) return;
-
-            for (int i = 0; i < oppositeContainer.childCount; i++)
-            {
-                var otherCol = oppositeContainer.GetChild(i).GetComponent<Collider2D>();
-                if (otherCol != null)
-                    Physics2D.IgnoreCollision(col, otherCol, true);
-            }
         }
     }
 }

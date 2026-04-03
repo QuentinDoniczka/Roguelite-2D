@@ -1,3 +1,4 @@
+using RogueliteAutoBattler.Common;
 using RogueliteAutoBattler.Data;
 using UnityEngine;
 
@@ -77,21 +78,25 @@ namespace RogueliteAutoBattler.Combat.Core
 
             var ally = Instantiate(data.Prefab, new Vector3(spawnPos.x, spawnPos.y, 0f), Quaternion.identity, _teamContainer);
             ally.name = data.AllyName;
+            ally.layer = PhysicsLayers.AllyLayer;
             ally.transform.localScale = new Vector3(-_characterScale, _characterScale, 1f);
 
-            var components = CombatSetupHelper.AssembleCharacter(
-                ally,
-                data.MaxHp,
-                data.Atk,
-                data.AttackSpeed,
-                data.RegenHpPerSecond,
-                data.MoveSpeed,
-                homeAnchor,
-                homeOffset,
-                data.ColliderRadius,
-                data.Appearance,
-                nameof(CombatSpawnManager),
-                characterScale: _characterScale);
+            var setupConfig = new CharacterSetupConfig
+            {
+                MaxHp = data.MaxHp,
+                Atk = data.Atk,
+                AttackSpeed = data.AttackSpeed,
+                RegenHpPerSecond = data.RegenHpPerSecond,
+                MoveSpeed = data.MoveSpeed,
+                HomeAnchor = homeAnchor,
+                HomeOffset = homeOffset,
+                ColliderRadius = data.ColliderRadius,
+                Appearance = data.Appearance,
+                CallerName = nameof(CombatSpawnManager),
+                IsAlly = true,
+                CharacterScale = _characterScale
+            };
+            var components = CombatSetupHelper.AssembleCharacter(ally, setupConfig);
             components.Controller.SetAttackerFacing(true);
         }
     }
