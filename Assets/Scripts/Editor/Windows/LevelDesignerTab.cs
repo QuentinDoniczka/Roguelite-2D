@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using RogueliteAutoBattler.Data;
 using UnityEditor;
@@ -48,6 +49,11 @@ namespace RogueliteAutoBattler.Editor
         private AutoBuilderStepParams _autoBuilderNormal  = new AutoBuilderStepParams(1, 5f, 3, 2, 2);
         private AutoBuilderStepParams _autoBuilderSpecial = new AutoBuilderStepParams(1, 5f, 5, 2, 1);
 
+        private const string SessionKeyPrefix = "LevelDesigner_AutoBuilder_";
+        private const string SessionKeyStepCount = SessionKeyPrefix + "StepCount";
+        private const string SessionKeyNormal = SessionKeyPrefix + "Normal";
+        private const string SessionKeySpecial = SessionKeyPrefix + "Special";
+        private const string SessionKeySpecialSteps = SessionKeyPrefix + "SpecialSteps";
         private const int AutoBuilderMinAddFrequency = 1;
         private const int StepTypeNormalEnumIndex      = (int)StepType.Normal;
         private const int StepTypeSpecialEnumIndex     = (int)StepType.Special;
@@ -61,6 +67,7 @@ namespace RogueliteAutoBattler.Editor
         internal void OnEnable()
         {
             LevelTryAutoLoadDatabase();
+            LoadAutoBuilderState();
         }
 
         internal void OnDisable()
@@ -70,7 +77,7 @@ namespace RogueliteAutoBattler.Editor
             _selectedRowStyle = null;
             if (_selectedRowTexture != null)
             {
-                Object.DestroyImmediate(_selectedRowTexture);
+                UnityEngine.Object.DestroyImmediate(_selectedRowTexture);
                 _selectedRowTexture = null;
             }
         }
@@ -498,6 +505,8 @@ namespace RogueliteAutoBattler.Editor
                     return;
                 }
 
+                EditorGUI.BeginChangeCheck();
+
                 _autoBuilderStepCount = Mathf.Max(1,
                     EditorGUILayout.IntField("Step Count", _autoBuilderStepCount));
 
@@ -516,6 +525,7 @@ namespace RogueliteAutoBattler.Editor
                     if (GUILayout.Button("-", GUILayout.Width(LevelSmallButtonWidth)))
                     {
                         _autoBuilderSpecialStepNumbers.RemoveAt(si);
+                        SaveAutoBuilderState();
                         GUILayout.EndHorizontal();
                         break;
                     }
@@ -527,9 +537,15 @@ namespace RogueliteAutoBattler.Editor
                     while (_autoBuilderSpecialStepNumbers.Contains(nextValue)) nextValue++;
                     nextValue = Mathf.Min(nextValue, _autoBuilderStepCount);
                     if (!_autoBuilderSpecialStepNumbers.Contains(nextValue))
+                    {
                         _autoBuilderSpecialStepNumbers.Add(nextValue);
+                        SaveAutoBuilderState();
+                    }
                 }
                 DrawAutoBuilderStepParamFields(ref _autoBuilderSpecial, showAddFrequency: false);
+
+                if (EditorGUI.EndChangeCheck())
+                    SaveAutoBuilderState();
 
                 GUILayout.Space(6f);
 
@@ -541,7 +557,7 @@ namespace RogueliteAutoBattler.Editor
             GUILayout.EndVertical();
         }
 
-        private static void DrawAutoBuilderStepParamFields(ref AutoBuilderStepParams stepParams, bool showAddFrequency = true)
+        private static void DrawAutoBuilderStepParamFields(ref AutoBuilderStepParams stepParams, bool showAddFrequency = true, bool showAddCount = true)
         {
             stepParams.wavesPerStep = Mathf.Max(1,
                 EditorGUILayout.IntField("Waves", stepParams.wavesPerStep));
@@ -549,8 +565,11 @@ namespace RogueliteAutoBattler.Editor
                 EditorGUILayout.FloatField("Wave Delay (s)", stepParams.waveSpawnDelay));
             stepParams.enemiesPerWave = Mathf.Max(1,
                 EditorGUILayout.IntField("Enemies", stepParams.enemiesPerWave));
-            stepParams.enemyAddCount = Mathf.Max(0,
-                EditorGUILayout.IntField("Add Count", stepParams.enemyAddCount));
+            if (showAddCount)
+            {
+                stepParams.enemyAddCount = Mathf.Max(0,
+                    EditorGUILayout.IntField("Add Count", stepParams.enemyAddCount));
+            }
             if (showAddFrequency)
             {
                 stepParams.enemyAddFrequency = Mathf.Max(AutoBuilderMinAddFrequency,
@@ -591,21 +610,19 @@ namespace RogueliteAutoBattler.Editor
                     isSpecialStep ? StepTypeSpecialEnumIndex : StepTypeNormalEnumIndex;
 
                 AutoBuilderStepParams activeParams;
-                int stepCounter;
+                int enemyCount;
                 if (isSpecialStep)
                 {
-                    specialStepCounter++;
                     activeParams = _autoBuilderSpecial;
-                    stepCounter = specialStepCounter - 1;
+                    enemyCount = activeParams.enemiesPerWave + specialStepCounter * activeParams.enemyAddCount;
+                    specialStepCounter++;
                 }
                 else
                 {
                     normalStepCounter++;
                     activeParams = _autoBuilderNormal;
-                    stepCounter = normalStepCounter - 1;
+                    enemyCount = activeParams.ComputeEnemyCount(normalStepCounter - 1);
                 }
-
-                int enemyCount = activeParams.ComputeEnemyCount(stepCounter);
                 int wavesCount = activeParams.wavesPerStep;
                 float waveDelay = activeParams.waveSpawnDelay;
 
@@ -996,13 +1013,52 @@ namespace RogueliteAutoBattler.Editor
             return _selectedRowStyle;
         }
 
+        private void SaveAutoBuilderState()
+        {
+            SessionState.SetInt(SessionKeyStepCount, _autoBuilderStepCount);
+            SessionState.SetString(SessionKeyNormal, JsonUtility.ToJson(_autoBuilderNormal));
+            SessionState.SetString(SessionKeySpecial, JsonUtility.ToJson(_autoBuilderSpecial));
+
+            var wrapper = new IntListWrapper { values = _autoBuilderSpecialStepNumbers };
+            SessionState.SetString(SessionKeySpecialSteps, JsonUtility.ToJson(wrapper));
+        }
+
+        private void LoadAutoBuilderState()
+        {
+            _autoBuilderStepCount = SessionState.GetInt(SessionKeyStepCount, 10);
+
+            string normalJson = SessionState.GetString(SessionKeyNormal, "");
+            if (!string.IsNullOrEmpty(normalJson))
+                _autoBuilderNormal = JsonUtility.FromJson<AutoBuilderStepParams>(normalJson);
+
+            string specialJson = SessionState.GetString(SessionKeySpecial, "");
+            if (!string.IsNullOrEmpty(specialJson))
+                _autoBuilderSpecial = JsonUtility.FromJson<AutoBuilderStepParams>(specialJson);
+
+            string stepsJson = SessionState.GetString(SessionKeySpecialSteps, "");
+            if (!string.IsNullOrEmpty(stepsJson))
+            {
+                var wrapper = JsonUtility.FromJson<IntListWrapper>(stepsJson);
+                _autoBuilderSpecialStepNumbers.Clear();
+                if (wrapper.values != null)
+                    _autoBuilderSpecialStepNumbers.AddRange(wrapper.values);
+            }
+        }
+
+        [Serializable]
+        private struct IntListWrapper
+        {
+            public List<int> values;
+        }
+
+        [Serializable]
         private struct AutoBuilderStepParams
         {
-            internal int   wavesPerStep;
-            internal float waveSpawnDelay;
-            internal int   enemiesPerWave;
-            internal int   enemyAddCount;
-            internal int   enemyAddFrequency;
+            [SerializeField] internal int   wavesPerStep;
+            [SerializeField] internal float waveSpawnDelay;
+            [SerializeField] internal int   enemiesPerWave;
+            [SerializeField] internal int   enemyAddCount;
+            [SerializeField] internal int   enemyAddFrequency;
 
             internal AutoBuilderStepParams(
                 int wavesPerStep, float waveSpawnDelay, int enemiesPerWave,

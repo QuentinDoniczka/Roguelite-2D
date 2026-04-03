@@ -1,6 +1,8 @@
+using System;
 using System.Collections.Generic;
 using RogueliteAutoBattler.Combat.Environment;
 using RogueliteAutoBattler.Combat.Levels;
+using RogueliteAutoBattler.Data;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -17,6 +19,7 @@ namespace RogueliteAutoBattler.UI.Widgets
 
         [Header("Sizing")]
         [SerializeField] private float _sphereSize = 16f;
+        [SerializeField] private float _specialSphereSize = 24f;
         [SerializeField] private float _lineHeight = 3f;
         [SerializeField] private float _lineMinWidth = 4f;
 
@@ -27,6 +30,7 @@ namespace RogueliteAutoBattler.UI.Widgets
         private HorizontalLayoutGroup _layoutGroup;
         private readonly List<Image> _spheres = new List<Image>();
         private readonly List<Image> _lines = new List<Image>();
+        private Func<int, StepType> _getStepType;
         private bool _initializedForTest;
 
         private int _currentStep;
@@ -52,6 +56,7 @@ namespace RogueliteAutoBattler.UI.Widgets
                 _levelManager = managers[0];
                 _levelManager.OnLevelStarted += OnLevelChanged;
                 _levelManager.OnStepStarted += OnStepChanged;
+                _getStepType = _levelManager.GetStepType;
                 WireConveyor();
                 Rebuild(_levelManager.TotalStepsInCurrentLevel, _levelManager.CurrentStepIndex);
             }
@@ -102,11 +107,14 @@ namespace RogueliteAutoBattler.UI.Widgets
                 sphereImage.raycastTarget = false;
                 _spheres.Add(sphereImage);
 
+                bool isSpecial = _getStepType != null && _getStepType(i) == StepType.Special;
+                float size = isSpecial ? _specialSphereSize : _sphereSize;
+
                 var sphereLayout = sphereGo.AddComponent<LayoutElement>();
-                sphereLayout.minWidth = _sphereSize;
-                sphereLayout.minHeight = _sphereSize;
-                sphereLayout.preferredWidth = _sphereSize;
-                sphereLayout.preferredHeight = _sphereSize;
+                sphereLayout.minWidth = size;
+                sphereLayout.minHeight = size;
+                sphereLayout.preferredWidth = size;
+                sphereLayout.preferredHeight = size;
 
                 if (i < totalSteps - 1)
                 {
@@ -266,6 +274,7 @@ namespace RogueliteAutoBattler.UI.Widgets
         {
             _initializedForTest = true;
             _levelManager = levelManager;
+            _getStepType = _levelManager.GetStepType;
 
             _levelManager.OnLevelStarted += OnLevelChanged;
             _levelManager.OnStepStarted += OnStepChanged;
@@ -284,5 +293,8 @@ namespace RogueliteAutoBattler.UI.Widgets
         internal Color CurrentColor => _currentColor;
         internal Color UpcomingColor => _upcomingColor;
         internal bool IsScrollDotActive => _scrollDot != null && _scrollDot.gameObject.activeSelf;
+        internal float GetSpherePreferredWidth(int index) => _spheres[index].GetComponent<LayoutElement>().preferredWidth;
+        internal float SphereSize => _sphereSize;
+        internal float SpecialSphereSize => _specialSphereSize;
     }
 }
