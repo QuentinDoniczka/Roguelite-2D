@@ -84,6 +84,9 @@ Assets/
 │   │   │   ├── ScreenAnchor.cs
 │   │   │   └── WorldConveyor.cs
 │   │   ├── Levels/
+│   │   │   ├── AllyTargetManager.cs
+│   │   │   ├── DefeatHandler.cs
+│   │   │   ├── EnemySpawner.cs
 │   │   │   └── LevelManager.cs
 │   │   └── Visuals/
 │   │       ├── CharacterAppearance.cs
@@ -97,7 +100,9 @@ Assets/
 │   │       ├── HealthBar.cs
 │   │       └── VisualEquipmentTestLoop.cs
 │   ├── Common/
-│   │   └── SortingLayers.cs
+│   │   ├── PhysicsLayers.cs
+│   │   ├── SortingLayers.cs
+│   │   └── StaticPool.cs
 │   ├── Core/
 │   │   ├── CanvasFactory.cs
 │   │   └── GameBootstrap.cs
@@ -212,7 +217,6 @@ Assets/
 │       ├── UIScreenTests.cs
 │       ├── VisualEquipmentTestLoopTests.cs
 │       └── WorldConveyorTests.cs
-├── _Recovery/  (4 files)
 └── TextMesh Pro/  (173 files — TMP package: fonts, shaders, examples)
 
 ProjectSettings/  (Unity defaults)
