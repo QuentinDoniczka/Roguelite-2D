@@ -21,6 +21,7 @@ namespace RogueliteAutoBattler.UI.Widgets
 
         private void Start()
         {
+            // TODO: replace FindObjectsByType with serialized ref when DI is available
             var wallets = FindObjectsByType<GoldWallet>(FindObjectsSortMode.None);
             if (wallets.Length > 0)
             {

@@ -66,6 +66,9 @@ crashlytics-build.properties
 # Temporary auto-save
 [Aa]ssets/[Aa]uto[Ss]ave/
 
+# Unity crash recovery files
+[Aa]ssets/_Recovery/
+
 # .claude junction in Assets (symlink to root .claude/)
 [Aa]ssets/.claude/
 

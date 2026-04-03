@@ -50,6 +50,7 @@ namespace RogueliteAutoBattler.UI.Widgets
         {
             if (_initializedForTest) return;
 
+            // TODO: replace FindObjectsByType with serialized ref when DI is available
             var managers = FindObjectsByType<LevelManager>(FindObjectsSortMode.None);
             if (managers.Length > 0)
             {

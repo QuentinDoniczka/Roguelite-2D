@@ -3,6 +3,7 @@ using RogueliteAutoBattler.Combat.Core;
 using RogueliteAutoBattler.Combat.Environment;
 using RogueliteAutoBattler.Combat.Visuals;
 using RogueliteAutoBattler.Data;
+using RogueliteAutoBattler.UI.Core;
 using UnityEngine;
 
 namespace RogueliteAutoBattler.Tests
@@ -140,6 +141,14 @@ namespace RogueliteAutoBattler.Tests
         {
             var go = CreateCombatCharacter(name, maxHp, atk, attackSpeed, regenHpPerSecond);
             go.AddComponent<HealthBar>();
+            return go;
+        }
+
+        public static GameObject CreateUIScreen(string name = "TestScreen")
+        {
+            var go = new GameObject(name);
+            go.AddComponent<CanvasGroup>();
+            go.AddComponent<UIScreen>();
             return go;
         }
 

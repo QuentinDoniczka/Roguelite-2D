@@ -47,7 +47,7 @@ namespace RogueliteAutoBattler.Editor
             if (existingNav != null)
                 Undo.DestroyObjectImmediate(existingNav.gameObject);
 
-            GameObject oldWorld = GameObject.Find("CombatWorld");
+            GameObject oldWorld = GameObject.Find(GameBootstrap.CombatWorldName);
             if (oldWorld != null)
                 Undo.DestroyObjectImmediate(oldWorld);
         }

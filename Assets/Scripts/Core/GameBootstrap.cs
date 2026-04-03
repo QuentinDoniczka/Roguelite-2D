@@ -1,3 +1,4 @@
+using RogueliteAutoBattler.Common;
 using RogueliteAutoBattler.UI.Core;
 using UnityEngine;
 
@@ -5,6 +6,8 @@ namespace RogueliteAutoBattler.Core
 {
     public static class GameBootstrap
     {
+        internal const string CombatWorldName = "CombatWorld";
+
         public static Canvas Canvas { get; private set; }
         public static Transform CombatWorld { get; private set; }
         public static NavigationManager NavigationManager { get; private set; }
@@ -17,11 +20,18 @@ namespace RogueliteAutoBattler.Core
             Canvas = Object.FindFirstObjectByType<Canvas>(FindObjectsInactive.Include);
             NavigationManager = Object.FindFirstObjectByType<NavigationManager>(FindObjectsInactive.Include);
 
-            var combatWorldGo = GameObject.Find("CombatWorld");
+            var combatWorldGo = GameObject.Find(CombatWorldName);
             CombatWorld = combatWorldGo != null ? combatWorldGo.transform : null;
+
+            ConfigurePhysicsLayers();
 
             if (Canvas != null)
                 ValidateRefs();
+        }
+
+        private static void ConfigurePhysicsLayers()
+        {
+            Physics2D.IgnoreLayerCollision(PhysicsLayers.AllyLayer, PhysicsLayers.EnemyLayer, true);
         }
 
         private static void ValidateRefs()

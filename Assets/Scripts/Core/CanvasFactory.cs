@@ -1,3 +1,4 @@
+using RogueliteAutoBattler.Common;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -9,7 +10,7 @@ namespace RogueliteAutoBattler.Core
         public const int ReferenceHeight = 1920;
         public const float MatchWidthOrHeight = 0.5f;
         public const float PlaneDistance = 100f;
-        public const string SortingLayerName = "UI";
+        public const string SortingLayerName = SortingLayers.UI;
         public const int SortingOrder = 0;
 
         public static GameObject Create(Camera cam)

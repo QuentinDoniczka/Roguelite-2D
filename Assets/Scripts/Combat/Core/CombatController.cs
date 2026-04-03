@@ -25,7 +25,6 @@ namespace RogueliteAutoBattler.Combat.Core
         private Animator _animator;
         private bool _hasAnimator;
         private CombatStats _stats;
-        private bool _hasStats;
         private CombatStats _targetStats;
         private CombatState _state;
         private float _nextAttackTime;
@@ -70,10 +69,7 @@ namespace RogueliteAutoBattler.Combat.Core
             _animator = _mover.Animator;
             _hasAnimator = _mover.HasAnimator;
             _stats = GetComponent<CombatStats>();
-            _hasStats = _stats != null;
-
-            if (_hasStats)
-                _stats.OnDied += HandleSelfDied;
+            _stats.OnDied += HandleSelfDied;
         }
 
         private void OnDestroy()
@@ -89,7 +85,7 @@ namespace RogueliteAutoBattler.Combat.Core
 
         private void FixedUpdate()
         {
-            if (_state == CombatState.Dead || (_hasStats && _stats.IsDead))
+            if (_state == CombatState.Dead || _stats.IsDead)
                 return;
 
             if (_mover == null || _mover.Target == null)
@@ -250,7 +246,7 @@ namespace RogueliteAutoBattler.Combat.Core
         {
             FaceTarget();
 
-            if (!_hasStats || _stats.AttackSpeed <= 0f)
+            if (_stats.AttackSpeed <= 0f)
                 return;
 
             _waitingForHit = true;
@@ -273,12 +269,12 @@ namespace RogueliteAutoBattler.Combat.Core
             if (!_waitingForHit)
                 return;
 
-            if (_hasStats && _stats.IsDead)
+            if (_stats.IsDead)
                 return;
 
             _waitingForHit = false;
 
-            if (_hasStats && _targetStats != null && !_targetStats.IsDead)
+            if (_targetStats != null && !_targetStats.IsDead)
             {
                 int damage = _stats.Atk;
 #if UNITY_EDITOR

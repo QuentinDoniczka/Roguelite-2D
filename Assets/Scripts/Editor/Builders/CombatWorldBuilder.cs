@@ -4,6 +4,8 @@ using RogueliteAutoBattler.Combat.Core;
 using RogueliteAutoBattler.Combat.Environment;
 using RogueliteAutoBattler.Combat.Levels;
 using RogueliteAutoBattler.Combat.Visuals;
+using RogueliteAutoBattler.Common;
+using RogueliteAutoBattler.Core;
 using RogueliteAutoBattler.Data;
 using UnityEditor;
 using UnityEngine;
@@ -67,7 +69,7 @@ namespace RogueliteAutoBattler.Editor
 
         internal static GameObject CreateCombatWorld()
         {
-            var root = new GameObject("CombatWorld");
+            var root = new GameObject(GameBootstrap.CombatWorldName);
             root.transform.position = Vector3.zero;
             Undo.RegisterCreatedObjectUndo(root, "Create CombatWorld");
 
@@ -87,7 +89,7 @@ namespace RogueliteAutoBattler.Editor
             float anchorX = -previewHalfWidth + GroundWidth * 0.5f;
             groundGo.transform.localPosition = new Vector3(anchorX, groundCenterY, 0f);
             groundRenderer.size = new Vector2(GroundWidth, groundHeight);
-            groundRenderer.sortingLayerName = "Background";
+            groundRenderer.sortingLayerName = SortingLayers.Background;
             groundRenderer.sortingOrder = -10;
             groundRenderer.color = Color.white;
 

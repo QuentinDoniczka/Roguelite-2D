@@ -27,6 +27,12 @@ namespace RogueliteAutoBattler.UI.Core
 
         public event Action<int> OnTabChanged;
 
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        private static void ResetOnDomainReload()
+        {
+            Instance = null;
+        }
+
         private void Awake()
         {
             if (Instance != null)

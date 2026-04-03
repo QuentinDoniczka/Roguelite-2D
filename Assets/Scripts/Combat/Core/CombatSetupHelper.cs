@@ -5,6 +5,24 @@ using UnityEngine;
 
 namespace RogueliteAutoBattler.Combat.Core
 {
+    public struct CharacterSetupConfig
+    {
+        public int MaxHp;
+        public int Atk;
+        public float AttackSpeed;
+        public float RegenHpPerSecond;
+        public float MoveSpeed;
+        public Transform HomeAnchor;
+        public Vector2 HomeOffset;
+        public float ColliderRadius;
+        public AppearanceData Appearance;
+        public string CallerName;
+        public Color? HealthBarFillColor;
+        public Color? HealthBarTrailColor;
+        public bool IsAlly;
+        public float CharacterScale;
+    }
+
     public struct CharacterComponents
     {
         public CombatStats Stats;
@@ -19,52 +37,39 @@ namespace RogueliteAutoBattler.Combat.Core
         public const string EnemiesHomeAnchorName = "EnemiesHomeAnchor";
         public const string CombatTriggerZoneName = "CombatTriggerZone";
 
-        public static CharacterComponents AssembleCharacter(
-            GameObject character,
-            int maxHp,
-            int atk,
-            float attackSpeed,
-            float regenHpPerSecond,
-            float moveSpeed,
-            Transform homeAnchor,
-            Vector2 homeOffset,
-            float colliderRadius,
-            AppearanceData appearance,
-            string callerName,
-            Color? healthBarFillColor = null,
-            Color? healthBarTrailColor = null,
-            bool isAlly = true,
-            float characterScale = 1f)
+        public static CharacterComponents AssembleCharacter(GameObject character, CharacterSetupConfig config)
         {
+            float characterScale = config.CharacterScale > 0f ? config.CharacterScale : 1f;
+
             var combatStats = character.AddComponent<CombatStats>();
-            combatStats.InitializeDirect(maxHp, atk, attackSpeed, regenHpPerSecond);
+            combatStats.InitializeDirect(config.MaxHp, config.Atk, config.AttackSpeed, config.RegenHpPerSecond);
 
             var healthBar = character.AddComponent<HealthBar>();
-            if (healthBarFillColor.HasValue || healthBarTrailColor.HasValue)
+            if (config.HealthBarFillColor.HasValue || config.HealthBarTrailColor.HasValue)
             {
                 healthBar.SetColors(
-                    healthBarFillColor ?? HealthBar.AllyFillColor,
-                    healthBarTrailColor ?? HealthBar.DefaultTrailColor);
+                    config.HealthBarFillColor ?? HealthBar.AllyFillColor,
+                    config.HealthBarTrailColor ?? HealthBar.DefaultTrailColor);
             }
 
             var mover = character.AddComponent<CharacterMover>();
-            mover.SetMoveSpeed(moveSpeed);
-            if (homeAnchor != null)
-                mover.HomeAnchor = homeAnchor;
-            mover.SetHomeOffset(homeOffset);
+            mover.SetMoveSpeed(config.MoveSpeed);
+            if (config.HomeAnchor != null)
+                mover.HomeAnchor = config.HomeAnchor;
+            mover.SetHomeOffset(config.HomeOffset);
 
             var col = character.GetComponent<CircleCollider2D>();
             if (col != null)
-                col.radius = colliderRadius / characterScale;
+                col.radius = config.ColliderRadius / characterScale;
 
             var controller = character.AddComponent<CombatController>();
-            WireAnimationRelay(character, controller, callerName);
+            WireAnimationRelay(character, controller, config.CallerName);
 
             var appearanceComp = character.AddComponent<CharacterAppearance>();
-            appearanceComp.ApplyAppearance(appearance);
+            appearanceComp.ApplyAppearance(config.Appearance);
 
             var characterTransform = character.transform;
-            bool ally = isAlly;
+            bool ally = config.IsAlly;
             combatStats.OnDamageTaken += (damage, _) =>
             {
                 if (characterTransform != null)

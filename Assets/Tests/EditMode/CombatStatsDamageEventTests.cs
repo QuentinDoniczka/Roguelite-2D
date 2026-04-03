@@ -1,11 +1,12 @@
 using System.Collections.Generic;
 using NUnit.Framework;
 using RogueliteAutoBattler.Combat.Core;
+using RogueliteAutoBattler.Tests.PlayMode;
 using UnityEngine;
 
 namespace RogueliteAutoBattler.Tests.EditMode
 {
-    public class CombatStatsDamageEventTests : EditModeTestBase
+    public class CombatStatsDamageEventTests : PlayModeTestBase
     {
         private CombatStats _stats;
 

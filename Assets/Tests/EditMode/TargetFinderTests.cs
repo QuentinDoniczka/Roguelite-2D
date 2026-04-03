@@ -1,11 +1,11 @@
 using NUnit.Framework;
 using RogueliteAutoBattler.Combat.Core;
-using RogueliteAutoBattler.Tests;
+using RogueliteAutoBattler.Tests.PlayMode;
 using UnityEngine;
 
 namespace RogueliteAutoBattler.Tests.EditMode
 {
-    public class TargetFinderTests : EditModeTestBase
+    public class TargetFinderTests : PlayModeTestBase
     {
         private GameObject _container;
 

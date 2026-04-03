@@ -25,7 +25,7 @@
 Doc detaille : `Assets/doc/premier-jet-roguelite.html`
 
 # Project Structure
-Generated: 2026-04-02 (updated feature/133-manual-special-steps)
+Generated: 2026-04-03 (updated feature/134-safety-net-tests)
 
 .github/
 └── workflows/
@@ -33,7 +33,7 @@ Generated: 2026-04-02 (updated feature/133-manual-special-steps)
     └── protect-main.yml
 
 Assets/
-├── Animations/  (23 files: .anim + .controller)
+├── Animations/  (24 files: .anim + .controller)
 ├── Audio/  (empty)
 ├── Data/
 │   ├── Adventurers/  (empty)
@@ -58,7 +58,7 @@ Assets/
 ├── Fonts/  (empty)
 ├── MedievalFantasyCharacters/  (empty)
 ├── Prefabs/
-│   ├── Characters/  (5 prefabs)
+│   ├── Characters/  (6 prefabs)
 │   ├── Effects/  (empty)
 │   └── UI/  (empty)
 ├── Scenes/
@@ -84,6 +84,9 @@ Assets/
 │   │   │   ├── ScreenAnchor.cs
 │   │   │   └── WorldConveyor.cs
 │   │   ├── Levels/
+│   │   │   ├── AllyTargetManager.cs
+│   │   │   ├── DefeatHandler.cs
+│   │   │   ├── EnemySpawner.cs
 │   │   │   └── LevelManager.cs
 │   │   └── Visuals/
 │   │       ├── CharacterAppearance.cs
@@ -97,7 +100,9 @@ Assets/
 │   │       ├── HealthBar.cs
 │   │       └── VisualEquipmentTestLoop.cs
 │   ├── Common/
-│   │   └── SortingLayers.cs
+│   │   ├── PhysicsLayers.cs
+│   │   ├── SortingLayers.cs
+│   │   └── StaticPool.cs
 │   ├── Core/
 │   │   ├── CanvasFactory.cs
 │   │   └── GameBootstrap.cs
@@ -118,7 +123,7 @@ Assets/
 │   │       ├── SettingsWindow.cs
 │   │       └── TeamBuilderTab.cs
 │   ├── Items/  (empty)
-│   ├── ScriptableObjects/
+│   ├── Data/
 │   │   ├── DamageNumberConfig.cs
 │   │   ├── LevelDataTypes.cs
 │   │   ├── LevelDatabase.cs
@@ -158,7 +163,7 @@ Assets/
 │   ├── UniversalRenderPipelineGlobalSettings.asset
 │   └── UniversalRP.asset
 ├── Sprites/
-│   ├── Characters/  (155 files)
+│   ├── Characters/  (156 files)
 │   ├── Effects/  (25 files)
 │   ├── Environment/
 │   │   ├── backgroundtest.png
@@ -166,12 +171,12 @@ Assets/
 │   │   ├── grid_ground_blue.png
 │   │   ├── map.png
 │   │   └── placeholder_white.png
-│   ├── Items/  (53 files)
+│   ├── Items/  (54 files)
 │   └── UI/  (empty)
 ├── Tests/
 │   ├── EditMode/
 │   │   ├── Tests.EditMode.asmdef
-│   │   ├── EditModeTestBase.cs
+│   │   ├── AttackSlotRegistryTests.cs
 │   │   ├── CombatStatsDamageEventTests.cs
 │   │   ├── CombatStatsTests.cs
 │   │   ├── FormationLayoutTests.cs
@@ -183,6 +188,7 @@ Assets/
 │       ├── TestUtils/
 │       │   ├── PlayModeTestBase.cs
 │       │   └── TestCharacterFactory.cs
+│       ├── AnimationEventRelayTests.cs
 │       ├── BattleIndicatorBadgeTests.cs
 │       ├── CanvasFactoryTests.cs
 │       ├── CharacterAppearanceTests.cs
@@ -190,6 +196,7 @@ Assets/
 │       ├── CoinFlyServiceTests.cs
 │       ├── CoinFlyTests.cs
 │       ├── CombatControllerTests.cs
+│       ├── CombatSetupHelperTests.cs
 │       ├── CombatSpawnManagerTests.cs
 │       ├── CombatStatsRegenTests.cs
 │       ├── DamageNumberServiceTests.cs
@@ -199,15 +206,17 @@ Assets/
 │       ├── GoldHudBadgeTests.cs
 │       ├── GoldWalletTests.cs
 │       ├── HealthBarTrailTests.cs
-│       ├── LevelManagerTotalLevelsTests.cs
-│       ├── StepProgressBarTests.cs
 │       ├── LevelManagerDefeatResetTests.cs
 │       ├── LevelManagerDefeatTests.cs
 │       ├── LevelManagerEventTests.cs
 │       ├── LevelManagerStepTransitionTests.cs
+│       ├── LevelManagerTotalLevelsTests.cs
+│       ├── NavigationManagerTests.cs
+│       ├── ScreenStackTests.cs
+│       ├── StepProgressBarTests.cs
+│       ├── UIScreenTests.cs
 │       ├── VisualEquipmentTestLoopTests.cs
 │       └── WorldConveyorTests.cs
-├── _Recovery/  (4 files)
 └── TextMesh Pro/  (173 files — TMP package: fonts, shaders, examples)
 
 ProjectSettings/  (Unity defaults)
