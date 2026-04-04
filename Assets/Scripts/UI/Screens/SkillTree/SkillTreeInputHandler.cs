@@ -1,12 +1,13 @@
 using System;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.EnhancedTouch;
 using Touch = UnityEngine.InputSystem.EnhancedTouch.Touch;
 
 namespace RogueliteAutoBattler.UI.Screens.SkillTree
 {
-    public class SkillTreeInputHandler : MonoBehaviour, IDragHandler, IScrollHandler, IPointerClickHandler
+    public class SkillTreeInputHandler : MonoBehaviour, IDragHandler, IPointerClickHandler
     {
         [SerializeField] private RectTransform _content;
 
@@ -15,7 +16,7 @@ namespace RogueliteAutoBattler.UI.Screens.SkillTree
         [SerializeField] private float _maxScale = 3.0f;
 
         [Header("Zoom Sensitivity")]
-        [SerializeField] private float _scrollZoomSensitivity = 0.1f;
+        [SerializeField] private float _scrollZoomSensitivity = 0.001f;
 
         private bool _isPinching;
         private float _lastPinchDistance;
@@ -34,6 +35,23 @@ namespace RogueliteAutoBattler.UI.Screens.SkillTree
         }
 
         private void Update()
+        {
+            HandleMouseScroll();
+            HandlePinchZoom();
+        }
+
+        private void HandleMouseScroll()
+        {
+            if (Mouse.current == null) return;
+
+            float scrollDelta = Mouse.current.scroll.ReadValue().y;
+            if (Mathf.Abs(scrollDelta) < 0.01f) return;
+
+            float scaleFactor = 1f + scrollDelta * _scrollZoomSensitivity;
+            ApplyZoom(Mouse.current.position.ReadValue(), scaleFactor);
+        }
+
+        private void HandlePinchZoom()
         {
             var activeTouches = Touch.activeTouches;
 
@@ -68,18 +86,12 @@ namespace RogueliteAutoBattler.UI.Screens.SkillTree
             _content.anchoredPosition += eventData.delta;
         }
 
-        public void OnScroll(PointerEventData eventData)
-        {
-            float scaleFactor = 1f + eventData.scrollDelta.y * _scrollZoomSensitivity;
-            ApplyZoom(eventData.position, scaleFactor);
-        }
-
         public void OnPointerClick(PointerEventData eventData)
         {
             OnVoidClicked?.Invoke();
         }
 
-        private void ApplyZoom(Vector2 screenPivot, float scaleFactor)
+        internal void ApplyZoom(Vector2 screenPivot, float scaleFactor)
         {
             Canvas canvas = GetCachedCanvas();
             if (canvas == null) return;
