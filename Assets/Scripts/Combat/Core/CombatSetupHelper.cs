@@ -71,7 +71,7 @@ namespace RogueliteAutoBattler.Combat.Core
             var appearanceComp = character.AddComponent<CharacterAppearance>();
             appearanceComp.ApplyAppearance(config.Appearance);
 
-            character.AddComponent<SelectionOutline>().Initialize(null);
+            character.AddComponent<SelectionOutline>().Initialize();
 
             AddSelectionHitbox(character, config.ColliderRadius * SelectionRadiusMultiplier / characterScale);
 

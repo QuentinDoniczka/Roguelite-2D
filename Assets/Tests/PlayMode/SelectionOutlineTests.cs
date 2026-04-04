@@ -8,14 +8,9 @@ namespace RogueliteAutoBattler.Tests.PlayMode
 {
     public class SelectionOutlineTests : PlayModeTestBase
     {
-        private static readonly int OutlineEnabledId = Shader.PropertyToID("_OutlineEnabled");
-        private static readonly int OutlineColorId = Shader.PropertyToID("_OutlineColor");
-        private static readonly int OutlineWidthId = Shader.PropertyToID("_OutlineWidth");
-
         private GameObject _character;
         private SelectionOutline _outline;
         private SpriteRenderer _renderer;
-        private Material _testMaterial;
 
         [SetUp]
         public void SetUp()
@@ -27,16 +22,14 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             visual.transform.SetParent(_character.transform, false);
             _renderer = visual.AddComponent<SpriteRenderer>();
 
-            _testMaterial = new Material(Shader.Find("Sprites/Default"));
             _outline = _character.AddComponent<SelectionOutline>();
-            _outline.Initialize(_testMaterial);
+            _outline.Initialize();
         }
 
         [UnityTest]
-        public IEnumerator Initialize_CachesAllRenderers_SetOutlineDoesNotThrow()
+        public IEnumerator Initialize_CachesRenderers_SetOutlineDoesNotThrow()
         {
             yield return null;
-
             Assert.DoesNotThrow(() => _outline.SetOutline(true, Color.green));
             Assert.IsTrue(_outline.IsOutlined);
         }
@@ -45,9 +38,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
         public IEnumerator SetOutline_Enabled_SetsIsOutlinedTrue()
         {
             yield return null;
-
             _outline.SetOutline(true, Color.green);
-
             Assert.IsTrue(_outline.IsOutlined);
         }
 
@@ -55,76 +46,99 @@ namespace RogueliteAutoBattler.Tests.PlayMode
         public IEnumerator ClearOutline_AfterEnable_SetsIsOutlinedFalse()
         {
             yield return null;
-
             _outline.SetOutline(true, Color.green);
-            Assert.IsTrue(_outline.IsOutlined);
+            _outline.ClearOutline();
+            Assert.IsFalse(_outline.IsOutlined);
+        }
 
+        [UnityTest]
+        public IEnumerator SetOutline_CreatesSilhouetteContainer()
+        {
+            yield return null;
+            _outline.SetOutline(true, Color.green);
+
+            var container = _character.transform.Find("_OutlineSilhouettes");
+            Assert.IsNotNull(container, "Silhouette container should be created");
+            Assert.IsTrue(container.gameObject.activeSelf);
+        }
+
+        [UnityTest]
+        public IEnumerator SetOutline_CreatesSilhouettePerRenderer()
+        {
+            yield return null;
+            _outline.SetOutline(true, Color.green);
+
+            var container = _character.transform.Find("_OutlineSilhouettes");
+            Assert.AreEqual(1, container.childCount, "Should have one silhouette per renderer");
+
+            var silRenderer = container.GetChild(0).GetComponent<SpriteRenderer>();
+            Assert.IsNotNull(silRenderer);
+        }
+
+        [UnityTest]
+        public IEnumerator SetOutline_SilhouetteHasCorrectColor()
+        {
+            yield return null;
+            Color outlineColor = Color.green;
+            _outline.SetOutline(true, outlineColor);
+
+            var container = _character.transform.Find("_OutlineSilhouettes");
+            var silRenderer = container.GetChild(0).GetComponent<SpriteRenderer>();
+            Assert.AreEqual(outlineColor, silRenderer.color);
+        }
+
+        [UnityTest]
+        public IEnumerator ClearOutline_DisablesSilhouetteContainer()
+        {
+            yield return null;
+            _outline.SetOutline(true, Color.green);
             _outline.ClearOutline();
 
-            Assert.IsFalse(_outline.IsOutlined);
+            var container = _character.transform.Find("_OutlineSilhouettes");
+            Assert.IsNotNull(container);
+            Assert.IsFalse(container.gameObject.activeSelf);
         }
 
         [UnityTest]
-        public IEnumerator SetOutline_SetsPropertyBlockOnRenderers()
+        public IEnumerator SetOutline_SilhouetteSyncsSprite()
         {
+            var sprite = Sprite.Create(
+                Texture2D.whiteTexture,
+                new Rect(0, 0, 4, 4),
+                new Vector2(0.5f, 0.5f));
+            _renderer.sprite = sprite;
+
             yield return null;
-
-            Color expectedColor = Color.green;
-            float expectedWidth = 1.5f;
-
-            _outline.SetOutline(true, expectedColor, expectedWidth);
-
-            var mpb = new MaterialPropertyBlock();
-            _renderer.GetPropertyBlock(mpb);
-
-            float outlineEnabled = mpb.GetFloat(OutlineEnabledId);
-            Color outlineColor = mpb.GetColor(OutlineColorId);
-            float outlineWidth = mpb.GetFloat(OutlineWidthId);
-
-            Assert.AreEqual(1f, outlineEnabled, 0.001f);
-            Assert.AreEqual(expectedColor, outlineColor);
-            Assert.AreEqual(expectedWidth, outlineWidth, 0.001f);
-        }
-
-        [UnityTest]
-        public IEnumerator SetOutline_Disabled_SetsPropertyBlockWithZeroEnabled()
-        {
-            yield return null;
-
             _outline.SetOutline(true, Color.green);
-            _outline.SetOutline(false, Color.clear);
+            yield return null;
 
-            var mpb = new MaterialPropertyBlock();
-            _renderer.GetPropertyBlock(mpb);
-
-            float outlineEnabled = mpb.GetFloat(OutlineEnabledId);
-
-            Assert.AreEqual(0f, outlineEnabled, 0.001f);
-            Assert.IsFalse(_outline.IsOutlined);
+            var container = _character.transform.Find("_OutlineSilhouettes");
+            var silRenderer = container.GetChild(0).GetComponent<SpriteRenderer>();
+            Assert.AreEqual(sprite, silRenderer.sprite, "Silhouette should sync original's sprite");
         }
 
         [UnityTest]
-        public IEnumerator Initialize_WithMultipleRenderers_AllReceivePropertyBlock()
+        public IEnumerator MultipleRenderers_AllGetSilhouettes()
         {
             var secondVisual = new GameObject("Visual2");
             secondVisual.transform.SetParent(_character.transform, false);
-            var secondRenderer = secondVisual.AddComponent<SpriteRenderer>();
+            secondVisual.AddComponent<SpriteRenderer>();
 
-            var multiOutline = _character.AddComponent<SelectionOutline>();
             Object.DestroyImmediate(_outline);
-            multiOutline.Initialize(new Material(Shader.Find("Sprites/Default")));
+            _outline = _character.AddComponent<SelectionOutline>();
+            _outline.Initialize();
 
             yield return null;
+            _outline.SetOutline(true, Color.red);
 
-            multiOutline.SetOutline(true, Color.red, 2f);
+            var container = _character.transform.Find("_OutlineSilhouettes");
+            Assert.AreEqual(2, container.childCount, "Should have two silhouettes");
 
-            var mpb1 = new MaterialPropertyBlock();
-            _renderer.GetPropertyBlock(mpb1);
-            Assert.AreEqual(1f, mpb1.GetFloat(OutlineEnabledId), 0.001f);
-
-            var mpb2 = new MaterialPropertyBlock();
-            secondRenderer.GetPropertyBlock(mpb2);
-            Assert.AreEqual(1f, mpb2.GetFloat(OutlineEnabledId), 0.001f);
+            for (int i = 0; i < container.childCount; i++)
+            {
+                var sr = container.GetChild(i).GetComponent<SpriteRenderer>();
+                Assert.AreEqual(Color.red, sr.color);
+            }
         }
     }
 }

@@ -245,8 +245,7 @@ namespace RogueliteAutoBattler.Tests
                 go.layer = layer;
 
             var outline = go.AddComponent<SelectionOutline>();
-            var testMaterial = new Material(Shader.Find("Sprites/Default"));
-            outline.Initialize(testMaterial);
+            outline.Initialize();
 
             CombatSetupHelper.AddSelectionHitbox(go, 0.5f);
 
