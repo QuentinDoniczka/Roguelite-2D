@@ -33,10 +33,14 @@ namespace RogueliteAutoBattler.Core
         {
             Physics2D.IgnoreLayerCollision(PhysicsLayers.AllyLayer, PhysicsLayers.EnemyLayer, true);
 
-            Physics2D.IgnoreLayerCollision(PhysicsLayers.SelectionLayer, PhysicsLayers.SelectionLayer, true);
-            Physics2D.IgnoreLayerCollision(PhysicsLayers.SelectionLayer, PhysicsLayers.AllyLayer, true);
-            Physics2D.IgnoreLayerCollision(PhysicsLayers.SelectionLayer, PhysicsLayers.EnemyLayer, true);
-            Physics2D.IgnoreLayerCollision(PhysicsLayers.SelectionLayer, 0, true);
+            int selectionLayer = PhysicsLayers.SelectionLayer;
+            if (selectionLayer >= 0)
+            {
+                Physics2D.IgnoreLayerCollision(selectionLayer, selectionLayer, true);
+                Physics2D.IgnoreLayerCollision(selectionLayer, PhysicsLayers.AllyLayer, true);
+                Physics2D.IgnoreLayerCollision(selectionLayer, PhysicsLayers.EnemyLayer, true);
+                Physics2D.IgnoreLayerCollision(selectionLayer, 0, true);
+            }
         }
 
         private static void ValidateRefs()
