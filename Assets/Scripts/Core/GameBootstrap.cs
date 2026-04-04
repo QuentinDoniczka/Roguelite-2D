@@ -1,3 +1,4 @@
+using RogueliteAutoBattler.Combat.Core;
 using RogueliteAutoBattler.Common;
 using RogueliteAutoBattler.UI.Core;
 using UnityEngine;
@@ -24,6 +25,9 @@ namespace RogueliteAutoBattler.Core
             CombatWorld = combatWorldGo != null ? combatWorldGo.transform : null;
 
             ConfigurePhysicsLayers();
+
+            var selectionGo = new GameObject("UnitSelectionManager");
+            selectionGo.AddComponent<UnitSelectionManager>();
 
             if (Canvas != null)
                 ValidateRefs();
