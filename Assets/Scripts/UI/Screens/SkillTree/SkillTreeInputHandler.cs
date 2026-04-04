@@ -15,8 +15,8 @@ namespace RogueliteAutoBattler.UI.Screens.SkillTree
         [SerializeField] private float _minScale = 0.3f;
         [SerializeField] private float _maxScale = 3.0f;
 
-        [Header("Zoom Sensitivity")]
-        [SerializeField] private float _scrollZoomSensitivity = 0.001f;
+        private const float ScrollNormalization = 120f;
+        private const float ZoomPerNotch = 0.15f;
 
         private bool _isPinching;
         private float _lastPinchDistance;
@@ -44,10 +44,11 @@ namespace RogueliteAutoBattler.UI.Screens.SkillTree
         {
             if (Mouse.current == null) return;
 
-            float scrollDelta = Mouse.current.scroll.ReadValue().y;
-            if (Mathf.Abs(scrollDelta) < 0.01f) return;
+            float rawScroll = Mouse.current.scroll.ReadValue().y;
+            if (Mathf.Abs(rawScroll) < 0.01f) return;
 
-            float scaleFactor = 1f + scrollDelta * _scrollZoomSensitivity;
+            float normalizedDelta = rawScroll / ScrollNormalization;
+            float scaleFactor = 1f + normalizedDelta * ZoomPerNotch;
             ApplyZoom(Mouse.current.position.ReadValue(), scaleFactor);
         }
 
