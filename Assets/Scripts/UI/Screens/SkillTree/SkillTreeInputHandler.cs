@@ -1,12 +1,13 @@
 using System;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.EnhancedTouch;
 using Touch = UnityEngine.InputSystem.EnhancedTouch.Touch;
 
 namespace RogueliteAutoBattler.UI.Screens.SkillTree
 {
-    public class SkillTreeInputHandler : MonoBehaviour, IDragHandler, IScrollHandler, IPointerClickHandler
+    public class SkillTreeInputHandler : MonoBehaviour, IDragHandler, IPointerClickHandler
     {
         [SerializeField] private RectTransform _content;
 
@@ -20,22 +21,56 @@ namespace RogueliteAutoBattler.UI.Screens.SkillTree
         private bool _isPinching;
         private float _lastPinchDistance;
         private Canvas _cachedCanvas;
+        private CanvasGroup _cachedCanvasGroup;
+        private InputAction _scrollAction;
 
         public event Action OnVoidClicked;
+
+        private void Awake()
+        {
+            _scrollAction = new InputAction("SkillTreeScroll", InputActionType.PassThrough, "<Mouse>/scroll");
+        }
 
         private void OnEnable()
         {
             EnhancedTouchSupport.Enable();
+            _scrollAction.Enable();
+            _scrollAction.performed += OnScrollPerformed;
         }
 
         private void OnDisable()
         {
+            _scrollAction.performed -= OnScrollPerformed;
+            _scrollAction.Disable();
             EnhancedTouchSupport.Disable();
+        }
+
+        private void OnDestroy()
+        {
+            _scrollAction?.Dispose();
         }
 
         private void Update()
         {
             HandlePinchZoom();
+        }
+
+        private void OnScrollPerformed(InputAction.CallbackContext ctx)
+        {
+            if (!IsScreenVisible()) return;
+            if (Mouse.current == null) return;
+
+            Vector2 scrollValue = ctx.ReadValue<Vector2>();
+            float normalizedDelta = scrollValue.y / ScrollNormalization;
+            float scaleFactor = 1f + normalizedDelta * ZoomPerNotch;
+            ApplyZoom(Mouse.current.position.ReadValue(), scaleFactor);
+        }
+
+        private bool IsScreenVisible()
+        {
+            if (_cachedCanvasGroup == null)
+                _cachedCanvasGroup = GetComponentInParent<CanvasGroup>();
+            return _cachedCanvasGroup != null && _cachedCanvasGroup.alpha > 0f;
         }
 
         private void HandlePinchZoom()
@@ -71,13 +106,6 @@ namespace RogueliteAutoBattler.UI.Screens.SkillTree
             if (_isPinching) return;
 
             _content.anchoredPosition += eventData.delta;
-        }
-
-        public void OnScroll(PointerEventData eventData)
-        {
-            float normalizedDelta = eventData.scrollDelta.y / ScrollNormalization;
-            float scaleFactor = 1f + normalizedDelta * ZoomPerNotch;
-            ApplyZoom(eventData.position, scaleFactor);
         }
 
         public void OnPointerClick(PointerEventData eventData)

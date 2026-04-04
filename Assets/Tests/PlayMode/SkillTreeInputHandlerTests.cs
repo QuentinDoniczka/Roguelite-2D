@@ -38,36 +38,28 @@ namespace RogueliteAutoBattler.Tests.PlayMode
         }
 
         [UnityTest]
-        public IEnumerator OnScroll_ScalesContent()
+        public IEnumerator ApplyZoom_ScalesContent()
         {
             yield return null;
 
             float initialScale = _content.localScale.x;
+            Vector2 screenCenter = new Vector2(Screen.width * 0.5f, Screen.height * 0.5f);
 
-            var eventData = new PointerEventData(EventSystem.current)
-            {
-                scrollDelta = new Vector2(0f, 120f),
-                position = new Vector2(Screen.width * 0.5f, Screen.height * 0.5f)
-            };
-            ExecuteEvents.Execute<IScrollHandler>(_handler.gameObject, eventData, ExecuteEvents.scrollHandler);
+            _handler.ApplyZoom(screenCenter, 1.2f);
             yield return null;
 
             Assert.Greater(_content.localScale.x, initialScale);
         }
 
         [UnityTest]
-        public IEnumerator OnScroll_ClampsMinScale()
+        public IEnumerator ApplyZoom_ClampsMinScale()
         {
             yield return null;
 
+            Vector2 screenCenter = new Vector2(Screen.width * 0.5f, Screen.height * 0.5f);
             for (int i = 0; i < 50; i++)
             {
-                var eventData = new PointerEventData(EventSystem.current)
-                {
-                    scrollDelta = new Vector2(0f, -600f),
-                    position = new Vector2(Screen.width * 0.5f, Screen.height * 0.5f)
-                };
-                ExecuteEvents.Execute<IScrollHandler>(_handler.gameObject, eventData, ExecuteEvents.scrollHandler);
+                _handler.ApplyZoom(screenCenter, 0.5f);
             }
 
             yield return null;
@@ -76,18 +68,14 @@ namespace RogueliteAutoBattler.Tests.PlayMode
         }
 
         [UnityTest]
-        public IEnumerator OnScroll_ClampsMaxScale()
+        public IEnumerator ApplyZoom_ClampsMaxScale()
         {
             yield return null;
 
+            Vector2 screenCenter = new Vector2(Screen.width * 0.5f, Screen.height * 0.5f);
             for (int i = 0; i < 50; i++)
             {
-                var eventData = new PointerEventData(EventSystem.current)
-                {
-                    scrollDelta = new Vector2(0f, 600f),
-                    position = new Vector2(Screen.width * 0.5f, Screen.height * 0.5f)
-                };
-                ExecuteEvents.Execute<IScrollHandler>(_handler.gameObject, eventData, ExecuteEvents.scrollHandler);
+                _handler.ApplyZoom(screenCenter, 2.0f);
             }
 
             yield return null;
