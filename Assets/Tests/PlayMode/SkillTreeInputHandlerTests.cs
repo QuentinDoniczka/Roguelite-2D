@@ -43,9 +43,13 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             yield return null;
 
             float initialScale = _content.localScale.x;
-            Vector2 screenCenter = new Vector2(Screen.width * 0.5f, Screen.height * 0.5f);
 
-            _handler.ApplyZoom(screenCenter, 1.2f);
+            var eventData = new PointerEventData(EventSystem.current)
+            {
+                scrollDelta = new Vector2(0f, 120f),
+                position = new Vector2(Screen.width * 0.5f, Screen.height * 0.5f)
+            };
+            ExecuteEvents.Execute<IScrollHandler>(_handler.gameObject, eventData, ExecuteEvents.scrollHandler);
             yield return null;
 
             Assert.Greater(_content.localScale.x, initialScale);
@@ -56,10 +60,14 @@ namespace RogueliteAutoBattler.Tests.PlayMode
         {
             yield return null;
 
-            Vector2 screenCenter = new Vector2(Screen.width * 0.5f, Screen.height * 0.5f);
             for (int i = 0; i < 50; i++)
             {
-                _handler.ApplyZoom(screenCenter, 0.5f);
+                var eventData = new PointerEventData(EventSystem.current)
+                {
+                    scrollDelta = new Vector2(0f, -600f),
+                    position = new Vector2(Screen.width * 0.5f, Screen.height * 0.5f)
+                };
+                ExecuteEvents.Execute<IScrollHandler>(_handler.gameObject, eventData, ExecuteEvents.scrollHandler);
             }
 
             yield return null;
@@ -72,10 +80,14 @@ namespace RogueliteAutoBattler.Tests.PlayMode
         {
             yield return null;
 
-            Vector2 screenCenter = new Vector2(Screen.width * 0.5f, Screen.height * 0.5f);
             for (int i = 0; i < 50; i++)
             {
-                _handler.ApplyZoom(screenCenter, 2.0f);
+                var eventData = new PointerEventData(EventSystem.current)
+                {
+                    scrollDelta = new Vector2(0f, 600f),
+                    position = new Vector2(Screen.width * 0.5f, Screen.height * 0.5f)
+                };
+                ExecuteEvents.Execute<IScrollHandler>(_handler.gameObject, eventData, ExecuteEvents.scrollHandler);
             }
 
             yield return null;

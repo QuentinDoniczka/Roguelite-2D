@@ -1,13 +1,12 @@
 using System;
 using UnityEngine;
 using UnityEngine.EventSystems;
-using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.EnhancedTouch;
 using Touch = UnityEngine.InputSystem.EnhancedTouch.Touch;
 
 namespace RogueliteAutoBattler.UI.Screens.SkillTree
 {
-    public class SkillTreeInputHandler : MonoBehaviour, IDragHandler, IPointerClickHandler
+    public class SkillTreeInputHandler : MonoBehaviour, IDragHandler, IScrollHandler, IPointerClickHandler
     {
         [SerializeField] private RectTransform _content;
 
@@ -36,20 +35,7 @@ namespace RogueliteAutoBattler.UI.Screens.SkillTree
 
         private void Update()
         {
-            HandleMouseScroll();
             HandlePinchZoom();
-        }
-
-        private void HandleMouseScroll()
-        {
-            if (Mouse.current == null) return;
-
-            float rawScroll = Mouse.current.scroll.ReadValue().y;
-            if (Mathf.Abs(rawScroll) < 0.01f) return;
-
-            float normalizedDelta = rawScroll / ScrollNormalization;
-            float scaleFactor = 1f + normalizedDelta * ZoomPerNotch;
-            ApplyZoom(Mouse.current.position.ReadValue(), scaleFactor);
         }
 
         private void HandlePinchZoom()
@@ -85,6 +71,13 @@ namespace RogueliteAutoBattler.UI.Screens.SkillTree
             if (_isPinching) return;
 
             _content.anchoredPosition += eventData.delta;
+        }
+
+        public void OnScroll(PointerEventData eventData)
+        {
+            float normalizedDelta = eventData.scrollDelta.y / ScrollNormalization;
+            float scaleFactor = 1f + normalizedDelta * ZoomPerNotch;
+            ApplyZoom(eventData.position, scaleFactor);
         }
 
         public void OnPointerClick(PointerEventData eventData)
