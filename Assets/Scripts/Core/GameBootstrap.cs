@@ -32,6 +32,11 @@ namespace RogueliteAutoBattler.Core
         private static void ConfigurePhysicsLayers()
         {
             Physics2D.IgnoreLayerCollision(PhysicsLayers.AllyLayer, PhysicsLayers.EnemyLayer, true);
+
+            Physics2D.IgnoreLayerCollision(PhysicsLayers.SelectionLayer, PhysicsLayers.SelectionLayer, true);
+            Physics2D.IgnoreLayerCollision(PhysicsLayers.SelectionLayer, PhysicsLayers.AllyLayer, true);
+            Physics2D.IgnoreLayerCollision(PhysicsLayers.SelectionLayer, PhysicsLayers.EnemyLayer, true);
+            Physics2D.IgnoreLayerCollision(PhysicsLayers.SelectionLayer, 0, true);
         }
 
         private static void ValidateRefs()
