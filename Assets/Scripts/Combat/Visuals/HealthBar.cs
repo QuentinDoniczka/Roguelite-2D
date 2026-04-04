@@ -55,13 +55,19 @@ namespace RogueliteAutoBattler.Combat.Visuals
             EnsureUnlitMaterial();
             CreateBar();
             if (_hasStats)
+            {
                 _stats.OnDamageTaken += HandleDamageTaken;
+                _stats.OnHealed += HandleHealed;
+            }
         }
 
         private void OnDestroy()
         {
             if (_hasStats)
+            {
                 _stats.OnDamageTaken -= HandleDamageTaken;
+                _stats.OnHealed -= HandleHealed;
+            }
         }
 
         public void SetColors(Color fillColor, Color trailColor)
@@ -123,6 +129,11 @@ namespace RogueliteAutoBattler.Combat.Visuals
             _fillRenderer.sortingOrder = SortingOrderFill;
             _fillRenderer.material = _unlitMaterial;
             _fillTransform = fillGo.transform;
+        }
+
+        private void HandleHealed(int heal, int currentHp)
+        {
+            _fillDirty = true;
         }
 
         private void HandleDamageTaken(int damage, int currentHp)
