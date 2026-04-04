@@ -12,13 +12,17 @@ namespace RogueliteAutoBattler.Combat.Visuals
 
         private static Material _sharedMaterial;
 
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        private static void ResetOnDomainReload()
+        {
+            _sharedMaterial = null;
+        }
+
         private SpriteRenderer[] _renderers;
         private MaterialPropertyBlock _mpb;
         private bool _isOutlined;
 
         public bool IsOutlined => _isOutlined;
-
-        public static void SetSharedMaterial(Material mat) => _sharedMaterial = mat;
 
         public void Initialize(Material outlineMaterial)
         {

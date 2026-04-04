@@ -25,7 +25,7 @@
 Doc detaille : `Assets/doc/premier-jet-roguelite.html`
 
 # Project Structure
-Generated: 2026-04-03 (updated feature/134-safety-net-tests)
+Generated: 2026-04-04 (updated feature/145-unit-selection-outline)
 
 .github/
 └── workflows/
@@ -56,9 +56,11 @@ Assets/
 │   ├── plan-level-scroll-transition.md
 │   └── premier-jet-roguelite.html
 ├── Fonts/  (empty)
+├── Materials/
+│   └── SpriteOutline2D.mat
 ├── MedievalFantasyCharacters/  (empty)
 ├── Prefabs/
-│   ├── Characters/  (6 prefabs)
+│   ├── Characters/  (5 prefabs)
 │   ├── Effects/  (empty)
 │   └── UI/  (empty)
 ├── Scenes/
@@ -78,7 +80,8 @@ Assets/
 │   │   │   ├── CombatSpawnManager.cs
 │   │   │   ├── CombatStats.cs
 │   │   │   ├── FormationLayout.cs
-│   │   │   └── TargetFinder.cs
+│   │   │   ├── TargetFinder.cs
+│   │   │   └── UnitSelectionManager.cs
 │   │   ├── Environment/
 │   │   │   ├── GroundFitter.cs
 │   │   │   ├── ScreenAnchor.cs
@@ -98,6 +101,7 @@ Assets/
 │   │       ├── DamageNumberService.cs
 │   │       ├── DamageNumberSettingsPersistence.cs
 │   │       ├── HealthBar.cs
+│   │       ├── SelectionOutline.cs
 │   │       └── VisualEquipmentTestLoop.cs
 │   ├── Common/
 │   │   ├── PhysicsLayers.cs
@@ -162,6 +166,8 @@ Assets/
 │   │   └── URP2DSceneTemplate.unity
 │   ├── UniversalRenderPipelineGlobalSettings.asset
 │   └── UniversalRP.asset
+├── Shaders/
+│   └── SpriteOutline2D.shader
 ├── Sprites/
 │   ├── Characters/  (156 files)
 │   ├── Effects/  (25 files)
@@ -213,8 +219,10 @@ Assets/
 │       ├── LevelManagerTotalLevelsTests.cs
 │       ├── NavigationManagerTests.cs
 │       ├── ScreenStackTests.cs
+│       ├── SelectionOutlineTests.cs
 │       ├── StepProgressBarTests.cs
 │       ├── UIScreenTests.cs
+│       ├── UnitSelectionManagerTests.cs
 │       ├── VisualEquipmentTestLoopTests.cs
 │       └── WorldConveyorTests.cs
 └── TextMesh Pro/  (173 files — TMP package: fonts, shaders, examples)

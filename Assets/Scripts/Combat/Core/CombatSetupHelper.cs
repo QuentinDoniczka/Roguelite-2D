@@ -28,7 +28,6 @@ namespace RogueliteAutoBattler.Combat.Core
     {
         public CombatStats Stats;
         public CombatController Controller;
-        public SelectionOutline Outline;
     }
 
     public static class CombatSetupHelper
@@ -72,8 +71,7 @@ namespace RogueliteAutoBattler.Combat.Core
             var appearanceComp = character.AddComponent<CharacterAppearance>();
             appearanceComp.ApplyAppearance(config.Appearance);
 
-            var outline = character.AddComponent<SelectionOutline>();
-            outline.Initialize(null);
+            character.AddComponent<SelectionOutline>().Initialize(null);
 
             AddSelectionHitbox(character, config.ColliderRadius * SelectionRadiusMultiplier / characterScale);
 
@@ -88,8 +86,7 @@ namespace RogueliteAutoBattler.Combat.Core
             return new CharacterComponents
             {
                 Stats = combatStats,
-                Controller = controller,
-                Outline = outline
+                Controller = controller
             };
         }
 

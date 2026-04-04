@@ -248,16 +248,7 @@ namespace RogueliteAutoBattler.Tests
             var testMaterial = new Material(Shader.Find("Sprites/Default"));
             outline.Initialize(testMaterial);
 
-            int selectionLayer = PhysicsLayers.SelectionLayer;
-            if (selectionLayer >= 0)
-            {
-                var hitbox = new GameObject("SelectionHitbox");
-                hitbox.transform.SetParent(go.transform, false);
-                hitbox.layer = selectionLayer;
-                var col = hitbox.AddComponent<CircleCollider2D>();
-                col.isTrigger = true;
-                col.radius = 0.5f;
-            }
+            CombatSetupHelper.AddSelectionHitbox(go, 0.5f);
 
             return go;
         }
