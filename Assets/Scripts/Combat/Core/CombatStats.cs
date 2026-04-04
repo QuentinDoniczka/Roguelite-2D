@@ -28,6 +28,7 @@ namespace RogueliteAutoBattler.Combat.Core
         }
 
         public event System.Action<int, int> OnDamageTaken;
+        public event System.Action<int, int> OnHealed;
         public event System.Action OnDied;
 
         public void TakeDamage(int damage)
@@ -59,6 +60,7 @@ namespace RogueliteAutoBattler.Combat.Core
                 {
                     _regenAccumulator -= heal;
                     _currentHp = Mathf.Min(_maxHp, _currentHp + heal);
+                    OnHealed?.Invoke(heal, _currentHp);
                 }
             }
         }

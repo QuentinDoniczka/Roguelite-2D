@@ -1,5 +1,5 @@
 # Project Structure
-Generated: 2026-04-02 (updated feature/129-level-designer-auto-builder)
+Generated: 2026-04-04 (updated feature/146-healthbar-regen-visual)
 
 .github/
 └── workflows/
@@ -58,6 +58,9 @@ Assets/
 │   │   │   ├── ScreenAnchor.cs
 │   │   │   └── WorldConveyor.cs
 │   │   ├── Levels/
+│   │   │   ├── AllyTargetManager.cs
+│   │   │   ├── DefeatHandler.cs
+│   │   │   ├── EnemySpawner.cs
 │   │   │   └── LevelManager.cs
 │   │   └── Visuals/
 │   │       ├── CharacterAppearance.cs
@@ -71,10 +74,17 @@ Assets/
 │   │       ├── HealthBar.cs
 │   │       └── VisualEquipmentTestLoop.cs
 │   ├── Common/
-│   │   └── SortingLayers.cs
+│   │   ├── PhysicsLayers.cs
+│   │   ├── SortingLayers.cs
+│   │   └── StaticPool.cs
 │   ├── Core/
 │   │   ├── CanvasFactory.cs
 │   │   └── GameBootstrap.cs
+│   ├── Data/
+│   │   ├── DamageNumberConfig.cs
+│   │   ├── LevelDataTypes.cs
+│   │   ├── LevelDatabase.cs
+│   │   └── TeamDatabase.cs
 │   ├── Economy/
 │   │   ├── GoldFormatter.cs
 │   │   └── GoldWallet.cs
@@ -92,11 +102,6 @@ Assets/
 │   │       ├── SettingsWindow.cs
 │   │       └── TeamBuilderTab.cs
 │   ├── Items/  (empty)
-│   ├── ScriptableObjects/
-│   │   ├── DamageNumberConfig.cs
-│   │   ├── LevelDataTypes.cs
-│   │   ├── LevelDatabase.cs
-│   │   └── TeamDatabase.cs
 │   ├── Services/
 │   │   └── Local/  (empty)
 │   ├── UI/
@@ -132,7 +137,7 @@ Assets/
 │   ├── UniversalRenderPipelineGlobalSettings.asset
 │   └── UniversalRP.asset
 ├── Sprites/
-│   ├── Characters/  (155 files)
+│   ├── Characters/  (154 files)
 │   ├── Effects/  (25 files)
 │   ├── Environment/
 │   │   ├── backgroundtest.png
@@ -145,7 +150,7 @@ Assets/
 ├── Tests/
 │   ├── EditMode/
 │   │   ├── Tests.EditMode.asmdef
-│   │   ├── EditModeTestBase.cs
+│   │   ├── AttackSlotRegistryTests.cs
 │   │   ├── CombatStatsDamageEventTests.cs
 │   │   ├── CombatStatsTests.cs
 │   │   ├── FormationLayoutTests.cs
@@ -157,6 +162,7 @@ Assets/
 │       ├── TestUtils/
 │       │   ├── PlayModeTestBase.cs
 │       │   └── TestCharacterFactory.cs
+│       ├── AnimationEventRelayTests.cs
 │       ├── BattleIndicatorBadgeTests.cs
 │       ├── CanvasFactoryTests.cs
 │       ├── CharacterAppearanceTests.cs
@@ -164,6 +170,7 @@ Assets/
 │       ├── CoinFlyServiceTests.cs
 │       ├── CoinFlyTests.cs
 │       ├── CombatControllerTests.cs
+│       ├── CombatSetupHelperTests.cs
 │       ├── CombatSpawnManagerTests.cs
 │       ├── CombatStatsRegenTests.cs
 │       ├── DamageNumberServiceTests.cs
@@ -173,15 +180,17 @@ Assets/
 │       ├── GoldHudBadgeTests.cs
 │       ├── GoldWalletTests.cs
 │       ├── HealthBarTrailTests.cs
-│       ├── LevelManagerTotalLevelsTests.cs
-│       ├── StepProgressBarTests.cs
 │       ├── LevelManagerDefeatResetTests.cs
 │       ├── LevelManagerDefeatTests.cs
 │       ├── LevelManagerEventTests.cs
 │       ├── LevelManagerStepTransitionTests.cs
+│       ├── LevelManagerTotalLevelsTests.cs
+│       ├── NavigationManagerTests.cs
+│       ├── ScreenStackTests.cs
+│       ├── StepProgressBarTests.cs
+│       ├── UIScreenTests.cs
 │       ├── VisualEquipmentTestLoopTests.cs
 │       └── WorldConveyorTests.cs
-├── _Recovery/  (1 file)
 └── TextMesh Pro/  (173 files — TMP package: fonts, shaders, examples)
 
 ProjectSettings/  (Unity defaults)
