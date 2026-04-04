@@ -348,6 +348,7 @@ namespace RogueliteAutoBattler.Combat.Levels
         {
             _levelInProgress = false;
 
+            UnitSelectionManager.Instance?.ForceDeselect();
             _allyTargetManager.ClearAllyTargets();
             AttackSlotRegistry.Clear();
             CombatSetupHelper.RecalculateFormation(_teamContainer, _teamHomeAnchor, facingRight: true, characterScale: CharacterScale);
@@ -387,6 +388,7 @@ namespace RogueliteAutoBattler.Combat.Levels
             if (_levelInProgress && _defeatHandler.AliveAllyCount <= 0)
             {
                 _levelInProgress = false;
+                UnitSelectionManager.Instance?.ForceDeselect();
                 _defeatHandler.HandleLevelLost();
                 StartCoroutine(_defeatHandler.DefeatResetCoroutine(
                     (stage, level, step) =>

@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using RogueliteAutoBattler.Combat.Visuals;
+using RogueliteAutoBattler.Common;
 using RogueliteAutoBattler.Data;
 using UnityEngine;
 
@@ -37,6 +38,8 @@ namespace RogueliteAutoBattler.Combat.Core
         public const string EnemiesHomeAnchorName = "EnemiesHomeAnchor";
         public const string CombatTriggerZoneName = "CombatTriggerZone";
 
+        private const float SelectionRadiusMultiplier = 1.2f;
+
         public static CharacterComponents AssembleCharacter(GameObject character, CharacterSetupConfig config)
         {
             float characterScale = config.CharacterScale > 0f ? config.CharacterScale : 1f;
@@ -68,6 +71,10 @@ namespace RogueliteAutoBattler.Combat.Core
             var appearanceComp = character.AddComponent<CharacterAppearance>();
             appearanceComp.ApplyAppearance(config.Appearance);
 
+            character.AddComponent<SelectionOutline>().Initialize();
+
+            AddSelectionHitbox(character, config.ColliderRadius * SelectionRadiusMultiplier / characterScale);
+
             var characterTransform = character.transform;
             bool ally = config.IsAlly;
             combatStats.OnDamageTaken += (damage, _) =>
@@ -94,6 +101,26 @@ namespace RogueliteAutoBattler.Combat.Core
 
             var relay = animator.gameObject.AddComponent<AnimationEventRelay>();
             relay.Initialize(controller);
+        }
+
+        public static CircleCollider2D AddSelectionHitbox(GameObject character, float radius)
+        {
+            int selectionLayer = PhysicsLayers.SelectionLayer;
+            if (selectionLayer < 0)
+            {
+                Debug.LogWarning($"[{nameof(CombatSetupHelper)}] Selection layer not configured. Skipping selection hitbox for {character.name}.");
+                return null;
+            }
+
+            var hitboxGo = new GameObject("SelectionHitbox");
+            hitboxGo.transform.SetParent(character.transform, false);
+            hitboxGo.layer = selectionLayer;
+
+            var collider = hitboxGo.AddComponent<CircleCollider2D>();
+            collider.isTrigger = true;
+            collider.radius = radius;
+
+            return collider;
         }
 
         public static void RecalculateFormation(Transform container, Transform homeAnchor, bool facingRight, float characterScale = 1f)

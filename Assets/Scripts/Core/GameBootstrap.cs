@@ -1,3 +1,4 @@
+using RogueliteAutoBattler.Combat.Core;
 using RogueliteAutoBattler.Common;
 using RogueliteAutoBattler.UI.Core;
 using UnityEngine;
@@ -25,6 +26,9 @@ namespace RogueliteAutoBattler.Core
 
             ConfigurePhysicsLayers();
 
+            var selectionGo = new GameObject("UnitSelectionManager");
+            selectionGo.AddComponent<UnitSelectionManager>();
+
             if (Canvas != null)
                 ValidateRefs();
         }
@@ -32,6 +36,15 @@ namespace RogueliteAutoBattler.Core
         private static void ConfigurePhysicsLayers()
         {
             Physics2D.IgnoreLayerCollision(PhysicsLayers.AllyLayer, PhysicsLayers.EnemyLayer, true);
+
+            int selectionLayer = PhysicsLayers.SelectionLayer;
+            if (selectionLayer >= 0)
+            {
+                Physics2D.IgnoreLayerCollision(selectionLayer, selectionLayer, true);
+                Physics2D.IgnoreLayerCollision(selectionLayer, PhysicsLayers.AllyLayer, true);
+                Physics2D.IgnoreLayerCollision(selectionLayer, PhysicsLayers.EnemyLayer, true);
+                Physics2D.IgnoreLayerCollision(selectionLayer, 0, true);
+            }
         }
 
         private static void ValidateRefs()

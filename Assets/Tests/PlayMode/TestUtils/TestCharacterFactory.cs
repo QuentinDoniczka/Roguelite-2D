@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using RogueliteAutoBattler.Combat.Core;
 using RogueliteAutoBattler.Combat.Environment;
 using RogueliteAutoBattler.Combat.Visuals;
+using RogueliteAutoBattler.Common;
 using RogueliteAutoBattler.Data;
 using RogueliteAutoBattler.UI.Core;
 using UnityEngine;
@@ -228,6 +229,27 @@ namespace RogueliteAutoBattler.Tests
 
             levelDb.Stages = new List<StageData> { stage };
             return levelDb;
+        }
+
+        public static GameObject CreateSelectableCharacter(
+            string name = "TestSelectable",
+            int maxHp = 100,
+            int atk = 10,
+            bool isAlly = true,
+            Vector2? position = null)
+        {
+            var go = CreateCombatCharacter(name, maxHp, atk, position: position);
+
+            int layer = isAlly ? LayerMask.NameToLayer(PhysicsLayers.Ally) : LayerMask.NameToLayer(PhysicsLayers.Enemy);
+            if (layer >= 0)
+                go.layer = layer;
+
+            var outline = go.AddComponent<SelectionOutline>();
+            outline.Initialize();
+
+            CombatSetupHelper.AddSelectionHitbox(go, 0.5f);
+
+            return go;
         }
     }
 }
