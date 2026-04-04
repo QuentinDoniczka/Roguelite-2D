@@ -294,14 +294,14 @@ namespace RogueliteAutoBattler.Tests
         public static (GameObject nodeGo, SkillTreeNode node) CreateSkillTreeNode(int index = 0)
         {
             var nodeGo = new GameObject($"SkillTreeNode_{index}");
-            var iconImage = nodeGo.AddComponent<Image>();
+            nodeGo.AddComponent<Image>();
 
             var borderGo = new GameObject("Border");
             borderGo.transform.SetParent(nodeGo.transform, false);
             var borderImage = borderGo.AddComponent<Image>();
 
             var node = nodeGo.AddComponent<SkillTreeNode>();
-            node.Setup(iconImage, borderImage, Color.gray, Color.yellow);
+            node.Setup(borderImage, Color.gray, Color.yellow);
             node.Initialize(index);
 
             return (nodeGo, node);
@@ -325,7 +325,7 @@ namespace RogueliteAutoBattler.Tests
             return (canvasGo, manager, contentRect);
         }
 
-        private static void SetPrivateField(object obj, string fieldName, object value)
+        internal static void SetPrivateField(object obj, string fieldName, object value)
         {
             var field = obj.GetType().GetField(fieldName, BindingFlags.NonPublic | BindingFlags.Instance);
             field.SetValue(obj, value);

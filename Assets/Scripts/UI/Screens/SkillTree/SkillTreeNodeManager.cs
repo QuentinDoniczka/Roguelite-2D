@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using SysRandom = System.Random;
 
 namespace RogueliteAutoBattler.UI.Screens.SkillTree
 {
@@ -31,11 +32,13 @@ namespace RogueliteAutoBattler.UI.Screens.SkillTree
 
         public void Initialize()
         {
-            UnityEngine.Random.InitState(DETERMINISTIC_SEED);
+            var rng = new SysRandom(DETERMINISTIC_SEED);
 
             for (int i = 0; i < PLACEHOLDER_NODE_COUNT; i++)
             {
-                Vector2 treePosition = UnityEngine.Random.insideUnitCircle * PLACEMENT_RADIUS;
+                float angle = (float)(rng.NextDouble() * 2.0 * Math.PI);
+                float radius = (float)(Math.Sqrt(rng.NextDouble()) * PLACEMENT_RADIUS);
+                Vector2 treePosition = new Vector2(radius * Mathf.Cos(angle), radius * Mathf.Sin(angle));
                 CreateNode(i, treePosition);
             }
         }
@@ -70,7 +73,7 @@ namespace RogueliteAutoBattler.UI.Screens.SkillTree
             borderImage.raycastTarget = false;
 
             var node = nodeGo.AddComponent<SkillTreeNode>();
-            node.Setup(iconImage, borderImage, _borderNormalColor, _borderSelectedColor);
+            node.Setup(borderImage, _borderNormalColor, _borderSelectedColor);
             node.Initialize(index);
             node.OnNodeClicked += HandleNodeClicked;
 

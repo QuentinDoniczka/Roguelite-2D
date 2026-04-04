@@ -8,7 +8,6 @@ namespace RogueliteAutoBattler.UI.Screens.SkillTree
     public class SkillTreeNode : MonoBehaviour, IPointerClickHandler
     {
         [Header("Visuals")]
-        [SerializeField] private Image _icon;
         [SerializeField] private Image _border;
 
         [Header("Colors")]
@@ -23,9 +22,8 @@ namespace RogueliteAutoBattler.UI.Screens.SkillTree
 
         public event Action<SkillTreeNode> OnNodeClicked;
 
-        public void Setup(Image icon, Image border, Color normalColor, Color selectedColor)
+        public void Setup(Image border, Color normalColor, Color selectedColor)
         {
-            _icon = icon;
             _border = border;
             _normalColor = normalColor;
             _selectedColor = selectedColor;
@@ -40,7 +38,6 @@ namespace RogueliteAutoBattler.UI.Screens.SkillTree
         public void OnPointerClick(PointerEventData eventData)
         {
             OnNodeClicked?.Invoke(this);
-            eventData.Use();
         }
 
         public void SetSelected(bool selected)

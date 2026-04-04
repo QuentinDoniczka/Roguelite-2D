@@ -16,7 +16,6 @@ namespace RogueliteAutoBattler.UI.Screens.SkillTree
 
         [Header("Zoom Sensitivity")]
         [SerializeField] private float _scrollZoomSensitivity = 0.1f;
-        [SerializeField] private float _pinchZoomSensitivity = 0.005f;
 
         private bool _isPinching;
         private float _lastPinchDistance;

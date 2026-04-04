@@ -1,5 +1,4 @@
 using System.Collections;
-using System.Reflection;
 using NUnit.Framework;
 using RogueliteAutoBattler.UI.Screens.SkillTree;
 using UnityEngine;
@@ -11,12 +10,6 @@ namespace RogueliteAutoBattler.Tests.PlayMode
 {
     public class SkillTreeScreenTests : PlayModeTestBase
     {
-        private static void SetPrivateField(object obj, string fieldName, object value)
-        {
-            var field = obj.GetType().GetField(fieldName, BindingFlags.NonPublic | BindingFlags.Instance);
-            field.SetValue(obj, value);
-        }
-
         [UnityTest]
         public IEnumerator VoidClick_DeselectsSelectedNode()
         {
@@ -41,20 +34,20 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             var contentRect = contentGo.AddComponent<RectTransform>();
 
             var handler = viewportGo.AddComponent<SkillTreeInputHandler>();
-            SetPrivateField(handler, "_content", contentRect);
+            TestCharacterFactory.SetPrivateField(handler, "_content", contentRect);
 
             var managerGo = new GameObject("NodeManager");
             managerGo.transform.SetParent(canvasGo.transform, false);
             var manager = managerGo.AddComponent<SkillTreeNodeManager>();
-            SetPrivateField(manager, "_content", contentRect);
+            TestCharacterFactory.SetPrivateField(manager, "_content", contentRect);
 
             var screenGo = new GameObject("SkillTreeScreen");
             screenGo.transform.SetParent(canvasGo.transform, false);
             screenGo.SetActive(false);
             screenGo.AddComponent<CanvasGroup>();
             var screen = screenGo.AddComponent<SkillTreeScreen>();
-            SetPrivateField(screen, "_inputHandler", handler);
-            SetPrivateField(screen, "_nodeManager", manager);
+            TestCharacterFactory.SetPrivateField(screen, "_inputHandler", handler);
+            TestCharacterFactory.SetPrivateField(screen, "_nodeManager", manager);
             screenGo.SetActive(true);
 
             yield return null;
@@ -90,16 +83,16 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             contentGo.transform.SetParent(handlerGo.transform, false);
             var contentRect = contentGo.AddComponent<RectTransform>();
             var handler = handlerGo.AddComponent<SkillTreeInputHandler>();
-            SetPrivateField(handler, "_content", contentRect);
+            TestCharacterFactory.SetPrivateField(handler, "_content", contentRect);
 
             var managerGo = new GameObject("Manager");
             managerGo.transform.SetParent(screenGo.transform, false);
             var manager = managerGo.AddComponent<SkillTreeNodeManager>();
-            SetPrivateField(manager, "_content", contentRect);
+            TestCharacterFactory.SetPrivateField(manager, "_content", contentRect);
 
             var screen = screenGo.AddComponent<SkillTreeScreen>();
-            SetPrivateField(screen, "_inputHandler", handler);
-            SetPrivateField(screen, "_nodeManager", manager);
+            TestCharacterFactory.SetPrivateField(screen, "_inputHandler", handler);
+            TestCharacterFactory.SetPrivateField(screen, "_nodeManager", manager);
             screenGo.SetActive(true);
 
             yield return null;
