@@ -39,7 +39,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
         {
             _node.SetSelected(true);
 
-            var borderImage = _nodeGo.transform.GetChild(0).GetComponent<UnityEngine.UI.Image>();
+            var borderImage = _nodeGo.GetComponent<UnityEngine.UI.Image>();
             Assert.AreEqual(Color.yellow, borderImage.color);
         }
 
@@ -49,7 +49,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             _node.SetSelected(true);
             _node.SetSelected(false);
 
-            var borderImage = _nodeGo.transform.GetChild(0).GetComponent<UnityEngine.UI.Image>();
+            var borderImage = _nodeGo.GetComponent<UnityEngine.UI.Image>();
             Assert.AreEqual(Color.gray, borderImage.color);
         }
 

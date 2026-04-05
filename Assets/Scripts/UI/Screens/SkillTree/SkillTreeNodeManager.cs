@@ -8,8 +8,9 @@ namespace RogueliteAutoBattler.UI.Screens.SkillTree
 {
     public class SkillTreeNodeManager : MonoBehaviour
     {
-        private const int FallbackRingNodeCount = 9;
+        private const int FallbackRingNodeCount = 6;
         private const float FallbackRingRadius = 5f;
+        private const float BorderPadding = 4f;
 
         [Header("Data")]
         [SerializeField] private SkillTreeData _data;
@@ -25,6 +26,9 @@ namespace RogueliteAutoBattler.UI.Screens.SkillTree
         [SerializeField] private Color _nodeColor = new Color(0.3f, 0.3f, 0.3f, 1f);
         [SerializeField] private Color _borderNormalColor = Color.gray;
         [SerializeField] private Color _borderSelectedColor = Color.yellow;
+
+        [Header("Visuals")]
+        [SerializeField] private Sprite _circleSprite;
 
         private readonly List<SkillTreeNode> _nodes = new List<SkillTreeNode>();
         private SkillTreeNode _selectedNode;
@@ -75,23 +79,28 @@ namespace RogueliteAutoBattler.UI.Screens.SkillTree
             nodeRect.localScale = Vector3.one;
 
             var iconImage = nodeGo.AddComponent<Image>();
-            iconImage.color = _nodeColor;
+            iconImage.color = _borderNormalColor;
+            iconImage.sprite = _circleSprite;
+            iconImage.type = Image.Type.Simple;
+            iconImage.preserveAspect = true;
 
-            var borderGo = new GameObject("Border");
-            borderGo.transform.SetParent(nodeGo.transform, false);
+            var fillGo = new GameObject("Fill");
+            fillGo.transform.SetParent(nodeGo.transform, false);
 
-            var borderRect = borderGo.AddComponent<RectTransform>();
-            borderRect.anchorMin = Vector2.zero;
-            borderRect.anchorMax = Vector2.one;
-            borderRect.sizeDelta = Vector2.zero;
-            borderRect.localScale = Vector3.one;
+            var fillRect = fillGo.AddComponent<RectTransform>();
+            fillRect.anchorMin = Vector2.zero;
+            fillRect.anchorMax = Vector2.one;
+            fillRect.sizeDelta = Vector2.one * -BorderPadding * 2;
+            fillRect.localScale = Vector3.one;
 
-            var borderImage = borderGo.AddComponent<Image>();
-            borderImage.color = _borderNormalColor;
-            borderImage.raycastTarget = false;
+            var fillImage = fillGo.AddComponent<Image>();
+            fillImage.color = _nodeColor;
+            fillImage.sprite = _circleSprite;
+            fillImage.raycastTarget = false;
+            fillImage.preserveAspect = true;
 
             var node = nodeGo.AddComponent<SkillTreeNode>();
-            node.Setup(borderImage, _borderNormalColor, _borderSelectedColor);
+            node.Setup(iconImage, _borderNormalColor, _borderSelectedColor);
             node.Initialize(index);
             node.OnNodeClicked += HandleNodeClicked;
 

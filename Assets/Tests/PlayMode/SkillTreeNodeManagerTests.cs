@@ -28,7 +28,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             _manager.Initialize();
             yield return null;
 
-            Assert.AreEqual(10, _content.childCount);
+            Assert.AreEqual(6, _content.childCount);
         }
 
         [UnityTest]
