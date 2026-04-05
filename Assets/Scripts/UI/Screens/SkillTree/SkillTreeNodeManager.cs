@@ -3,15 +3,13 @@ using System.Collections.Generic;
 using RogueliteAutoBattler.Data;
 using UnityEngine;
 using UnityEngine.UI;
-using SysRandom = System.Random;
 
 namespace RogueliteAutoBattler.UI.Screens.SkillTree
 {
     public class SkillTreeNodeManager : MonoBehaviour
     {
-        private const int PlaceholderNodeCount = 10;
-        private const int DeterministicSeed = 42;
-        private const float PlacementRadius = 5f;
+        private const int FallbackRingNodeCount = 9;
+        private const float FallbackRingRadius = 5f;
 
         [Header("Data")]
         [SerializeField] private SkillTreeData _data;
@@ -57,12 +55,11 @@ namespace RogueliteAutoBattler.UI.Screens.SkillTree
                 return;
             }
 
-            var fallbackRng = new SysRandom(DeterministicSeed);
-            for (int i = 0; i < PlaceholderNodeCount; i++)
+            CreateNode(0, Vector2.zero);
+            for (int i = 0; i < FallbackRingNodeCount; i++)
             {
-                float angle = (float)(fallbackRng.NextDouble() * 2.0 * Mathf.PI);
-                float radius = Mathf.Sqrt((float)fallbackRng.NextDouble()) * PlacementRadius;
-                CreateNode(i, new Vector2(radius * Mathf.Cos(angle), radius * Mathf.Sin(angle)));
+                float angle = i * (2f * Mathf.PI / FallbackRingNodeCount);
+                CreateNode(i + 1, new Vector2(FallbackRingRadius * Mathf.Cos(angle), FallbackRingRadius * Mathf.Sin(angle)));
             }
         }
 
