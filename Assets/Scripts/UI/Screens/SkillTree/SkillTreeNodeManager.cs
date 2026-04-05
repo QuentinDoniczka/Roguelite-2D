@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using RogueliteAutoBattler.Data;
 using UnityEngine;
 using UnityEngine.UI;
 using SysRandom = System.Random;
@@ -11,6 +12,9 @@ namespace RogueliteAutoBattler.UI.Screens.SkillTree
         private const int PlaceholderNodeCount = 10;
         private const int DeterministicSeed = 42;
         private const float PlacementRadius = 5f;
+
+        [Header("Data")]
+        [SerializeField] private SkillTreeData _data;
 
         [Header("Container")]
         [SerializeField] private RectTransform _content;
@@ -32,14 +36,38 @@ namespace RogueliteAutoBattler.UI.Screens.SkillTree
 
         public void Initialize()
         {
-            var rng = new SysRandom(DeterministicSeed);
+            if (_data != null)
+            {
+                _nodeSize = _data.NodeSize;
+                _unitSize = _data.UnitSize;
+                _nodeColor = _data.NodeColor;
+                _borderNormalColor = _data.BorderNormalColor;
+                _borderSelectedColor = _data.BorderSelectedColor;
 
+                if (_data.Nodes.Count > 0)
+                {
+                    foreach (var entry in _data.Nodes)
+                        CreateNode(entry.id, entry.position);
+                }
+                else
+                {
+                    var rng = new SysRandom(_data.Seed);
+                    for (int i = 0; i < _data.NodeCount; i++)
+                    {
+                        float angle = (float)(rng.NextDouble() * 2.0 * Mathf.PI);
+                        float radius = Mathf.Sqrt((float)rng.NextDouble()) * _data.PlacementRadius;
+                        CreateNode(i, new Vector2(radius * Mathf.Cos(angle), radius * Mathf.Sin(angle)));
+                    }
+                }
+                return;
+            }
+
+            var fallbackRng = new SysRandom(DeterministicSeed);
             for (int i = 0; i < PlaceholderNodeCount; i++)
             {
-                float angle = (float)(rng.NextDouble() * 2.0 * Mathf.PI);
-                float radius = Mathf.Sqrt((float)rng.NextDouble()) * PlacementRadius;
-                Vector2 treePosition = new Vector2(radius * Mathf.Cos(angle), radius * Mathf.Sin(angle));
-                CreateNode(i, treePosition);
+                float angle = (float)(fallbackRng.NextDouble() * 2.0 * Mathf.PI);
+                float radius = Mathf.Sqrt((float)fallbackRng.NextDouble()) * PlacementRadius;
+                CreateNode(i, new Vector2(radius * Mathf.Cos(angle), radius * Mathf.Sin(angle)));
             }
         }
 
@@ -107,6 +135,26 @@ namespace RogueliteAutoBattler.UI.Screens.SkillTree
             _selectedNode.SetSelected(false);
             _selectedNode = null;
             OnNodeDeselected?.Invoke();
+        }
+
+        public void ClearNodes()
+        {
+            foreach (var node in _nodes)
+            {
+                if (node != null)
+                {
+                    node.OnNodeClicked -= HandleNodeClicked;
+                    DestroyImmediate(node.gameObject);
+                }
+            }
+            _nodes.Clear();
+            _selectedNode = null;
+
+            if (_content != null)
+            {
+                for (int i = _content.childCount - 1; i >= 0; i--)
+                    DestroyImmediate(_content.GetChild(i).gameObject);
+            }
         }
 
         private void OnDestroy()
