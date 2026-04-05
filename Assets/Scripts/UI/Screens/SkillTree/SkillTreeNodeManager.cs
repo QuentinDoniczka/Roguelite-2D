@@ -60,7 +60,6 @@ namespace RogueliteAutoBattler.UI.Screens.SkillTree
                     var edges = _data.GetEdges();
                     foreach (var (fromId, toId) in edges)
                     {
-                        // Note: node.id == index in Nodes list (guaranteed by BuildRingLayout sequential IDs)
                         if (fromId < _data.Nodes.Count && toId < _data.Nodes.Count)
                             CreateEdge(_data.Nodes[fromId].position, _data.Nodes[toId].position, fromId, toId);
                     }

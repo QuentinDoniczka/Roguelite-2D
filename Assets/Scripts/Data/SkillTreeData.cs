@@ -19,6 +19,7 @@ namespace RogueliteAutoBattler.Data
         public static readonly Color DefaultBorderNormalColor = Color.gray;
         public static readonly Color DefaultBorderSelectedColor = Color.yellow;
         public static readonly Color DefaultEdgeColor = new Color(0.6f, 0.6f, 0.6f, 1f);
+        public static readonly Color DefaultRingGuideColor = new Color(0.25f, 0.25f, 0.25f, 0.5f);
 
         public enum NodeType
         {
@@ -70,7 +71,7 @@ namespace RogueliteAutoBattler.Data
 
         [Header("Edge Visual")]
         [SerializeField] private Color edgeColor = DefaultEdgeColor;
-        [SerializeField] private Color ringGuideColor = new Color(0.25f, 0.25f, 0.25f, 0.5f);
+        [SerializeField] private Color ringGuideColor = DefaultRingGuideColor;
         [SerializeField] private float edgeThickness = DefaultEdgeThickness;
 
         [Header("Generated Nodes")]
@@ -142,6 +143,8 @@ namespace RogueliteAutoBattler.Data
 
         internal void SetNode(int index, SkillNodeEntry entry)
         {
+            Debug.Assert(index >= 0 && index < nodes.Count, $"SetNode index {index} out of range [0, {nodes.Count})");
+            if (index < 0 || index >= nodes.Count) return;
             nodes[index] = entry;
             _cachedEdges = null;
         }

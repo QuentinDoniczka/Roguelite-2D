@@ -276,12 +276,10 @@ namespace RogueliteAutoBattler.Tests.EditMode
             _skillTreeData.GenerateNodes();
 
             Vector2 origin = Vector2.zero;
-            float unitSize = 200f;
-            float nodeSize = 80f;
             float zoom = 1f;
 
             Vector2 clickOnNode0 = new Vector2(1000f, 0f);
-            int result = SkillTreeDesignerWindow.HitTestNode(clickOnNode0, origin, _skillTreeData.Nodes, unitSize, nodeSize, zoom);
+            int result = SkillTreeDesignerWindow.HitTestNode(clickOnNode0, origin, _skillTreeData.Nodes, SkillTreeData.DefaultUnitSize, SkillTreeData.DefaultNodeSize, zoom);
             Assert.AreEqual(0, result);
         }
 
@@ -293,13 +291,30 @@ namespace RogueliteAutoBattler.Tests.EditMode
             _skillTreeData.GenerateNodes();
 
             Vector2 origin = Vector2.zero;
-            float unitSize = 200f;
-            float nodeSize = 80f;
             float zoom = 1f;
 
             Vector2 clickFarAway = new Vector2(9999f, 9999f);
-            int result = SkillTreeDesignerWindow.HitTestNode(clickFarAway, origin, _skillTreeData.Nodes, unitSize, nodeSize, zoom);
+            int result = SkillTreeDesignerWindow.HitTestNode(clickFarAway, origin, _skillTreeData.Nodes, SkillTreeData.DefaultUnitSize, SkillTreeData.DefaultNodeSize, zoom);
             Assert.AreEqual(-1, result);
+        }
+
+        [Test]
+        public void SetNode_UpdatesNodeAndInvalidatesEdgeCache()
+        {
+            _skillTreeData.RingNodeCount = 4;
+            _skillTreeData.GenerateNodes();
+
+            var edgesBefore = _skillTreeData.GetEdges();
+            Assert.IsNotNull(edgesBefore);
+
+            var node = _skillTreeData.Nodes[0];
+            var updated = node;
+            updated.costAmount = 99;
+            updated.maxLevel = 5;
+            _skillTreeData.SetNode(0, updated);
+
+            Assert.AreEqual(99, _skillTreeData.Nodes[0].costAmount);
+            Assert.AreEqual(5, _skillTreeData.Nodes[0].maxLevel);
         }
 
         [Test]

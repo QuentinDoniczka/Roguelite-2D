@@ -150,7 +150,6 @@ namespace RogueliteAutoBattler.Editor
             foreach (var (fromId, toId) in edges)
             {
                 if (fromId >= _data.Nodes.Count || toId >= _data.Nodes.Count) continue;
-                // Note: node.id == index in Nodes list (guaranteed by BuildRingLayout sequential IDs)
                 Vector2 fromPos = origin + _data.Nodes[fromId].position * scaledUnit;
                 Vector2 toPos = origin + _data.Nodes[toId].position * scaledUnit;
                 Handles.DrawLine(new Vector3(fromPos.x, fromPos.y, 0f), new Vector3(toPos.x, toPos.y, 0f));
