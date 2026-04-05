@@ -326,65 +326,81 @@ namespace RogueliteAutoBattler.Tests.EditMode
                     $"Node {i} should default to Passive");
             }
         }
+        private static SkillTreeData.SkillNodeEntry MakeCostNode(int baseCost = 1, float multOdd = 1f, float multEven = 1f, int additive = 0)
+        {
+            return new SkillTreeData.SkillNodeEntry
+            {
+                baseCost = baseCost,
+                costMultiplierOdd = multOdd,
+                costMultiplierEven = multEven,
+                costAdditivePerLevel = additive
+            };
+        }
+
         [Test]
         public void ComputeNodeCost_DefaultValues_ReturnsBaseCost()
         {
-            Assert.AreEqual(1, _skillTreeData.ComputeNodeCost(0));
-            Assert.AreEqual(1, _skillTreeData.ComputeNodeCost(1));
-            Assert.AreEqual(1, _skillTreeData.ComputeNodeCost(5));
+            var node = MakeCostNode();
+            Assert.AreEqual(1, SkillTreeData.ComputeNodeCost(node, 0));
+            Assert.AreEqual(1, SkillTreeData.ComputeNodeCost(node, 1));
+            Assert.AreEqual(1, SkillTreeData.ComputeNodeCost(node, 5));
         }
 
         [Test]
         public void ComputeNodeCost_WithMultiplier_ScalesExponentially()
         {
-            _skillTreeData.BaseCost = 10;
-            _skillTreeData.CostMultiplierOdd = 2f;
-            _skillTreeData.CostMultiplierEven = 2f;
-            _skillTreeData.CostAdditivePerLevel = 0;
-
-            Assert.AreEqual(10, _skillTreeData.ComputeNodeCost(0));
-            Assert.AreEqual(20, _skillTreeData.ComputeNodeCost(1));
-            Assert.AreEqual(40, _skillTreeData.ComputeNodeCost(2));
+            var node = MakeCostNode(baseCost: 10, multOdd: 2f, multEven: 2f);
+            Assert.AreEqual(10, SkillTreeData.ComputeNodeCost(node, 0));
+            Assert.AreEqual(20, SkillTreeData.ComputeNodeCost(node, 1));
+            Assert.AreEqual(40, SkillTreeData.ComputeNodeCost(node, 2));
         }
 
         [Test]
         public void ComputeNodeCost_WithAdditive_AddsAfterMultiply()
         {
-            _skillTreeData.BaseCost = 10;
-            _skillTreeData.CostMultiplierOdd = 1.5f;
-            _skillTreeData.CostMultiplierEven = 1.5f;
-            _skillTreeData.CostAdditivePerLevel = 5;
-
-            Assert.AreEqual(10, _skillTreeData.ComputeNodeCost(0));
-            Assert.AreEqual(20, _skillTreeData.ComputeNodeCost(1));
-            Assert.AreEqual(35, _skillTreeData.ComputeNodeCost(2));
+            var node = MakeCostNode(baseCost: 10, multOdd: 1.5f, multEven: 1.5f, additive: 5);
+            Assert.AreEqual(10, SkillTreeData.ComputeNodeCost(node, 0));
+            Assert.AreEqual(20, SkillTreeData.ComputeNodeCost(node, 1));
+            Assert.AreEqual(35, SkillTreeData.ComputeNodeCost(node, 2));
         }
 
         [Test]
         public void ComputeNodeCost_AdditiveOnly_LinearScaling()
         {
-            _skillTreeData.BaseCost = 5;
-            _skillTreeData.CostMultiplierOdd = 1f;
-            _skillTreeData.CostMultiplierEven = 1f;
-            _skillTreeData.CostAdditivePerLevel = 3;
-
-            Assert.AreEqual(5, _skillTreeData.ComputeNodeCost(0));
-            Assert.AreEqual(8, _skillTreeData.ComputeNodeCost(1));
-            Assert.AreEqual(14, _skillTreeData.ComputeNodeCost(3));
+            var node = MakeCostNode(baseCost: 5, additive: 3);
+            Assert.AreEqual(5, SkillTreeData.ComputeNodeCost(node, 0));
+            Assert.AreEqual(8, SkillTreeData.ComputeNodeCost(node, 1));
+            Assert.AreEqual(14, SkillTreeData.ComputeNodeCost(node, 3));
         }
 
         [Test]
         public void ComputeNodeCost_AlternatingMultipliers()
         {
-            _skillTreeData.BaseCost = 1;
-            _skillTreeData.CostMultiplierOdd = 5f;
-            _skillTreeData.CostMultiplierEven = 2f;
-            _skillTreeData.CostAdditivePerLevel = 0;
+            var node = MakeCostNode(baseCost: 1, multOdd: 5f, multEven: 2f);
+            Assert.AreEqual(1, SkillTreeData.ComputeNodeCost(node, 0));
+            Assert.AreEqual(5, SkillTreeData.ComputeNodeCost(node, 1));
+            Assert.AreEqual(10, SkillTreeData.ComputeNodeCost(node, 2));
+            Assert.AreEqual(50, SkillTreeData.ComputeNodeCost(node, 3));
+        }
 
-            Assert.AreEqual(1, _skillTreeData.ComputeNodeCost(0));
-            Assert.AreEqual(5, _skillTreeData.ComputeNodeCost(1));
-            Assert.AreEqual(10, _skillTreeData.ComputeNodeCost(2));
-            Assert.AreEqual(50, _skillTreeData.ComputeNodeCost(3));
+        [Test]
+        public void GenerateNodes_CostFieldsFromRingDefaults()
+        {
+            _skillTreeData.BaseCost = 10;
+            _skillTreeData.CostMultiplierOdd = 3f;
+            _skillTreeData.CostMultiplierEven = 2f;
+            _skillTreeData.CostAdditivePerLevel = 5;
+            _skillTreeData.RingNodeCount = 4;
+            _skillTreeData.GenerateNodes();
+
+            for (int i = 0; i < _skillTreeData.Nodes.Count; i++)
+            {
+                var node = _skillTreeData.Nodes[i];
+                Assert.AreEqual(10, node.baseCost, $"Node {i} baseCost");
+                Assert.AreEqual(3f, node.costMultiplierOdd, $"Node {i} multOdd");
+                Assert.AreEqual(2f, node.costMultiplierEven, $"Node {i} multEven");
+                Assert.AreEqual(5, node.costAdditivePerLevel, $"Node {i} additive");
+            }
         }
     }
 }

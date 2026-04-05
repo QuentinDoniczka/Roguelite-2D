@@ -320,7 +320,16 @@ namespace RogueliteAutoBattler.Editor
 
                 var newNodeType = (SkillTreeData.NodeType)EditorGUILayout.EnumPopup("Node Type", node.nodeType);
                 var newCostType = (SkillTreeData.CostType)EditorGUILayout.EnumPopup("Cost Type", node.costType);
-                int newMaxLevel = EditorGUILayout.IntField("Max Level", node.maxLevel);
+                int newMaxLevel = EditorGUILayout.IntField("Max Level (0=unlimited)", node.maxLevel);
+
+                EditorGUILayout.Space(8);
+                EditorGUILayout.LabelField("Cost Formula", EditorStyles.miniLabel);
+                int newBaseCost = EditorGUILayout.IntField("Base Cost", node.baseCost);
+                float newMultOdd = EditorGUILayout.FloatField("Multiplier (Odd)", node.costMultiplierOdd);
+                float newMultEven = EditorGUILayout.FloatField("Multiplier (Even)", node.costMultiplierEven);
+                int newAdditive = EditorGUILayout.IntField("Additive / Level", node.costAdditivePerLevel);
+
+                EditorGUILayout.Space(4);
                 var newStatModType = (SkillTreeData.StatModifierType)EditorGUILayout.EnumPopup("Stat Modifier", node.statModifierType);
                 float newStatModValue = EditorGUILayout.FloatField("Value Per Level", node.statModifierValuePerLevel);
 
@@ -330,6 +339,10 @@ namespace RogueliteAutoBattler.Editor
                     updated.nodeType = newNodeType;
                     updated.costType = newCostType;
                     updated.maxLevel = newMaxLevel;
+                    updated.baseCost = newBaseCost;
+                    updated.costMultiplierOdd = newMultOdd;
+                    updated.costMultiplierEven = newMultEven;
+                    updated.costAdditivePerLevel = newAdditive;
                     updated.statModifierType = newStatModType;
                     updated.statModifierValuePerLevel = newStatModValue;
 
@@ -343,7 +356,7 @@ namespace RogueliteAutoBattler.Editor
                 int previewLevels = node.maxLevel > 0 ? Mathf.Min(node.maxLevel, 10) : 10;
                 for (int lvl = 0; lvl < previewLevels; lvl++)
                 {
-                    int cost = _data.ComputeNodeCost(lvl);
+                    int cost = SkillTreeData.ComputeNodeCost(node, lvl);
                     EditorGUILayout.LabelField($"  Level {lvl} \u2192 {lvl + 1}", $"{cost} {node.costType}");
                 }
                 if (node.maxLevel == 0)

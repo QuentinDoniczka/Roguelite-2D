@@ -53,6 +53,10 @@ namespace RogueliteAutoBattler.Data
             public NodeType nodeType;
             public CostType costType;
             public int maxLevel;
+            public int baseCost;
+            public float costMultiplierOdd;
+            public float costMultiplierEven;
+            public int costAdditivePerLevel;
             public StatModifierType statModifierType;
             public float statModifierValuePerLevel;
         }
@@ -109,10 +113,11 @@ namespace RogueliteAutoBattler.Data
         {
             nodes.Clear();
             _cachedEdges = null;
-            BuildRingLayout(nodes, ringNodeCount, ringRadius);
+            BuildRingLayout(nodes, ringNodeCount, ringRadius, baseCost, costMultiplierOdd, costMultiplierEven, costAdditivePerLevel);
         }
 
-        internal static void BuildRingLayout(List<SkillNodeEntry> output, int nodeCount, float radius)
+        internal static void BuildRingLayout(List<SkillNodeEntry> output, int nodeCount, float radius,
+            int defaultBaseCost = 1, float defaultMultOdd = 1f, float defaultMultEven = 1f, int defaultAdditive = 0)
         {
             Debug.Assert(nodeCount > 0, "Ring node count must be positive");
 
@@ -128,6 +133,10 @@ namespace RogueliteAutoBattler.Data
                     nodeType = NodeType.Passive,
                     costType = CostType.Gold,
                     maxLevel = 0,
+                    baseCost = defaultBaseCost,
+                    costMultiplierOdd = defaultMultOdd,
+                    costMultiplierEven = defaultMultEven,
+                    costAdditivePerLevel = defaultAdditive,
                     statModifierType = StatModifierType.HP,
                     statModifierValuePerLevel = 0f
                 });
@@ -149,13 +158,13 @@ namespace RogueliteAutoBattler.Data
             return _cachedEdges;
         }
 
-        public int ComputeNodeCost(int level)
+        public static int ComputeNodeCost(SkillNodeEntry node, int level)
         {
-            int cost = baseCost;
+            int cost = node.baseCost;
             for (int i = 1; i <= level; i++)
             {
-                float multiplier = (i % 2 == 1) ? costMultiplierOdd : costMultiplierEven;
-                cost = Mathf.FloorToInt(cost * multiplier) + costAdditivePerLevel;
+                float multiplier = (i % 2 == 1) ? node.costMultiplierOdd : node.costMultiplierEven;
+                cost = Mathf.FloorToInt(cost * multiplier) + node.costAdditivePerLevel;
             }
             return cost;
         }
