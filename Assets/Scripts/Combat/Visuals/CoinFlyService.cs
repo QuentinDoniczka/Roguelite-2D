@@ -16,6 +16,8 @@ namespace RogueliteAutoBattler.Combat.Visuals
         private static Canvas _canvas;
         private static Sprite _coinSprite;
 
+        public static bool Suppressed { get; set; }
+
         private const int InitialPoolSize = 5;
         private const float Duration = 0.6f;
         private static readonly Color CoinColor = new Color32(255, 215, 0, 255);
@@ -35,7 +37,7 @@ namespace RogueliteAutoBattler.Combat.Visuals
 
         public static void Show(Vector3 worldPosition, Action onComplete = null)
         {
-            if (!_pool.IsInitialized)
+            if (!_pool.IsInitialized || Suppressed)
                 return;
 
             Vector3 screenPoint = _camera.WorldToScreenPoint(worldPosition);
@@ -95,6 +97,7 @@ namespace RogueliteAutoBattler.Combat.Visuals
             _camera = null;
             _canvas = null;
             _coinSprite = null;
+            Suppressed = false;
         }
 
         internal static void ResetForTest()

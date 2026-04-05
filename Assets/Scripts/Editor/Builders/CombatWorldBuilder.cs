@@ -116,12 +116,12 @@ namespace RogueliteAutoBattler.Editor
             rootRb.bodyType = RigidbodyType2D.Kinematic;
 
             root.AddComponent<WorldConveyor>();
+            root.AddComponent<CombatWorldVisibility>();
 
             var spawnManager = root.AddComponent<CombatSpawnManager>();
 
             var soSpawnManager = new SerializedObject(spawnManager);
             EditorUIFactory.SetObj(soSpawnManager, "_teamContainer", teamGo.transform);
-            EditorUIFactory.SetObj(soSpawnManager, "_enemiesContainer", enemiesGo.transform);
 
             var teamDb = AssetDatabase.LoadAssetAtPath<TeamDatabase>(TeamBuilderTab.TeamDatabaseDefaultPath);
             if (teamDb == null)

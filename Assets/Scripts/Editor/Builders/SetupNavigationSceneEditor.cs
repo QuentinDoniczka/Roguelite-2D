@@ -116,6 +116,9 @@ namespace RogueliteAutoBattler.Editor
 
                 screens[i] = (UIScreen)go.AddComponent(c.ScreenType);
                 EditorUIFactory.CreateLabel(go.transform, "Label", c.Label, PanelFontSize, Color.white);
+
+                if (c.ScreenType == typeof(SkillTreeScreen))
+                    SkillTreeBuilder.BuildSkillTreeContent(go);
             }
             return screens;
         }

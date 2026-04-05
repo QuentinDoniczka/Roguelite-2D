@@ -1,11 +1,15 @@
 using System.Collections.Generic;
+using System.Reflection;
 using RogueliteAutoBattler.Combat.Core;
 using RogueliteAutoBattler.Combat.Environment;
 using RogueliteAutoBattler.Combat.Visuals;
 using RogueliteAutoBattler.Common;
 using RogueliteAutoBattler.Data;
 using RogueliteAutoBattler.UI.Core;
+using RogueliteAutoBattler.UI.Screens.SkillTree;
 using UnityEngine;
+using UnityEngine.EventSystems;
+using UnityEngine.UI;
 
 namespace RogueliteAutoBattler.Tests
 {
@@ -250,6 +254,81 @@ namespace RogueliteAutoBattler.Tests
             CombatSetupHelper.AddSelectionHitbox(go, 0.5f);
 
             return go;
+        }
+
+        public static (GameObject viewport, SkillTreeInputHandler handler, RectTransform content) CreateSkillTreeViewport()
+        {
+            var canvasGo = new GameObject("SkillTreeCanvas");
+            var canvas = canvasGo.AddComponent<Canvas>();
+            canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+            canvasGo.AddComponent<CanvasScaler>();
+            canvasGo.AddComponent<GraphicRaycaster>();
+
+            var eventSystemGo = new GameObject("EventSystem");
+            eventSystemGo.AddComponent<EventSystem>();
+            eventSystemGo.transform.SetParent(canvasGo.transform, false);
+
+            var viewportGo = new GameObject("Viewport");
+            viewportGo.transform.SetParent(canvasGo.transform, false);
+            var viewportRect = viewportGo.AddComponent<RectTransform>();
+            viewportRect.anchorMin = Vector2.zero;
+            viewportRect.anchorMax = Vector2.one;
+            viewportRect.sizeDelta = Vector2.zero;
+
+            var viewportImage = viewportGo.AddComponent<Image>();
+            viewportImage.raycastTarget = true;
+
+            var contentGo = new GameObject("Content");
+            contentGo.transform.SetParent(viewportGo.transform, false);
+            var contentRect = contentGo.AddComponent<RectTransform>();
+            contentRect.anchorMin = Vector2.one * 0.5f;
+            contentRect.anchorMax = Vector2.one * 0.5f;
+            contentRect.sizeDelta = Vector2.zero;
+
+            var handler = viewportGo.AddComponent<SkillTreeInputHandler>();
+            SetPrivateField(handler, "_content", contentRect);
+
+            return (canvasGo, handler, contentRect);
+        }
+
+        public static (GameObject nodeGo, SkillTreeNode node) CreateSkillTreeNode(int index = 0)
+        {
+            var nodeGo = new GameObject($"SkillTreeNode_{index}");
+            nodeGo.AddComponent<Image>();
+
+            var borderGo = new GameObject("Border");
+            borderGo.transform.SetParent(nodeGo.transform, false);
+            var borderImage = borderGo.AddComponent<Image>();
+
+            var node = nodeGo.AddComponent<SkillTreeNode>();
+            node.Setup(borderImage, Color.gray, Color.yellow);
+            node.Initialize(index);
+
+            return (nodeGo, node);
+        }
+
+        public static (GameObject managerGo, SkillTreeNodeManager manager, RectTransform content) CreateSkillTreeNodeManager()
+        {
+            var canvasGo = new GameObject("NodeManagerCanvas");
+            var canvas = canvasGo.AddComponent<Canvas>();
+            canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+
+            var contentGo = new GameObject("Content");
+            contentGo.transform.SetParent(canvasGo.transform, false);
+            var contentRect = contentGo.AddComponent<RectTransform>();
+
+            var managerGo = new GameObject("SkillTreeNodeManager");
+            managerGo.transform.SetParent(canvasGo.transform, false);
+            var manager = managerGo.AddComponent<SkillTreeNodeManager>();
+            SetPrivateField(manager, "_content", contentRect);
+
+            return (canvasGo, manager, contentRect);
+        }
+
+        internal static void SetPrivateField(object obj, string fieldName, object value)
+        {
+            var field = obj.GetType().GetField(fieldName, BindingFlags.NonPublic | BindingFlags.Instance);
+            field.SetValue(obj, value);
         }
     }
 }
