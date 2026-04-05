@@ -9,6 +9,7 @@ namespace RogueliteAutoBattler.UI.Screens.SkillTree
     public class SkillTreeNodeManager : MonoBehaviour
     {
         private const float BorderPadding = 4f;
+        private static readonly Vector2 CenterAnchor = new Vector2(0.5f, 0.5f);
 
         [Header("Data")]
         [SerializeField] private SkillTreeData _data;
@@ -21,13 +22,13 @@ namespace RogueliteAutoBattler.UI.Screens.SkillTree
         [SerializeField] private float _unitSize = SkillTreeData.DefaultUnitSize;
 
         [Header("Node Colors")]
-        [SerializeField] private Color _nodeColor = new Color(0.3f, 0.3f, 0.3f, 1f);
-        [SerializeField] private Color _borderNormalColor = Color.gray;
-        [SerializeField] private Color _borderSelectedColor = Color.yellow;
+        [SerializeField] private Color _nodeColor = SkillTreeData.DefaultNodeColor;
+        [SerializeField] private Color _borderNormalColor = SkillTreeData.DefaultBorderNormalColor;
+        [SerializeField] private Color _borderSelectedColor = SkillTreeData.DefaultBorderSelectedColor;
 
         [Header("Edge Visual")]
-        [SerializeField] private Color _edgeColor = new Color(0.6f, 0.6f, 0.6f, 1f);
-        [SerializeField] private float _edgeThickness = 4f;
+        [SerializeField] private Color _edgeColor = SkillTreeData.DefaultEdgeColor;
+        [SerializeField] private float _edgeThickness = SkillTreeData.DefaultEdgeThickness;
 
         [Header("Visuals")]
         [SerializeField] private Sprite _circleSprite;
@@ -59,6 +60,7 @@ namespace RogueliteAutoBattler.UI.Screens.SkillTree
                     var edges = _data.GetEdges();
                     foreach (var (fromId, toId) in edges)
                     {
+                        // Note: node.id == index in Nodes list (guaranteed by BuildRingLayout sequential IDs)
                         if (fromId < _data.Nodes.Count && toId < _data.Nodes.Count)
                             CreateEdge(_data.Nodes[fromId].position, _data.Nodes[toId].position, fromId, toId);
                     }
@@ -83,9 +85,9 @@ namespace RogueliteAutoBattler.UI.Screens.SkillTree
             nodeGo.transform.SetParent(_content, false);
 
             var nodeRect = nodeGo.AddComponent<RectTransform>();
-            nodeRect.anchorMin = Vector2.one * 0.5f;
-            nodeRect.anchorMax = Vector2.one * 0.5f;
-            nodeRect.pivot = Vector2.one * 0.5f;
+            nodeRect.anchorMin = CenterAnchor;
+            nodeRect.anchorMax = CenterAnchor;
+            nodeRect.pivot = CenterAnchor;
             nodeRect.anchoredPosition = treePosition * _unitSize;
             nodeRect.sizeDelta = Vector2.one * _nodeSize;
             nodeRect.localScale = Vector3.one;
@@ -125,9 +127,9 @@ namespace RogueliteAutoBattler.UI.Screens.SkillTree
             edgeGo.transform.SetParent(_content, false);
 
             var edgeRect = edgeGo.AddComponent<RectTransform>();
-            edgeRect.anchorMin = Vector2.one * 0.5f;
-            edgeRect.anchorMax = Vector2.one * 0.5f;
-            edgeRect.pivot = Vector2.one * 0.5f;
+            edgeRect.anchorMin = CenterAnchor;
+            edgeRect.anchorMax = CenterAnchor;
+            edgeRect.pivot = CenterAnchor;
 
             Vector2 fromPos = fromPosition * _unitSize;
             Vector2 toPos = toPosition * _unitSize;

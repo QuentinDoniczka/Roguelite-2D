@@ -13,6 +13,12 @@ namespace RogueliteAutoBattler.Data
         public const float DefaultRingRadius = 5f;
         public const float DefaultUnitSize = 200f;
         public const float DefaultNodeSize = 80f;
+        public const float DefaultEdgeThickness = 4f;
+
+        public static readonly Color DefaultNodeColor = new Color(0.3f, 0.3f, 0.3f, 1f);
+        public static readonly Color DefaultBorderNormalColor = Color.gray;
+        public static readonly Color DefaultBorderSelectedColor = Color.yellow;
+        public static readonly Color DefaultEdgeColor = new Color(0.6f, 0.6f, 0.6f, 1f);
 
         [Serializable]
         public struct SkillNodeEntry
@@ -29,17 +35,24 @@ namespace RogueliteAutoBattler.Data
         [Header("Visual")]
         [SerializeField] private float unitSize = DefaultUnitSize;
         [SerializeField] private float nodeSize = DefaultNodeSize;
-        [SerializeField] private Color nodeColor = new Color(0.3f, 0.3f, 0.3f, 1f);
-        [SerializeField] private Color borderNormalColor = Color.gray;
-        [SerializeField] private Color borderSelectedColor = Color.yellow;
+        [SerializeField] private Color nodeColor = DefaultNodeColor;
+        [SerializeField] private Color borderNormalColor = DefaultBorderNormalColor;
+        [SerializeField] private Color borderSelectedColor = DefaultBorderSelectedColor;
 
         [Header("Edge Visual")]
-        [SerializeField] private Color edgeColor = new Color(0.6f, 0.6f, 0.6f, 1f);
+        [SerializeField] private Color edgeColor = DefaultEdgeColor;
         [SerializeField] private Color ringGuideColor = new Color(0.25f, 0.25f, 0.25f, 0.5f);
-        [SerializeField] private float edgeThickness = 4f;
+        [SerializeField] private float edgeThickness = DefaultEdgeThickness;
 
         [Header("Generated Nodes")]
         [SerializeField] private List<SkillNodeEntry> nodes = new List<SkillNodeEntry>();
+
+        private (int fromId, int toId)[] _cachedEdges;
+
+        private void OnValidate()
+        {
+            _cachedEdges = null;
+        }
 
         public float RingRadius { get => ringRadius; internal set => ringRadius = value; }
         public int RingNodeCount { get => ringNodeCount; internal set => ringNodeCount = value; }
@@ -56,6 +69,7 @@ namespace RogueliteAutoBattler.Data
         public void GenerateNodes()
         {
             nodes.Clear();
+            _cachedEdges = null;
             BuildRingLayout(nodes, ringNodeCount, ringRadius);
         }
 
@@ -78,6 +92,8 @@ namespace RogueliteAutoBattler.Data
 
         public (int fromId, int toId)[] GetEdges()
         {
+            if (_cachedEdges != null) return _cachedEdges;
+
             var edges = new List<(int, int)>();
             foreach (var node in nodes)
             {
@@ -85,7 +101,8 @@ namespace RogueliteAutoBattler.Data
                 foreach (int targetId in node.connectedNodeIds)
                     edges.Add((node.id, targetId));
             }
-            return edges.ToArray();
+            _cachedEdges = edges.ToArray();
+            return _cachedEdges;
         }
     }
 }

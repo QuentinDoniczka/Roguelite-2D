@@ -132,6 +132,7 @@ namespace RogueliteAutoBattler.Editor
                 };
             }
 
+            float scaledUnit = _data.UnitSize * _canvasZoom;
             float scaledNodeSize = _data.NodeSize * _canvasZoom;
             float halfNode = scaledNodeSize * 0.5f;
             float scaledBorder = NodeBorderThickness * _canvasZoom;
@@ -139,7 +140,7 @@ namespace RogueliteAutoBattler.Editor
             Handles.BeginGUI();
 
             Handles.color = _data.RingGuideColor;
-            float ringRadiusPixels = _data.RingRadius * _data.UnitSize * _canvasZoom;
+            float ringRadiusPixels = _data.RingRadius * scaledUnit;
             Handles.DrawWireDisc(new Vector3(origin.x, origin.y, 0f), Vector3.forward, ringRadiusPixels);
 
             Handles.color = _data.EdgeColor;
@@ -147,15 +148,16 @@ namespace RogueliteAutoBattler.Editor
             foreach (var (fromId, toId) in edges)
             {
                 if (fromId >= _data.Nodes.Count || toId >= _data.Nodes.Count) continue;
-                Vector2 fromPos = origin + _data.Nodes[fromId].position * _data.UnitSize * _canvasZoom;
-                Vector2 toPos = origin + _data.Nodes[toId].position * _data.UnitSize * _canvasZoom;
+                // Note: node.id == index in Nodes list (guaranteed by BuildRingLayout sequential IDs)
+                Vector2 fromPos = origin + _data.Nodes[fromId].position * scaledUnit;
+                Vector2 toPos = origin + _data.Nodes[toId].position * scaledUnit;
                 Handles.DrawLine(new Vector3(fromPos.x, fromPos.y, 0f), new Vector3(toPos.x, toPos.y, 0f));
             }
 
             for (int i = 0; i < _data.Nodes.Count; i++)
             {
                 var entry = _data.Nodes[i];
-                Vector2 screenPos = origin + entry.position * _data.UnitSize * _canvasZoom;
+                Vector2 screenPos = origin + entry.position * scaledUnit;
                 Vector3 center3D = new Vector3(screenPos.x, screenPos.y, 0f);
                 Rect nodeRect = new Rect(screenPos.x - halfNode, screenPos.y - halfNode, scaledNodeSize, scaledNodeSize);
 

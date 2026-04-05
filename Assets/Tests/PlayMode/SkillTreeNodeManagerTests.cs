@@ -138,6 +138,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             manager.Initialize();
             yield return null;
 
+            // 6 nodes + 6 edges = 12 children
             Assert.AreEqual(12, content.childCount);
         }
 
