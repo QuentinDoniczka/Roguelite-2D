@@ -18,7 +18,7 @@ namespace RogueliteAutoBattler.Data
 
         [Header("Generation")]
         [SerializeField] private float ringRadius = 5f;
-        [SerializeField, Range(3, 24)] private int ringNodeCount = 8;
+        [SerializeField, Range(3, 24)] private int ringNodeCount = 6;
 
         [Header("Visual")]
         [SerializeField] private float unitSize = 200f;
@@ -49,13 +49,11 @@ namespace RogueliteAutoBattler.Data
         {
             Debug.Assert(nodeCount > 0, "Ring node count must be positive");
 
-            output.Add(new SkillNodeEntry { id = 0, position = Vector2.zero });
-
             for (int i = 0; i < nodeCount; i++)
             {
                 float angle = i * (2f * Mathf.PI / nodeCount);
                 Vector2 pos = new Vector2(radius * Mathf.Cos(angle), radius * Mathf.Sin(angle));
-                output.Add(new SkillNodeEntry { id = i + 1, position = pos });
+                output.Add(new SkillNodeEntry { id = i, position = pos });
             }
         }
     }
