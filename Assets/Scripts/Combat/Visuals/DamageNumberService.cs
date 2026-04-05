@@ -10,6 +10,8 @@ namespace RogueliteAutoBattler.Combat.Visuals
         private static Transform _container;
         private static DamageNumberConfig _config;
 
+        public static bool Suppressed { get; set; }
+
         public static void Initialize(Transform effectsContainer, DamageNumberConfig config)
         {
             _container = effectsContainer;
@@ -20,7 +22,7 @@ namespace RogueliteAutoBattler.Combat.Visuals
 
         public static void Show(Vector3 worldPosition, int value, bool isAlly)
         {
-            if (!_pool.IsInitialized || !_config.Enabled)
+            if (!_pool.IsInitialized || !_config.Enabled || Suppressed)
                 return;
 
             Color color = isAlly ? _config.AllyDamageColor : _config.EnemyDamageColor;
@@ -55,6 +57,7 @@ namespace RogueliteAutoBattler.Combat.Visuals
             _pool.Clear();
             _container = null;
             _config = null;
+            Suppressed = false;
         }
 
         internal static void ResetForTest()
