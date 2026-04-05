@@ -19,8 +19,23 @@ namespace RogueliteAutoBattler.Editor
         private static readonly Color CrosshairColor = new Color(0.4f, 0.4f, 0.4f, 1f);
         private static readonly Color GridLineColor = new Color(0.2f, 0.2f, 0.2f, 1f);
 
+        private static readonly GUIContent LabelRingNodeCount = new GUIContent("Ring Node Count");
+        private static readonly GUIContent LabelRingRadius = new GUIContent("Ring Radius");
+        private static readonly GUIContent LabelUnitSize = new GUIContent("Unit Size");
+        private static readonly GUIContent LabelNodeSize = new GUIContent("Node Size");
+        private static readonly GUIContent LabelNodeColor = new GUIContent("Node Color");
+        private static readonly GUIContent LabelBorderNormal = new GUIContent("Border Normal");
+        private static readonly GUIContent LabelBorderSelected = new GUIContent("Border Selected");
+
         private SkillTreeData _data;
         private SerializedObject _serializedData;
+        private SerializedProperty _propRingNodeCount;
+        private SerializedProperty _propRingRadius;
+        private SerializedProperty _propUnitSize;
+        private SerializedProperty _propNodeSize;
+        private SerializedProperty _propNodeColor;
+        private SerializedProperty _propBorderNormalColor;
+        private SerializedProperty _propBorderSelectedColor;
         private Vector2 _canvasOffset;
         private float _canvasZoom = 1f;
         private Vector2 _configScrollPos;
@@ -46,7 +61,19 @@ namespace RogueliteAutoBattler.Editor
                 AssetDatabase.SaveAssets();
             }
             _serializedData = new SerializedObject(_data);
+            CacheSerializedProperties();
             RebuildNodeLabels();
+        }
+
+        private void CacheSerializedProperties()
+        {
+            _propRingNodeCount = _serializedData.FindProperty("ringNodeCount");
+            _propRingRadius = _serializedData.FindProperty("ringRadius");
+            _propUnitSize = _serializedData.FindProperty("unitSize");
+            _propNodeSize = _serializedData.FindProperty("nodeSize");
+            _propNodeColor = _serializedData.FindProperty("nodeColor");
+            _propBorderNormalColor = _serializedData.FindProperty("borderNormalColor");
+            _propBorderSelectedColor = _serializedData.FindProperty("borderSelectedColor");
         }
 
         private void OnGUI()
@@ -87,40 +114,37 @@ namespace RogueliteAutoBattler.Editor
             EditorGUI.DrawRect(new Rect(origin.x - 0.5f, 0, 1, canvasRect.height), CrosshairColor);
             EditorGUI.DrawRect(new Rect(0, origin.y - 0.5f, canvasRect.width, 1), CrosshairColor);
 
-            if (_data.Nodes != null)
+            if (_nodeLabelStyle == null)
             {
-                if (_nodeLabelStyle == null)
+                _nodeLabelStyle = new GUIStyle(EditorStyles.miniLabel)
                 {
-                    _nodeLabelStyle = new GUIStyle(EditorStyles.miniLabel)
-                    {
-                        alignment = TextAnchor.MiddleCenter,
-                        normal = { textColor = Color.white }
-                    };
-                }
-
-                float scaledNodeSize = _data.NodeSize * _canvasZoom;
-                float halfNode = scaledNodeSize * 0.5f;
-
-                for (int i = 0; i < _data.Nodes.Count; i++)
-                {
-                    var entry = _data.Nodes[i];
-                    Vector2 screenPos = origin + entry.position * _data.UnitSize * _canvasZoom;
-                    Rect nodeRect = new Rect(screenPos.x - halfNode, screenPos.y - halfNode, scaledNodeSize, scaledNodeSize);
-
-                    float scaledBorder = NodeBorderThickness * _canvasZoom;
-                    Rect borderRect = new Rect(
-                        nodeRect.x - scaledBorder,
-                        nodeRect.y - scaledBorder,
-                        nodeRect.width + scaledBorder * 2,
-                        nodeRect.height + scaledBorder * 2);
-                    EditorGUI.DrawRect(borderRect, _data.BorderNormalColor);
-
-                    EditorGUI.DrawRect(nodeRect, _data.NodeColor);
-
-                    string label = _nodeLabels != null && i < _nodeLabels.Length ? _nodeLabels[i] : entry.id.ToString();
-                    GUI.Label(nodeRect, label, _nodeLabelStyle);
-                }
+                    alignment = TextAnchor.MiddleCenter,
+                    normal = { textColor = Color.white }
+                };
             }
+
+            float scaledNodeSize = _data.NodeSize * _canvasZoom;
+            float halfNode = scaledNodeSize * 0.5f;
+            float scaledBorder = NodeBorderThickness * _canvasZoom;
+
+            Handles.BeginGUI();
+            for (int i = 0; i < _data.Nodes.Count; i++)
+            {
+                var entry = _data.Nodes[i];
+                Vector2 screenPos = origin + entry.position * _data.UnitSize * _canvasZoom;
+                Vector3 center3D = new Vector3(screenPos.x, screenPos.y, 0f);
+                Rect nodeRect = new Rect(screenPos.x - halfNode, screenPos.y - halfNode, scaledNodeSize, scaledNodeSize);
+
+                Handles.color = _data.BorderNormalColor;
+                Handles.DrawSolidDisc(center3D, Vector3.forward, halfNode + scaledBorder);
+
+                Handles.color = _data.NodeColor;
+                Handles.DrawSolidDisc(center3D, Vector3.forward, halfNode);
+
+                string label = _nodeLabels != null && i < _nodeLabels.Length ? _nodeLabels[i] : entry.id.ToString();
+                GUI.Label(nodeRect, label, _nodeLabelStyle);
+            }
+            Handles.EndGUI();
 
             GUI.EndClip();
         }
@@ -177,23 +201,23 @@ namespace RogueliteAutoBattler.Editor
             {
                 _data = newData;
                 _serializedData = new SerializedObject(_data);
+                CacheSerializedProperties();
             }
 
             EditorGUILayout.Space(12);
             EditorGUILayout.LabelField("Generation Parameters", EditorStyles.boldLabel);
 
-            EditorGUILayout.IntSlider(_serializedData.FindProperty("nodeCount"), 1, 100, new GUIContent("Node Count"));
-            EditorGUILayout.PropertyField(_serializedData.FindProperty("seed"), new GUIContent("Seed"));
-            EditorGUILayout.Slider(_serializedData.FindProperty("placementRadius"), 1f, 20f, new GUIContent("Placement Radius"));
+            EditorGUILayout.IntSlider(_propRingNodeCount, 3, 24, LabelRingNodeCount);
+            EditorGUILayout.Slider(_propRingRadius, 1f, 20f, LabelRingRadius);
 
             EditorGUILayout.Space(12);
             EditorGUILayout.LabelField("Visual Settings", EditorStyles.boldLabel);
 
-            EditorGUILayout.PropertyField(_serializedData.FindProperty("unitSize"), new GUIContent("Unit Size"));
-            EditorGUILayout.PropertyField(_serializedData.FindProperty("nodeSize"), new GUIContent("Node Size"));
-            EditorGUILayout.PropertyField(_serializedData.FindProperty("nodeColor"), new GUIContent("Node Color"));
-            EditorGUILayout.PropertyField(_serializedData.FindProperty("borderNormalColor"), new GUIContent("Border Normal"));
-            EditorGUILayout.PropertyField(_serializedData.FindProperty("borderSelectedColor"), new GUIContent("Border Selected"));
+            EditorGUILayout.PropertyField(_propUnitSize, LabelUnitSize);
+            EditorGUILayout.PropertyField(_propNodeSize, LabelNodeSize);
+            EditorGUILayout.PropertyField(_propNodeColor, LabelNodeColor);
+            EditorGUILayout.PropertyField(_propBorderNormalColor, LabelBorderNormal);
+            EditorGUILayout.PropertyField(_propBorderSelectedColor, LabelBorderSelected);
 
             EditorGUILayout.Space(16);
 
@@ -217,8 +241,7 @@ namespace RogueliteAutoBattler.Editor
 
             EditorGUILayout.Space(8);
 
-            int nodeCountDisplay = _data.Nodes != null ? _data.Nodes.Count : 0;
-            EditorGUILayout.HelpBox($"{nodeCountDisplay} nodes generated.", MessageType.Info);
+            EditorGUILayout.HelpBox($"{_data.Nodes.Count} nodes generated.", MessageType.Info);
 
             if (_serializedData.ApplyModifiedProperties())
                 Repaint();
@@ -250,7 +273,7 @@ namespace RogueliteAutoBattler.Editor
 
         private void RebuildNodeLabels()
         {
-            if (_data == null || _data.Nodes == null || _data.Nodes.Count == 0)
+            if (_data == null || _data.Nodes.Count == 0)
             {
                 _nodeLabels = null;
                 return;

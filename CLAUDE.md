@@ -25,7 +25,7 @@
 Doc detaille : `Assets/doc/premier-jet-roguelite.html`
 
 # Project Structure
-Generated: 2026-04-05 (updated feature/149-skill-tree-canvas + #150/#151)
+Generated: 2026-04-05 (updated feature/153-skill-tree-ring-layout)
 
 .github/
   workflows/
@@ -33,8 +33,8 @@ Generated: 2026-04-05 (updated feature/149-skill-tree-canvas + #150/#151)
     protect-main.yml
 
 Assets/
-  Animations/  (52 files: .anim + .controller)
-  Audio/  (1 file)
+  Animations/  (23 files: .anim + .controller)
+  Audio/  (empty)
   Data/
     Adventurers/  (empty)
     Buildings/  (empty)
@@ -42,6 +42,7 @@ Assets/
     LootTables/  (empty)
     DamageNumberConfig.asset
     LevelDatabase.asset
+    SkillTreeData.asset
     TeamDatabase.asset
   doc/
     MedievalFantasyCharacters/  (14 files)
@@ -55,11 +56,12 @@ Assets/
     plan-issue-80.md
     plan-level-scroll-transition.md
     premier-jet-roguelite.html
-  Fonts/  (1 file)
-  Materials/  (2 files)
+    techtreeidea.png
+  Fonts/  (empty)
+  Materials/  (1 file)
   MedievalFantasyCharacters/  (asset store package)
   Prefabs/
-    Characters/  (6 prefabs)
+    Characters/  (5 prefabs)
     Effects/  (empty)
     UI/  (empty)
   Scenes/
@@ -176,7 +178,7 @@ Assets/
     SpriteOutline2D.shader
     SpriteSilhouette2D.shader
   Sprites/
-    Characters/  (156 files)
+    Characters/  (155 files)
     Effects/  (25 files)
     Environment/
       backgroundtest.png
@@ -184,8 +186,8 @@ Assets/
       grid_ground_blue.png
       map.png
       placeholder_white.png
-    Items/  (54 files)
-    UI/  (1 file)
+    Items/  (53 files)
+    UI/  (empty — circle_white.png generated at build time by SkillTreeBuilder)
   Tests/
     EditMode/
       Tests.EditMode.asmdef
@@ -193,8 +195,9 @@ Assets/
       CombatStatsDamageEventTests.cs
       CombatStatsTests.cs
       FormationLayoutTests.cs
-      RecalculateFormationTests.cs
       GoldFormatterTests.cs
+      RecalculateFormationTests.cs
+      SkillTreeDataTests.cs
       TargetFinderTests.cs
     PlayMode/
       Tests.PlayMode.asmdef

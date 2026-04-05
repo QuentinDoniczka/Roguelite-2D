@@ -294,11 +294,12 @@ namespace RogueliteAutoBattler.Tests
         public static (GameObject nodeGo, SkillTreeNode node) CreateSkillTreeNode(int index = 0)
         {
             var nodeGo = new GameObject($"SkillTreeNode_{index}");
-            nodeGo.AddComponent<Image>();
+            var borderImage = nodeGo.AddComponent<Image>();
 
-            var borderGo = new GameObject("Border");
-            borderGo.transform.SetParent(nodeGo.transform, false);
-            var borderImage = borderGo.AddComponent<Image>();
+            var fillGo = new GameObject("Fill");
+            fillGo.transform.SetParent(nodeGo.transform, false);
+            var fillImage = fillGo.AddComponent<Image>();
+            fillImage.raycastTarget = false;
 
             var node = nodeGo.AddComponent<SkillTreeNode>();
             node.Setup(borderImage, Color.gray, Color.yellow);

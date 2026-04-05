@@ -8,6 +8,8 @@ namespace RogueliteAutoBattler.Editor
 {
     internal static class SkillTreeBuilder
     {
+        internal const string CircleSpritePath = "Assets/Sprites/UI/circle_white.png";
+
         internal static void BuildSkillTreeContent(GameObject skillTreePanel)
         {
             Transform existingLabel = skillTreePanel.transform.Find("Label");
@@ -19,7 +21,7 @@ namespace RogueliteAutoBattler.Editor
             EditorUIFactory.Stretch(viewportGo.AddComponent<RectTransform>());
 
             Image viewportImage = viewportGo.AddComponent<Image>();
-            viewportImage.color = new Color(0, 0, 0, 0);
+            viewportImage.color = Color.clear;
             viewportImage.raycastTarget = true;
 
             viewportGo.AddComponent<RectMask2D>();
@@ -46,6 +48,11 @@ namespace RogueliteAutoBattler.Editor
             var skillTreeData = AssetDatabase.LoadAssetAtPath<SkillTreeData>(SkillTreeData.DefaultAssetPath);
             if (skillTreeData != null)
                 EditorUIFactory.SetObj(nodeManagerSO, "_data", skillTreeData);
+
+            var circleSprite = EnsureCircleSprite();
+            if (circleSprite != null)
+                EditorUIFactory.SetObj(nodeManagerSO, "_circleSprite", circleSprite);
+
             nodeManagerSO.ApplyModifiedProperties();
 
             SkillTreeScreen screen = skillTreePanel.GetComponent<SkillTreeScreen>();
@@ -60,6 +67,48 @@ namespace RogueliteAutoBattler.Editor
             {
                 Debug.LogError("[SkillTreeBuilder] SkillTreeScreen component not found on skillTreePanel.");
             }
+        }
+
+        internal static Sprite EnsureCircleSprite()
+        {
+            var existing = AssetDatabase.LoadAssetAtPath<Sprite>(CircleSpritePath);
+            if (existing != null) return existing;
+
+            const int size = 128;
+            const float center = size * 0.5f;
+            const float radius = center - 1f;
+
+            var tex = new Texture2D(size, size, TextureFormat.RGBA32, false);
+            var pixels = new Color[size * size];
+
+            for (int y = 0; y < size; y++)
+            {
+                for (int x = 0; x < size; x++)
+                {
+                    float dist = Vector2.Distance(new Vector2(x + 0.5f, y + 0.5f), new Vector2(center, center));
+                    float alpha = Mathf.Clamp01(radius - dist + 0.5f);
+                    pixels[y * size + x] = new Color(1f, 1f, 1f, alpha);
+                }
+            }
+
+            tex.SetPixels(pixels);
+            tex.Apply();
+
+            EditorUIFactory.EnsureDirectoryExists(CircleSpritePath);
+
+            byte[] pngData = tex.EncodeToPNG();
+            Object.DestroyImmediate(tex);
+            System.IO.File.WriteAllBytes(CircleSpritePath, pngData);
+            AssetDatabase.ImportAsset(CircleSpritePath);
+
+            var importer = (TextureImporter)AssetImporter.GetAtPath(CircleSpritePath);
+            importer.textureType = TextureImporterType.Sprite;
+            importer.spriteImportMode = SpriteImportMode.Single;
+            importer.alphaIsTransparency = true;
+            importer.isReadable = false;
+            importer.SaveAndReimport();
+
+            return AssetDatabase.LoadAssetAtPath<Sprite>(CircleSpritePath);
         }
     }
 }

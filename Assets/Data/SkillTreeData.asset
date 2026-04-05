@@ -12,9 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9568085fa8c1a7f43962fb27b9ab0163, type: 3}
   m_Name: SkillTreeData
   m_EditorClassIdentifier: RogueliteAutoBattler.Runtime::RogueliteAutoBattler.Data.SkillTreeData
-  nodeCount: 10
-  seed: 42
-  placementRadius: 5
+  ringRadius: 2
+  ringNodeCount: 8
   unitSize: 200
   nodeSize: 80
   nodeColor: {r: 0.3, g: 0.3, b: 0.3, a: 1}
@@ -22,22 +21,18 @@ MonoBehaviour:
   borderSelectedColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
   nodes:
   - id: 0
-    position: {x: -0.92369765, y: -1.6338499}
+    position: {x: 2, y: 0}
   - id: 1
-    position: {x: 2.547939, y: 2.564588}
+    position: {x: 1.4142135, y: 1.4142135}
   - id: 2
-    position: {x: 1.2563734, y: 2.2330124}
+    position: {x: -0.00000008742278, y: 2}
   - id: 3
-    position: {x: -0.57332367, y: -3.5347376}
+    position: {x: -1.4142135, y: 1.4142135}
   - id: 4
-    position: {x: 2.0133963, y: 3.8700771}
+    position: {x: -2, y: -0.00000017484555}
   - id: 5
-    position: {x: 0.2452194, y: 2.5244606}
+    position: {x: -1.4142133, y: -1.4142138}
   - id: 6
-    position: {x: -2.827704, y: -0.099599846}
+    position: {x: 0.000000023849761, y: -2}
   - id: 7
-    position: {x: -1.86999, y: 1.7347201}
-  - id: 8
-    position: {x: -0.934022, y: -0.10282658}
-  - id: 9
-    position: {x: 1.4897175, y: -3.4943757}
+    position: {x: 1.414214, y: -1.4142131}

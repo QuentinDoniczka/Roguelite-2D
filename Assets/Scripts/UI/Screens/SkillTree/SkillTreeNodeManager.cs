@@ -3,15 +3,12 @@ using System.Collections.Generic;
 using RogueliteAutoBattler.Data;
 using UnityEngine;
 using UnityEngine.UI;
-using SysRandom = System.Random;
 
 namespace RogueliteAutoBattler.UI.Screens.SkillTree
 {
     public class SkillTreeNodeManager : MonoBehaviour
     {
-        private const int PlaceholderNodeCount = 10;
-        private const int DeterministicSeed = 42;
-        private const float PlacementRadius = 5f;
+        private const float BorderPadding = 4f;
 
         [Header("Data")]
         [SerializeField] private SkillTreeData _data;
@@ -20,13 +17,16 @@ namespace RogueliteAutoBattler.UI.Screens.SkillTree
         [SerializeField] private RectTransform _content;
 
         [Header("Node Sizing")]
-        [SerializeField] private float _nodeSize = 80f;
-        [SerializeField] private float _unitSize = 200f;
+        [SerializeField] private float _nodeSize = SkillTreeData.DefaultNodeSize;
+        [SerializeField] private float _unitSize = SkillTreeData.DefaultUnitSize;
 
         [Header("Node Colors")]
         [SerializeField] private Color _nodeColor = new Color(0.3f, 0.3f, 0.3f, 1f);
         [SerializeField] private Color _borderNormalColor = Color.gray;
         [SerializeField] private Color _borderSelectedColor = Color.yellow;
+
+        [Header("Visuals")]
+        [SerializeField] private Sprite _circleSprite;
 
         private readonly List<SkillTreeNode> _nodes = new List<SkillTreeNode>();
         private SkillTreeNode _selectedNode;
@@ -57,13 +57,10 @@ namespace RogueliteAutoBattler.UI.Screens.SkillTree
                 return;
             }
 
-            var fallbackRng = new SysRandom(DeterministicSeed);
-            for (int i = 0; i < PlaceholderNodeCount; i++)
-            {
-                float angle = (float)(fallbackRng.NextDouble() * 2.0 * Mathf.PI);
-                float radius = Mathf.Sqrt((float)fallbackRng.NextDouble()) * PlacementRadius;
-                CreateNode(i, new Vector2(radius * Mathf.Cos(angle), radius * Mathf.Sin(angle)));
-            }
+            var fallbackNodes = new List<SkillTreeData.SkillNodeEntry>();
+            SkillTreeData.BuildRingLayout(fallbackNodes, SkillTreeData.DefaultRingNodeCount, SkillTreeData.DefaultRingRadius);
+            foreach (var entry in fallbackNodes)
+                CreateNode(entry.id, entry.position);
         }
 
         private void CreateNode(int index, Vector2 treePosition)
@@ -80,23 +77,28 @@ namespace RogueliteAutoBattler.UI.Screens.SkillTree
             nodeRect.localScale = Vector3.one;
 
             var iconImage = nodeGo.AddComponent<Image>();
-            iconImage.color = _nodeColor;
+            iconImage.color = _borderNormalColor;
+            iconImage.sprite = _circleSprite;
+            iconImage.type = Image.Type.Simple;
+            iconImage.preserveAspect = true;
 
-            var borderGo = new GameObject("Border");
-            borderGo.transform.SetParent(nodeGo.transform, false);
+            var fillGo = new GameObject("Fill");
+            fillGo.transform.SetParent(nodeGo.transform, false);
 
-            var borderRect = borderGo.AddComponent<RectTransform>();
-            borderRect.anchorMin = Vector2.zero;
-            borderRect.anchorMax = Vector2.one;
-            borderRect.sizeDelta = Vector2.zero;
-            borderRect.localScale = Vector3.one;
+            var fillRect = fillGo.AddComponent<RectTransform>();
+            fillRect.anchorMin = Vector2.zero;
+            fillRect.anchorMax = Vector2.one;
+            fillRect.sizeDelta = Vector2.one * -BorderPadding * 2;
+            fillRect.localScale = Vector3.one;
 
-            var borderImage = borderGo.AddComponent<Image>();
-            borderImage.color = _borderNormalColor;
-            borderImage.raycastTarget = false;
+            var fillImage = fillGo.AddComponent<Image>();
+            fillImage.color = _nodeColor;
+            fillImage.sprite = _circleSprite;
+            fillImage.raycastTarget = false;
+            fillImage.preserveAspect = true;
 
             var node = nodeGo.AddComponent<SkillTreeNode>();
-            node.Setup(borderImage, _borderNormalColor, _borderSelectedColor);
+            node.Setup(iconImage, _borderNormalColor, _borderSelectedColor);
             node.Initialize(index);
             node.OnNodeClicked += HandleNodeClicked;
 
