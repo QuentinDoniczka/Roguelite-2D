@@ -37,6 +37,12 @@ namespace RogueliteAutoBattler.Data
             Power
         }
 
+        public enum StatModifierMode
+        {
+            Flat,
+            Percent
+        }
+
         [Serializable]
         public struct SkillNodeEntry
         {
@@ -50,6 +56,7 @@ namespace RogueliteAutoBattler.Data
             public float costMultiplierEven;
             public int costAdditivePerLevel;
             public StatModifierType statModifierType;
+            public StatModifierMode statModifierMode;
             public float statModifierValuePerLevel;
         }
 

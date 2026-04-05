@@ -330,6 +330,7 @@ namespace RogueliteAutoBattler.Editor
 
                 EditorGUILayout.Space(4);
                 var newStatModType = (SkillTreeData.StatModifierType)EditorGUILayout.EnumPopup("Stat Modifier", node.statModifierType);
+                var newStatModMode = (SkillTreeData.StatModifierMode)EditorGUILayout.EnumPopup("Mode", node.statModifierMode);
                 float newStatModValue = EditorGUILayout.FloatField("Value Per Level", node.statModifierValuePerLevel);
 
                 if (EditorGUI.EndChangeCheck())
@@ -342,6 +343,7 @@ namespace RogueliteAutoBattler.Editor
                     updated.costMultiplierEven = newMultEven;
                     updated.costAdditivePerLevel = newAdditive;
                     updated.statModifierType = newStatModType;
+                    updated.statModifierMode = newStatModMode;
                     updated.statModifierValuePerLevel = newStatModValue;
 
                     _data.SetNode(_selectedNodeIndex, updated);
