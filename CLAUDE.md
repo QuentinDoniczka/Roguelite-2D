@@ -25,7 +25,7 @@
 Doc detaille : `Assets/doc/premier-jet-roguelite.html`
 
 # Project Structure
-Generated: 2026-04-05 (updated feature/149-skill-tree-canvas)
+Generated: 2026-04-05 (updated feature/149-skill-tree-canvas + #150/#151)
 
 .github/
   workflows/
@@ -59,7 +59,7 @@ Assets/
   Materials/  (2 files)
   MedievalFantasyCharacters/  (asset store package)
   Prefabs/
-    Characters/  (5 prefabs)
+    Characters/  (6 prefabs)
     Effects/  (empty)
     UI/  (empty)
   Scenes/
@@ -126,12 +126,14 @@ Assets/
         GameDesignerWindow.cs
         LevelDesignerTab.cs
         SettingsWindow.cs
+        SkillTreeDesignerWindow.cs
         TeamBuilderTab.cs
     Items/  (empty)
     Data/
       DamageNumberConfig.cs
       LevelDataTypes.cs
       LevelDatabase.cs
+      SkillTreeData.cs
       TeamDatabase.cs
     Services/
       Local/  (empty)
@@ -174,15 +176,15 @@ Assets/
     SpriteOutline2D.shader
     SpriteSilhouette2D.shader
   Sprites/
-    Characters/  (345 files)
-    Effects/  (55 files)
+    Characters/  (156 files)
+    Effects/  (25 files)
     Environment/
       backgroundtest.png
       grid_ground.png
       grid_ground_blue.png
       map.png
       placeholder_white.png
-    Items/  (116 files)
+    Items/  (54 files)
     UI/  (1 file)
   Tests/
     EditMode/

@@ -51,14 +51,9 @@ namespace RogueliteAutoBattler.UI.Screens.SkillTree
                 }
                 else
                 {
-                    var rng = new SysRandom(_data.Seed);
-                    for (int i = 0; i < _data.NodeCount; i++)
-                    {
-                        float angle = (float)(rng.NextDouble() * 2.0 * Mathf.PI);
-                        float radius = Mathf.Sqrt((float)rng.NextDouble()) * _data.PlacementRadius;
-                        CreateNode(i, new Vector2(radius * Mathf.Cos(angle), radius * Mathf.Sin(angle)));
-                    }
+                    Debug.LogWarning("[SkillTreeNodeManager] SkillTreeData has no generated nodes. Use the Skill Tree Designer to generate nodes first.");
                 }
+
                 return;
             }
 
@@ -144,7 +139,7 @@ namespace RogueliteAutoBattler.UI.Screens.SkillTree
                 if (node != null)
                 {
                     node.OnNodeClicked -= HandleNodeClicked;
-                    DestroyImmediate(node.gameObject);
+                    SafeDestroy(node.gameObject);
                 }
             }
             _nodes.Clear();
@@ -153,7 +148,7 @@ namespace RogueliteAutoBattler.UI.Screens.SkillTree
             if (_content != null)
             {
                 for (int i = _content.childCount - 1; i >= 0; i--)
-                    DestroyImmediate(_content.GetChild(i).gameObject);
+                    SafeDestroy(_content.GetChild(i).gameObject);
             }
         }
 
@@ -166,6 +161,14 @@ namespace RogueliteAutoBattler.UI.Screens.SkillTree
                     node.OnNodeClicked -= HandleNodeClicked;
                 }
             }
+        }
+
+        private static void SafeDestroy(GameObject go)
+        {
+            if (Application.isPlaying)
+                Destroy(go);
+            else
+                DestroyImmediate(go);
         }
     }
 }

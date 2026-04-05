@@ -8,6 +8,8 @@ namespace RogueliteAutoBattler.Data
     [CreateAssetMenu(fileName = "SkillTreeData", menuName = "Roguelite/Skill Tree Data")]
     public class SkillTreeData : ScriptableObject
     {
+        public const string DefaultAssetPath = "Assets/Data/SkillTreeData.asset";
+
         [Serializable]
         public struct SkillNodeEntry
         {

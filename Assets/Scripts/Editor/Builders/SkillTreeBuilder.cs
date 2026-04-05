@@ -1,3 +1,4 @@
+using RogueliteAutoBattler.Data;
 using RogueliteAutoBattler.UI.Screens.SkillTree;
 using UnityEditor;
 using UnityEngine;
@@ -42,6 +43,9 @@ namespace RogueliteAutoBattler.Editor
 
             var nodeManagerSO = new SerializedObject(nodeManager);
             EditorUIFactory.SetObj(nodeManagerSO, "_content", contentRect);
+            var skillTreeData = AssetDatabase.LoadAssetAtPath<SkillTreeData>(SkillTreeData.DefaultAssetPath);
+            if (skillTreeData != null)
+                EditorUIFactory.SetObj(nodeManagerSO, "_data", skillTreeData);
             nodeManagerSO.ApplyModifiedProperties();
 
             SkillTreeScreen screen = skillTreePanel.GetComponent<SkillTreeScreen>();
