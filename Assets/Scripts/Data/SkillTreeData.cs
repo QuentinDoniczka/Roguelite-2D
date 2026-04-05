@@ -70,7 +70,8 @@ namespace RogueliteAutoBattler.Data
 
         [Header("Cost Formula")]
         [SerializeField] private int baseCost = 1;
-        [SerializeField] private float costMultiplierPerLevel = 1f;
+        [SerializeField] private float costMultiplierOdd = 1f;
+        [SerializeField] private float costMultiplierEven = 1f;
         [SerializeField] private int costAdditivePerLevel = 0;
 
         [Header("Edge Visual")]
@@ -96,7 +97,8 @@ namespace RogueliteAutoBattler.Data
         public Color BorderNormalColor { get => borderNormalColor; internal set => borderNormalColor = value; }
         public Color BorderSelectedColor { get => borderSelectedColor; internal set => borderSelectedColor = value; }
         public int BaseCost { get => baseCost; internal set => baseCost = value; }
-        public float CostMultiplierPerLevel { get => costMultiplierPerLevel; internal set => costMultiplierPerLevel = value; }
+        public float CostMultiplierOdd { get => costMultiplierOdd; internal set => costMultiplierOdd = value; }
+        public float CostMultiplierEven { get => costMultiplierEven; internal set => costMultiplierEven = value; }
         public int CostAdditivePerLevel { get => costAdditivePerLevel; internal set => costAdditivePerLevel = value; }
         public Color EdgeColor { get => edgeColor; internal set => edgeColor = value; }
         public Color RingGuideColor { get => ringGuideColor; internal set => ringGuideColor = value; }
@@ -125,7 +127,7 @@ namespace RogueliteAutoBattler.Data
                     connectedNodeIds = new List<int> { (i + 1) % nodeCount },
                     nodeType = NodeType.Passive,
                     costType = CostType.Gold,
-                    maxLevel = 1,
+                    maxLevel = 0,
                     statModifierType = StatModifierType.HP,
                     statModifierValuePerLevel = 0f
                 });
@@ -149,7 +151,13 @@ namespace RogueliteAutoBattler.Data
 
         public int ComputeNodeCost(int level)
         {
-            return Mathf.FloorToInt(baseCost * Mathf.Pow(costMultiplierPerLevel, level)) + costAdditivePerLevel * level;
+            int cost = baseCost;
+            for (int i = 1; i <= level; i++)
+            {
+                float multiplier = (i % 2 == 1) ? costMultiplierOdd : costMultiplierEven;
+                cost = Mathf.FloorToInt(cost * multiplier) + costAdditivePerLevel;
+            }
+            return cost;
         }
 
         internal void SetNode(int index, SkillNodeEntry entry)

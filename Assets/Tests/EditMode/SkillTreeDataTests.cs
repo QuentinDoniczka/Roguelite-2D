@@ -242,8 +242,8 @@ namespace RogueliteAutoBattler.Tests.EditMode
                 var node = _skillTreeData.Nodes[i];
                 Assert.AreEqual(SkillTreeData.CostType.Gold, node.costType,
                     $"Node {i} costType should default to Gold");
-                Assert.AreEqual(1, node.maxLevel,
-                    $"Node {i} maxLevel should default to 1");
+                Assert.AreEqual(0, node.maxLevel,
+                    $"Node {i} maxLevel should default to 0 (unlimited)");
                 Assert.AreEqual(SkillTreeData.StatModifierType.HP, node.statModifierType,
                     $"Node {i} statModifierType should default to HP");
                 Assert.AreEqual(0f, node.statModifierValuePerLevel,
@@ -261,7 +261,7 @@ namespace RogueliteAutoBattler.Tests.EditMode
             {
                 var node = _skillTreeData.Nodes[i];
                 Assert.AreEqual(SkillTreeData.CostType.Gold, node.costType);
-                Assert.AreEqual(1, node.maxLevel);
+                Assert.AreEqual(0, node.maxLevel);
             }
         }
 
@@ -329,8 +329,6 @@ namespace RogueliteAutoBattler.Tests.EditMode
         [Test]
         public void ComputeNodeCost_DefaultValues_ReturnsBaseCost()
         {
-            // baseCost=1, multiplier=1, additive=0
-            // cost(0) = floor(1 * 1^0) + 0*0 = 1
             Assert.AreEqual(1, _skillTreeData.ComputeNodeCost(0));
             Assert.AreEqual(1, _skillTreeData.ComputeNodeCost(1));
             Assert.AreEqual(1, _skillTreeData.ComputeNodeCost(5));
@@ -340,14 +338,12 @@ namespace RogueliteAutoBattler.Tests.EditMode
         public void ComputeNodeCost_WithMultiplier_ScalesExponentially()
         {
             _skillTreeData.BaseCost = 10;
-            _skillTreeData.CostMultiplierPerLevel = 2f;
+            _skillTreeData.CostMultiplierOdd = 2f;
+            _skillTreeData.CostMultiplierEven = 2f;
             _skillTreeData.CostAdditivePerLevel = 0;
 
-            // cost(0) = floor(10 * 2^0) + 0 = 10
             Assert.AreEqual(10, _skillTreeData.ComputeNodeCost(0));
-            // cost(1) = floor(10 * 2^1) + 0 = 20
             Assert.AreEqual(20, _skillTreeData.ComputeNodeCost(1));
-            // cost(2) = floor(10 * 2^2) + 0 = 40
             Assert.AreEqual(40, _skillTreeData.ComputeNodeCost(2));
         }
 
@@ -355,30 +351,40 @@ namespace RogueliteAutoBattler.Tests.EditMode
         public void ComputeNodeCost_WithAdditive_AddsAfterMultiply()
         {
             _skillTreeData.BaseCost = 10;
-            _skillTreeData.CostMultiplierPerLevel = 1.5f;
+            _skillTreeData.CostMultiplierOdd = 1.5f;
+            _skillTreeData.CostMultiplierEven = 1.5f;
             _skillTreeData.CostAdditivePerLevel = 5;
 
-            // cost(0) = floor(10 * 1.5^0) + 5*0 = 10
             Assert.AreEqual(10, _skillTreeData.ComputeNodeCost(0));
-            // cost(1) = floor(10 * 1.5^1) + 5*1 = floor(15) + 5 = 20
             Assert.AreEqual(20, _skillTreeData.ComputeNodeCost(1));
-            // cost(2) = floor(10 * 1.5^2) + 5*2 = floor(22.5) + 10 = 32
-            Assert.AreEqual(32, _skillTreeData.ComputeNodeCost(2));
+            Assert.AreEqual(35, _skillTreeData.ComputeNodeCost(2));
         }
 
         [Test]
         public void ComputeNodeCost_AdditiveOnly_LinearScaling()
         {
             _skillTreeData.BaseCost = 5;
-            _skillTreeData.CostMultiplierPerLevel = 1f;
+            _skillTreeData.CostMultiplierOdd = 1f;
+            _skillTreeData.CostMultiplierEven = 1f;
             _skillTreeData.CostAdditivePerLevel = 3;
 
-            // cost(0) = floor(5 * 1^0) + 3*0 = 5
             Assert.AreEqual(5, _skillTreeData.ComputeNodeCost(0));
-            // cost(1) = floor(5 * 1^1) + 3*1 = 8
             Assert.AreEqual(8, _skillTreeData.ComputeNodeCost(1));
-            // cost(3) = floor(5 * 1^3) + 3*3 = 14
             Assert.AreEqual(14, _skillTreeData.ComputeNodeCost(3));
+        }
+
+        [Test]
+        public void ComputeNodeCost_AlternatingMultipliers()
+        {
+            _skillTreeData.BaseCost = 1;
+            _skillTreeData.CostMultiplierOdd = 5f;
+            _skillTreeData.CostMultiplierEven = 2f;
+            _skillTreeData.CostAdditivePerLevel = 0;
+
+            Assert.AreEqual(1, _skillTreeData.ComputeNodeCost(0));
+            Assert.AreEqual(5, _skillTreeData.ComputeNodeCost(1));
+            Assert.AreEqual(10, _skillTreeData.ComputeNodeCost(2));
+            Assert.AreEqual(50, _skillTreeData.ComputeNodeCost(3));
         }
     }
 }

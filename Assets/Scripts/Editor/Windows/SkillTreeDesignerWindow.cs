@@ -28,7 +28,8 @@ namespace RogueliteAutoBattler.Editor
         private static readonly GUIContent LabelBorderNormal = new GUIContent("Border Normal");
         private static readonly GUIContent LabelBorderSelected = new GUIContent("Border Selected");
         private static readonly GUIContent LabelBaseCost = new GUIContent("Base Cost");
-        private static readonly GUIContent LabelCostMultiplier = new GUIContent("Multiplier / Level");
+        private static readonly GUIContent LabelCostMultiplierOdd = new GUIContent("Multiplier (Odd Levels)");
+        private static readonly GUIContent LabelCostMultiplierEven = new GUIContent("Multiplier (Even Levels)");
         private static readonly GUIContent LabelCostAdditive = new GUIContent("Additive / Level");
         private static readonly GUIContent LabelEdgeColor = new GUIContent("Edge Color");
         private static readonly GUIContent LabelRingGuideColor = new GUIContent("Ring Guide Color");
@@ -44,7 +45,8 @@ namespace RogueliteAutoBattler.Editor
         private SerializedProperty _propBorderNormalColor;
         private SerializedProperty _propBorderSelectedColor;
         private SerializedProperty _propBaseCost;
-        private SerializedProperty _propCostMultiplierPerLevel;
+        private SerializedProperty _propCostMultiplierOdd;
+        private SerializedProperty _propCostMultiplierEven;
         private SerializedProperty _propCostAdditivePerLevel;
         private SerializedProperty _propEdgeColor;
         private SerializedProperty _propRingGuideColor;
@@ -89,7 +91,8 @@ namespace RogueliteAutoBattler.Editor
             _propBorderNormalColor = _serializedData.FindProperty("borderNormalColor");
             _propBorderSelectedColor = _serializedData.FindProperty("borderSelectedColor");
             _propBaseCost = _serializedData.FindProperty("baseCost");
-            _propCostMultiplierPerLevel = _serializedData.FindProperty("costMultiplierPerLevel");
+            _propCostMultiplierOdd = _serializedData.FindProperty("costMultiplierOdd");
+            _propCostMultiplierEven = _serializedData.FindProperty("costMultiplierEven");
             _propCostAdditivePerLevel = _serializedData.FindProperty("costAdditivePerLevel");
             _propEdgeColor = _serializedData.FindProperty("edgeColor");
             _propRingGuideColor = _serializedData.FindProperty("ringGuideColor");
@@ -269,9 +272,10 @@ namespace RogueliteAutoBattler.Editor
 
             EditorGUILayout.Space(12);
             EditorGUILayout.LabelField("Cost Formula", EditorStyles.boldLabel);
-            EditorGUILayout.HelpBox("cost(lvl) = floor(base * mult^lvl) + add * lvl", MessageType.None);
+            EditorGUILayout.HelpBox("cost(0) = base, cost(n) = floor(prev \u00d7 mult) + add\nmult alternates: odd/even", MessageType.None);
             EditorGUILayout.PropertyField(_propBaseCost, LabelBaseCost);
-            EditorGUILayout.PropertyField(_propCostMultiplierPerLevel, LabelCostMultiplier);
+            EditorGUILayout.PropertyField(_propCostMultiplierOdd, LabelCostMultiplierOdd);
+            EditorGUILayout.PropertyField(_propCostMultiplierEven, LabelCostMultiplierEven);
             EditorGUILayout.PropertyField(_propCostAdditivePerLevel, LabelCostAdditive);
 
             EditorGUILayout.Space(12);
@@ -336,11 +340,14 @@ namespace RogueliteAutoBattler.Editor
 
                 EditorGUILayout.Space(8);
                 EditorGUILayout.LabelField("Cost Preview", EditorStyles.boldLabel);
-                for (int lvl = 0; lvl < Mathf.Min(node.maxLevel, 10); lvl++)
+                int previewLevels = node.maxLevel > 0 ? Mathf.Min(node.maxLevel, 10) : 10;
+                for (int lvl = 0; lvl < previewLevels; lvl++)
                 {
                     int cost = _data.ComputeNodeCost(lvl);
-                    EditorGUILayout.LabelField($"  Level {lvl} → {lvl + 1}", $"{cost} {node.costType}");
+                    EditorGUILayout.LabelField($"  Level {lvl} \u2192 {lvl + 1}", $"{cost} {node.costType}");
                 }
+                if (node.maxLevel == 0)
+                    EditorGUILayout.LabelField("  ...", "(unlimited)");
             }
 
             if (_serializedData.ApplyModifiedProperties())
