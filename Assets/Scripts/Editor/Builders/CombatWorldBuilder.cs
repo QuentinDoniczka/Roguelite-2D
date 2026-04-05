@@ -122,7 +122,6 @@ namespace RogueliteAutoBattler.Editor
 
             var soSpawnManager = new SerializedObject(spawnManager);
             EditorUIFactory.SetObj(soSpawnManager, "_teamContainer", teamGo.transform);
-            EditorUIFactory.SetObj(soSpawnManager, "_enemiesContainer", enemiesGo.transform);
 
             var teamDb = AssetDatabase.LoadAssetAtPath<TeamDatabase>(TeamBuilderTab.TeamDatabaseDefaultPath);
             if (teamDb == null)

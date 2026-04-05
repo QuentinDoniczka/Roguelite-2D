@@ -15,7 +15,8 @@ namespace RogueliteAutoBattler.UI.Screens.SkillTree
         [SerializeField] private float _minScale = 0.3f;
         [SerializeField] private float _maxScale = 3.0f;
 
-        private const float ZoomPerNotch = 0.2f;
+        private const float ScrollNormalization = 120f;
+        private const float ZoomPerNotch = 0.1f;
         private const float KeyboardZoomSpeed = 0.04f;
 
         private bool _isPinching;
@@ -84,8 +85,10 @@ namespace RogueliteAutoBattler.UI.Screens.SkillTree
             if (!IsScreenVisible()) return;
 
             Vector2 scrollValue = ctx.ReadValue<Vector2>();
-            float normalizedDelta = Mathf.Sign(scrollValue.y);
-            float scaleFactor = 1f + normalizedDelta * ZoomPerNotch;
+            float normalizedDelta = Mathf.Abs(scrollValue.y) > 10f
+                ? scrollValue.y / ScrollNormalization
+                : scrollValue.y;
+            float scaleFactor = 1f + Mathf.Clamp(normalizedDelta, -1f, 1f) * ZoomPerNotch;
 
             Vector2 pivot = Mouse.current != null ? Mouse.current.position.ReadValue() : ScreenCenter;
             ApplyZoom(pivot, scaleFactor);
