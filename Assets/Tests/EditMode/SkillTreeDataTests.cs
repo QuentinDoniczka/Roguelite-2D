@@ -242,8 +242,6 @@ namespace RogueliteAutoBattler.Tests.EditMode
                 var node = _skillTreeData.Nodes[i];
                 Assert.AreEqual(SkillTreeData.CostType.Gold, node.costType,
                     $"Node {i} costType should default to Gold");
-                Assert.AreEqual(1, node.costAmount,
-                    $"Node {i} costAmount should default to 1");
                 Assert.AreEqual(1, node.maxLevel,
                     $"Node {i} maxLevel should default to 1");
                 Assert.AreEqual(SkillTreeData.StatModifierType.HP, node.statModifierType,
@@ -263,7 +261,6 @@ namespace RogueliteAutoBattler.Tests.EditMode
             {
                 var node = _skillTreeData.Nodes[i];
                 Assert.AreEqual(SkillTreeData.CostType.Gold, node.costType);
-                Assert.AreEqual(1, node.costAmount);
                 Assert.AreEqual(1, node.maxLevel);
             }
         }
@@ -309,12 +306,12 @@ namespace RogueliteAutoBattler.Tests.EditMode
 
             var node = _skillTreeData.Nodes[0];
             var updated = node;
-            updated.costAmount = 99;
             updated.maxLevel = 5;
+            updated.statModifierValuePerLevel = 2.5f;
             _skillTreeData.SetNode(0, updated);
 
-            Assert.AreEqual(99, _skillTreeData.Nodes[0].costAmount);
             Assert.AreEqual(5, _skillTreeData.Nodes[0].maxLevel);
+            Assert.AreEqual(2.5f, _skillTreeData.Nodes[0].statModifierValuePerLevel);
         }
 
         [Test]
@@ -328,6 +325,60 @@ namespace RogueliteAutoBattler.Tests.EditMode
                 Assert.AreEqual(SkillTreeData.NodeType.Passive, _skillTreeData.Nodes[i].nodeType,
                     $"Node {i} should default to Passive");
             }
+        }
+        [Test]
+        public void ComputeNodeCost_DefaultValues_ReturnsBaseCost()
+        {
+            // baseCost=1, multiplier=1, additive=0
+            // cost(0) = floor(1 * 1^0) + 0*0 = 1
+            Assert.AreEqual(1, _skillTreeData.ComputeNodeCost(0));
+            Assert.AreEqual(1, _skillTreeData.ComputeNodeCost(1));
+            Assert.AreEqual(1, _skillTreeData.ComputeNodeCost(5));
+        }
+
+        [Test]
+        public void ComputeNodeCost_WithMultiplier_ScalesExponentially()
+        {
+            _skillTreeData.BaseCost = 10;
+            _skillTreeData.CostMultiplierPerLevel = 2f;
+            _skillTreeData.CostAdditivePerLevel = 0;
+
+            // cost(0) = floor(10 * 2^0) + 0 = 10
+            Assert.AreEqual(10, _skillTreeData.ComputeNodeCost(0));
+            // cost(1) = floor(10 * 2^1) + 0 = 20
+            Assert.AreEqual(20, _skillTreeData.ComputeNodeCost(1));
+            // cost(2) = floor(10 * 2^2) + 0 = 40
+            Assert.AreEqual(40, _skillTreeData.ComputeNodeCost(2));
+        }
+
+        [Test]
+        public void ComputeNodeCost_WithAdditive_AddsAfterMultiply()
+        {
+            _skillTreeData.BaseCost = 10;
+            _skillTreeData.CostMultiplierPerLevel = 1.5f;
+            _skillTreeData.CostAdditivePerLevel = 5;
+
+            // cost(0) = floor(10 * 1.5^0) + 5*0 = 10
+            Assert.AreEqual(10, _skillTreeData.ComputeNodeCost(0));
+            // cost(1) = floor(10 * 1.5^1) + 5*1 = floor(15) + 5 = 20
+            Assert.AreEqual(20, _skillTreeData.ComputeNodeCost(1));
+            // cost(2) = floor(10 * 1.5^2) + 5*2 = floor(22.5) + 10 = 32
+            Assert.AreEqual(32, _skillTreeData.ComputeNodeCost(2));
+        }
+
+        [Test]
+        public void ComputeNodeCost_AdditiveOnly_LinearScaling()
+        {
+            _skillTreeData.BaseCost = 5;
+            _skillTreeData.CostMultiplierPerLevel = 1f;
+            _skillTreeData.CostAdditivePerLevel = 3;
+
+            // cost(0) = floor(5 * 1^0) + 3*0 = 5
+            Assert.AreEqual(5, _skillTreeData.ComputeNodeCost(0));
+            // cost(1) = floor(5 * 1^1) + 3*1 = 8
+            Assert.AreEqual(8, _skillTreeData.ComputeNodeCost(1));
+            // cost(3) = floor(5 * 1^3) + 3*3 = 14
+            Assert.AreEqual(14, _skillTreeData.ComputeNodeCost(3));
         }
     }
 }

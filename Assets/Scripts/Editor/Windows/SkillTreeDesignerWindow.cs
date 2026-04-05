@@ -27,6 +27,9 @@ namespace RogueliteAutoBattler.Editor
         private static readonly GUIContent LabelNodeColor = new GUIContent("Node Color");
         private static readonly GUIContent LabelBorderNormal = new GUIContent("Border Normal");
         private static readonly GUIContent LabelBorderSelected = new GUIContent("Border Selected");
+        private static readonly GUIContent LabelBaseCost = new GUIContent("Base Cost");
+        private static readonly GUIContent LabelCostMultiplier = new GUIContent("Multiplier / Level");
+        private static readonly GUIContent LabelCostAdditive = new GUIContent("Additive / Level");
         private static readonly GUIContent LabelEdgeColor = new GUIContent("Edge Color");
         private static readonly GUIContent LabelRingGuideColor = new GUIContent("Ring Guide Color");
         private static readonly GUIContent LabelEdgeThickness = new GUIContent("Edge Thickness");
@@ -40,6 +43,9 @@ namespace RogueliteAutoBattler.Editor
         private SerializedProperty _propNodeColor;
         private SerializedProperty _propBorderNormalColor;
         private SerializedProperty _propBorderSelectedColor;
+        private SerializedProperty _propBaseCost;
+        private SerializedProperty _propCostMultiplierPerLevel;
+        private SerializedProperty _propCostAdditivePerLevel;
         private SerializedProperty _propEdgeColor;
         private SerializedProperty _propRingGuideColor;
         private SerializedProperty _propEdgeThickness;
@@ -82,6 +88,9 @@ namespace RogueliteAutoBattler.Editor
             _propNodeColor = _serializedData.FindProperty("nodeColor");
             _propBorderNormalColor = _serializedData.FindProperty("borderNormalColor");
             _propBorderSelectedColor = _serializedData.FindProperty("borderSelectedColor");
+            _propBaseCost = _serializedData.FindProperty("baseCost");
+            _propCostMultiplierPerLevel = _serializedData.FindProperty("costMultiplierPerLevel");
+            _propCostAdditivePerLevel = _serializedData.FindProperty("costAdditivePerLevel");
             _propEdgeColor = _serializedData.FindProperty("edgeColor");
             _propRingGuideColor = _serializedData.FindProperty("ringGuideColor");
             _propEdgeThickness = _serializedData.FindProperty("edgeThickness");
@@ -259,6 +268,13 @@ namespace RogueliteAutoBattler.Editor
             EditorGUILayout.PropertyField(_propBorderSelectedColor, LabelBorderSelected);
 
             EditorGUILayout.Space(12);
+            EditorGUILayout.LabelField("Cost Formula", EditorStyles.boldLabel);
+            EditorGUILayout.HelpBox("cost(lvl) = floor(base * mult^lvl) + add * lvl", MessageType.None);
+            EditorGUILayout.PropertyField(_propBaseCost, LabelBaseCost);
+            EditorGUILayout.PropertyField(_propCostMultiplierPerLevel, LabelCostMultiplier);
+            EditorGUILayout.PropertyField(_propCostAdditivePerLevel, LabelCostAdditive);
+
+            EditorGUILayout.Space(12);
             EditorGUILayout.LabelField("Edge Settings", EditorStyles.boldLabel);
             EditorGUILayout.PropertyField(_propEdgeColor, LabelEdgeColor);
             EditorGUILayout.PropertyField(_propRingGuideColor, LabelRingGuideColor);
@@ -300,7 +316,6 @@ namespace RogueliteAutoBattler.Editor
 
                 var newNodeType = (SkillTreeData.NodeType)EditorGUILayout.EnumPopup("Node Type", node.nodeType);
                 var newCostType = (SkillTreeData.CostType)EditorGUILayout.EnumPopup("Cost Type", node.costType);
-                int newCostAmount = EditorGUILayout.IntField("Cost Amount", node.costAmount);
                 int newMaxLevel = EditorGUILayout.IntField("Max Level", node.maxLevel);
                 var newStatModType = (SkillTreeData.StatModifierType)EditorGUILayout.EnumPopup("Stat Modifier", node.statModifierType);
                 float newStatModValue = EditorGUILayout.FloatField("Value Per Level", node.statModifierValuePerLevel);
@@ -310,7 +325,6 @@ namespace RogueliteAutoBattler.Editor
                     var updated = node;
                     updated.nodeType = newNodeType;
                     updated.costType = newCostType;
-                    updated.costAmount = newCostAmount;
                     updated.maxLevel = newMaxLevel;
                     updated.statModifierType = newStatModType;
                     updated.statModifierValuePerLevel = newStatModValue;
@@ -318,6 +332,14 @@ namespace RogueliteAutoBattler.Editor
                     _data.SetNode(_selectedNodeIndex, updated);
                     EditorUtility.SetDirty(_data);
                     AssetDatabase.SaveAssets();
+                }
+
+                EditorGUILayout.Space(8);
+                EditorGUILayout.LabelField("Cost Preview", EditorStyles.boldLabel);
+                for (int lvl = 0; lvl < Mathf.Min(node.maxLevel, 10); lvl++)
+                {
+                    int cost = _data.ComputeNodeCost(lvl);
+                    EditorGUILayout.LabelField($"  Level {lvl} → {lvl + 1}", $"{cost} {node.costType}");
                 }
             }
 

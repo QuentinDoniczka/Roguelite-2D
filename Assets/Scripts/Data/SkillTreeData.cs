@@ -52,7 +52,6 @@ namespace RogueliteAutoBattler.Data
             public List<int> connectedNodeIds;
             public NodeType nodeType;
             public CostType costType;
-            public int costAmount;
             public int maxLevel;
             public StatModifierType statModifierType;
             public float statModifierValuePerLevel;
@@ -68,6 +67,11 @@ namespace RogueliteAutoBattler.Data
         [SerializeField] private Color nodeColor = DefaultNodeColor;
         [SerializeField] private Color borderNormalColor = DefaultBorderNormalColor;
         [SerializeField] private Color borderSelectedColor = DefaultBorderSelectedColor;
+
+        [Header("Cost Formula")]
+        [SerializeField] private int baseCost = 1;
+        [SerializeField] private float costMultiplierPerLevel = 1f;
+        [SerializeField] private int costAdditivePerLevel = 0;
 
         [Header("Edge Visual")]
         [SerializeField] private Color edgeColor = DefaultEdgeColor;
@@ -91,6 +95,9 @@ namespace RogueliteAutoBattler.Data
         public Color NodeColor { get => nodeColor; internal set => nodeColor = value; }
         public Color BorderNormalColor { get => borderNormalColor; internal set => borderNormalColor = value; }
         public Color BorderSelectedColor { get => borderSelectedColor; internal set => borderSelectedColor = value; }
+        public int BaseCost { get => baseCost; internal set => baseCost = value; }
+        public float CostMultiplierPerLevel { get => costMultiplierPerLevel; internal set => costMultiplierPerLevel = value; }
+        public int CostAdditivePerLevel { get => costAdditivePerLevel; internal set => costAdditivePerLevel = value; }
         public Color EdgeColor { get => edgeColor; internal set => edgeColor = value; }
         public Color RingGuideColor { get => ringGuideColor; internal set => ringGuideColor = value; }
         public float EdgeThickness { get => edgeThickness; internal set => edgeThickness = value; }
@@ -118,7 +125,6 @@ namespace RogueliteAutoBattler.Data
                     connectedNodeIds = new List<int> { (i + 1) % nodeCount },
                     nodeType = NodeType.Passive,
                     costType = CostType.Gold,
-                    costAmount = 1,
                     maxLevel = 1,
                     statModifierType = StatModifierType.HP,
                     statModifierValuePerLevel = 0f
@@ -139,6 +145,11 @@ namespace RogueliteAutoBattler.Data
             }
             _cachedEdges = edges.ToArray();
             return _cachedEdges;
+        }
+
+        public int ComputeNodeCost(int level)
+        {
+            return Mathf.FloorToInt(baseCost * Mathf.Pow(costMultiplierPerLevel, level)) + costAdditivePerLevel * level;
         }
 
         internal void SetNode(int index, SkillNodeEntry entry)
