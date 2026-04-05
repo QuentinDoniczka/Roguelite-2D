@@ -91,6 +91,7 @@ Assets/
       GoldWallet.cs
     Editor/
       RogueliteAutoBattler.Editor.asmdef
+      AssemblyInfo.cs
       EditorUIFactory.cs
       Builders/
         BootstrapSceneBuilder.cs
