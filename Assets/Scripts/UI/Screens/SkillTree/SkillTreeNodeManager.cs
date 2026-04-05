@@ -8,9 +8,9 @@ namespace RogueliteAutoBattler.UI.Screens.SkillTree
 {
     public class SkillTreeNodeManager : MonoBehaviour
     {
-        private const int PLACEHOLDER_NODE_COUNT = 10;
-        private const int DETERMINISTIC_SEED = 42;
-        private const float PLACEMENT_RADIUS = 5f;
+        private const int PlaceholderNodeCount = 10;
+        private const int DeterministicSeed = 42;
+        private const float PlacementRadius = 5f;
 
         [Header("Container")]
         [SerializeField] private RectTransform _content;
@@ -32,12 +32,12 @@ namespace RogueliteAutoBattler.UI.Screens.SkillTree
 
         public void Initialize()
         {
-            var rng = new SysRandom(DETERMINISTIC_SEED);
+            var rng = new SysRandom(DeterministicSeed);
 
-            for (int i = 0; i < PLACEHOLDER_NODE_COUNT; i++)
+            for (int i = 0; i < PlaceholderNodeCount; i++)
             {
-                float angle = (float)(rng.NextDouble() * 2.0 * Math.PI);
-                float radius = (float)(Math.Sqrt(rng.NextDouble()) * PLACEMENT_RADIUS);
+                float angle = (float)(rng.NextDouble() * 2.0 * Mathf.PI);
+                float radius = Mathf.Sqrt((float)rng.NextDouble()) * PlacementRadius;
                 Vector2 treePosition = new Vector2(radius * Mathf.Cos(angle), radius * Mathf.Sin(angle));
                 CreateNode(i, treePosition);
             }

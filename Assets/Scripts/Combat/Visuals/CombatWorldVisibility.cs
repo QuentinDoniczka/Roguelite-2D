@@ -12,7 +12,8 @@ namespace RogueliteAutoBattler.Combat.Visuals
         private bool _visible = true;
         private int _lastTeamChildCount;
         private int _lastEnemyChildCount;
-        private readonly List<Renderer> _rendererBuffer = new();
+        private readonly List<Renderer> _rendererBuffer = new List<Renderer>();
+        private NavigationManager _cachedNavigationManager;
 
         public bool Visible => _visible;
 
@@ -21,16 +22,15 @@ namespace RogueliteAutoBattler.Combat.Visuals
             _teamContainer = transform.Find(CombatSetupHelper.TeamContainerName);
             _enemiesContainer = transform.Find(CombatSetupHelper.EnemiesContainerName);
 
-            var nav = NavigationManager.Instance;
-            if (nav != null)
-                nav.OnTabChanged += OnTabChanged;
+            _cachedNavigationManager = NavigationManager.Instance;
+            if (_cachedNavigationManager != null)
+                _cachedNavigationManager.OnTabChanged += OnTabChanged;
         }
 
         private void OnDestroy()
         {
-            var nav = NavigationManager.Instance;
-            if (nav != null)
-                nav.OnTabChanged -= OnTabChanged;
+            if (_cachedNavigationManager != null)
+                _cachedNavigationManager.OnTabChanged -= OnTabChanged;
         }
 
         private void OnTabChanged(int tabIndex)

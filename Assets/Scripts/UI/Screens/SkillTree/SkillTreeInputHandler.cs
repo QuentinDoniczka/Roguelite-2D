@@ -97,7 +97,7 @@ namespace RogueliteAutoBattler.UI.Screens.SkillTree
             if (_zoomInAction.IsPressed()) zoomDelta = KeyboardZoomSpeed;
             if (_zoomOutAction.IsPressed()) zoomDelta = -KeyboardZoomSpeed;
 
-            if (Mathf.Abs(zoomDelta) < 0.001f) return;
+            if (Mathf.Approximately(zoomDelta, 0f)) return;
 
             ApplyZoom(ScreenCenter, 1f + zoomDelta);
         }
@@ -147,22 +147,16 @@ namespace RogueliteAutoBattler.UI.Screens.SkillTree
 
         internal void ApplyZoom(Vector2 screenPivot, float scaleFactor)
         {
-            Canvas canvas = GetCachedCanvas();
-            if (canvas == null) return;
+            if (_cachedCanvas == null) return;
 
             RectTransformUtility.ScreenPointToLocalPointInRectangle(
-                _content, screenPivot, canvas.worldCamera, out Vector2 localPivot);
+                _content, screenPivot, _cachedCanvas.worldCamera, out Vector2 localPivot);
 
             float currentScale = _content.localScale.x;
             float newScale = Mathf.Clamp(currentScale * scaleFactor, _minScale, _maxScale);
 
             _content.anchoredPosition = localPivot - (newScale / currentScale) * (localPivot - _content.anchoredPosition);
             _content.localScale = Vector3.one * newScale;
-        }
-
-        private Canvas GetCachedCanvas()
-        {
-            return _cachedCanvas;
         }
     }
 }

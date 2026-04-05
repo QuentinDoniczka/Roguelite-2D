@@ -25,7 +25,7 @@
 Doc detaille : `Assets/doc/premier-jet-roguelite.html`
 
 # Project Structure
-Generated: 2026-04-04 (updated feature/149-skill-tree-canvas)
+Generated: 2026-04-05 (updated feature/149-skill-tree-canvas)
 
 .github/
   workflows/
@@ -95,6 +95,7 @@ Assets/
         CoinFly.cs
         CoinFlyBootstrap.cs
         CoinFlyService.cs
+        CombatWorldVisibility.cs
         DamageNumber.cs
         DamageNumberBootstrap.cs
         DamageNumberService.cs
