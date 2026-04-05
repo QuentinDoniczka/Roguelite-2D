@@ -229,5 +229,42 @@ namespace RogueliteAutoBattler.Tests.EditMode
                 Assert.AreEqual(1, _skillTreeData.Nodes[i].connectedNodeIds.Count);
             }
         }
+
+        [Test]
+        public void GenerateNodes_NewFieldsInitializedToDefaults()
+        {
+            _skillTreeData.RingNodeCount = 6;
+            _skillTreeData.GenerateNodes();
+
+            for (int i = 0; i < _skillTreeData.Nodes.Count; i++)
+            {
+                var node = _skillTreeData.Nodes[i];
+                Assert.AreEqual(SkillTreeData.CostType.Gold, node.costType,
+                    $"Node {i} costType should default to Gold");
+                Assert.AreEqual(1, node.costAmount,
+                    $"Node {i} costAmount should default to 1");
+                Assert.AreEqual(1, node.maxLevel,
+                    $"Node {i} maxLevel should default to 1");
+                Assert.AreEqual(SkillTreeData.StatModifierType.HP, node.statModifierType,
+                    $"Node {i} statModifierType should default to HP");
+                Assert.AreEqual(0f, node.statModifierValuePerLevel,
+                    $"Node {i} statModifierValuePerLevel should default to 0");
+            }
+        }
+
+        [Test]
+        public void GenerateNodes_MinRingCount_NewFieldsInitialized()
+        {
+            _skillTreeData.RingNodeCount = 3;
+            _skillTreeData.GenerateNodes();
+
+            for (int i = 0; i < _skillTreeData.Nodes.Count; i++)
+            {
+                var node = _skillTreeData.Nodes[i];
+                Assert.AreEqual(SkillTreeData.CostType.Gold, node.costType);
+                Assert.AreEqual(1, node.costAmount);
+                Assert.AreEqual(1, node.maxLevel);
+            }
+        }
     }
 }

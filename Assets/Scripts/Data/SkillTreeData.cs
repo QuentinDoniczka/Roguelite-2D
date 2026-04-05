@@ -20,12 +20,33 @@ namespace RogueliteAutoBattler.Data
         public static readonly Color DefaultBorderSelectedColor = Color.yellow;
         public static readonly Color DefaultEdgeColor = new Color(0.6f, 0.6f, 0.6f, 1f);
 
+        public enum CostType
+        {
+            Gold,
+            SkillPoint
+        }
+
+        public enum StatModifierType
+        {
+            HP,
+            Attack,
+            Defense,
+            Speed,
+            CritRate,
+            CritDamage
+        }
+
         [Serializable]
         public struct SkillNodeEntry
         {
             public int id;
             public Vector2 position;
             public List<int> connectedNodeIds;
+            public CostType costType;
+            public int costAmount;
+            public int maxLevel;
+            public StatModifierType statModifierType;
+            public float statModifierValuePerLevel;
         }
 
         [Header("Generation")]
@@ -85,7 +106,12 @@ namespace RogueliteAutoBattler.Data
                 {
                     id = i,
                     position = pos,
-                    connectedNodeIds = new List<int> { (i + 1) % nodeCount }
+                    connectedNodeIds = new List<int> { (i + 1) % nodeCount },
+                    costType = CostType.Gold,
+                    costAmount = 1,
+                    maxLevel = 1,
+                    statModifierType = StatModifierType.HP,
+                    statModifierValuePerLevel = 0f
                 });
             }
         }
