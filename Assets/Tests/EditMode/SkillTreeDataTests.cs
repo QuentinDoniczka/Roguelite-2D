@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using NUnit.Framework;
 using RogueliteAutoBattler.Data;
 using UnityEngine;
@@ -146,6 +147,86 @@ namespace RogueliteAutoBattler.Tests.EditMode
                 float distance = Vector2.Distance(_skillTreeData.Nodes[i].position, Vector2.zero);
                 Assert.That(distance, Is.EqualTo(4f).Within(0.001f),
                     $"Ring node {i} should be at distance 4f from origin");
+            }
+        }
+
+        [Test]
+        public void GenerateNodes_EachNodeHasConnectedNodeIds()
+        {
+            _skillTreeData.RingNodeCount = 6;
+            _skillTreeData.GenerateNodes();
+
+            for (int i = 0; i < _skillTreeData.Nodes.Count; i++)
+            {
+                Assert.IsNotNull(_skillTreeData.Nodes[i].connectedNodeIds,
+                    $"Node {i} should have connectedNodeIds");
+                Assert.AreEqual(1, _skillTreeData.Nodes[i].connectedNodeIds.Count,
+                    $"Node {i} should connect to exactly 1 neighbor");
+            }
+        }
+
+        [Test]
+        public void GenerateNodes_ConnectionsFormClosedRing()
+        {
+            _skillTreeData.RingNodeCount = 6;
+            _skillTreeData.GenerateNodes();
+
+            for (int i = 0; i < 6; i++)
+            {
+                int expectedNext = (i + 1) % 6;
+                Assert.AreEqual(expectedNext, _skillTreeData.Nodes[i].connectedNodeIds[0],
+                    $"Node {i} should connect to node {expectedNext}");
+            }
+        }
+
+        [Test]
+        public void GenerateNodes_MinRingCount_ConnectionsFormClosedRing()
+        {
+            _skillTreeData.RingNodeCount = 3;
+            _skillTreeData.GenerateNodes();
+
+            for (int i = 0; i < 3; i++)
+            {
+                int expectedNext = (i + 1) % 3;
+                Assert.AreEqual(expectedNext, _skillTreeData.Nodes[i].connectedNodeIds[0],
+                    $"Node {i} should connect to node {expectedNext}");
+            }
+        }
+
+        [Test]
+        public void GetEdges_ReturnsCorrectCount()
+        {
+            _skillTreeData.RingNodeCount = 6;
+            _skillTreeData.GenerateNodes();
+
+            var edges = _skillTreeData.GetEdges();
+            Assert.AreEqual(6, edges.Length);
+        }
+
+        [Test]
+        public void GetEdges_NoDuplicateEdges()
+        {
+            _skillTreeData.RingNodeCount = 6;
+            _skillTreeData.GenerateNodes();
+
+            var edges = _skillTreeData.GetEdges();
+            var uniqueEdges = new HashSet<(int, int)>(edges);
+            Assert.AreEqual(edges.Length, uniqueEdges.Count, "All edges should be unique");
+        }
+
+        [Test]
+        public void GenerateNodes_ClearsExistingConnections()
+        {
+            _skillTreeData.RingNodeCount = 5;
+            _skillTreeData.GenerateNodes();
+
+            _skillTreeData.RingNodeCount = 3;
+            _skillTreeData.GenerateNodes();
+
+            Assert.AreEqual(3, _skillTreeData.GetEdges().Length);
+            for (int i = 0; i < 3; i++)
+            {
+                Assert.AreEqual(1, _skillTreeData.Nodes[i].connectedNodeIds.Count);
             }
         }
     }

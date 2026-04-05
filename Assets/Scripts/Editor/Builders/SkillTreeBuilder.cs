@@ -47,7 +47,11 @@ namespace RogueliteAutoBattler.Editor
             EditorUIFactory.SetObj(nodeManagerSO, "_content", contentRect);
             var skillTreeData = AssetDatabase.LoadAssetAtPath<SkillTreeData>(SkillTreeData.DefaultAssetPath);
             if (skillTreeData != null)
+            {
                 EditorUIFactory.SetObj(nodeManagerSO, "_data", skillTreeData);
+                EditorUIFactory.SetColor(nodeManagerSO, "_edgeColor", skillTreeData.EdgeColor);
+                EditorUIFactory.SetFloat(nodeManagerSO, "_edgeThickness", skillTreeData.EdgeThickness);
+            }
 
             var circleSprite = EnsureCircleSprite();
             if (circleSprite != null)

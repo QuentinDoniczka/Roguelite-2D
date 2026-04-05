@@ -89,6 +89,12 @@ namespace RogueliteAutoBattler.Editor
             if (p != null) p.colorValue = v;
         }
 
+        internal static void SetFloat(SerializedObject so, string name, float v)
+        {
+            SerializedProperty p = FindProp(so, name);
+            if (p != null) p.floatValue = v;
+        }
+
         internal static void EnsureDirectoryExists(string assetPath)
         {
             string dir = System.IO.Path.GetDirectoryName(assetPath);

@@ -308,6 +308,20 @@ namespace RogueliteAutoBattler.Tests
             return (nodeGo, node);
         }
 
+        public static (GameObject managerGo, SkillTreeNodeManager manager, RectTransform content) CreateSkillTreeNodeManagerWithData(int nodeCount = 6, float radius = 5f)
+        {
+            var (root, manager, content) = CreateSkillTreeNodeManager();
+
+            var data = ScriptableObject.CreateInstance<SkillTreeData>();
+            data.RingNodeCount = nodeCount;
+            data.RingRadius = radius;
+            data.GenerateNodes();
+
+            SetPrivateField(manager, "_data", data);
+
+            return (root, manager, content);
+        }
+
         public static (GameObject managerGo, SkillTreeNodeManager manager, RectTransform content) CreateSkillTreeNodeManager()
         {
             var canvasGo = new GameObject("NodeManagerCanvas");

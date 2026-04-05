@@ -19,6 +19,7 @@ namespace RogueliteAutoBattler.Data
         {
             public int id;
             public Vector2 position;
+            public List<int> connectedNodeIds;
         }
 
         [Header("Generation")]
@@ -32,6 +33,11 @@ namespace RogueliteAutoBattler.Data
         [SerializeField] private Color borderNormalColor = Color.gray;
         [SerializeField] private Color borderSelectedColor = Color.yellow;
 
+        [Header("Edge Visual")]
+        [SerializeField] private Color edgeColor = new Color(0.6f, 0.6f, 0.6f, 1f);
+        [SerializeField] private Color ringGuideColor = new Color(0.25f, 0.25f, 0.25f, 0.5f);
+        [SerializeField] private float edgeThickness = 4f;
+
         [Header("Generated Nodes")]
         [SerializeField] private List<SkillNodeEntry> nodes = new List<SkillNodeEntry>();
 
@@ -42,6 +48,9 @@ namespace RogueliteAutoBattler.Data
         public Color NodeColor { get => nodeColor; internal set => nodeColor = value; }
         public Color BorderNormalColor { get => borderNormalColor; internal set => borderNormalColor = value; }
         public Color BorderSelectedColor { get => borderSelectedColor; internal set => borderSelectedColor = value; }
+        public Color EdgeColor { get => edgeColor; internal set => edgeColor = value; }
+        public Color RingGuideColor { get => ringGuideColor; internal set => ringGuideColor = value; }
+        public float EdgeThickness { get => edgeThickness; internal set => edgeThickness = value; }
         public IReadOnlyList<SkillNodeEntry> Nodes => nodes;
 
         public void GenerateNodes()
@@ -58,8 +67,25 @@ namespace RogueliteAutoBattler.Data
             {
                 float angle = i * (2f * Mathf.PI / nodeCount);
                 Vector2 pos = new Vector2(radius * Mathf.Cos(angle), radius * Mathf.Sin(angle));
-                output.Add(new SkillNodeEntry { id = i, position = pos });
+                output.Add(new SkillNodeEntry
+                {
+                    id = i,
+                    position = pos,
+                    connectedNodeIds = new List<int> { (i + 1) % nodeCount }
+                });
             }
+        }
+
+        public (int fromId, int toId)[] GetEdges()
+        {
+            var edges = new List<(int, int)>();
+            foreach (var node in nodes)
+            {
+                if (node.connectedNodeIds == null) continue;
+                foreach (int targetId in node.connectedNodeIds)
+                    edges.Add((node.id, targetId));
+            }
+            return edges.ToArray();
         }
     }
 }

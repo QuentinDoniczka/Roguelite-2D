@@ -26,6 +26,9 @@ namespace RogueliteAutoBattler.Editor
         private static readonly GUIContent LabelNodeColor = new GUIContent("Node Color");
         private static readonly GUIContent LabelBorderNormal = new GUIContent("Border Normal");
         private static readonly GUIContent LabelBorderSelected = new GUIContent("Border Selected");
+        private static readonly GUIContent LabelEdgeColor = new GUIContent("Edge Color");
+        private static readonly GUIContent LabelRingGuideColor = new GUIContent("Ring Guide Color");
+        private static readonly GUIContent LabelEdgeThickness = new GUIContent("Edge Thickness");
 
         private SkillTreeData _data;
         private SerializedObject _serializedData;
@@ -36,6 +39,9 @@ namespace RogueliteAutoBattler.Editor
         private SerializedProperty _propNodeColor;
         private SerializedProperty _propBorderNormalColor;
         private SerializedProperty _propBorderSelectedColor;
+        private SerializedProperty _propEdgeColor;
+        private SerializedProperty _propRingGuideColor;
+        private SerializedProperty _propEdgeThickness;
         private Vector2 _canvasOffset;
         private float _canvasZoom = 1f;
         private Vector2 _configScrollPos;
@@ -74,6 +80,9 @@ namespace RogueliteAutoBattler.Editor
             _propNodeColor = _serializedData.FindProperty("nodeColor");
             _propBorderNormalColor = _serializedData.FindProperty("borderNormalColor");
             _propBorderSelectedColor = _serializedData.FindProperty("borderSelectedColor");
+            _propEdgeColor = _serializedData.FindProperty("edgeColor");
+            _propRingGuideColor = _serializedData.FindProperty("ringGuideColor");
+            _propEdgeThickness = _serializedData.FindProperty("edgeThickness");
         }
 
         private void OnGUI()
@@ -128,6 +137,21 @@ namespace RogueliteAutoBattler.Editor
             float scaledBorder = NodeBorderThickness * _canvasZoom;
 
             Handles.BeginGUI();
+
+            Handles.color = _data.RingGuideColor;
+            float ringRadiusPixels = _data.RingRadius * _data.UnitSize * _canvasZoom;
+            Handles.DrawWireDisc(new Vector3(origin.x, origin.y, 0f), Vector3.forward, ringRadiusPixels);
+
+            Handles.color = _data.EdgeColor;
+            var edges = _data.GetEdges();
+            foreach (var (fromId, toId) in edges)
+            {
+                if (fromId >= _data.Nodes.Count || toId >= _data.Nodes.Count) continue;
+                Vector2 fromPos = origin + _data.Nodes[fromId].position * _data.UnitSize * _canvasZoom;
+                Vector2 toPos = origin + _data.Nodes[toId].position * _data.UnitSize * _canvasZoom;
+                Handles.DrawLine(new Vector3(fromPos.x, fromPos.y, 0f), new Vector3(toPos.x, toPos.y, 0f));
+            }
+
             for (int i = 0; i < _data.Nodes.Count; i++)
             {
                 var entry = _data.Nodes[i];
@@ -219,6 +243,12 @@ namespace RogueliteAutoBattler.Editor
             EditorGUILayout.PropertyField(_propBorderNormalColor, LabelBorderNormal);
             EditorGUILayout.PropertyField(_propBorderSelectedColor, LabelBorderSelected);
 
+            EditorGUILayout.Space(12);
+            EditorGUILayout.LabelField("Edge Settings", EditorStyles.boldLabel);
+            EditorGUILayout.PropertyField(_propEdgeColor, LabelEdgeColor);
+            EditorGUILayout.PropertyField(_propRingGuideColor, LabelRingGuideColor);
+            EditorGUILayout.PropertyField(_propEdgeThickness, LabelEdgeThickness);
+
             EditorGUILayout.Space(16);
 
             if (GUILayout.Button("Generate", GUILayout.Height(30)))
@@ -263,6 +293,8 @@ namespace RogueliteAutoBattler.Editor
 
             var managerSO = new SerializedObject(manager);
             EditorUIFactory.SetObj(managerSO, "_data", _data);
+            EditorUIFactory.SetColor(managerSO, "_edgeColor", _data.EdgeColor);
+            EditorUIFactory.SetFloat(managerSO, "_edgeThickness", _data.EdgeThickness);
             managerSO.ApplyModifiedProperties();
 
             manager.Initialize();
