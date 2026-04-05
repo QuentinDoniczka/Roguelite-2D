@@ -7,7 +7,7 @@ using Touch = UnityEngine.InputSystem.EnhancedTouch.Touch;
 
 namespace RogueliteAutoBattler.UI.Screens.SkillTree
 {
-    public class SkillTreeInputHandler : MonoBehaviour, IDragHandler, IScrollHandler, IPointerClickHandler
+    public class SkillTreeInputHandler : MonoBehaviour, IDragHandler, IPointerClickHandler
     {
         [SerializeField] private RectTransform _content;
 
@@ -15,8 +15,9 @@ namespace RogueliteAutoBattler.UI.Screens.SkillTree
         [SerializeField] private float _minScale = 0.3f;
         [SerializeField] private float _maxScale = 3.0f;
 
-        private const float ZoomPerNotch = 0.15f;
-        private const float KeyboardZoomSpeed = 0.02f;
+        private const float ScrollNormalization = 120f;
+        private const float ZoomPerNotch = 0.3f;
+        private const float KeyboardZoomSpeed = 0.04f;
 
         private bool _isPinching;
         private float _lastPinchDistance;
@@ -28,12 +29,19 @@ namespace RogueliteAutoBattler.UI.Screens.SkillTree
 
         public event Action OnVoidClicked;
 
+        private static Vector2 ScreenCenter => new Vector2(Screen.width * 0.5f, Screen.height * 0.5f);
+
         private void Awake()
         {
+            _cachedCanvasGroup = GetComponentInParent<CanvasGroup>();
+            _cachedCanvas = GetComponentInParent<Canvas>();
+
             _scrollAction = new InputAction("SkillTreeScroll", InputActionType.PassThrough, "<Mouse>/scroll");
+
             _zoomInAction = new InputAction("SkillTreeZoomIn", InputActionType.Button);
             _zoomInAction.AddBinding("<Keyboard>/equals");
             _zoomInAction.AddBinding("<Keyboard>/numpadPlus");
+
             _zoomOutAction = new InputAction("SkillTreeZoomOut", InputActionType.Button);
             _zoomOutAction.AddBinding("<Keyboard>/minus");
             _zoomOutAction.AddBinding("<Keyboard>/numpadMinus");
@@ -66,104 +74,76 @@ namespace RogueliteAutoBattler.UI.Screens.SkillTree
 
         private void Update()
         {
+            if (!IsScreenVisible()) return;
+
             HandleKeyboardZoom();
             HandlePinchZoom();
-            DebugScrollRaw();
-        }
-
-        private void DebugScrollRaw()
-        {
-            if (Mouse.current == null) return;
-            Vector2 scrollVal = Mouse.current.scroll.ReadValue();
-            if (scrollVal != Vector2.zero)
-                Debug.Log($"[SkillTree] Mouse.current.scroll raw = {scrollVal}");
         }
 
         private void OnScrollPerformed(InputAction.CallbackContext ctx)
         {
-            Vector2 scrollValue = ctx.ReadValue<Vector2>();
-            Debug.Log($"[SkillTree] InputAction scroll performed: {scrollValue}, visible={IsScreenVisible()}, mouse={Mouse.current != null}");
-
             if (!IsScreenVisible()) return;
 
-            Vector2 screenCenter = new Vector2(Screen.width * 0.5f, Screen.height * 0.5f);
-            Vector2 mousePos = Mouse.current != null ? Mouse.current.position.ReadValue() : screenCenter;
-
-            float normalizedDelta = scrollValue.y / 120f;
+            Vector2 scrollValue = ctx.ReadValue<Vector2>();
+            float normalizedDelta = scrollValue.y / ScrollNormalization;
             float scaleFactor = 1f + normalizedDelta * ZoomPerNotch;
-            Debug.Log($"[SkillTree] Applying zoom: normalizedDelta={normalizedDelta}, scaleFactor={scaleFactor}, currentScale={_content.localScale.x}");
-            ApplyZoom(mousePos, scaleFactor);
-            Debug.Log($"[SkillTree] After zoom: scale={_content.localScale.x}");
-        }
 
-        public void OnScroll(PointerEventData eventData)
-        {
-            Debug.Log($"[SkillTree] IScrollHandler.OnScroll fired: scrollDelta={eventData.scrollDelta}");
-            float normalizedDelta = eventData.scrollDelta.y / 120f;
-            float scaleFactor = 1f + normalizedDelta * ZoomPerNotch;
-            ApplyZoom(eventData.position, scaleFactor);
+            Vector2 pivot = Mouse.current != null ? Mouse.current.position.ReadValue() : ScreenCenter;
+            ApplyZoom(pivot, scaleFactor);
         }
 
         private void HandleKeyboardZoom()
         {
-            if (!IsScreenVisible()) return;
-
             float zoomDelta = 0f;
             if (_zoomInAction.IsPressed()) zoomDelta = KeyboardZoomSpeed;
             if (_zoomOutAction.IsPressed()) zoomDelta = -KeyboardZoomSpeed;
 
             if (Mathf.Abs(zoomDelta) < 0.001f) return;
 
-            float scaleFactor = 1f + zoomDelta;
-            Vector2 screenCenter = new Vector2(Screen.width * 0.5f, Screen.height * 0.5f);
-            ApplyZoom(screenCenter, scaleFactor);
-        }
-
-        private bool IsScreenVisible()
-        {
-            if (_cachedCanvasGroup == null)
-                _cachedCanvasGroup = GetComponentInParent<CanvasGroup>();
-            return _cachedCanvasGroup != null && _cachedCanvasGroup.alpha > 0f;
+            ApplyZoom(ScreenCenter, 1f + zoomDelta);
         }
 
         private void HandlePinchZoom()
         {
             var activeTouches = Touch.activeTouches;
 
-            if (activeTouches.Count == 2)
-            {
-                _isPinching = true;
-
-                Vector2 firstPosition = activeTouches[0].screenPosition;
-                Vector2 secondPosition = activeTouches[1].screenPosition;
-                float currentDistance = Vector2.Distance(firstPosition, secondPosition);
-
-                if (_lastPinchDistance > 0f)
-                {
-                    float scaleFactor = currentDistance / _lastPinchDistance;
-                    Vector2 midpoint = (firstPosition + secondPosition) * 0.5f;
-                    ApplyZoom(midpoint, scaleFactor);
-                }
-
-                _lastPinchDistance = currentDistance;
-            }
-            else
+            if (activeTouches.Count != 2)
             {
                 _isPinching = false;
                 _lastPinchDistance = 0f;
+                return;
             }
+
+            _isPinching = true;
+
+            Vector2 firstPosition = activeTouches[0].screenPosition;
+            Vector2 secondPosition = activeTouches[1].screenPosition;
+            float currentDistance = Vector2.Distance(firstPosition, secondPosition);
+
+            if (_lastPinchDistance > 0f)
+            {
+                float scaleFactor = currentDistance / _lastPinchDistance;
+                Vector2 midpoint = (firstPosition + secondPosition) * 0.5f;
+                ApplyZoom(midpoint, scaleFactor);
+            }
+
+            _lastPinchDistance = currentDistance;
         }
 
         public void OnDrag(PointerEventData eventData)
         {
             if (_isPinching) return;
-
             _content.anchoredPosition += eventData.delta;
         }
 
         public void OnPointerClick(PointerEventData eventData)
         {
             OnVoidClicked?.Invoke();
+        }
+
+        private bool IsScreenVisible()
+        {
+            return _cachedCanvasGroup != null && _cachedCanvasGroup.alpha > 0f;
         }
 
         internal void ApplyZoom(Vector2 screenPivot, float scaleFactor)
@@ -183,11 +163,6 @@ namespace RogueliteAutoBattler.UI.Screens.SkillTree
 
         private Canvas GetCachedCanvas()
         {
-            if (_cachedCanvas == null)
-            {
-                _cachedCanvas = GetComponentInParent<Canvas>();
-            }
-
             return _cachedCanvas;
         }
     }

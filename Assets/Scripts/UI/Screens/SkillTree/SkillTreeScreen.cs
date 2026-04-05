@@ -11,8 +11,11 @@ namespace RogueliteAutoBattler.UI.Screens.SkillTree
         protected override void Awake()
         {
             base.Awake();
-            _inputHandler.OnVoidClicked += _nodeManager.DeselectAll;
-            _nodeManager.Initialize();
+            if (_inputHandler != null && _nodeManager != null)
+            {
+                _inputHandler.OnVoidClicked += _nodeManager.DeselectAll;
+                _nodeManager.Initialize();
+            }
         }
 
         private void OnDestroy()
