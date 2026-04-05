@@ -182,9 +182,8 @@ namespace RogueliteAutoBattler.Editor
             EditorGUILayout.Space(12);
             EditorGUILayout.LabelField("Generation Parameters", EditorStyles.boldLabel);
 
-            EditorGUILayout.IntSlider(_serializedData.FindProperty("nodeCount"), 1, 100, new GUIContent("Node Count"));
-            EditorGUILayout.PropertyField(_serializedData.FindProperty("seed"), new GUIContent("Seed"));
-            EditorGUILayout.Slider(_serializedData.FindProperty("placementRadius"), 1f, 20f, new GUIContent("Placement Radius"));
+            EditorGUILayout.IntSlider(_serializedData.FindProperty("ringNodeCount"), 3, 24, new GUIContent("Ring Node Count"));
+            EditorGUILayout.Slider(_serializedData.FindProperty("ringRadius"), 1f, 20f, new GUIContent("Ring Radius"));
 
             EditorGUILayout.Space(12);
             EditorGUILayout.LabelField("Visual Settings", EditorStyles.boldLabel);

@@ -37,19 +37,25 @@ namespace RogueliteAutoBattler.Data
         public Color NodeColor { get => nodeColor; internal set => nodeColor = value; }
         public Color BorderNormalColor { get => borderNormalColor; internal set => borderNormalColor = value; }
         public Color BorderSelectedColor { get => borderSelectedColor; internal set => borderSelectedColor = value; }
-        public List<SkillNodeEntry> Nodes { get => nodes; internal set => nodes = value; }
+        public IReadOnlyList<SkillNodeEntry> Nodes => nodes;
 
         public void GenerateNodes()
         {
             nodes.Clear();
+            BuildRingLayout(nodes, ringNodeCount, ringRadius);
+        }
 
-            nodes.Add(new SkillNodeEntry { id = 0, position = Vector2.zero });
+        internal static void BuildRingLayout(List<SkillNodeEntry> output, int nodeCount, float radius)
+        {
+            Debug.Assert(nodeCount > 0, "Ring node count must be positive");
 
-            for (int i = 0; i < ringNodeCount; i++)
+            output.Add(new SkillNodeEntry { id = 0, position = Vector2.zero });
+
+            for (int i = 0; i < nodeCount; i++)
             {
-                float angle = i * (2f * Mathf.PI / ringNodeCount);
-                Vector2 pos = new Vector2(ringRadius * Mathf.Cos(angle), ringRadius * Mathf.Sin(angle));
-                nodes.Add(new SkillNodeEntry { id = i + 1, position = pos });
+                float angle = i * (2f * Mathf.PI / nodeCount);
+                Vector2 pos = new Vector2(radius * Mathf.Cos(angle), radius * Mathf.Sin(angle));
+                output.Add(new SkillNodeEntry { id = i + 1, position = pos });
             }
         }
     }

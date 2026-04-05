@@ -55,12 +55,10 @@ namespace RogueliteAutoBattler.UI.Screens.SkillTree
                 return;
             }
 
-            CreateNode(0, Vector2.zero);
-            for (int i = 0; i < FallbackRingNodeCount; i++)
-            {
-                float angle = i * (2f * Mathf.PI / FallbackRingNodeCount);
-                CreateNode(i + 1, new Vector2(FallbackRingRadius * Mathf.Cos(angle), FallbackRingRadius * Mathf.Sin(angle)));
-            }
+            var fallbackNodes = new List<SkillTreeData.SkillNodeEntry>();
+            SkillTreeData.BuildRingLayout(fallbackNodes, FallbackRingNodeCount, FallbackRingRadius);
+            foreach (var entry in fallbackNodes)
+                CreateNode(entry.id, entry.position);
         }
 
         private void CreateNode(int index, Vector2 treePosition)
