@@ -314,18 +314,6 @@ namespace RogueliteAutoBattler.Tests.EditMode
             Assert.AreEqual(2.5f, _skillTreeData.Nodes[0].statModifierValuePerLevel);
         }
 
-        [Test]
-        public void GenerateNodes_NodeTypeDefaultsToPassive()
-        {
-            _skillTreeData.RingNodeCount = 6;
-            _skillTreeData.GenerateNodes();
-
-            for (int i = 0; i < _skillTreeData.Nodes.Count; i++)
-            {
-                Assert.AreEqual(SkillTreeData.NodeType.Passive, _skillTreeData.Nodes[i].nodeType,
-                    $"Node {i} should default to Passive");
-            }
-        }
         private static SkillTreeData.SkillNodeEntry MakeCostNode(int baseCost = 1, float multOdd = 1f, float multEven = 1f, int additive = 0)
         {
             return new SkillTreeData.SkillNodeEntry

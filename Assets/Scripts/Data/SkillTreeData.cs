@@ -21,13 +21,6 @@ namespace RogueliteAutoBattler.Data
         public static readonly Color DefaultEdgeColor = new Color(0.6f, 0.6f, 0.6f, 1f);
         public static readonly Color DefaultRingGuideColor = new Color(0.25f, 0.25f, 0.25f, 0.5f);
 
-        public enum NodeType
-        {
-            Passive,
-            Active,
-            Keystone
-        }
-
         public enum CostType
         {
             Gold,
@@ -37,11 +30,11 @@ namespace RogueliteAutoBattler.Data
         public enum StatModifierType
         {
             HP,
+            RegenHP,
             Attack,
             Defense,
-            Speed,
-            CritRate,
-            CritDamage
+            Mana,
+            Power
         }
 
         [Serializable]
@@ -50,7 +43,6 @@ namespace RogueliteAutoBattler.Data
             public int id;
             public Vector2 position;
             public List<int> connectedNodeIds;
-            public NodeType nodeType;
             public CostType costType;
             public int maxLevel;
             public int baseCost;
@@ -130,7 +122,6 @@ namespace RogueliteAutoBattler.Data
                     id = i,
                     position = pos,
                     connectedNodeIds = new List<int> { (i + 1) % nodeCount },
-                    nodeType = NodeType.Passive,
                     costType = CostType.Gold,
                     maxLevel = 0,
                     baseCost = defaultBaseCost,

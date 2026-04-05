@@ -318,7 +318,6 @@ namespace RogueliteAutoBattler.Editor
 
                 EditorGUI.BeginChangeCheck();
 
-                var newNodeType = (SkillTreeData.NodeType)EditorGUILayout.EnumPopup("Node Type", node.nodeType);
                 var newCostType = (SkillTreeData.CostType)EditorGUILayout.EnumPopup("Cost Type", node.costType);
                 int newMaxLevel = EditorGUILayout.IntField("Max Level (0=unlimited)", node.maxLevel);
 
@@ -336,7 +335,6 @@ namespace RogueliteAutoBattler.Editor
                 if (EditorGUI.EndChangeCheck())
                 {
                     var updated = node;
-                    updated.nodeType = newNodeType;
                     updated.costType = newCostType;
                     updated.maxLevel = newMaxLevel;
                     updated.baseCost = newBaseCost;
