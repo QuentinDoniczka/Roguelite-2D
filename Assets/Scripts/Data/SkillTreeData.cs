@@ -20,6 +20,13 @@ namespace RogueliteAutoBattler.Data
         public static readonly Color DefaultBorderSelectedColor = Color.yellow;
         public static readonly Color DefaultEdgeColor = new Color(0.6f, 0.6f, 0.6f, 1f);
 
+        public enum NodeType
+        {
+            Passive,
+            Active,
+            Keystone
+        }
+
         public enum CostType
         {
             Gold,
@@ -42,6 +49,7 @@ namespace RogueliteAutoBattler.Data
             public int id;
             public Vector2 position;
             public List<int> connectedNodeIds;
+            public NodeType nodeType;
             public CostType costType;
             public int costAmount;
             public int maxLevel;
@@ -107,6 +115,7 @@ namespace RogueliteAutoBattler.Data
                     id = i,
                     position = pos,
                     connectedNodeIds = new List<int> { (i + 1) % nodeCount },
+                    nodeType = NodeType.Passive,
                     costType = CostType.Gold,
                     costAmount = 1,
                     maxLevel = 1,
@@ -129,6 +138,12 @@ namespace RogueliteAutoBattler.Data
             }
             _cachedEdges = edges.ToArray();
             return _cachedEdges;
+        }
+
+        internal void SetNode(int index, SkillNodeEntry entry)
+        {
+            nodes[index] = entry;
+            _cachedEdges = null;
         }
     }
 }

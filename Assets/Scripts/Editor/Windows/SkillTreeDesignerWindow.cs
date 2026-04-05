@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using RogueliteAutoBattler.Data;
 using RogueliteAutoBattler.UI.Screens.SkillTree;
 using UnityEditor;
@@ -47,6 +48,7 @@ namespace RogueliteAutoBattler.Editor
         private Vector2 _configScrollPos;
         private GUIStyle _nodeLabelStyle;
         private string[] _nodeLabels;
+        private int _selectedNodeIndex = -1;
 
         [MenuItem("Roguelite/Skill Tree Designer")]
         private static void OpenWindow()
@@ -161,7 +163,7 @@ namespace RogueliteAutoBattler.Editor
                 Vector3 center3D = new Vector3(screenPos.x, screenPos.y, 0f);
                 Rect nodeRect = new Rect(screenPos.x - halfNode, screenPos.y - halfNode, scaledNodeSize, scaledNodeSize);
 
-                Handles.color = _data.BorderNormalColor;
+                Handles.color = (i == _selectedNodeIndex) ? _data.BorderSelectedColor : _data.BorderNormalColor;
                 Handles.DrawSolidDisc(center3D, Vector3.forward, halfNode + scaledBorder);
 
                 Handles.color = _data.NodeColor;
@@ -199,6 +201,18 @@ namespace RogueliteAutoBattler.Editor
             {
                 float zoomDelta = 1f - evt.delta.y * ZoomScrollSensitivity;
                 _canvasZoom = Mathf.Clamp(_canvasZoom * zoomDelta, MinZoom, MaxZoom);
+                evt.Use();
+                Repaint();
+            }
+
+            if (evt.type == EventType.MouseDown && evt.button == 0 && !evt.alt)
+            {
+                Vector2 mouseInCanvas = evt.mousePosition;
+                Vector2 center = new Vector2(canvasRect.width * 0.5f, canvasRect.height * 0.5f);
+                Vector2 origin = center + _canvasOffset;
+
+                int hitIndex = HitTestNode(mouseInCanvas, origin, _data.Nodes, _data.UnitSize, _data.NodeSize, _canvasZoom);
+                _selectedNodeIndex = hitIndex;
                 evt.Use();
                 Repaint();
             }
@@ -257,6 +271,7 @@ namespace RogueliteAutoBattler.Editor
             {
                 _serializedData.ApplyModifiedProperties();
                 _data.GenerateNodes();
+                _selectedNodeIndex = -1;
                 RebuildNodeLabels();
                 EditorUtility.SetDirty(_data);
                 AssetDatabase.SaveAssets();
@@ -274,6 +289,38 @@ namespace RogueliteAutoBattler.Editor
             EditorGUILayout.Space(8);
 
             EditorGUILayout.HelpBox($"{_data.Nodes.Count} nodes generated.", MessageType.Info);
+
+            if (_selectedNodeIndex >= 0 && _selectedNodeIndex < _data.Nodes.Count)
+            {
+                EditorGUILayout.Space(16);
+                EditorGUILayout.LabelField($"Node {_selectedNodeIndex} Properties", EditorStyles.boldLabel);
+
+                var node = _data.Nodes[_selectedNodeIndex];
+
+                EditorGUI.BeginChangeCheck();
+
+                var newNodeType = (SkillTreeData.NodeType)EditorGUILayout.EnumPopup("Node Type", node.nodeType);
+                var newCostType = (SkillTreeData.CostType)EditorGUILayout.EnumPopup("Cost Type", node.costType);
+                int newCostAmount = EditorGUILayout.IntField("Cost Amount", node.costAmount);
+                int newMaxLevel = EditorGUILayout.IntField("Max Level", node.maxLevel);
+                var newStatModType = (SkillTreeData.StatModifierType)EditorGUILayout.EnumPopup("Stat Modifier", node.statModifierType);
+                float newStatModValue = EditorGUILayout.FloatField("Value Per Level", node.statModifierValuePerLevel);
+
+                if (EditorGUI.EndChangeCheck())
+                {
+                    var updated = node;
+                    updated.nodeType = newNodeType;
+                    updated.costType = newCostType;
+                    updated.costAmount = newCostAmount;
+                    updated.maxLevel = newMaxLevel;
+                    updated.statModifierType = newStatModType;
+                    updated.statModifierValuePerLevel = newStatModValue;
+
+                    _data.SetNode(_selectedNodeIndex, updated);
+                    EditorUtility.SetDirty(_data);
+                    AssetDatabase.SaveAssets();
+                }
+            }
 
             if (_serializedData.ApplyModifiedProperties())
                 Repaint();
@@ -303,6 +350,22 @@ namespace RogueliteAutoBattler.Editor
             EditorUtility.SetDirty(manager);
 
             Debug.Log($"[SkillTreeDesigner] Applied {_data.Nodes.Count} nodes to scene SkillTreeNodeManager.");
+        }
+
+        internal static int HitTestNode(Vector2 mousePos, Vector2 origin, IReadOnlyList<SkillTreeData.SkillNodeEntry> nodes, float unitSize, float nodeSize, float zoom)
+        {
+            float scaledUnit = unitSize * zoom;
+            float halfNode = nodeSize * zoom * 0.5f;
+            float halfNodeSq = halfNode * halfNode;
+
+            for (int i = nodes.Count - 1; i >= 0; i--)
+            {
+                Vector2 nodeScreenPos = origin + nodes[i].position * scaledUnit;
+                float distSq = (mousePos - nodeScreenPos).sqrMagnitude;
+                if (distSq <= halfNodeSq)
+                    return i;
+            }
+            return -1;
         }
 
         private void RebuildNodeLabels()

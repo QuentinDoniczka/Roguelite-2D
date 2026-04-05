@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using NUnit.Framework;
 using RogueliteAutoBattler.Data;
+using RogueliteAutoBattler.Editor;
 using UnityEngine;
 
 namespace RogueliteAutoBattler.Tests.EditMode
@@ -264,6 +265,53 @@ namespace RogueliteAutoBattler.Tests.EditMode
                 Assert.AreEqual(SkillTreeData.CostType.Gold, node.costType);
                 Assert.AreEqual(1, node.costAmount);
                 Assert.AreEqual(1, node.maxLevel);
+            }
+        }
+
+        [Test]
+        public void HitTestNode_ReturnsCorrectIndex()
+        {
+            _skillTreeData.RingNodeCount = 4;
+            _skillTreeData.RingRadius = 5f;
+            _skillTreeData.GenerateNodes();
+
+            Vector2 origin = Vector2.zero;
+            float unitSize = 200f;
+            float nodeSize = 80f;
+            float zoom = 1f;
+
+            Vector2 clickOnNode0 = new Vector2(1000f, 0f);
+            int result = SkillTreeDesignerWindow.HitTestNode(clickOnNode0, origin, _skillTreeData.Nodes, unitSize, nodeSize, zoom);
+            Assert.AreEqual(0, result);
+        }
+
+        [Test]
+        public void HitTestNode_OutOfBounds_ReturnsMinusOne()
+        {
+            _skillTreeData.RingNodeCount = 4;
+            _skillTreeData.RingRadius = 5f;
+            _skillTreeData.GenerateNodes();
+
+            Vector2 origin = Vector2.zero;
+            float unitSize = 200f;
+            float nodeSize = 80f;
+            float zoom = 1f;
+
+            Vector2 clickFarAway = new Vector2(9999f, 9999f);
+            int result = SkillTreeDesignerWindow.HitTestNode(clickFarAway, origin, _skillTreeData.Nodes, unitSize, nodeSize, zoom);
+            Assert.AreEqual(-1, result);
+        }
+
+        [Test]
+        public void GenerateNodes_NodeTypeDefaultsToPassive()
+        {
+            _skillTreeData.RingNodeCount = 6;
+            _skillTreeData.GenerateNodes();
+
+            for (int i = 0; i < _skillTreeData.Nodes.Count; i++)
+            {
+                Assert.AreEqual(SkillTreeData.NodeType.Passive, _skillTreeData.Nodes[i].nodeType,
+                    $"Node {i} should default to Passive");
             }
         }
     }
