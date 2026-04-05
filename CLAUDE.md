@@ -33,7 +33,7 @@ Generated: 2026-04-05 (updated feature/153-skill-tree-ring-layout)
     protect-main.yml
 
 Assets/
-  Animations/  (22 files: .anim + .controller)
+  Animations/  (23 files: .anim + .controller)
   Audio/  (empty)
   Data/
     Adventurers/  (empty)
@@ -56,6 +56,7 @@ Assets/
     plan-issue-80.md
     plan-level-scroll-transition.md
     premier-jet-roguelite.html
+    techtreeidea.png
   Fonts/  (empty)
   Materials/  (1 file)
   MedievalFantasyCharacters/  (asset store package)
@@ -185,8 +186,8 @@ Assets/
       grid_ground_blue.png
       map.png
       placeholder_white.png
-    Items/  (54 files)
-    UI/  (empty)
+    Items/  (53 files)
+    UI/  (empty — circle_white.png generated at build time by SkillTreeBuilder)
   Tests/
     EditMode/
       Tests.EditMode.asmdef

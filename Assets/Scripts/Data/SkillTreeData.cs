@@ -9,6 +9,11 @@ namespace RogueliteAutoBattler.Data
     {
         public const string DefaultAssetPath = "Assets/Data/SkillTreeData.asset";
 
+        public const int DefaultRingNodeCount = 6;
+        public const float DefaultRingRadius = 5f;
+        public const float DefaultUnitSize = 200f;
+        public const float DefaultNodeSize = 80f;
+
         [Serializable]
         public struct SkillNodeEntry
         {
@@ -17,12 +22,12 @@ namespace RogueliteAutoBattler.Data
         }
 
         [Header("Generation")]
-        [SerializeField] private float ringRadius = 5f;
-        [SerializeField, Range(3, 24)] private int ringNodeCount = 6;
+        [SerializeField] private float ringRadius = DefaultRingRadius;
+        [SerializeField, Range(3, 24)] private int ringNodeCount = DefaultRingNodeCount;
 
         [Header("Visual")]
-        [SerializeField] private float unitSize = 200f;
-        [SerializeField] private float nodeSize = 80f;
+        [SerializeField] private float unitSize = DefaultUnitSize;
+        [SerializeField] private float nodeSize = DefaultNodeSize;
         [SerializeField] private Color nodeColor = new Color(0.3f, 0.3f, 0.3f, 1f);
         [SerializeField] private Color borderNormalColor = Color.gray;
         [SerializeField] private Color borderSelectedColor = Color.yellow;

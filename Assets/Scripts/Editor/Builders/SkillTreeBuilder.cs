@@ -21,7 +21,7 @@ namespace RogueliteAutoBattler.Editor
             EditorUIFactory.Stretch(viewportGo.AddComponent<RectTransform>());
 
             Image viewportImage = viewportGo.AddComponent<Image>();
-            viewportImage.color = new Color(0, 0, 0, 0);
+            viewportImage.color = Color.clear;
             viewportImage.raycastTarget = true;
 
             viewportGo.AddComponent<RectMask2D>();
@@ -105,7 +105,7 @@ namespace RogueliteAutoBattler.Editor
             importer.textureType = TextureImporterType.Sprite;
             importer.spriteImportMode = SpriteImportMode.Single;
             importer.alphaIsTransparency = true;
-            importer.isReadable = true;
+            importer.isReadable = false;
             importer.SaveAndReimport();
 
             return AssetDatabase.LoadAssetAtPath<Sprite>(CircleSpritePath);

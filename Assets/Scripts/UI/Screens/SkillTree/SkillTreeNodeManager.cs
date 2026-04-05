@@ -8,8 +8,6 @@ namespace RogueliteAutoBattler.UI.Screens.SkillTree
 {
     public class SkillTreeNodeManager : MonoBehaviour
     {
-        private const int FallbackRingNodeCount = 6;
-        private const float FallbackRingRadius = 5f;
         private const float BorderPadding = 4f;
 
         [Header("Data")]
@@ -19,8 +17,8 @@ namespace RogueliteAutoBattler.UI.Screens.SkillTree
         [SerializeField] private RectTransform _content;
 
         [Header("Node Sizing")]
-        [SerializeField] private float _nodeSize = 80f;
-        [SerializeField] private float _unitSize = 200f;
+        [SerializeField] private float _nodeSize = SkillTreeData.DefaultNodeSize;
+        [SerializeField] private float _unitSize = SkillTreeData.DefaultUnitSize;
 
         [Header("Node Colors")]
         [SerializeField] private Color _nodeColor = new Color(0.3f, 0.3f, 0.3f, 1f);
@@ -60,7 +58,7 @@ namespace RogueliteAutoBattler.UI.Screens.SkillTree
             }
 
             var fallbackNodes = new List<SkillTreeData.SkillNodeEntry>();
-            SkillTreeData.BuildRingLayout(fallbackNodes, FallbackRingNodeCount, FallbackRingRadius);
+            SkillTreeData.BuildRingLayout(fallbackNodes, SkillTreeData.DefaultRingNodeCount, SkillTreeData.DefaultRingRadius);
             foreach (var entry in fallbackNodes)
                 CreateNode(entry.id, entry.position);
         }
