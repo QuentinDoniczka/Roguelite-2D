@@ -21,7 +21,7 @@ namespace RogueliteAutoBattler.Editor
             EditorUIFactory.Stretch(viewportGo.AddComponent<RectTransform>());
 
             Image viewportImage = viewportGo.AddComponent<Image>();
-            viewportImage.color = Color.clear;
+            viewportImage.color = Color.black;
             viewportImage.raycastTarget = true;
 
             viewportGo.AddComponent<RectMask2D>();

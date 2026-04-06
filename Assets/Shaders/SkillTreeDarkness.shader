@@ -4,10 +4,10 @@ Shader "Custom/SkillTreeDarkness"
     {
         _Color ("Darkness Color", Color) = (0, 0, 0, 1.0)
         _CenterUV ("Center UV", Vector) = (0.5, 0.5, 0, 0)
-        _LightRadius ("Light Radius", Float) = 0.15
-        _LightSoftness ("Light Softness", Float) = 0.3
+        _LightRadius ("Light Radius", Float) = 0.05
+        _LightSoftness ("Light Softness", Float) = 0.45
         _LightIntensity ("Light Intensity", Float) = 1.0
-        _LightColor ("Light Color", Color) = (1, 0.9, 0.7, 1)
+        _LightColor ("Light Color", Color) = (1, 0.92, 0.75, 1)
     }
 
     SubShader
@@ -78,11 +78,17 @@ Shader "Custom/SkillTreeDarkness"
                 float2 uv = input.uv;
                 float2 centerUV = _CenterUV.xy;
                 float dist = distance(uv, centerUV);
-                float light = 1.0 - smoothstep(_LightRadius, _LightRadius + _LightSoftness, dist);
+
+                // Gaussian-like falloff for smooth natural light decay
+                float normalizedDist = max(dist - _LightRadius, 0.0) / max(_LightSoftness, 0.001);
+                float light = exp(-normalizedDist * normalizedDist * 2.0);
                 light = saturate(light * _LightIntensity);
+
                 float darknessAlpha = _Color.a * input.color.a;
                 float finalAlpha = darknessAlpha * (1.0 - light);
-                half3 finalColor = lerp(_Color.rgb, _LightColor.rgb, light * 0.3);
+
+                // Subtle warm tint near the light edge
+                half3 finalColor = lerp(_Color.rgb, _LightColor.rgb, light * light * 0.4);
                 return half4(finalColor, finalAlpha);
             }
             ENDHLSL
@@ -141,11 +147,17 @@ Shader "Custom/SkillTreeDarkness"
                 float2 uv = input.uv;
                 float2 centerUV = _CenterUV.xy;
                 float dist = distance(uv, centerUV);
-                float light = 1.0 - smoothstep(_LightRadius, _LightRadius + _LightSoftness, dist);
+
+                // Gaussian-like falloff for smooth natural light decay
+                float normalizedDist = max(dist - _LightRadius, 0.0) / max(_LightSoftness, 0.001);
+                float light = exp(-normalizedDist * normalizedDist * 2.0);
                 light = saturate(light * _LightIntensity);
+
                 float darknessAlpha = _Color.a * input.color.a;
                 float finalAlpha = darknessAlpha * (1.0 - light);
-                half3 finalColor = lerp(_Color.rgb, _LightColor.rgb, light * 0.3);
+
+                // Subtle warm tint near the light edge
+                half3 finalColor = lerp(_Color.rgb, _LightColor.rgb, light * light * 0.4);
                 return half4(finalColor, finalAlpha);
             }
             ENDHLSL

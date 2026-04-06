@@ -17,10 +17,10 @@ namespace RogueliteAutoBattler.UI.Screens.SkillTree
         [SerializeField] private Color _darknessColor = new Color(0f, 0f, 0f, 1f);
 
         [Header("Center Light")]
-        [SerializeField] private float _lightRadius = 0.12f;
-        [SerializeField] private float _lightSoftness = 0.25f;
-        [SerializeField] private float _lightIntensity = 1.2f;
-        [SerializeField] private Color _lightColor = new Color(1f, 0.9f, 0.7f, 1f);
+        [SerializeField] private float _lightRadius = 0.05f;
+        [SerializeField] private float _lightSoftness = 0.45f;
+        [SerializeField] private float _lightIntensity = 1.0f;
+        [SerializeField] private Color _lightColor = new Color(1f, 0.92f, 0.75f, 1f);
 
         [SerializeField] private RectTransform _content;
 
