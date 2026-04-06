@@ -401,6 +401,7 @@ namespace RogueliteAutoBattler.Combat.Levels
             CombatSetupHelper.DestroyAllChildren(_enemiesContainer);
             if (_conveyor != null) _conveyor.ResetPosition();
             CombatSetupHelper.RecalculateFormation(_teamContainer, _teamHomeAnchor, facingRight: true, characterScale: CharacterScale);
+            TeleportAlliesToHome();
 
             yield return null;
 
@@ -409,6 +410,22 @@ namespace RogueliteAutoBattler.Combat.Levels
 
             if (_fadeOverlay != null)
                 yield return _fadeOverlay.FadeOut();
+        }
+
+        private void TeleportAlliesToHome()
+        {
+            if (_teamContainer == null || _teamHomeAnchor == null) return;
+
+            Vector2 anchorPos = (Vector2)_teamHomeAnchor.position;
+            for (int i = 0; i < _teamContainer.childCount; i++)
+            {
+                Transform child = _teamContainer.GetChild(i);
+                if (child.TryGetComponent<CharacterMover>(out var mover))
+                {
+                    child.position = (Vector3)(anchorPos + mover.HomeOffset);
+                    mover.Stop();
+                }
+            }
         }
 
         private void CheckLevelLost()
