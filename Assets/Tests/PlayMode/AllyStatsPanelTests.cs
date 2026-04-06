@@ -19,6 +19,8 @@ namespace RogueliteAutoBattler.Tests.PlayMode
         private GameObject _allyGo;
         private CombatStats _allyCombatStats;
         private GameObject _enemyGo;
+        private TMP_Text _emptyStateLabel;
+        private CanvasGroup[] _statCardGroups;
 
         [SetUp]
         public void SetUp()
@@ -68,9 +70,23 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             var atkSpeedLabel = atkSpeedLabelGo.AddComponent<TextMeshProUGUI>();
 
             var canvasGroup = panelGo.AddComponent<CanvasGroup>();
+
+            var emptyStateLabelGo = new GameObject("EmptyStateLabel");
+            emptyStateLabelGo.transform.SetParent(canvasGo.transform, false);
+            _emptyStateLabel = emptyStateLabelGo.AddComponent<TextMeshProUGUI>();
+
+            _statCardGroups = new CanvasGroup[3];
+            for (int i = 0; i < 3; i++)
+            {
+                var cardGo = new GameObject($"StatCard_{i}");
+                cardGo.transform.SetParent(panelGo.transform, false);
+                cardGo.AddComponent<RectTransform>();
+                _statCardGroups[i] = cardGo.AddComponent<CanvasGroup>();
+            }
+
             _panel = panelGo.AddComponent<AllyStatsPanel>();
             _panel.InitializeForTest(_selectionManager, hpLabel, atkLabel, atkSpeedLabel,
-                canvasGroup, PhysicsLayers.AllyLayer);
+                canvasGroup, PhysicsLayers.AllyLayer, _emptyStateLabel, _statCardGroups);
 
             _allyGo = TestCharacterFactory.CreateSelectableCharacter(
                 name: "Ally",
@@ -197,6 +213,67 @@ namespace RogueliteAutoBattler.Tests.PlayMode
 
             Assert.AreEqual("200 / 200", _panel.HpText);
             Assert.AreEqual("25", _panel.AtkText);
+        }
+
+        [UnityTest]
+        public IEnumerator EmptyStateLabel_VisibleWhenPanelHidden()
+        {
+            yield return null;
+
+            Assert.IsTrue(_panel.IsEmptyStateLabelActive);
+        }
+
+        [UnityTest]
+        public IEnumerator EmptyStateLabel_HidesOnAllySelection()
+        {
+            yield return null;
+
+            _selectionManager.SimulateClickAtWorldPos(new Vector2(0f, 0f));
+            yield return null;
+
+            Assert.IsFalse(_panel.IsEmptyStateLabelActive);
+        }
+
+        [UnityTest]
+        public IEnumerator EmptyStateLabel_ShowsOnDeselection()
+        {
+            yield return null;
+
+            _selectionManager.SimulateClickAtWorldPos(new Vector2(0f, 0f));
+            yield return null;
+            Assert.IsFalse(_panel.IsEmptyStateLabelActive);
+
+            _selectionManager.SimulateClickAtWorldPos(new Vector2(100f, 100f));
+            yield return null;
+
+            Assert.IsTrue(_panel.IsEmptyStateLabelActive);
+        }
+
+        [UnityTest]
+        public IEnumerator StatCards_FadeInOnSelection()
+        {
+            yield return null;
+
+            _selectionManager.SimulateClickAtWorldPos(new Vector2(0f, 0f));
+            yield return new WaitForSeconds(0.5f);
+
+            for (int i = 0; i < 3; i++)
+                Assert.AreEqual(1f, _panel.StatCardAlpha(i), 0.01f, $"StatCard {i} should be fully visible");
+        }
+
+        [UnityTest]
+        public IEnumerator StatCards_ResetToZeroOnHide()
+        {
+            yield return null;
+
+            _selectionManager.SimulateClickAtWorldPos(new Vector2(0f, 0f));
+            yield return new WaitForSeconds(0.5f);
+
+            _selectionManager.SimulateClickAtWorldPos(new Vector2(100f, 100f));
+            yield return null;
+
+            for (int i = 0; i < 3; i++)
+                Assert.AreEqual(0f, _panel.StatCardAlpha(i), 0.01f, $"StatCard {i} should be hidden");
         }
     }
 }
