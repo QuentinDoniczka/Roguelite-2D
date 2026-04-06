@@ -1,3 +1,4 @@
+using System.Globalization;
 using RogueliteAutoBattler.Combat.Core;
 using RogueliteAutoBattler.Common;
 using TMPro;
@@ -109,7 +110,7 @@ namespace RogueliteAutoBattler.UI.Widgets
                 _atkLabel.text = $"{_trackedStats.Atk}";
 
             if (_attackSpeedLabel != null)
-                _attackSpeedLabel.text = $"{_trackedStats.AttackSpeed:F1}";
+                _attackSpeedLabel.text = _trackedStats.AttackSpeed.ToString("F1", CultureInfo.InvariantCulture);
         }
 
         private void Show()
