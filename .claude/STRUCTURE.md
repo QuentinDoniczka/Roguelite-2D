@@ -1,5 +1,5 @@
 # Project Structure
-Generated: 2026-04-06 (updated feature/162-darkness-overlay)
+Generated: 2026-04-06 (updated fix/169-keep-selection-on-transition)
 
 .github/
   workflows/
@@ -76,7 +76,6 @@ Assets/
         DamageNumberBootstrap.cs
         DamageNumberService.cs
         DamageNumberSettingsPersistence.cs
-        FadeOverlay.cs
         HealthBar.cs
         SelectionOutline.cs
         VisualEquipmentTestLoop.cs
@@ -130,7 +129,6 @@ Assets/
         Shop/
           ShopScreen.cs
         SkillTree/
-          SkillTreeDarknessOverlay.cs
           SkillTreeInputHandler.cs
           SkillTreeNode.cs
           SkillTreeNodeManager.cs
@@ -152,7 +150,6 @@ Assets/
     UniversalRenderPipelineGlobalSettings.asset
     UniversalRP.asset
   Shaders/
-    SkillTreeDarkness.shader
     SpriteOutline2D.shader
     SpriteSilhouette2D.shader
   Sprites/
@@ -165,7 +162,8 @@ Assets/
       map.png
       placeholder_white.png
     Items/  (53 files)
-    UI/  (empty -- circle_white.png generated at build time by SkillTreeBuilder)
+    UI/
+      circle_white.png
   Tests/
     EditMode/
       Tests.EditMode.asmdef
@@ -208,7 +206,6 @@ Assets/
       NavigationManagerTests.cs
       ScreenStackTests.cs
       SelectionOutlineTests.cs
-      SkillTreeDarknessOverlayTests.cs
       SkillTreeInputHandlerTests.cs
       SkillTreeNodeManagerTests.cs
       SkillTreeNodeTests.cs
