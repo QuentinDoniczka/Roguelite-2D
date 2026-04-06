@@ -25,7 +25,7 @@
 Doc detaille : `Assets/doc/premier-jet-roguelite.html`
 
 # Project Structure
-Generated: 2026-04-06 (updated feature/162-darkness-overlay)
+Generated: 2026-04-06 (updated feature/9-hud-stats-aventurier)
 
 .github/
   workflows/
@@ -102,7 +102,6 @@ Assets/
         DamageNumberBootstrap.cs
         DamageNumberService.cs
         DamageNumberSettingsPersistence.cs
-        FadeOverlay.cs
         HealthBar.cs
         SelectionOutline.cs
         VisualEquipmentTestLoop.cs
@@ -156,7 +155,6 @@ Assets/
         Shop/
           ShopScreen.cs
         SkillTree/
-          SkillTreeDarknessOverlay.cs
           SkillTreeInputHandler.cs
           SkillTreeNode.cs
           SkillTreeNodeManager.cs
@@ -164,6 +162,7 @@ Assets/
         Village/
           VillageScreen.cs
       Widgets/
+        AllyStatsPanel.cs
         BattleIndicatorBadge.cs
         GoldHudBadge.cs
         StepProgressBar.cs
@@ -178,7 +177,6 @@ Assets/
     UniversalRenderPipelineGlobalSettings.asset
     UniversalRP.asset
   Shaders/
-    SkillTreeDarkness.shader
     SpriteOutline2D.shader
     SpriteSilhouette2D.shader
   Sprites/
@@ -191,7 +189,7 @@ Assets/
       map.png
       placeholder_white.png
     Items/  (53 files)
-    UI/  (empty — circle_white.png generated at build time by SkillTreeBuilder)
+    UI/  (1 file)
   Tests/
     EditMode/
       Tests.EditMode.asmdef
@@ -208,6 +206,7 @@ Assets/
       TestUtils/
         PlayModeTestBase.cs
         TestCharacterFactory.cs
+      AllyStatsPanelTests.cs
       AnimationEventRelayTests.cs
       BattleIndicatorBadgeTests.cs
       CanvasFactoryTests.cs
@@ -234,7 +233,6 @@ Assets/
       NavigationManagerTests.cs
       ScreenStackTests.cs
       SelectionOutlineTests.cs
-      SkillTreeDarknessOverlayTests.cs
       SkillTreeInputHandlerTests.cs
       SkillTreeNodeManagerTests.cs
       SkillTreeNodeTests.cs

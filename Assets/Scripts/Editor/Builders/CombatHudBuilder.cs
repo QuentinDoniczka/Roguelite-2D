@@ -15,6 +15,14 @@ namespace RogueliteAutoBattler.Editor
         private const int HudFontSize = 28;
         private const int BattleFontSize = 40;
         private const int AnnouncementFontSize = 56;
+        private const int StatNameFontSize = 20;
+        private const int StatValueFontSize = 22;
+        private const float StatNamePreferredWidth = 80f;
+
+        private static readonly Vector2 BadgeOffsetOuterLeft = new Vector2(8, -8);
+        private static readonly Vector2 BadgeOffsetInnerLeft = new Vector2(4, -8);
+        private static readonly Vector2 BadgeOffsetInnerRight = new Vector2(-4, -8);
+        private static readonly Vector2 BadgeOffsetOuterRight = new Vector2(-8, -8);
 
         private static readonly Color HudBarBg = (Color)new Color32(0, 0, 0, 160);
 
@@ -28,14 +36,10 @@ namespace RogueliteAutoBattler.Editor
 
             UIScreen screen = go.AddComponent<CombatScreen>();
 
-            CreateHudBadge(go.transform, "ResetTimer", "Reset: 3j 14h",
-                new Vector2(0, 0.92f), new Vector2(0.35f, 1f),
-                new Vector2(12, -8), new Vector2(-8, -8),
-                TextAlignmentOptions.Center);
-
             CreateCurrencyBadge(go.transform, "Gold", "0",
-                new Vector2(0.55f, 0.92f), new Vector2(0.77f, 1f),
-                (Color)new Color32(255, 215, 0, 255));
+                new Vector2(0f, 0.92f), new Vector2(0.22f, 1f),
+                (Color)new Color32(255, 215, 0, 255),
+                BadgeOffsetOuterLeft, BadgeOffsetInnerRight);
 
             var goldBadge = go.transform.Find("Gold");
             if (goldBadge != null)
@@ -63,8 +67,11 @@ namespace RogueliteAutoBattler.Editor
             bootstrapSO.ApplyModifiedProperties();
 
             CreateCurrencyBadge(go.transform, "Diamond", "211",
-                new Vector2(0.77f, 0.92f), new Vector2(1f, 1f),
-                (Color)new Color32(185, 242, 255, 255));
+                new Vector2(0.22f, 0.92f), new Vector2(0.44f, 1f),
+                (Color)new Color32(185, 242, 255, 255),
+                BadgeOffsetInnerLeft, BadgeOffsetOuterRight);
+
+            CreateAllyStatsPanel(go.transform);
 
             var battleGo = new GameObject("BattleIndicator");
             GameObjectUtility.SetParentAndAlign(battleGo, go);
@@ -142,16 +149,95 @@ namespace RogueliteAutoBattler.Editor
             return screen;
         }
 
+        private static void CreateAllyStatsPanel(Transform parent)
+        {
+            var go = new GameObject("AllyStatsPanel");
+            GameObjectUtility.SetParentAndAlign(go, parent.gameObject);
+            RectTransform r = go.AddComponent<RectTransform>();
+            r.anchorMin = new Vector2(0.55f, 0.88f);
+            r.anchorMax = new Vector2(1f, 1f);
+            r.offsetMin = BadgeOffsetInnerLeft;
+            r.offsetMax = BadgeOffsetOuterRight;
+
+            Image bg = go.AddComponent<Image>();
+            bg.color = HudBarBg;
+
+            CanvasGroup cg = go.AddComponent<CanvasGroup>();
+            cg.alpha = 0f;
+            cg.blocksRaycasts = false;
+
+            VerticalLayoutGroup layout = go.AddComponent<VerticalLayoutGroup>();
+            layout.padding = new RectOffset(8, 8, 4, 4);
+            layout.spacing = 2;
+            layout.childControlWidth = true;
+            layout.childControlHeight = true;
+            layout.childForceExpandWidth = true;
+            layout.childForceExpandHeight = false;
+
+            TextMeshProUGUI hpValue = CreateStatRow(go.transform, "HpRow", "HP:");
+            TextMeshProUGUI atkValue = CreateStatRow(go.transform, "AtkRow", "ATK:");
+            TextMeshProUGUI spdValue = CreateStatRow(go.transform, "SpdRow", "SPD:");
+
+            AllyStatsPanel panel = go.AddComponent<AllyStatsPanel>();
+            var so = new SerializedObject(panel);
+            EditorUIFactory.SetObj(so, "_hpLabel", hpValue);
+            EditorUIFactory.SetObj(so, "_atkLabel", atkValue);
+            EditorUIFactory.SetObj(so, "_attackSpeedLabel", spdValue);
+            EditorUIFactory.SetObj(so, "_canvasGroup", cg);
+            so.ApplyModifiedProperties();
+        }
+
+        private static TextMeshProUGUI CreateStatRow(Transform parent, string name, string statName)
+        {
+            var rowGo = new GameObject(name);
+            GameObjectUtility.SetParentAndAlign(rowGo, parent.gameObject);
+            rowGo.AddComponent<RectTransform>();
+
+            HorizontalLayoutGroup rowLayout = rowGo.AddComponent<HorizontalLayoutGroup>();
+            rowLayout.spacing = 4;
+            rowLayout.childAlignment = TextAnchor.MiddleLeft;
+            rowLayout.childControlWidth = true;
+            rowLayout.childControlHeight = true;
+            rowLayout.childForceExpandWidth = false;
+            rowLayout.childForceExpandHeight = false;
+
+            var nameGo = new GameObject("StatName");
+            GameObjectUtility.SetParentAndAlign(nameGo, rowGo);
+            nameGo.AddComponent<RectTransform>();
+            TextMeshProUGUI nameTmp = nameGo.AddComponent<TextMeshProUGUI>();
+            nameTmp.text = statName;
+            nameTmp.fontSize = StatNameFontSize;
+            nameTmp.color = Color.gray;
+            nameTmp.alignment = TextAlignmentOptions.Left;
+            LayoutElement nameLe = nameGo.AddComponent<LayoutElement>();
+            nameLe.preferredWidth = StatNamePreferredWidth;
+
+            var valueGo = new GameObject("StatValue");
+            GameObjectUtility.SetParentAndAlign(valueGo, rowGo);
+            valueGo.AddComponent<RectTransform>();
+            TextMeshProUGUI valueTmp = valueGo.AddComponent<TextMeshProUGUI>();
+            valueTmp.text = "---";
+            valueTmp.fontSize = StatValueFontSize;
+            valueTmp.color = Color.white;
+            valueTmp.alignment = TextAlignmentOptions.Right;
+            valueTmp.fontStyle = FontStyles.Bold;
+            LayoutElement valueLe = valueGo.AddComponent<LayoutElement>();
+            valueLe.flexibleWidth = 1;
+
+            return valueTmp;
+        }
+
         private static void CreateCurrencyBadge(Transform parent, string name, string text,
-            Vector2 anchorMin, Vector2 anchorMax, Color textColor)
+            Vector2 anchorMin, Vector2 anchorMax, Color textColor,
+            Vector2? offsetMin = null, Vector2? offsetMax = null)
         {
             var go = new GameObject(name);
             GameObjectUtility.SetParentAndAlign(go, parent.gameObject);
             RectTransform r = go.AddComponent<RectTransform>();
             r.anchorMin = anchorMin;
             r.anchorMax = anchorMax;
-            r.offsetMin = new Vector2(4, -8);
-            r.offsetMax = new Vector2(-4, -8);
+            r.offsetMin = offsetMin ?? BadgeOffsetInnerLeft;
+            r.offsetMax = offsetMax ?? BadgeOffsetInnerRight;
 
             Image bg = go.AddComponent<Image>();
             bg.color = HudBarBg;
@@ -191,32 +277,6 @@ namespace RogueliteAutoBattler.Editor
             LayoutElement labelLe = labelGo.AddComponent<LayoutElement>();
             labelLe.flexibleWidth = 1;
             labelLe.flexibleHeight = 1;
-        }
-
-        private static void CreateHudBadge(Transform parent, string name, string text,
-            Vector2 anchorMin, Vector2 anchorMax, Vector2 offsetMin, Vector2 offsetMax,
-            TextAlignmentOptions alignment, Color? textColor = null)
-        {
-            var go = new GameObject(name);
-            GameObjectUtility.SetParentAndAlign(go, parent.gameObject);
-            RectTransform r = go.AddComponent<RectTransform>();
-            r.anchorMin = anchorMin;
-            r.anchorMax = anchorMax;
-            r.offsetMin = offsetMin;
-            r.offsetMax = offsetMax;
-
-            Image bg = go.AddComponent<Image>();
-            bg.color = HudBarBg;
-
-            var labelGo = new GameObject("Label");
-            GameObjectUtility.SetParentAndAlign(labelGo, go);
-            EditorUIFactory.Stretch(labelGo.AddComponent<RectTransform>());
-            TextMeshProUGUI tmp = labelGo.AddComponent<TextMeshProUGUI>();
-            tmp.text = text;
-            tmp.fontSize = HudFontSize;
-            tmp.color = textColor ?? Color.white;
-            tmp.alignment = alignment;
-            tmp.fontStyle = FontStyles.Bold;
         }
     }
 }

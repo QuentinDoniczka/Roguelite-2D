@@ -1,5 +1,5 @@
 # Project Structure
-Generated: 2026-04-06 (updated fix/169-keep-selection-on-transition)
+Generated: 2026-04-06 (updated feature/9-hud-stats-aventurier)
 
 .github/
   workflows/
@@ -136,6 +136,7 @@ Assets/
         Village/
           VillageScreen.cs
       Widgets/
+        AllyStatsPanel.cs
         BattleIndicatorBadge.cs
         GoldHudBadge.cs
         StepProgressBar.cs
@@ -180,6 +181,7 @@ Assets/
       TestUtils/
         PlayModeTestBase.cs
         TestCharacterFactory.cs
+      AllyStatsPanelTests.cs
       AnimationEventRelayTests.cs
       BattleIndicatorBadgeTests.cs
       CanvasFactoryTests.cs

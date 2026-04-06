@@ -1,4 +1,3 @@
-using System.Globalization;
 using RogueliteAutoBattler.Combat.Core;
 using RogueliteAutoBattler.Common;
 using TMPro;
@@ -28,11 +27,15 @@ namespace RogueliteAutoBattler.UI.Widgets
             _cachedAllyLayer = PhysicsLayers.AllyLayer;
 
             _selectionManager = UnitSelectionManager.Instance;
-            if (_selectionManager != null)
+            if (_selectionManager == null)
             {
-                _selectionManager.OnUnitSelected += HandleUnitSelected;
-                _selectionManager.OnUnitDeselected += HandleUnitDeselected;
+                Debug.LogWarning($"[{nameof(AllyStatsPanel)}] UnitSelectionManager.Instance not found — panel will not track selections.", this);
+                Hide();
+                return;
             }
+
+            _selectionManager.OnUnitSelected += HandleUnitSelected;
+            _selectionManager.OnUnitDeselected += HandleUnitDeselected;
 
             Hide();
         }
@@ -104,13 +107,13 @@ namespace RogueliteAutoBattler.UI.Widgets
             if (_trackedStats == null) return;
 
             if (_hpLabel != null)
-                _hpLabel.text = $"{_trackedStats.CurrentHp} / {_trackedStats.MaxHp}";
+                _hpLabel.SetText("{0} / {1}", _trackedStats.CurrentHp, _trackedStats.MaxHp);
 
             if (_atkLabel != null)
-                _atkLabel.text = $"{_trackedStats.Atk}";
+                _atkLabel.SetText("{0}", _trackedStats.Atk);
 
             if (_attackSpeedLabel != null)
-                _attackSpeedLabel.text = _trackedStats.AttackSpeed.ToString("F1", CultureInfo.InvariantCulture);
+                _attackSpeedLabel.SetText("{0:1}", _trackedStats.AttackSpeed);
         }
 
         private void Show()
