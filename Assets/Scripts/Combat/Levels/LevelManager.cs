@@ -348,7 +348,6 @@ namespace RogueliteAutoBattler.Combat.Levels
         {
             _levelInProgress = false;
 
-            UnitSelectionManager.Instance?.ForceDeselect();
             _allyTargetManager.ClearAllyTargets();
             AttackSlotRegistry.Clear();
             CombatSetupHelper.RecalculateFormation(_teamContainer, _teamHomeAnchor, facingRight: true, characterScale: CharacterScale);
