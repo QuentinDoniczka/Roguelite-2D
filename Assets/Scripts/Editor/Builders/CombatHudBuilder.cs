@@ -37,9 +37,9 @@ namespace RogueliteAutoBattler.Editor
             UIScreen screen = go.AddComponent<CombatScreen>();
 
             CreateCurrencyBadge(go.transform, "Gold", "0",
-                new Vector2(0f, 0.92f), new Vector2(0.22f, 1f),
+                new Vector2(0.56f, 0.92f), new Vector2(0.78f, 1f),
                 (Color)new Color32(255, 215, 0, 255),
-                BadgeOffsetOuterLeft, BadgeOffsetInnerRight);
+                BadgeOffsetInnerLeft, BadgeOffsetInnerRight);
 
             var goldBadge = go.transform.Find("Gold");
             if (goldBadge != null)
@@ -67,7 +67,7 @@ namespace RogueliteAutoBattler.Editor
             bootstrapSO.ApplyModifiedProperties();
 
             CreateCurrencyBadge(go.transform, "Diamond", "211",
-                new Vector2(0.22f, 0.92f), new Vector2(0.44f, 1f),
+                new Vector2(0.78f, 0.92f), new Vector2(1f, 1f),
                 (Color)new Color32(185, 242, 255, 255),
                 BadgeOffsetInnerLeft, BadgeOffsetOuterRight);
 
@@ -154,10 +154,10 @@ namespace RogueliteAutoBattler.Editor
             var go = new GameObject("AllyStatsPanel");
             GameObjectUtility.SetParentAndAlign(go, parent.gameObject);
             RectTransform r = go.AddComponent<RectTransform>();
-            r.anchorMin = new Vector2(0.55f, 0.88f);
-            r.anchorMax = new Vector2(1f, 1f);
-            r.offsetMin = BadgeOffsetInnerLeft;
-            r.offsetMax = BadgeOffsetOuterRight;
+            r.anchorMin = new Vector2(0f, 0.88f);
+            r.anchorMax = new Vector2(0.45f, 1f);
+            r.offsetMin = BadgeOffsetOuterLeft;
+            r.offsetMax = BadgeOffsetInnerRight;
 
             Image bg = go.AddComponent<Image>();
             bg.color = HudBarBg;
