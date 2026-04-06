@@ -348,13 +348,17 @@ namespace RogueliteAutoBattler.Combat.Levels
             }
         }
 
-        private IEnumerator ScrollAndSpawnCoroutine(float scrollDistance, Action onReadyToSpawn)
+        private void PrepareTransition()
         {
             _levelInProgress = false;
-
             UnitSelectionManager.Instance?.ForceDeselect();
             _allyTargetManager.ClearAllyTargets();
             AttackSlotRegistry.Clear();
+        }
+
+        private IEnumerator ScrollAndSpawnCoroutine(float scrollDistance, Action onReadyToSpawn)
+        {
+            PrepareTransition();
             CombatSetupHelper.RecalculateFormation(_teamContainer, _teamHomeAnchor, facingRight: true, characterScale: CharacterScale);
 
             if (_conveyor != null && scrollDistance > 0f)
@@ -389,11 +393,7 @@ namespace RogueliteAutoBattler.Combat.Levels
 
         private IEnumerator FadeAndSpawnCoroutine(Action onReadyToSpawn)
         {
-            _levelInProgress = false;
-
-            UnitSelectionManager.Instance?.ForceDeselect();
-            _allyTargetManager.ClearAllyTargets();
-            AttackSlotRegistry.Clear();
+            PrepareTransition();
 
             if (_fadeOverlay != null)
                 yield return _fadeOverlay.FadeIn();

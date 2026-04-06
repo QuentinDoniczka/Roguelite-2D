@@ -38,7 +38,7 @@ MonoBehaviour:
     costAdditivePerLevel: 0
     statModifierType: 2
     statModifierMode: 1
-    statModifierValuePerLevel: 0
+    statModifierValuePerLevel: 5
   - id: 1
     position: {x: 0.99999994, y: 1.7320509}
     connectedNodeIds: 02000000

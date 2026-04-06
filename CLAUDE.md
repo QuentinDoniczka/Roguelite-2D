@@ -25,7 +25,7 @@
 Doc detaille : `Assets/doc/premier-jet-roguelite.html`
 
 # Project Structure
-Generated: 2026-04-05 (updated feature/154-skill-tree-edge-rendering)
+Generated: 2026-04-06 (updated feature/57-level-scroll-transition)
 
 .github/
   workflows/
@@ -102,6 +102,7 @@ Assets/
         DamageNumberBootstrap.cs
         DamageNumberService.cs
         DamageNumberSettingsPersistence.cs
+        FadeOverlay.cs
         HealthBar.cs
         SelectionOutline.cs
         VisualEquipmentTestLoop.cs
@@ -218,6 +219,7 @@ Assets/
       CombatStatsRegenTests.cs
       DamageNumberServiceTests.cs
       DamageNumberTests.cs
+      FadeOverlayTests.cs
       FormationRecalculationTests.cs
       GameBootstrapTests.cs
       GoldHudBadgeTests.cs

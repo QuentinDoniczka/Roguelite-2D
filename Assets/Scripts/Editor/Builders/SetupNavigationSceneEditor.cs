@@ -1,3 +1,5 @@
+using RogueliteAutoBattler.Combat.Levels;
+using RogueliteAutoBattler.Combat.Visuals;
 using RogueliteAutoBattler.Core;
 using RogueliteAutoBattler.UI.Core;
 using RogueliteAutoBattler.UI.Screens.Guild;
@@ -81,6 +83,9 @@ namespace RogueliteAutoBattler.Editor
 
             Undo.RegisterCreatedObjectUndo(esGo, "EventSystem");
             Undo.RegisterCreatedObjectUndo(canvasGo, "UICanvas");
+
+            FadeOverlay fadeOverlay = CreateFadeOverlay(canvasGo.transform);
+            WireFadeOverlay(combatWorldGo, fadeOverlay);
         }
 
         private static GameObject CreateEventSystem()
@@ -277,6 +282,31 @@ namespace RogueliteAutoBattler.Editor
                 }
             }
             return null;
+        }
+
+        private static FadeOverlay CreateFadeOverlay(Transform canvasParent)
+        {
+            var go = new GameObject("FadeOverlay");
+            GameObjectUtility.SetParentAndAlign(go, canvasParent.gameObject);
+            EditorUIFactory.Stretch(go.AddComponent<RectTransform>());
+            go.AddComponent<Image>().color = Color.black;
+            EditorUIFactory.SetupCanvasGroup(go, false);
+            var overlay = go.AddComponent<FadeOverlay>();
+            go.transform.SetAsLastSibling();
+            return overlay;
+        }
+
+        private static void WireFadeOverlay(GameObject combatWorldGo, FadeOverlay fadeOverlay)
+        {
+            var levelManager = combatWorldGo.GetComponentInChildren<LevelManager>();
+            if (levelManager == null)
+            {
+                Debug.LogWarning("[SetupNavigationUI] LevelManager not found on CombatWorld.");
+                return;
+            }
+            var so = new SerializedObject(levelManager);
+            EditorUIFactory.SetObj(so, "_fadeOverlay", fadeOverlay);
+            so.ApplyModifiedProperties();
         }
 
         private readonly struct PanelCfg
