@@ -5,9 +5,11 @@ namespace RogueliteAutoBattler.UI.Screens.SkillTree
 {
     public class SkillTreeDarknessOverlay : MonoBehaviour
     {
+        private const string DarknessShaderName = "Custom/SkillTreeDarkness";
+        private static readonly int ColorPropertyId = Shader.PropertyToID("_Color");
+
         [Header("Darkness Settings")]
         [SerializeField] private Color _darknessColor = new Color(0f, 0f, 0f, 0.85f);
-        [SerializeField] private string _shaderName = "Custom/SkillTreeDarkness";
 
         private RawImage _overlayImage;
         private Material _materialInstance;
@@ -32,17 +34,17 @@ namespace RogueliteAutoBattler.UI.Screens.SkillTree
             _overlayImage = overlayGo.AddComponent<RawImage>();
             _overlayImage.raycastTarget = false;
 
-            var shader = Shader.Find(_shaderName);
+            var shader = Shader.Find(DarknessShaderName);
             if (shader == null)
             {
-                Debug.LogWarning($"[SkillTreeDarknessOverlay] Shader '{_shaderName}' not found. Using fallback color.");
+                Debug.LogWarning($"[{nameof(SkillTreeDarknessOverlay)}] Shader '{DarknessShaderName}' not found. Using fallback color.");
                 _overlayImage.color = _darknessColor;
                 _overlayImage.rectTransform.SetAsLastSibling();
                 return;
             }
 
             _materialInstance = new Material(shader);
-            _materialInstance.SetColor("_Color", _darknessColor);
+            _materialInstance.SetColor(ColorPropertyId, _darknessColor);
             _overlayImage.material = _materialInstance;
 
             _overlayImage.rectTransform.SetAsLastSibling();
@@ -54,7 +56,7 @@ namespace RogueliteAutoBattler.UI.Screens.SkillTree
 
             if (_materialInstance != null)
             {
-                _materialInstance.SetColor("_Color", _darknessColor);
+                _materialInstance.SetColor(ColorPropertyId, _darknessColor);
                 return;
             }
 

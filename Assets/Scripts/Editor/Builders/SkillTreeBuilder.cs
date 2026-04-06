@@ -59,12 +59,15 @@ namespace RogueliteAutoBattler.Editor
 
             nodeManagerSO.ApplyModifiedProperties();
 
+            SkillTreeDarknessOverlay darknessOverlay = viewportGo.AddComponent<SkillTreeDarknessOverlay>();
+
             SkillTreeScreen screen = skillTreePanel.GetComponent<SkillTreeScreen>();
             if (screen != null)
             {
                 var screenSO = new SerializedObject(screen);
                 EditorUIFactory.SetObj(screenSO, "_inputHandler", inputHandler);
                 EditorUIFactory.SetObj(screenSO, "_nodeManager", nodeManager);
+                EditorUIFactory.SetObj(screenSO, "_darknessOverlay", darknessOverlay);
                 screenSO.ApplyModifiedProperties();
             }
             else
