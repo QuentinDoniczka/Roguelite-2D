@@ -18,8 +18,8 @@ MonoBehaviour:
     maxHp: 200
     atk: 20
     attackSpeed: 3
-    moveSpeed: 5
-    regenHpPerSecond: 20
+    moveSpeed: 1
+    regenHpPerSecond: 5
     colliderRadius: 0.1
     appearance:
       headSprite: {fileID: 0}
