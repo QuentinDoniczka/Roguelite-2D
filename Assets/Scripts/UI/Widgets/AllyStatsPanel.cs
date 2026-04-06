@@ -1,3 +1,4 @@
+using System.Collections;
 using RogueliteAutoBattler.Combat.Core;
 using RogueliteAutoBattler.Common;
 using TMPro;
@@ -15,10 +16,17 @@ namespace RogueliteAutoBattler.UI.Widgets
         [Header("Visibility")]
         [SerializeField] private CanvasGroup _canvasGroup;
 
+        [Header("Empty State")]
+        [SerializeField] private TMP_Text _emptyStateLabel;
+
+        [Header("Stat Cards")]
+        [SerializeField] private CanvasGroup[] _statCardGroups;
+
         private UnitSelectionManager _selectionManager;
         private CombatStats _trackedStats;
         private bool _initializedForTest;
         private int _cachedAllyLayer;
+        private Coroutine _fadeCoroutine;
 
         private void Start()
         {
@@ -38,6 +46,9 @@ namespace RogueliteAutoBattler.UI.Widgets
             _selectionManager.OnUnitDeselected += HandleUnitDeselected;
 
             Hide();
+
+            if (_emptyStateLabel != null)
+                _emptyStateLabel.gameObject.SetActive(true);
         }
 
         private void OnDestroy()
@@ -119,15 +130,77 @@ namespace RogueliteAutoBattler.UI.Widgets
         private void Show()
         {
             if (_canvasGroup == null) return;
+
+            if (_fadeCoroutine != null)
+                StopCoroutine(_fadeCoroutine);
+
+            if (_emptyStateLabel != null)
+                _emptyStateLabel.gameObject.SetActive(false);
+
             _canvasGroup.alpha = 1f;
             _canvasGroup.blocksRaycasts = true;
+
+            _fadeCoroutine = StartCoroutine(StaggeredFadeInCoroutine());
+        }
+
+        private IEnumerator StaggeredFadeInCoroutine()
+        {
+            if (_statCardGroups == null || _statCardGroups.Length == 0)
+                yield break;
+
+            for (int i = 0; i < _statCardGroups.Length; i++)
+                if (_statCardGroups[i] != null)
+                    _statCardGroups[i].alpha = 0f;
+
+            const float staggerDelay = 0.05f;
+            const float fadeDuration = 0.15f;
+
+            for (int i = 0; i < _statCardGroups.Length; i++)
+            {
+                if (_statCardGroups[i] == null) continue;
+
+                float staggerElapsed = 0f;
+                while (staggerElapsed < staggerDelay)
+                {
+                    staggerElapsed += Time.deltaTime;
+                    yield return null;
+                }
+
+                float elapsed = 0f;
+                while (elapsed < fadeDuration)
+                {
+                    elapsed += Time.deltaTime;
+                    float t = Mathf.Clamp01(elapsed / fadeDuration);
+                    float easeOut = 1f - (1f - t) * (1f - t);
+                    _statCardGroups[i].alpha = easeOut;
+                    yield return null;
+                }
+                _statCardGroups[i].alpha = 1f;
+            }
+            _fadeCoroutine = null;
         }
 
         private void Hide()
         {
+            if (_fadeCoroutine != null)
+            {
+                StopCoroutine(_fadeCoroutine);
+                _fadeCoroutine = null;
+            }
+
             if (_canvasGroup == null) return;
             _canvasGroup.alpha = 0f;
             _canvasGroup.blocksRaycasts = false;
+
+            if (_statCardGroups != null)
+            {
+                for (int i = 0; i < _statCardGroups.Length; i++)
+                    if (_statCardGroups[i] != null)
+                        _statCardGroups[i].alpha = 0f;
+            }
+
+            if (_emptyStateLabel != null)
+                _emptyStateLabel.gameObject.SetActive(true);
         }
 
         internal string HpText => _hpLabel != null ? _hpLabel.text : "";
@@ -136,9 +209,17 @@ namespace RogueliteAutoBattler.UI.Widgets
         internal float PanelAlpha => _canvasGroup != null ? _canvasGroup.alpha : 0f;
         internal bool IsVisible => _canvasGroup != null && _canvasGroup.alpha > 0f;
 
+        internal bool IsEmptyStateLabelActive => _emptyStateLabel != null && _emptyStateLabel.gameObject.activeSelf;
+
+        internal float StatCardAlpha(int index) =>
+            _statCardGroups != null && index >= 0 && index < _statCardGroups.Length && _statCardGroups[index] != null
+                ? _statCardGroups[index].alpha
+                : -1f;
+
         internal void InitializeForTest(UnitSelectionManager selectionManager,
             TMP_Text hpLabel, TMP_Text atkLabel, TMP_Text attackSpeedLabel,
-            CanvasGroup canvasGroup, int allyLayer)
+            CanvasGroup canvasGroup, int allyLayer,
+            TMP_Text emptyStateLabel = null, CanvasGroup[] statCardGroups = null)
         {
             _initializedForTest = true;
             _selectionManager = selectionManager;
@@ -147,11 +228,16 @@ namespace RogueliteAutoBattler.UI.Widgets
             _attackSpeedLabel = attackSpeedLabel;
             _canvasGroup = canvasGroup;
             _cachedAllyLayer = allyLayer;
+            _emptyStateLabel = emptyStateLabel;
+            _statCardGroups = statCardGroups;
 
             _selectionManager.OnUnitSelected += HandleUnitSelected;
             _selectionManager.OnUnitDeselected += HandleUnitDeselected;
 
             Hide();
+
+            if (_emptyStateLabel != null)
+                _emptyStateLabel.gameObject.SetActive(true);
         }
     }
 }
