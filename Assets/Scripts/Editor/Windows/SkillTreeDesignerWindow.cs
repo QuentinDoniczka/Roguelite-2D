@@ -57,6 +57,8 @@ namespace RogueliteAutoBattler.Editor
         private GUIStyle _nodeLabelStyle;
         private string[] _nodeLabels;
         private int _selectedNodeIndex = -1;
+        private int _activeTab;
+        private static readonly string[] TabLabels = { "Skill Tree", "Node" };
 
         [MenuItem("Roguelite/Skill Tree Designer")]
         private static void OpenWindow()
@@ -224,6 +226,7 @@ namespace RogueliteAutoBattler.Editor
 
                 int hitIndex = HitTestNode(mouseInCanvas, origin, _data.Nodes, _data.UnitSize, _data.NodeSize, _canvasZoom);
                 _selectedNodeIndex = hitIndex;
+                _activeTab = hitIndex >= 0 ? 1 : 0;
                 evt.Use();
                 Repaint();
             }
@@ -240,11 +243,24 @@ namespace RogueliteAutoBattler.Editor
         {
             _serializedData.Update();
 
+            _activeTab = GUILayout.Toolbar(_activeTab, TabLabels);
+
             _configScrollPos = EditorGUILayout.BeginScrollView(_configScrollPos);
 
+            if (_activeTab == 0)
+                DrawSkillTreeTab();
+            else
+                DrawNodeTab();
+
+            if (_serializedData.ApplyModifiedProperties())
+                Repaint();
+
+            EditorGUILayout.EndScrollView();
+        }
+
+        private void DrawSkillTreeTab()
+        {
             EditorGUILayout.Space(8);
-            EditorGUILayout.LabelField("Skill Tree Designer", EditorStyles.boldLabel);
-            EditorGUILayout.Space(4);
 
             EditorGUI.BeginChangeCheck();
             var newData = (SkillTreeData)EditorGUILayout.ObjectField("Data Asset", _data, typeof(SkillTreeData), false);
@@ -271,7 +287,7 @@ namespace RogueliteAutoBattler.Editor
             EditorGUILayout.PropertyField(_propBorderSelectedColor, LabelBorderSelected);
 
             EditorGUILayout.Space(12);
-            EditorGUILayout.LabelField("Cost Formula", EditorStyles.boldLabel);
+            EditorGUILayout.LabelField("Cost Defaults (applied on Generate)", EditorStyles.boldLabel);
             EditorGUILayout.HelpBox("cost(0) = base, cost(n) = floor(prev \u00d7 mult) + add\nmult alternates: odd/even", MessageType.None);
             EditorGUILayout.PropertyField(_propBaseCost, LabelBaseCost);
             EditorGUILayout.PropertyField(_propCostMultiplierOdd, LabelCostMultiplierOdd);
@@ -291,6 +307,7 @@ namespace RogueliteAutoBattler.Editor
                 _serializedData.ApplyModifiedProperties();
                 _data.GenerateNodes();
                 _selectedNodeIndex = -1;
+                _activeTab = 0;
                 RebuildNodeLabels();
                 EditorUtility.SetDirty(_data);
                 AssetDatabase.SaveAssets();
@@ -308,65 +325,68 @@ namespace RogueliteAutoBattler.Editor
             EditorGUILayout.Space(8);
 
             EditorGUILayout.HelpBox($"{_data.Nodes.Count} nodes generated.", MessageType.Info);
+        }
 
-            if (_selectedNodeIndex >= 0 && _selectedNodeIndex < _data.Nodes.Count)
+        private void DrawNodeTab()
+        {
+            EditorGUILayout.Space(8);
+
+            if (_selectedNodeIndex < 0 || _selectedNodeIndex >= _data.Nodes.Count)
             {
-                EditorGUILayout.Space(16);
-                EditorGUILayout.LabelField($"Node {_selectedNodeIndex} Properties", EditorStyles.boldLabel);
-
-                var node = _data.Nodes[_selectedNodeIndex];
-
-                EditorGUI.BeginChangeCheck();
-
-                var newCostType = (SkillTreeData.CostType)EditorGUILayout.EnumPopup("Cost Type", node.costType);
-                int newMaxLevel = EditorGUILayout.IntField("Max Level (0=unlimited)", node.maxLevel);
-
-                EditorGUILayout.Space(8);
-                EditorGUILayout.LabelField("Cost Formula", EditorStyles.miniLabel);
-                int newBaseCost = EditorGUILayout.IntField("Base Cost", node.baseCost);
-                float newMultOdd = EditorGUILayout.FloatField("Multiplier (Odd)", node.costMultiplierOdd);
-                float newMultEven = EditorGUILayout.FloatField("Multiplier (Even)", node.costMultiplierEven);
-                int newAdditive = EditorGUILayout.IntField("Additive / Level", node.costAdditivePerLevel);
-
-                EditorGUILayout.Space(4);
-                var newStatModType = (SkillTreeData.StatModifierType)EditorGUILayout.EnumPopup("Stat Modifier", node.statModifierType);
-                var newStatModMode = (SkillTreeData.StatModifierMode)EditorGUILayout.EnumPopup("Mode", node.statModifierMode);
-                float newStatModValue = EditorGUILayout.FloatField("Value Per Level", node.statModifierValuePerLevel);
-
-                if (EditorGUI.EndChangeCheck())
-                {
-                    var updated = node;
-                    updated.costType = newCostType;
-                    updated.maxLevel = newMaxLevel;
-                    updated.baseCost = newBaseCost;
-                    updated.costMultiplierOdd = newMultOdd;
-                    updated.costMultiplierEven = newMultEven;
-                    updated.costAdditivePerLevel = newAdditive;
-                    updated.statModifierType = newStatModType;
-                    updated.statModifierMode = newStatModMode;
-                    updated.statModifierValuePerLevel = newStatModValue;
-
-                    _data.SetNode(_selectedNodeIndex, updated);
-                    EditorUtility.SetDirty(_data);
-                    AssetDatabase.SaveAssets();
-                }
-
-                EditorGUILayout.Space(8);
-                EditorGUILayout.LabelField("Cost Preview", EditorStyles.boldLabel);
-                int previewLevels = node.maxLevel > 0 ? Mathf.Min(node.maxLevel, 10) : 10;
-                for (int lvl = 0; lvl < previewLevels; lvl++)
-                {
-                    int cost = SkillTreeData.ComputeNodeCost(node, lvl);
-                    EditorGUILayout.LabelField($"  Level {lvl} \u2192 {lvl + 1}", $"{cost} {node.costType}");
-                }
-                if (node.maxLevel == 0)
-                    EditorGUILayout.LabelField("  ...", "(unlimited)");
+                EditorGUILayout.HelpBox("Select a node on the canvas to edit its properties.", MessageType.Info);
+                return;
             }
 
-            if (_serializedData.ApplyModifiedProperties())
-                Repaint();
+            EditorGUILayout.LabelField($"Node {_selectedNodeIndex}", EditorStyles.boldLabel);
 
-            EditorGUILayout.EndScrollView();
+            var node = _data.Nodes[_selectedNodeIndex];
+
+            EditorGUI.BeginChangeCheck();
+
+            var newCostType = (SkillTreeData.CostType)EditorGUILayout.EnumPopup("Cost Type", node.costType);
+            int newMaxLevel = EditorGUILayout.IntField("Max Level (0=unlimited)", node.maxLevel);
+
+            EditorGUILayout.Space(8);
+            EditorGUILayout.LabelField("Cost Formula", EditorStyles.boldLabel);
+            int newBaseCost = EditorGUILayout.IntField("Base Cost", node.baseCost);
+            float newMultOdd = EditorGUILayout.FloatField("Multiplier (Odd)", node.costMultiplierOdd);
+            float newMultEven = EditorGUILayout.FloatField("Multiplier (Even)", node.costMultiplierEven);
+            int newAdditive = EditorGUILayout.IntField("Additive / Level", node.costAdditivePerLevel);
+
+            EditorGUILayout.Space(8);
+            EditorGUILayout.LabelField("Stat Modifier", EditorStyles.boldLabel);
+            var newStatModType = (SkillTreeData.StatModifierType)EditorGUILayout.EnumPopup("Stat", node.statModifierType);
+            var newStatModMode = (SkillTreeData.StatModifierMode)EditorGUILayout.EnumPopup("Mode", node.statModifierMode);
+            float newStatModValue = EditorGUILayout.FloatField("Value / Level", node.statModifierValuePerLevel);
+
+            if (EditorGUI.EndChangeCheck())
+            {
+                var updated = node;
+                updated.costType = newCostType;
+                updated.maxLevel = newMaxLevel;
+                updated.baseCost = newBaseCost;
+                updated.costMultiplierOdd = newMultOdd;
+                updated.costMultiplierEven = newMultEven;
+                updated.costAdditivePerLevel = newAdditive;
+                updated.statModifierType = newStatModType;
+                updated.statModifierMode = newStatModMode;
+                updated.statModifierValuePerLevel = newStatModValue;
+
+                _data.SetNode(_selectedNodeIndex, updated);
+                EditorUtility.SetDirty(_data);
+                AssetDatabase.SaveAssets();
+            }
+
+            EditorGUILayout.Space(8);
+            EditorGUILayout.LabelField("Cost Preview", EditorStyles.boldLabel);
+            int previewLevels = node.maxLevel > 0 ? Mathf.Min(node.maxLevel, 10) : 10;
+            for (int lvl = 0; lvl < previewLevels; lvl++)
+            {
+                int cost = SkillTreeData.ComputeNodeCost(node, lvl);
+                EditorGUILayout.LabelField($"  Level {lvl} \u2192 {lvl + 1}", $"{cost} {node.costType}");
+            }
+            if (node.maxLevel == 0)
+                EditorGUILayout.LabelField("  ...", "(unlimited)");
         }
 
         private void ApplyToScene()
