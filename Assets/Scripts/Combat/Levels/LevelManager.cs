@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using RogueliteAutoBattler.Combat.Core;
 using RogueliteAutoBattler.Combat.Environment;
+using RogueliteAutoBattler.Combat.Visuals;
 using RogueliteAutoBattler.Data;
 using RogueliteAutoBattler.Economy;
 using UnityEngine;
@@ -29,6 +30,9 @@ namespace RogueliteAutoBattler.Combat.Levels
         [Header("Scroll Transition")]
         [SerializeField] private float _levelScrollDistance = 4f;
         [SerializeField] private float _stepScrollDistance = 2f;
+
+        [Header("Level Transition")]
+        [SerializeField] private FadeOverlay _fadeOverlay;
 
         [Header("Enemy Spawn")]
         [SerializeField] private float _enemySpawnOffscreenX = 1f;
@@ -300,7 +304,7 @@ namespace RogueliteAutoBattler.Combat.Levels
 
             if (_currentLevelIndex < stage.Levels.Count)
             {
-                StartCoroutine(ScrollAndSpawnCoroutine(_levelScrollDistance, () => StartLevel(_currentLevelIndex)));
+                StartCoroutine(FadeAndSpawnCoroutine(() => StartLevel(_currentLevelIndex)));
             }
             else
             {
@@ -383,6 +387,30 @@ namespace RogueliteAutoBattler.Combat.Levels
             }
         }
 
+        private IEnumerator FadeAndSpawnCoroutine(Action onReadyToSpawn)
+        {
+            _levelInProgress = false;
+
+            UnitSelectionManager.Instance?.ForceDeselect();
+            _allyTargetManager.ClearAllyTargets();
+            AttackSlotRegistry.Clear();
+
+            if (_fadeOverlay != null)
+                yield return _fadeOverlay.FadeIn();
+
+            CombatSetupHelper.DestroyAllChildren(_enemiesContainer);
+            if (_conveyor != null) _conveyor.ResetPosition();
+            CombatSetupHelper.RecalculateFormation(_teamContainer, _teamHomeAnchor, facingRight: true, characterScale: CharacterScale);
+
+            yield return null;
+
+            _levelInProgress = true;
+            onReadyToSpawn?.Invoke();
+
+            if (_fadeOverlay != null)
+                yield return _fadeOverlay.FadeOut();
+        }
+
         private void CheckLevelLost()
         {
             if (_levelInProgress && _defeatHandler.AliveAllyCount <= 0)
@@ -445,6 +473,7 @@ namespace RogueliteAutoBattler.Combat.Levels
             }
         }
 
+        internal void SetFadeOverlayForTest(FadeOverlay overlay) => _fadeOverlay = overlay;
         internal void WireAllyDeathTrackingForTest() => WireAllyDeathTracking();
         internal void ClearAllyTargetsForTest() => _allyTargetManager.ClearAllyTargets();
         internal void ClearEnemyTargetsForTest() => _allyTargetManager.ClearEnemyTargets();
