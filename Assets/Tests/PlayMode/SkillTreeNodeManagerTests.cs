@@ -128,5 +128,53 @@ namespace RogueliteAutoBattler.Tests.PlayMode
 
             Assert.IsFalse(deselectedFired);
         }
+
+        [UnityTest]
+        public IEnumerator Initialize_WithData_CreatesEdgeLines()
+        {
+            var (root, manager, content) = TestCharacterFactory.CreateSkillTreeNodeManagerWithData();
+            Track(root);
+
+            manager.Initialize();
+            yield return null;
+
+            // 6 nodes + 6 edges = 12 children
+            Assert.AreEqual(12, content.childCount);
+        }
+
+        [UnityTest]
+        public IEnumerator Initialize_WithData_EdgeLinesNamedCorrectly()
+        {
+            var (root, manager, content) = TestCharacterFactory.CreateSkillTreeNodeManagerWithData();
+            Track(root);
+
+            manager.Initialize();
+            yield return null;
+
+            int edgeCount = 0;
+            for (int i = 0; i < content.childCount; i++)
+            {
+                if (content.GetChild(i).name.StartsWith("Edge_"))
+                    edgeCount++;
+            }
+            Assert.AreEqual(6, edgeCount);
+        }
+
+        [UnityTest]
+        public IEnumerator ClearNodes_WithData_AlsoDestroysEdges()
+        {
+            var (root, manager, content) = TestCharacterFactory.CreateSkillTreeNodeManagerWithData();
+            Track(root);
+
+            manager.Initialize();
+            yield return null;
+
+            Assert.Greater(content.childCount, 0);
+
+            manager.ClearNodes();
+            yield return null;
+
+            Assert.AreEqual(0, content.childCount);
+        }
     }
 }

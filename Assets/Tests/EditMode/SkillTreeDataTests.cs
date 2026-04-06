@@ -1,5 +1,7 @@
+using System.Collections.Generic;
 using NUnit.Framework;
 using RogueliteAutoBattler.Data;
+using RogueliteAutoBattler.Editor;
 using UnityEngine;
 
 namespace RogueliteAutoBattler.Tests.EditMode
@@ -146,6 +148,246 @@ namespace RogueliteAutoBattler.Tests.EditMode
                 float distance = Vector2.Distance(_skillTreeData.Nodes[i].position, Vector2.zero);
                 Assert.That(distance, Is.EqualTo(4f).Within(0.001f),
                     $"Ring node {i} should be at distance 4f from origin");
+            }
+        }
+
+        [Test]
+        public void GenerateNodes_EachNodeHasConnectedNodeIds()
+        {
+            _skillTreeData.RingNodeCount = 6;
+            _skillTreeData.GenerateNodes();
+
+            for (int i = 0; i < _skillTreeData.Nodes.Count; i++)
+            {
+                Assert.IsNotNull(_skillTreeData.Nodes[i].connectedNodeIds,
+                    $"Node {i} should have connectedNodeIds");
+                Assert.AreEqual(1, _skillTreeData.Nodes[i].connectedNodeIds.Count,
+                    $"Node {i} should connect to exactly 1 neighbor");
+            }
+        }
+
+        [Test]
+        public void GenerateNodes_ConnectionsFormClosedRing()
+        {
+            _skillTreeData.RingNodeCount = 6;
+            _skillTreeData.GenerateNodes();
+
+            for (int i = 0; i < 6; i++)
+            {
+                int expectedNext = (i + 1) % 6;
+                Assert.AreEqual(expectedNext, _skillTreeData.Nodes[i].connectedNodeIds[0],
+                    $"Node {i} should connect to node {expectedNext}");
+            }
+        }
+
+        [Test]
+        public void GenerateNodes_MinRingCount_ConnectionsFormClosedRing()
+        {
+            _skillTreeData.RingNodeCount = 3;
+            _skillTreeData.GenerateNodes();
+
+            for (int i = 0; i < 3; i++)
+            {
+                int expectedNext = (i + 1) % 3;
+                Assert.AreEqual(expectedNext, _skillTreeData.Nodes[i].connectedNodeIds[0],
+                    $"Node {i} should connect to node {expectedNext}");
+            }
+        }
+
+        [Test]
+        public void GetEdges_ReturnsCorrectCount()
+        {
+            _skillTreeData.RingNodeCount = 6;
+            _skillTreeData.GenerateNodes();
+
+            var edges = _skillTreeData.GetEdges();
+            Assert.AreEqual(6, edges.Length);
+        }
+
+        [Test]
+        public void GetEdges_NoDuplicateEdges()
+        {
+            _skillTreeData.RingNodeCount = 6;
+            _skillTreeData.GenerateNodes();
+
+            var edges = _skillTreeData.GetEdges();
+            var uniqueEdges = new HashSet<(int, int)>(edges);
+            Assert.AreEqual(edges.Length, uniqueEdges.Count, "All edges should be unique");
+        }
+
+        [Test]
+        public void GenerateNodes_ClearsExistingConnections()
+        {
+            _skillTreeData.RingNodeCount = 5;
+            _skillTreeData.GenerateNodes();
+
+            _skillTreeData.RingNodeCount = 3;
+            _skillTreeData.GenerateNodes();
+
+            Assert.AreEqual(3, _skillTreeData.GetEdges().Length);
+            for (int i = 0; i < 3; i++)
+            {
+                Assert.AreEqual(1, _skillTreeData.Nodes[i].connectedNodeIds.Count);
+            }
+        }
+
+        [Test]
+        public void GenerateNodes_NewFieldsInitializedToDefaults()
+        {
+            _skillTreeData.RingNodeCount = 6;
+            _skillTreeData.GenerateNodes();
+
+            for (int i = 0; i < _skillTreeData.Nodes.Count; i++)
+            {
+                var node = _skillTreeData.Nodes[i];
+                Assert.AreEqual(SkillTreeData.CostType.Gold, node.costType,
+                    $"Node {i} costType should default to Gold");
+                Assert.AreEqual(0, node.maxLevel,
+                    $"Node {i} maxLevel should default to 0 (unlimited)");
+                Assert.AreEqual(SkillTreeData.StatModifierType.HP, node.statModifierType,
+                    $"Node {i} statModifierType should default to HP");
+                Assert.AreEqual(0f, node.statModifierValuePerLevel,
+                    $"Node {i} statModifierValuePerLevel should default to 0");
+            }
+        }
+
+        [Test]
+        public void GenerateNodes_MinRingCount_NewFieldsInitialized()
+        {
+            _skillTreeData.RingNodeCount = 3;
+            _skillTreeData.GenerateNodes();
+
+            for (int i = 0; i < _skillTreeData.Nodes.Count; i++)
+            {
+                var node = _skillTreeData.Nodes[i];
+                Assert.AreEqual(SkillTreeData.CostType.Gold, node.costType);
+                Assert.AreEqual(0, node.maxLevel);
+            }
+        }
+
+        [Test]
+        public void HitTestNode_ReturnsCorrectIndex()
+        {
+            _skillTreeData.RingNodeCount = 4;
+            _skillTreeData.RingRadius = 5f;
+            _skillTreeData.GenerateNodes();
+
+            Vector2 origin = Vector2.zero;
+            float zoom = 1f;
+
+            Vector2 clickOnNode0 = new Vector2(1000f, 0f);
+            int result = SkillTreeDesignerWindow.HitTestNode(clickOnNode0, origin, _skillTreeData.Nodes, SkillTreeData.DefaultUnitSize, SkillTreeData.DefaultNodeSize, zoom);
+            Assert.AreEqual(0, result);
+        }
+
+        [Test]
+        public void HitTestNode_OutOfBounds_ReturnsMinusOne()
+        {
+            _skillTreeData.RingNodeCount = 4;
+            _skillTreeData.RingRadius = 5f;
+            _skillTreeData.GenerateNodes();
+
+            Vector2 origin = Vector2.zero;
+            float zoom = 1f;
+
+            Vector2 clickFarAway = new Vector2(9999f, 9999f);
+            int result = SkillTreeDesignerWindow.HitTestNode(clickFarAway, origin, _skillTreeData.Nodes, SkillTreeData.DefaultUnitSize, SkillTreeData.DefaultNodeSize, zoom);
+            Assert.AreEqual(-1, result);
+        }
+
+        [Test]
+        public void SetNode_UpdatesNodeAndInvalidatesEdgeCache()
+        {
+            _skillTreeData.RingNodeCount = 4;
+            _skillTreeData.GenerateNodes();
+
+            var edgesBefore = _skillTreeData.GetEdges();
+            Assert.IsNotNull(edgesBefore);
+
+            var node = _skillTreeData.Nodes[0];
+            var updated = node;
+            updated.maxLevel = 5;
+            updated.statModifierValuePerLevel = 2.5f;
+            _skillTreeData.SetNode(0, updated);
+
+            Assert.AreEqual(5, _skillTreeData.Nodes[0].maxLevel);
+            Assert.AreEqual(2.5f, _skillTreeData.Nodes[0].statModifierValuePerLevel);
+        }
+
+        private static SkillTreeData.SkillNodeEntry MakeCostNode(int baseCost = 1, float multOdd = 1f, float multEven = 1f, int additive = 0)
+        {
+            return new SkillTreeData.SkillNodeEntry
+            {
+                baseCost = baseCost,
+                costMultiplierOdd = multOdd,
+                costMultiplierEven = multEven,
+                costAdditivePerLevel = additive
+            };
+        }
+
+        [Test]
+        public void ComputeNodeCost_DefaultValues_ReturnsBaseCost()
+        {
+            var node = MakeCostNode();
+            Assert.AreEqual(1, SkillTreeData.ComputeNodeCost(node, 0));
+            Assert.AreEqual(1, SkillTreeData.ComputeNodeCost(node, 1));
+            Assert.AreEqual(1, SkillTreeData.ComputeNodeCost(node, 5));
+        }
+
+        [Test]
+        public void ComputeNodeCost_WithMultiplier_ScalesExponentially()
+        {
+            var node = MakeCostNode(baseCost: 10, multOdd: 2f, multEven: 2f);
+            Assert.AreEqual(10, SkillTreeData.ComputeNodeCost(node, 0));
+            Assert.AreEqual(20, SkillTreeData.ComputeNodeCost(node, 1));
+            Assert.AreEqual(40, SkillTreeData.ComputeNodeCost(node, 2));
+        }
+
+        [Test]
+        public void ComputeNodeCost_WithAdditive_AddsAfterMultiply()
+        {
+            var node = MakeCostNode(baseCost: 10, multOdd: 1.5f, multEven: 1.5f, additive: 5);
+            Assert.AreEqual(10, SkillTreeData.ComputeNodeCost(node, 0));
+            Assert.AreEqual(20, SkillTreeData.ComputeNodeCost(node, 1));
+            Assert.AreEqual(35, SkillTreeData.ComputeNodeCost(node, 2));
+        }
+
+        [Test]
+        public void ComputeNodeCost_AdditiveOnly_LinearScaling()
+        {
+            var node = MakeCostNode(baseCost: 5, additive: 3);
+            Assert.AreEqual(5, SkillTreeData.ComputeNodeCost(node, 0));
+            Assert.AreEqual(8, SkillTreeData.ComputeNodeCost(node, 1));
+            Assert.AreEqual(14, SkillTreeData.ComputeNodeCost(node, 3));
+        }
+
+        [Test]
+        public void ComputeNodeCost_AlternatingMultipliers()
+        {
+            var node = MakeCostNode(baseCost: 1, multOdd: 5f, multEven: 2f);
+            Assert.AreEqual(1, SkillTreeData.ComputeNodeCost(node, 0));
+            Assert.AreEqual(5, SkillTreeData.ComputeNodeCost(node, 1));
+            Assert.AreEqual(10, SkillTreeData.ComputeNodeCost(node, 2));
+            Assert.AreEqual(50, SkillTreeData.ComputeNodeCost(node, 3));
+        }
+
+        [Test]
+        public void GenerateNodes_CostFieldsFromRingDefaults()
+        {
+            _skillTreeData.BaseCost = 10;
+            _skillTreeData.CostMultiplierOdd = 3f;
+            _skillTreeData.CostMultiplierEven = 2f;
+            _skillTreeData.CostAdditivePerLevel = 5;
+            _skillTreeData.RingNodeCount = 4;
+            _skillTreeData.GenerateNodes();
+
+            for (int i = 0; i < _skillTreeData.Nodes.Count; i++)
+            {
+                var node = _skillTreeData.Nodes[i];
+                Assert.AreEqual(10, node.baseCost, $"Node {i} baseCost");
+                Assert.AreEqual(3f, node.costMultiplierOdd, $"Node {i} multOdd");
+                Assert.AreEqual(2f, node.costMultiplierEven, $"Node {i} multEven");
+                Assert.AreEqual(5, node.costAdditivePerLevel, $"Node {i} additive");
             }
         }
     }

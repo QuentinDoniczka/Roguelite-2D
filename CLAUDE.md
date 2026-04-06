@@ -25,7 +25,7 @@
 Doc detaille : `Assets/doc/premier-jet-roguelite.html`
 
 # Project Structure
-Generated: 2026-04-05 (updated feature/153-skill-tree-ring-layout)
+Generated: 2026-04-05 (updated feature/154-skill-tree-edge-rendering)
 
 .github/
   workflows/
@@ -117,6 +117,7 @@ Assets/
       GoldWallet.cs
     Editor/
       RogueliteAutoBattler.Editor.asmdef
+      AssemblyInfo.cs
       EditorUIFactory.cs
       Builders/
         BootstrapSceneBuilder.cs
