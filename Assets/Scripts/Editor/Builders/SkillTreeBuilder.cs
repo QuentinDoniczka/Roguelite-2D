@@ -21,7 +21,7 @@ namespace RogueliteAutoBattler.Editor
             EditorUIFactory.Stretch(viewportGo.AddComponent<RectTransform>());
 
             Image viewportImage = viewportGo.AddComponent<Image>();
-            viewportImage.color = Color.clear;
+            viewportImage.color = Color.black;
             viewportImage.raycastTarget = true;
 
             viewportGo.AddComponent<RectMask2D>();
@@ -59,12 +59,19 @@ namespace RogueliteAutoBattler.Editor
 
             nodeManagerSO.ApplyModifiedProperties();
 
+            SkillTreeDarknessOverlay darknessOverlay = viewportGo.AddComponent<SkillTreeDarknessOverlay>();
+
+            var overlaySO = new SerializedObject(darknessOverlay);
+            EditorUIFactory.SetObj(overlaySO, "_content", contentRect);
+            overlaySO.ApplyModifiedProperties();
+
             SkillTreeScreen screen = skillTreePanel.GetComponent<SkillTreeScreen>();
             if (screen != null)
             {
                 var screenSO = new SerializedObject(screen);
                 EditorUIFactory.SetObj(screenSO, "_inputHandler", inputHandler);
                 EditorUIFactory.SetObj(screenSO, "_nodeManager", nodeManager);
+                EditorUIFactory.SetObj(screenSO, "_darknessOverlay", darknessOverlay);
                 screenSO.ApplyModifiedProperties();
             }
             else

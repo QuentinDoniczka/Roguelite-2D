@@ -1,5 +1,5 @@
 # Project Structure
-Generated: 2026-04-05 (updated feature/154-skill-tree-edge-rendering)
+Generated: 2026-04-06 (updated feature/162-darkness-overlay)
 
 .github/
   workflows/
@@ -76,6 +76,7 @@ Assets/
         DamageNumberBootstrap.cs
         DamageNumberService.cs
         DamageNumberSettingsPersistence.cs
+        FadeOverlay.cs
         HealthBar.cs
         SelectionOutline.cs
         VisualEquipmentTestLoop.cs
@@ -129,6 +130,7 @@ Assets/
         Shop/
           ShopScreen.cs
         SkillTree/
+          SkillTreeDarknessOverlay.cs
           SkillTreeInputHandler.cs
           SkillTreeNode.cs
           SkillTreeNodeManager.cs
@@ -150,6 +152,7 @@ Assets/
     UniversalRenderPipelineGlobalSettings.asset
     UniversalRP.asset
   Shaders/
+    SkillTreeDarkness.shader
     SpriteOutline2D.shader
     SpriteSilhouette2D.shader
   Sprites/
@@ -205,6 +208,7 @@ Assets/
       NavigationManagerTests.cs
       ScreenStackTests.cs
       SelectionOutlineTests.cs
+      SkillTreeDarknessOverlayTests.cs
       SkillTreeInputHandlerTests.cs
       SkillTreeNodeManagerTests.cs
       SkillTreeNodeTests.cs

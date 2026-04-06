@@ -1,0 +1,24 @@
+[Licensing::Module] Trying to connect to existing licensing client channel...
+Built from '6000.3/respin/6000.3.6f1-732c1ec89f18' branch; Version is '6000.3.6f1 (bbb010bdb8a3) revision 12300304'; Using compiler version '194234433'; Build Type 'Release'
+OS: 'Windows 11  (10.0.26200) Professional' Language: 'fr' Physical Memory: 32705 MB
+[Licensing::IpcConnector] Successfully connected to: "LicenseClient-donic" at "2026-04-06T14:21:30.3037502Z"
+BatchMode: 1, IsHumanControllingUs: 0, StartBugReporterOnCrash: 0, Is64bit: 1
+System  architecture: x64
+Process architecture: x64
+Date: 2026-04-06T14:21:30Z
+
+COMMAND LINE ARGUMENTS:
+C:\Program Files\Unity\Hub\Editor\6000.3.6f1\Editor\Unity.exe
+-runTests
+-batchmode
+-projectPath
+C:/Users/donic/RiderProjects/Roguelite-2D
+-testResults
+C:/Users/donic/RiderProjects/Roguelite-2D/TestResults/playmode-results.xml
+-testPlatform
+PlayMode
+-logFile
+C:/Users/donic/RiderProjects/Roguelite-2D/TestResults/playmode.log
+Successfully changed project path to: C:/Users/donic/RiderProjects/Roguelite-2D
+C:/Users/donic/RiderProjects/Roguelite-2D
+Exiting without the bug reporter. Application will terminate with return code 1
