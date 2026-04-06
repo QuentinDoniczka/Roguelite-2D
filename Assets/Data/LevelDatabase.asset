@@ -39,12 +39,72 @@ MonoBehaviour:
               hatSprite: {fileID: 0}
               weaponSprite: {fileID: 0}
               shieldSprite: {fileID: 0}
+          - enemyName: Enemy
+            prefab: {fileID: 1000000000000000001, guid: ade0afb480cc21d43ab799f99637abc6, type: 3}
+            hp: 50
+            atk: 10
+            attackSpeed: 1
+            moveSpeed: 2
+            attackRange: 0.5
+            attackType: 0
+            colliderRadius: 0.1
+            goldDrop: 1
+            appearance:
+              headSprite: {fileID: 0}
+              hatSprite: {fileID: 0}
+              weaponSprite: {fileID: 0}
+              shieldSprite: {fileID: 0}
+          - enemyName: Enemy
+            prefab: {fileID: 1000000000000000001, guid: ade0afb480cc21d43ab799f99637abc6, type: 3}
+            hp: 50
+            atk: 10
+            attackSpeed: 1
+            moveSpeed: 2
+            attackRange: 0.5
+            attackType: 0
+            colliderRadius: 0.1
+            goldDrop: 1
+            appearance:
+              headSprite: {fileID: 0}
+              hatSprite: {fileID: 0}
+              weaponSprite: {fileID: 0}
+              shieldSprite: {fileID: 0}
       - stepName: Step 2
         stepType: 0
         waves:
         - waveName: Wave
           spawnDelay: 0
           enemies:
+          - enemyName: Enemy
+            prefab: {fileID: 1000000000000000001, guid: ade0afb480cc21d43ab799f99637abc6, type: 3}
+            hp: 50
+            atk: 10
+            attackSpeed: 1
+            moveSpeed: 2
+            attackRange: 0.5
+            attackType: 0
+            colliderRadius: 0.1
+            goldDrop: 1
+            appearance:
+              headSprite: {fileID: 0}
+              hatSprite: {fileID: 0}
+              weaponSprite: {fileID: 0}
+              shieldSprite: {fileID: 0}
+          - enemyName: Enemy
+            prefab: {fileID: 1000000000000000001, guid: ade0afb480cc21d43ab799f99637abc6, type: 3}
+            hp: 50
+            atk: 10
+            attackSpeed: 1
+            moveSpeed: 2
+            attackRange: 0.5
+            attackType: 0
+            colliderRadius: 0.1
+            goldDrop: 1
+            appearance:
+              headSprite: {fileID: 0}
+              hatSprite: {fileID: 0}
+              weaponSprite: {fileID: 0}
+              shieldSprite: {fileID: 0}
           - enemyName: Enemy
             prefab: {fileID: 1000000000000000001, guid: ade0afb480cc21d43ab799f99637abc6, type: 3}
             hp: 50
@@ -81,402 +141,6 @@ MonoBehaviour:
               hatSprite: {fileID: 0}
               weaponSprite: {fileID: 0}
               shieldSprite: {fileID: 0}
-          - enemyName: Enemy
-            prefab: {fileID: 1000000000000000001, guid: ade0afb480cc21d43ab799f99637abc6, type: 3}
-            hp: 50
-            atk: 10
-            attackSpeed: 1
-            moveSpeed: 2
-            attackRange: 0.5
-            attackType: 0
-            colliderRadius: 0.1
-            goldDrop: 1
-            appearance:
-              headSprite: {fileID: 0}
-              hatSprite: {fileID: 0}
-              weaponSprite: {fileID: 0}
-              shieldSprite: {fileID: 0}
-          - enemyName: Enemy
-            prefab: {fileID: 1000000000000000001, guid: ade0afb480cc21d43ab799f99637abc6, type: 3}
-            hp: 50
-            atk: 10
-            attackSpeed: 1
-            moveSpeed: 2
-            attackRange: 0.5
-            attackType: 0
-            colliderRadius: 0.1
-            goldDrop: 1
-            appearance:
-              headSprite: {fileID: 0}
-              hatSprite: {fileID: 0}
-              weaponSprite: {fileID: 0}
-              shieldSprite: {fileID: 0}
-      - stepName: Step 4
-        stepType: 0
-        waves:
-        - waveName: Wave
-          spawnDelay: 0
-          enemies:
-          - enemyName: Enemy
-            prefab: {fileID: 1000000000000000001, guid: ade0afb480cc21d43ab799f99637abc6, type: 3}
-            hp: 50
-            atk: 10
-            attackSpeed: 1
-            moveSpeed: 2
-            attackRange: 0.5
-            attackType: 0
-            colliderRadius: 0.1
-            goldDrop: 1
-            appearance:
-              headSprite: {fileID: 0}
-              hatSprite: {fileID: 0}
-              weaponSprite: {fileID: 0}
-              shieldSprite: {fileID: 0}
-          - enemyName: Enemy
-            prefab: {fileID: 1000000000000000001, guid: ade0afb480cc21d43ab799f99637abc6, type: 3}
-            hp: 50
-            atk: 10
-            attackSpeed: 1
-            moveSpeed: 2
-            attackRange: 0.5
-            attackType: 0
-            colliderRadius: 0.1
-            goldDrop: 1
-            appearance:
-              headSprite: {fileID: 0}
-              hatSprite: {fileID: 0}
-              weaponSprite: {fileID: 0}
-              shieldSprite: {fileID: 0}
-          - enemyName: Enemy
-            prefab: {fileID: 1000000000000000001, guid: ade0afb480cc21d43ab799f99637abc6, type: 3}
-            hp: 50
-            atk: 10
-            attackSpeed: 1
-            moveSpeed: 2
-            attackRange: 0.5
-            attackType: 0
-            colliderRadius: 0.1
-            goldDrop: 1
-            appearance:
-              headSprite: {fileID: 0}
-              hatSprite: {fileID: 0}
-              weaponSprite: {fileID: 0}
-              shieldSprite: {fileID: 0}
-      - stepName: 'Step 5 [Special]'
-        stepType: 1
-        waves:
-        - waveName: Wave
-          spawnDelay: 0
-          enemies:
-          - enemyName: Enemy
-            prefab: {fileID: 1000000000000000001, guid: ade0afb480cc21d43ab799f99637abc6, type: 3}
-            hp: 50
-            atk: 10
-            attackSpeed: 1
-            moveSpeed: 2
-            attackRange: 0.5
-            attackType: 0
-            colliderRadius: 0.1
-            goldDrop: 1
-            appearance:
-              headSprite: {fileID: 0}
-              hatSprite: {fileID: 0}
-              weaponSprite: {fileID: 0}
-              shieldSprite: {fileID: 0}
-          - enemyName: Enemy
-            prefab: {fileID: 1000000000000000001, guid: ade0afb480cc21d43ab799f99637abc6, type: 3}
-            hp: 50
-            atk: 10
-            attackSpeed: 1
-            moveSpeed: 2
-            attackRange: 0.5
-            attackType: 0
-            colliderRadius: 0.1
-            goldDrop: 1
-            appearance:
-              headSprite: {fileID: 0}
-              hatSprite: {fileID: 0}
-              weaponSprite: {fileID: 0}
-              shieldSprite: {fileID: 0}
-      - stepName: Step 6
-        stepType: 0
-        waves:
-        - waveName: Wave
-          spawnDelay: 0
-          enemies:
-          - enemyName: Enemy
-            prefab: {fileID: 1000000000000000001, guid: ade0afb480cc21d43ab799f99637abc6, type: 3}
-            hp: 50
-            atk: 10
-            attackSpeed: 1
-            moveSpeed: 2
-            attackRange: 0.5
-            attackType: 0
-            colliderRadius: 0.1
-            goldDrop: 1
-            appearance:
-              headSprite: {fileID: 0}
-              hatSprite: {fileID: 0}
-              weaponSprite: {fileID: 0}
-              shieldSprite: {fileID: 0}
-          - enemyName: Enemy
-            prefab: {fileID: 1000000000000000001, guid: ade0afb480cc21d43ab799f99637abc6, type: 3}
-            hp: 50
-            atk: 10
-            attackSpeed: 1
-            moveSpeed: 2
-            attackRange: 0.5
-            attackType: 0
-            colliderRadius: 0.1
-            goldDrop: 1
-            appearance:
-              headSprite: {fileID: 0}
-              hatSprite: {fileID: 0}
-              weaponSprite: {fileID: 0}
-              shieldSprite: {fileID: 0}
-          - enemyName: Enemy
-            prefab: {fileID: 1000000000000000001, guid: ade0afb480cc21d43ab799f99637abc6, type: 3}
-            hp: 50
-            atk: 10
-            attackSpeed: 1
-            moveSpeed: 2
-            attackRange: 0.5
-            attackType: 0
-            colliderRadius: 0.1
-            goldDrop: 1
-            appearance:
-              headSprite: {fileID: 0}
-              hatSprite: {fileID: 0}
-              weaponSprite: {fileID: 0}
-              shieldSprite: {fileID: 0}
-          - enemyName: Enemy
-            prefab: {fileID: 1000000000000000001, guid: ade0afb480cc21d43ab799f99637abc6, type: 3}
-            hp: 50
-            atk: 10
-            attackSpeed: 1
-            moveSpeed: 2
-            attackRange: 0.5
-            attackType: 0
-            colliderRadius: 0.1
-            goldDrop: 1
-            appearance:
-              headSprite: {fileID: 0}
-              hatSprite: {fileID: 0}
-              weaponSprite: {fileID: 0}
-              shieldSprite: {fileID: 0}
-          - enemyName: Enemy
-            prefab: {fileID: 1000000000000000001, guid: ade0afb480cc21d43ab799f99637abc6, type: 3}
-            hp: 50
-            atk: 10
-            attackSpeed: 1
-            moveSpeed: 2
-            attackRange: 0.5
-            attackType: 0
-            colliderRadius: 0.1
-            goldDrop: 1
-            appearance:
-              headSprite: {fileID: 0}
-              hatSprite: {fileID: 0}
-              weaponSprite: {fileID: 0}
-              shieldSprite: {fileID: 0}
-      - stepName: Step 7
-        stepType: 0
-        waves:
-        - waveName: Wave
-          spawnDelay: 0
-          enemies:
-          - enemyName: Enemy
-            prefab: {fileID: 1000000000000000001, guid: ade0afb480cc21d43ab799f99637abc6, type: 3}
-            hp: 50
-            atk: 10
-            attackSpeed: 1
-            moveSpeed: 2
-            attackRange: 0.5
-            attackType: 0
-            colliderRadius: 0.1
-            goldDrop: 1
-            appearance:
-              headSprite: {fileID: 0}
-              hatSprite: {fileID: 0}
-              weaponSprite: {fileID: 0}
-              shieldSprite: {fileID: 0}
-          - enemyName: Enemy
-            prefab: {fileID: 1000000000000000001, guid: ade0afb480cc21d43ab799f99637abc6, type: 3}
-            hp: 50
-            atk: 10
-            attackSpeed: 1
-            moveSpeed: 2
-            attackRange: 0.5
-            attackType: 0
-            colliderRadius: 0.1
-            goldDrop: 1
-            appearance:
-              headSprite: {fileID: 0}
-              hatSprite: {fileID: 0}
-              weaponSprite: {fileID: 0}
-              shieldSprite: {fileID: 0}
-          - enemyName: Enemy
-            prefab: {fileID: 1000000000000000001, guid: ade0afb480cc21d43ab799f99637abc6, type: 3}
-            hp: 50
-            atk: 10
-            attackSpeed: 1
-            moveSpeed: 2
-            attackRange: 0.5
-            attackType: 0
-            colliderRadius: 0.1
-            goldDrop: 1
-            appearance:
-              headSprite: {fileID: 0}
-              hatSprite: {fileID: 0}
-              weaponSprite: {fileID: 0}
-              shieldSprite: {fileID: 0}
-          - enemyName: Enemy
-            prefab: {fileID: 1000000000000000001, guid: ade0afb480cc21d43ab799f99637abc6, type: 3}
-            hp: 50
-            atk: 10
-            attackSpeed: 1
-            moveSpeed: 2
-            attackRange: 0.5
-            attackType: 0
-            colliderRadius: 0.1
-            goldDrop: 1
-            appearance:
-              headSprite: {fileID: 0}
-              hatSprite: {fileID: 0}
-              weaponSprite: {fileID: 0}
-              shieldSprite: {fileID: 0}
-          - enemyName: Enemy
-            prefab: {fileID: 1000000000000000001, guid: ade0afb480cc21d43ab799f99637abc6, type: 3}
-            hp: 50
-            atk: 10
-            attackSpeed: 1
-            moveSpeed: 2
-            attackRange: 0.5
-            attackType: 0
-            colliderRadius: 0.1
-            goldDrop: 1
-            appearance:
-              headSprite: {fileID: 0}
-              hatSprite: {fileID: 0}
-              weaponSprite: {fileID: 0}
-              shieldSprite: {fileID: 0}
-      - stepName: Step 8
-        stepType: 0
-        waves:
-        - waveName: Wave
-          spawnDelay: 0
-          enemies:
-          - enemyName: Enemy
-            prefab: {fileID: 1000000000000000001, guid: ade0afb480cc21d43ab799f99637abc6, type: 3}
-            hp: 50
-            atk: 10
-            attackSpeed: 1
-            moveSpeed: 2
-            attackRange: 0.5
-            attackType: 0
-            colliderRadius: 0.1
-            goldDrop: 1
-            appearance:
-              headSprite: {fileID: 0}
-              hatSprite: {fileID: 0}
-              weaponSprite: {fileID: 0}
-              shieldSprite: {fileID: 0}
-          - enemyName: Enemy
-            prefab: {fileID: 1000000000000000001, guid: ade0afb480cc21d43ab799f99637abc6, type: 3}
-            hp: 50
-            atk: 10
-            attackSpeed: 1
-            moveSpeed: 2
-            attackRange: 0.5
-            attackType: 0
-            colliderRadius: 0.1
-            goldDrop: 1
-            appearance:
-              headSprite: {fileID: 0}
-              hatSprite: {fileID: 0}
-              weaponSprite: {fileID: 0}
-              shieldSprite: {fileID: 0}
-          - enemyName: Enemy
-            prefab: {fileID: 1000000000000000001, guid: ade0afb480cc21d43ab799f99637abc6, type: 3}
-            hp: 50
-            atk: 10
-            attackSpeed: 1
-            moveSpeed: 2
-            attackRange: 0.5
-            attackType: 0
-            colliderRadius: 0.1
-            goldDrop: 1
-            appearance:
-              headSprite: {fileID: 0}
-              hatSprite: {fileID: 0}
-              weaponSprite: {fileID: 0}
-              shieldSprite: {fileID: 0}
-          - enemyName: Enemy
-            prefab: {fileID: 1000000000000000001, guid: ade0afb480cc21d43ab799f99637abc6, type: 3}
-            hp: 50
-            atk: 10
-            attackSpeed: 1
-            moveSpeed: 2
-            attackRange: 0.5
-            attackType: 0
-            colliderRadius: 0.1
-            goldDrop: 1
-            appearance:
-              headSprite: {fileID: 0}
-              hatSprite: {fileID: 0}
-              weaponSprite: {fileID: 0}
-              shieldSprite: {fileID: 0}
-          - enemyName: Enemy
-            prefab: {fileID: 1000000000000000001, guid: ade0afb480cc21d43ab799f99637abc6, type: 3}
-            hp: 50
-            atk: 10
-            attackSpeed: 1
-            moveSpeed: 2
-            attackRange: 0.5
-            attackType: 0
-            colliderRadius: 0.1
-            goldDrop: 1
-            appearance:
-              headSprite: {fileID: 0}
-              hatSprite: {fileID: 0}
-              weaponSprite: {fileID: 0}
-              shieldSprite: {fileID: 0}
-          - enemyName: Enemy
-            prefab: {fileID: 1000000000000000001, guid: ade0afb480cc21d43ab799f99637abc6, type: 3}
-            hp: 50
-            atk: 10
-            attackSpeed: 1
-            moveSpeed: 2
-            attackRange: 0.5
-            attackType: 0
-            colliderRadius: 0.1
-            goldDrop: 1
-            appearance:
-              headSprite: {fileID: 0}
-              hatSprite: {fileID: 0}
-              weaponSprite: {fileID: 0}
-              shieldSprite: {fileID: 0}
-          - enemyName: Enemy
-            prefab: {fileID: 1000000000000000001, guid: ade0afb480cc21d43ab799f99637abc6, type: 3}
-            hp: 50
-            atk: 10
-            attackSpeed: 1
-            moveSpeed: 2
-            attackRange: 0.5
-            attackType: 0
-            colliderRadius: 0.1
-            goldDrop: 1
-            appearance:
-              headSprite: {fileID: 0}
-              hatSprite: {fileID: 0}
-              weaponSprite: {fileID: 0}
-              shieldSprite: {fileID: 0}
-      - stepName: 'Step 9 [Special]'
-        stepType: 1
-        waves:
-        - waveName: Wave
-          spawnDelay: 0
-          enemies:
           - enemyName: Enemy
             prefab: {fileID: 1000000000000000001, guid: ade0afb480cc21d43ab799f99637abc6, type: 3}
             hp: 50

@@ -16,9 +16,9 @@ MonoBehaviour:
   - allyName: Warrior
     prefab: {fileID: 1000000000000000001, guid: ade0afb480cc21d43ab799f99637abc6, type: 3}
     maxHp: 200
-    atk: 20
+    atk: 200
     attackSpeed: 3
-    moveSpeed: 1
+    moveSpeed: 3
     regenHpPerSecond: 5
     colliderRadius: 0.1
     appearance:
