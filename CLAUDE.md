@@ -25,7 +25,7 @@
 Doc detaille : `Assets/doc/premier-jet-roguelite.html`
 
 # Project Structure
-Generated: 2026-04-07 (updated feature/9-hud-stats-aventurier)
+Generated: 2026-04-07
 
 .github/
   workflows/
@@ -58,7 +58,8 @@ Assets/
     premier-jet-roguelite.html
     propositions-stats-inventaire.html
     techtreeidea.png
-  Fonts/  (empty)
+  Fonts/
+    Bangers SDF.asset
   Materials/  (1 file)
   MedievalFantasyCharacters/  (asset store package)
   Prefabs/

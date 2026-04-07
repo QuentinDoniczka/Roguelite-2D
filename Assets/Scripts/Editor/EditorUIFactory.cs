@@ -7,6 +7,22 @@ namespace RogueliteAutoBattler.Editor
 {
     internal static class EditorUIFactory
     {
+        internal const string BangersFontPath = "Assets/Fonts/Bangers SDF.asset";
+
+        internal static TMP_FontAsset LoadBangersFont(string callerName)
+        {
+            TMP_FontAsset font = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(BangersFontPath);
+            if (font == null)
+                Debug.LogError($"[{callerName}] Could not load font at {BangersFontPath}");
+            return font;
+        }
+
+        internal static void ApplyFont(TextMeshProUGUI label, TMP_FontAsset font)
+        {
+            if (font != null)
+                label.font = font;
+        }
+
         internal static void Stretch(RectTransform r)
         {
             r.anchorMin = Vector2.zero;
@@ -108,6 +124,15 @@ namespace RogueliteAutoBattler.Editor
             if (prop == null) return;
             prop.arraySize = count;
             for (int i = 0; i < count; i++)
+                prop.GetArrayElementAtIndex(i).objectReferenceValue = items[i];
+        }
+
+        internal static void WireArray(SerializedObject so, string name, Object[] items)
+        {
+            SerializedProperty prop = FindProp(so, name);
+            if (prop == null) return;
+            prop.arraySize = items.Length;
+            for (int i = 0; i < items.Length; i++)
                 prop.GetArrayElementAtIndex(i).objectReferenceValue = items[i];
         }
 

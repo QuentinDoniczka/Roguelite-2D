@@ -15,15 +15,21 @@ namespace RogueliteAutoBattler.Editor
         private const int HudFontSize = 28;
         private const int BattleFontSize = 40;
         private const int AnnouncementFontSize = 56;
-        private static readonly Vector2 BadgeOffsetOuterLeft = new Vector2(8, -8);
+        private const int CurrencyIconSize = 50;
+        private const int CurrencyBadgeSpacing = 6;
+        private const int CurrencyBadgePaddingLeft = 16;
+        private const int CurrencyBadgePaddingRight = 24;
+
         private static readonly Vector2 BadgeOffsetInnerLeft = new Vector2(4, -8);
         private static readonly Vector2 BadgeOffsetInnerRight = new Vector2(-4, -8);
         private static readonly Vector2 BadgeOffsetOuterRight = new Vector2(-8, -8);
 
-        private static readonly Color HudBarBg = (Color)new Color32(0, 0, 0, 160);
+        private static readonly Color HudBarBg = new Color32(0, 0, 0, 160);
 
         internal static UIScreen CreateCombatPanel(Transform parent)
         {
+            TMP_FontAsset bangersFont = EditorUIFactory.LoadBangersFont(nameof(CombatHudBuilder));
+
             var go = new GameObject("CombatPanel");
             GameObjectUtility.SetParentAndAlign(go, parent.gameObject);
             EditorUIFactory.Stretch(go.AddComponent<RectTransform>());
@@ -34,7 +40,8 @@ namespace RogueliteAutoBattler.Editor
 
             CreateCurrencyBadge(go.transform, "Gold", "0",
                 new Vector2(0.56f, 0.92f), new Vector2(0.78f, 1f),
-                (Color)new Color32(255, 215, 0, 255),
+                new Color32(255, 215, 0, 255),
+                bangersFont,
                 BadgeOffsetInnerLeft, BadgeOffsetInnerRight);
 
             var goldBadge = go.transform.Find("Gold");
@@ -64,7 +71,8 @@ namespace RogueliteAutoBattler.Editor
 
             CreateCurrencyBadge(go.transform, "Diamond", "211",
                 new Vector2(0.78f, 0.92f), new Vector2(1f, 1f),
-                (Color)new Color32(185, 242, 255, 255),
+                new Color32(185, 242, 255, 255),
+                bangersFont,
                 BadgeOffsetInnerLeft, BadgeOffsetOuterRight);
 
             var battleGo = new GameObject("BattleIndicator");
@@ -89,6 +97,7 @@ namespace RogueliteAutoBattler.Editor
             compactTmp.color = Color.white;
             compactTmp.alignment = TextAlignmentOptions.Center;
             compactTmp.fontStyle = FontStyles.Bold;
+            EditorUIFactory.ApplyFont(compactTmp, bangersFont);
 
             var stepBarGo = new GameObject("StepProgressBar");
             stepBarGo.transform.SetParent(battleGo.transform, false);
@@ -133,6 +142,7 @@ namespace RogueliteAutoBattler.Editor
             announcementTmp.color = Color.white;
             announcementTmp.alignment = TextAlignmentOptions.Center;
             announcementTmp.fontStyle = FontStyles.Bold;
+            EditorUIFactory.ApplyFont(announcementTmp, bangersFont);
 
             var badgeSO = new SerializedObject(badge);
             EditorUIFactory.SetObj(badgeSO, "_compactLabel", compactTmp);
@@ -145,6 +155,7 @@ namespace RogueliteAutoBattler.Editor
 
         private static void CreateCurrencyBadge(Transform parent, string name, string text,
             Vector2 anchorMin, Vector2 anchorMax, Color textColor,
+            TMP_FontAsset font,
             Vector2? offsetMin = null, Vector2? offsetMax = null)
         {
             var go = new GameObject(name);
@@ -159,8 +170,8 @@ namespace RogueliteAutoBattler.Editor
             bg.color = HudBarBg;
 
             HorizontalLayoutGroup layout = go.AddComponent<HorizontalLayoutGroup>();
-            layout.spacing = 6;
-            layout.padding = new RectOffset(16, 24, 0, 0);
+            layout.spacing = CurrencyBadgeSpacing;
+            layout.padding = new RectOffset(CurrencyBadgePaddingLeft, CurrencyBadgePaddingRight, 0, 0);
             layout.childAlignment = TextAnchor.MiddleCenter;
             layout.childControlWidth = true;
             layout.childControlHeight = true;
@@ -174,10 +185,10 @@ namespace RogueliteAutoBattler.Editor
             iconImg.color = textColor;
             iconImg.sprite = AssetDatabase.GetBuiltinExtraResource<Sprite>("UI/Skin/Knob.psd");
             LayoutElement iconLe = iconGo.AddComponent<LayoutElement>();
-            iconLe.minWidth = 50;
-            iconLe.minHeight = 50;
-            iconLe.preferredWidth = 50;
-            iconLe.preferredHeight = 50;
+            iconLe.minWidth = CurrencyIconSize;
+            iconLe.minHeight = CurrencyIconSize;
+            iconLe.preferredWidth = CurrencyIconSize;
+            iconLe.preferredHeight = CurrencyIconSize;
             iconLe.flexibleWidth = 0;
             iconLe.flexibleHeight = 0;
 
@@ -190,6 +201,7 @@ namespace RogueliteAutoBattler.Editor
             tmp.color = textColor;
             tmp.alignment = TextAlignmentOptions.MidlineRight;
             tmp.fontStyle = FontStyles.Bold;
+            EditorUIFactory.ApplyFont(tmp, font);
             LayoutElement labelLe = labelGo.AddComponent<LayoutElement>();
             labelLe.flexibleWidth = 1;
             labelLe.flexibleHeight = 1;
