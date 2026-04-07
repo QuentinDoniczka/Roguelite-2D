@@ -2,7 +2,6 @@ using RogueliteAutoBattler.Combat.Visuals;
 using RogueliteAutoBattler.Economy;
 using RogueliteAutoBattler.UI.Core;
 using RogueliteAutoBattler.UI.Screens.Combat;
-using RogueliteAutoBattler.UI.Widgets;
 using TMPro;
 using UnityEditor;
 using UnityEngine;
@@ -15,10 +14,6 @@ namespace RogueliteAutoBattler.Editor
         private const int HudFontSize = 28;
         private const int BattleFontSize = 40;
         private const int AnnouncementFontSize = 56;
-        private const int StatNameFontSize = 20;
-        private const int StatValueFontSize = 22;
-        private const float StatNamePreferredWidth = 80f;
-
         private static readonly Vector2 BadgeOffsetOuterLeft = new Vector2(8, -8);
         private static readonly Vector2 BadgeOffsetInnerLeft = new Vector2(4, -8);
         private static readonly Vector2 BadgeOffsetInnerRight = new Vector2(-4, -8);
@@ -70,8 +65,6 @@ namespace RogueliteAutoBattler.Editor
                 new Vector2(0.78f, 0.92f), new Vector2(1f, 1f),
                 (Color)new Color32(185, 242, 255, 255),
                 BadgeOffsetInnerLeft, BadgeOffsetOuterRight);
-
-            CreateAllyStatsPanel(go.transform);
 
             var battleGo = new GameObject("BattleIndicator");
             GameObjectUtility.SetParentAndAlign(battleGo, go);
@@ -147,84 +140,6 @@ namespace RogueliteAutoBattler.Editor
             badgeSO.ApplyModifiedProperties();
 
             return screen;
-        }
-
-        private static void CreateAllyStatsPanel(Transform parent)
-        {
-            var go = new GameObject("AllyStatsPanel");
-            GameObjectUtility.SetParentAndAlign(go, parent.gameObject);
-            RectTransform r = go.AddComponent<RectTransform>();
-            r.anchorMin = new Vector2(0f, 0.88f);
-            r.anchorMax = new Vector2(0.45f, 1f);
-            r.offsetMin = BadgeOffsetOuterLeft;
-            r.offsetMax = BadgeOffsetInnerRight;
-
-            Image bg = go.AddComponent<Image>();
-            bg.color = HudBarBg;
-
-            CanvasGroup cg = go.AddComponent<CanvasGroup>();
-            cg.alpha = 0f;
-            cg.blocksRaycasts = false;
-
-            VerticalLayoutGroup layout = go.AddComponent<VerticalLayoutGroup>();
-            layout.padding = new RectOffset(8, 8, 4, 4);
-            layout.spacing = 2;
-            layout.childControlWidth = true;
-            layout.childControlHeight = true;
-            layout.childForceExpandWidth = true;
-            layout.childForceExpandHeight = false;
-
-            TextMeshProUGUI hpValue = CreateStatRow(go.transform, "HpRow", "HP:");
-            TextMeshProUGUI atkValue = CreateStatRow(go.transform, "AtkRow", "ATK:");
-            TextMeshProUGUI spdValue = CreateStatRow(go.transform, "SpdRow", "SPD:");
-
-            AllyStatsPanel panel = go.AddComponent<AllyStatsPanel>();
-            var so = new SerializedObject(panel);
-            EditorUIFactory.SetObj(so, "_hpLabel", hpValue);
-            EditorUIFactory.SetObj(so, "_atkLabel", atkValue);
-            EditorUIFactory.SetObj(so, "_attackSpeedLabel", spdValue);
-            EditorUIFactory.SetObj(so, "_canvasGroup", cg);
-            so.ApplyModifiedProperties();
-        }
-
-        private static TextMeshProUGUI CreateStatRow(Transform parent, string name, string statName)
-        {
-            var rowGo = new GameObject(name);
-            GameObjectUtility.SetParentAndAlign(rowGo, parent.gameObject);
-            rowGo.AddComponent<RectTransform>();
-
-            HorizontalLayoutGroup rowLayout = rowGo.AddComponent<HorizontalLayoutGroup>();
-            rowLayout.spacing = 4;
-            rowLayout.childAlignment = TextAnchor.MiddleLeft;
-            rowLayout.childControlWidth = true;
-            rowLayout.childControlHeight = true;
-            rowLayout.childForceExpandWidth = false;
-            rowLayout.childForceExpandHeight = false;
-
-            var nameGo = new GameObject("StatName");
-            GameObjectUtility.SetParentAndAlign(nameGo, rowGo);
-            nameGo.AddComponent<RectTransform>();
-            TextMeshProUGUI nameTmp = nameGo.AddComponent<TextMeshProUGUI>();
-            nameTmp.text = statName;
-            nameTmp.fontSize = StatNameFontSize;
-            nameTmp.color = Color.gray;
-            nameTmp.alignment = TextAlignmentOptions.Left;
-            LayoutElement nameLe = nameGo.AddComponent<LayoutElement>();
-            nameLe.preferredWidth = StatNamePreferredWidth;
-
-            var valueGo = new GameObject("StatValue");
-            GameObjectUtility.SetParentAndAlign(valueGo, rowGo);
-            valueGo.AddComponent<RectTransform>();
-            TextMeshProUGUI valueTmp = valueGo.AddComponent<TextMeshProUGUI>();
-            valueTmp.text = "---";
-            valueTmp.fontSize = StatValueFontSize;
-            valueTmp.color = Color.white;
-            valueTmp.alignment = TextAlignmentOptions.Right;
-            valueTmp.fontStyle = FontStyles.Bold;
-            LayoutElement valueLe = valueGo.AddComponent<LayoutElement>();
-            valueLe.flexibleWidth = 1;
-
-            return valueTmp;
         }
 
         private static void CreateCurrencyBadge(Transform parent, string name, string text,

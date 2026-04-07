@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Globalization;
 using UnityEngine;
 
@@ -18,68 +19,47 @@ namespace RogueliteAutoBattler.Combat.Core
         public float AttackSpeed => _attackSpeed;
         public bool IsDead => _currentHp <= 0;
 
-        public static StatType[] DisplayOrder => new[]
+        private static readonly StatType[] DisplayOrderArray =
         {
             StatType.Hp, StatType.Atk, StatType.Def,
             StatType.AttackSpeed, StatType.RegenHp, StatType.CritRate
         };
+
+        public static IReadOnlyList<StatType> DisplayOrder => DisplayOrderArray;
+
+        private readonly StatModifierEntry[] _singleModifierBuffer = new StatModifierEntry[1];
 
         public StatBreakdownData GetBreakdown(StatType statType)
         {
             switch (statType)
             {
                 case StatType.Hp:
-                {
-                    string finalValue = $"{_currentHp} / {_maxHp}";
-                    string baseValue = $"{_maxHp}";
-                    return new StatBreakdownData("HP", finalValue, new[]
-                    {
-                        new StatModifierEntry("Base", baseValue, true)
-                    });
-                }
+                    return MakeBaseBreakdown("HP", $"{_currentHp} / {_maxHp}", $"{_maxHp}");
                 case StatType.Atk:
-                {
-                    string value = $"{_atk}";
-                    return new StatBreakdownData("ATK", value, new[]
-                    {
-                        new StatModifierEntry("Base", value, true)
-                    });
-                }
+                    return MakeBaseBreakdown("ATK", $"{_atk}");
                 case StatType.Def:
-                {
-                    return new StatBreakdownData("DEF", "0", new[]
-                    {
-                        new StatModifierEntry("Base", "0", true)
-                    });
-                }
+                    return MakeBaseBreakdown("DEF", "0");
                 case StatType.AttackSpeed:
-                {
-                    string value = _attackSpeed.ToString("F1", CultureInfo.InvariantCulture);
-                    return new StatBreakdownData("SPD", value, new[]
-                    {
-                        new StatModifierEntry("Base", value, true)
-                    });
-                }
+                    return MakeBaseBreakdown("SPD", _attackSpeed.ToString("F1", CultureInfo.InvariantCulture));
                 case StatType.RegenHp:
-                {
-                    string value = _regenHpPerSecond.ToString("F1", CultureInfo.InvariantCulture) + "/s";
-                    return new StatBreakdownData("REGEN", value, new[]
-                    {
-                        new StatModifierEntry("Base", value, true)
-                    });
-                }
+                    return MakeBaseBreakdown("REGEN", _regenHpPerSecond.ToString("F1", CultureInfo.InvariantCulture) + "/s");
                 case StatType.CritRate:
-                {
-                    return new StatBreakdownData("CRIT", "0%", new[]
-                    {
-                        new StatModifierEntry("Base", "0%", true)
-                    });
-                }
+                    return MakeBaseBreakdown("CRIT", "0%");
                 default:
-                {
-                    return new StatBreakdownData("", "", new StatModifierEntry[0]);
-                }
+                    return new StatBreakdownData("", "", System.Array.Empty<StatModifierEntry>());
             }
+        }
+
+        private StatBreakdownData MakeBaseBreakdown(string statName, string formattedValue)
+        {
+            _singleModifierBuffer[0] = new StatModifierEntry("Base", formattedValue, true);
+            return new StatBreakdownData(statName, formattedValue, _singleModifierBuffer);
+        }
+
+        private StatBreakdownData MakeBaseBreakdown(string statName, string finalValue, string baseValue)
+        {
+            _singleModifierBuffer[0] = new StatModifierEntry("Base", baseValue, true);
+            return new StatBreakdownData(statName, finalValue, _singleModifierBuffer);
         }
 
         public void InitializeDirect(int maxHp, int atk, float attackSpeed, float regenHpPerSecond = 0f)

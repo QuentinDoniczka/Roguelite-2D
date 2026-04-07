@@ -49,7 +49,8 @@ namespace RogueliteAutoBattler.UI.Widgets
         private int _activeTabIndex;
         private int _expandedRowIndex = -1;
 
-        private static readonly StringBuilder SharedStringBuilder = new StringBuilder(256);
+        private const string BreakdownSeparator = "\u2500\u2500\u2500\u2500\u2500\u2500";
+        private readonly StringBuilder _stringBuilder = new StringBuilder(128);
 
         private void Start()
         {
@@ -149,10 +150,10 @@ namespace RogueliteAutoBattler.UI.Widgets
             if (_attackSpeedLabel != null)
                 _attackSpeedLabel.SetText("{0:1}", _trackedStats.AttackSpeed);
 
-            if (_statValueLabels != null && _trackedStats != null)
+            if (_statValueLabels != null)
             {
                 var displayOrder = CombatStats.DisplayOrder;
-                for (int i = 0; i < _statValueLabels.Length && i < displayOrder.Length; i++)
+                for (int i = 0; i < _statValueLabels.Length && i < displayOrder.Count; i++)
                 {
                     if (_statValueLabels[i] != null)
                     {
@@ -331,24 +332,24 @@ namespace RogueliteAutoBattler.UI.Widgets
                 return;
 
             var displayOrder = CombatStats.DisplayOrder;
-            if (rowIndex >= displayOrder.Length) return;
+            if (rowIndex >= displayOrder.Count) return;
 
             var breakdown = _trackedStats.GetBreakdown(displayOrder[rowIndex]);
-            SharedStringBuilder.Clear();
+            _stringBuilder.Clear();
 
             if (breakdown.Modifiers != null)
             {
                 for (int i = 0; i < breakdown.Modifiers.Length; i++)
                 {
                     var modifier = breakdown.Modifiers[i];
-                    SharedStringBuilder.Append(modifier.Source).Append(": ").AppendLine(modifier.Value);
+                    _stringBuilder.Append(modifier.Source).Append(": ").AppendLine(modifier.Value);
                 }
             }
 
-            SharedStringBuilder.AppendLine("\u2500\u2500\u2500\u2500\u2500\u2500");
-            SharedStringBuilder.Append("Total: ").Append(breakdown.FinalValue);
+            _stringBuilder.AppendLine(BreakdownSeparator);
+            _stringBuilder.Append("Total: ").Append(breakdown.FinalValue);
 
-            _breakdownTexts[rowIndex].SetText(SharedStringBuilder.ToString());
+            _breakdownTexts[rowIndex].SetText(_stringBuilder.ToString());
         }
 
         internal int ActiveTabIndex => _activeTabIndex;
@@ -387,7 +388,6 @@ namespace RogueliteAutoBattler.UI.Widgets
             CanvasGroup canvasGroup, int allyLayer,
             TMP_Text emptyStateLabel = null, CanvasGroup[] statCardGroups = null)
         {
-            _initializedForTest = true;
             _selectionManager = selectionManager;
             _hpLabel = hpLabel;
             _atkLabel = atkLabel;
@@ -397,13 +397,7 @@ namespace RogueliteAutoBattler.UI.Widgets
             _emptyStateLabel = emptyStateLabel;
             _statCardGroups = statCardGroups;
 
-            _selectionManager.OnUnitSelected += HandleUnitSelected;
-            _selectionManager.OnUnitDeselected += HandleUnitDeselected;
-
-            Hide();
-
-            if (_emptyStateLabel != null)
-                _emptyStateLabel.gameObject.SetActive(true);
+            FinalizeTestInitialization();
         }
 
         internal void InitializeForTest(
@@ -423,7 +417,6 @@ namespace RogueliteAutoBattler.UI.Widgets
             Color tabInactiveColor,
             ScrollRect scrollRect = null)
         {
-            _initializedForTest = true;
             _selectionManager = selectionManager;
             _canvasGroup = canvasGroup;
             _cachedAllyLayer = allyLayer;
@@ -439,6 +432,13 @@ namespace RogueliteAutoBattler.UI.Widgets
             _tabActiveColor = tabActiveColor;
             _tabInactiveColor = tabInactiveColor;
             _scrollRect = scrollRect;
+
+            FinalizeTestInitialization();
+        }
+
+        private void FinalizeTestInitialization()
+        {
+            _initializedForTest = true;
 
             _selectionManager.OnUnitSelected += HandleUnitSelected;
             _selectionManager.OnUnitDeselected += HandleUnitDeselected;
