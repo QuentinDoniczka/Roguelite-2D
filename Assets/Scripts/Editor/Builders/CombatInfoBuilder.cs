@@ -35,6 +35,7 @@ namespace RogueliteAutoBattler.Editor
 
         private const float EquipGridSpacing = 8f;
         private const float SectionHeaderHeight = 24f;
+        private const int EquipGridColumns = 2;
         private const float VerticalSeparatorWidth = 1f;
         private const float EquipColumnPadding = 8f;
         private const float EquipColumnSpacing = 6f;
@@ -465,13 +466,6 @@ namespace RogueliteAutoBattler.Editor
             equipContentRT.offsetMin = Vector2.zero;
             equipContentRT.offsetMax = Vector2.zero;
 
-            VerticalLayoutGroup equipContentLayout = equipContentGo.AddComponent<VerticalLayoutGroup>();
-            equipContentLayout.spacing = EquipGridSpacing;
-            equipContentLayout.childControlWidth = true;
-            equipContentLayout.childControlHeight = true;
-            equipContentLayout.childForceExpandWidth = true;
-            equipContentLayout.childForceExpandHeight = false;
-
             ContentSizeFitter equipContentFitter = equipContentGo.AddComponent<ContentSizeFitter>();
             equipContentFitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
             equipContentFitter.horizontalFit = ContentSizeFitter.FitMode.Unconstrained;
@@ -479,44 +473,34 @@ namespace RogueliteAutoBattler.Editor
             equipScrollRect.content = equipContentRT;
             equipScrollRect.viewport = (RectTransform)equipScrollGo.transform;
 
-            int slotCount = EquipSlotDefinitions.Length;
-            for (int rowIndex = 0; rowIndex < slotCount; rowIndex += 2)
+            GridLayoutGroup equipGrid = equipContentGo.AddComponent<GridLayoutGroup>();
+            equipGrid.cellSize = new Vector2(50, 50);
+            equipGrid.spacing = new Vector2(EquipGridSpacing, EquipGridSpacing);
+            equipGrid.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
+            equipGrid.constraintCount = EquipGridColumns;
+            equipGrid.childAlignment = TextAnchor.UpperCenter;
+
+            var sizer = equipContentGo.AddComponent<SquareGridSizer>();
+            var sizerSO = new SerializedObject(sizer);
+            sizerSO.FindProperty("_columnCount").intValue = EquipGridColumns;
+            sizerSO.ApplyModifiedPropertiesWithoutUndo();
+
+            foreach ((string slotName, string slotLabel) in EquipSlotDefinitions)
             {
-                var rowGo = new GameObject("EquipRow_" + (rowIndex / 2));
-                GameObjectUtility.SetParentAndAlign(rowGo, equipContentGo);
-                rowGo.AddComponent<RectTransform>();
-                HorizontalLayoutGroup rowLayout = rowGo.AddComponent<HorizontalLayoutGroup>();
-                rowLayout.spacing = EquipGridSpacing;
-                rowLayout.childControlWidth = true;
-                rowLayout.childControlHeight = false;
-                rowLayout.childForceExpandWidth = true;
-                rowLayout.childForceExpandHeight = false;
+                var slotGo = new GameObject(slotName);
+                GameObjectUtility.SetParentAndAlign(slotGo, equipContentGo);
+                slotGo.AddComponent<RectTransform>();
+                slotGo.AddComponent<Image>().color = EquipSlotEmptyColor;
 
-                for (int colIndex = 0; colIndex < 2 && rowIndex + colIndex < slotCount; colIndex++)
-                {
-                    (string slotName, string slotLabel) = EquipSlotDefinitions[rowIndex + colIndex];
-
-                    var slotGo = new GameObject(slotName);
-                    GameObjectUtility.SetParentAndAlign(slotGo, rowGo);
-                    slotGo.AddComponent<RectTransform>();
-                    slotGo.AddComponent<Image>().color = EquipSlotEmptyColor;
-                    LayoutElement slotLE = slotGo.AddComponent<LayoutElement>();
-                    slotLE.flexibleWidth = 1;
-
-                    AspectRatioFitter slotAspect = slotGo.AddComponent<AspectRatioFitter>();
-                    slotAspect.aspectMode = AspectRatioFitter.AspectMode.WidthControlsHeight;
-                    slotAspect.aspectRatio = 1f;
-
-                    var slotLabelGo = new GameObject("Label");
-                    GameObjectUtility.SetParentAndAlign(slotLabelGo, slotGo);
-                    EditorUIFactory.Stretch(slotLabelGo.AddComponent<RectTransform>());
-                    TextMeshProUGUI slotLabelTmp = slotLabelGo.AddComponent<TextMeshProUGUI>();
-                    slotLabelTmp.text = slotLabel;
-                    slotLabelTmp.fontSize = MainFontSize;
-                    slotLabelTmp.color = LabelColor;
-                    slotLabelTmp.alignment = TextAlignmentOptions.Center;
-                    EditorUIFactory.ApplyFont(slotLabelTmp, font);
-                }
+                var slotLabelGo = new GameObject("Label");
+                GameObjectUtility.SetParentAndAlign(slotLabelGo, slotGo);
+                EditorUIFactory.Stretch(slotLabelGo.AddComponent<RectTransform>());
+                TextMeshProUGUI slotLabelTmp = slotLabelGo.AddComponent<TextMeshProUGUI>();
+                slotLabelTmp.text = slotLabel;
+                slotLabelTmp.fontSize = MainFontSize;
+                slotLabelTmp.color = LabelColor;
+                slotLabelTmp.alignment = TextAlignmentOptions.Center;
+                EditorUIFactory.ApplyFont(slotLabelTmp, font);
             }
 
             var bonusSummaryGo = new GameObject("BonusSummary");
