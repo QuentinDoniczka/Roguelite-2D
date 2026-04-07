@@ -14,12 +14,12 @@ namespace RogueliteAutoBattler.Editor
         private const float CharIconSize = 38f;
         private const float TabButtonSize = 26f;
         private const float StatRowHeight = 44f;
-        private const float MainFontSize = 18f;
-        private const float HeaderFontSize = 20f;
-        private const float BreakdownFontSize = 16f;
-        private const float EmptyStateFontSize = 24f;
-        private const float TabLabelFontSize = 14f;
-        private const float PlaceholderFontSize = 18f;
+        private const float MainFontSize = 20f;
+        private const float HeaderFontSize = 22f;
+        private const float BreakdownFontSize = 18f;
+        private const float EmptyStateFontSize = 26f;
+        private const float TabLabelFontSize = 16f;
+        private const float PlaceholderFontSize = 20f;
         private const float HeaderSpacing = 6f;
         private const float TabButtonSpacing = 4f;
         private const float RowMainSpacing = 6f;
@@ -34,9 +34,7 @@ namespace RogueliteAutoBattler.Editor
         private const int RowMainPaddingH = 6;
 
         private const float EquipGridSpacing = 8f;
-        private const float EquipSlotPreferredHeight = 72f;
         private const float SectionHeaderHeight = 24f;
-        private const float EquipSlotLabelHeight = 18f;
         private const float VerticalSeparatorWidth = 1f;
         private const float EquipColumnPadding = 8f;
         private const float EquipColumnSpacing = 6f;
@@ -221,8 +219,11 @@ namespace RogueliteAutoBattler.Editor
             charIconImage.color = CharIconPlaceholderColor;
             LayoutElement charIconLE = charIconGo.AddComponent<LayoutElement>();
             charIconLE.minWidth = CharIconSize;
+            charIconLE.minHeight = CharIconSize;
             charIconLE.preferredWidth = CharIconSize;
+            charIconLE.preferredHeight = CharIconSize;
             charIconLE.flexibleWidth = 0;
+            charIconLE.flexibleHeight = 0;
 
             var charInfoGo = new GameObject("CharacterInfo");
             GameObjectUtility.SetParentAndAlign(charInfoGo, headerGo);
@@ -444,23 +445,45 @@ namespace RogueliteAutoBattler.Editor
 
             CreateSectionHeader(equipColumnGo, "EquipHeader", "EQUIP", font);
 
-            var equipRowsGo = new GameObject("EquipRows");
-            GameObjectUtility.SetParentAndAlign(equipRowsGo, equipColumnGo);
-            equipRowsGo.AddComponent<RectTransform>();
-            VerticalLayoutGroup equipRowsLayout = equipRowsGo.AddComponent<VerticalLayoutGroup>();
-            equipRowsLayout.spacing = EquipGridSpacing;
-            equipRowsLayout.childControlWidth = true;
-            equipRowsLayout.childControlHeight = false;
-            equipRowsLayout.childForceExpandWidth = true;
-            equipRowsLayout.childForceExpandHeight = false;
-            LayoutElement equipRowsLE = equipRowsGo.AddComponent<LayoutElement>();
-            equipRowsLE.flexibleWidth = 1;
+            var equipScrollGo = new GameObject("EquipScrollView");
+            GameObjectUtility.SetParentAndAlign(equipScrollGo, equipColumnGo);
+            EditorUIFactory.Stretch(equipScrollGo.AddComponent<RectTransform>());
+            equipScrollGo.AddComponent<RectMask2D>();
+            ScrollRect equipScrollRect = equipScrollGo.AddComponent<ScrollRect>();
+            equipScrollRect.horizontal = false;
+            equipScrollRect.vertical = true;
+            equipScrollRect.movementType = ScrollRect.MovementType.Clamped;
+            LayoutElement equipScrollLE = equipScrollGo.AddComponent<LayoutElement>();
+            equipScrollLE.flexibleHeight = 1;
+
+            var equipContentGo = new GameObject("Content");
+            GameObjectUtility.SetParentAndAlign(equipContentGo, equipScrollGo);
+            RectTransform equipContentRT = equipContentGo.AddComponent<RectTransform>();
+            equipContentRT.anchorMin = new Vector2(0, 1);
+            equipContentRT.anchorMax = new Vector2(1, 1);
+            equipContentRT.pivot = new Vector2(0.5f, 1);
+            equipContentRT.offsetMin = Vector2.zero;
+            equipContentRT.offsetMax = Vector2.zero;
+
+            VerticalLayoutGroup equipContentLayout = equipContentGo.AddComponent<VerticalLayoutGroup>();
+            equipContentLayout.spacing = EquipGridSpacing;
+            equipContentLayout.childControlWidth = true;
+            equipContentLayout.childControlHeight = true;
+            equipContentLayout.childForceExpandWidth = true;
+            equipContentLayout.childForceExpandHeight = false;
+
+            ContentSizeFitter equipContentFitter = equipContentGo.AddComponent<ContentSizeFitter>();
+            equipContentFitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+            equipContentFitter.horizontalFit = ContentSizeFitter.FitMode.Unconstrained;
+
+            equipScrollRect.content = equipContentRT;
+            equipScrollRect.viewport = (RectTransform)equipScrollGo.transform;
 
             int slotCount = EquipSlotDefinitions.Length;
             for (int rowIndex = 0; rowIndex < slotCount; rowIndex += 2)
             {
                 var rowGo = new GameObject("EquipRow_" + (rowIndex / 2));
-                GameObjectUtility.SetParentAndAlign(rowGo, equipRowsGo);
+                GameObjectUtility.SetParentAndAlign(rowGo, equipContentGo);
                 rowGo.AddComponent<RectTransform>();
                 HorizontalLayoutGroup rowLayout = rowGo.AddComponent<HorizontalLayoutGroup>();
                 rowLayout.spacing = EquipGridSpacing;
@@ -468,8 +491,6 @@ namespace RogueliteAutoBattler.Editor
                 rowLayout.childControlHeight = false;
                 rowLayout.childForceExpandWidth = true;
                 rowLayout.childForceExpandHeight = false;
-                LayoutElement rowLE = rowGo.AddComponent<LayoutElement>();
-                rowLE.preferredHeight = EquipSlotPreferredHeight;
 
                 for (int colIndex = 0; colIndex < 2 && rowIndex + colIndex < slotCount; colIndex++)
                 {
@@ -481,7 +502,10 @@ namespace RogueliteAutoBattler.Editor
                     slotGo.AddComponent<Image>().color = EquipSlotEmptyColor;
                     LayoutElement slotLE = slotGo.AddComponent<LayoutElement>();
                     slotLE.flexibleWidth = 1;
-                    slotLE.preferredHeight = EquipSlotPreferredHeight;
+
+                    AspectRatioFitter slotAspect = slotGo.AddComponent<AspectRatioFitter>();
+                    slotAspect.aspectMode = AspectRatioFitter.AspectMode.WidthControlsHeight;
+                    slotAspect.aspectRatio = 1f;
 
                     var slotLabelGo = new GameObject("Label");
                     GameObjectUtility.SetParentAndAlign(slotLabelGo, slotGo);
