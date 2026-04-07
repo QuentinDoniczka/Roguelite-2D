@@ -32,7 +32,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
         private CombatStats _combatStats;
 
         private const int STAT_ROW_COUNT = 6;
-        private const int TAB_COUNT = 4;
+        private const int TAB_COUNT = 3;
 
         [SetUp]
         public void SetUp()
