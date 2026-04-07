@@ -36,6 +36,7 @@ namespace RogueliteAutoBattler.Editor
         private const int RowMainPaddingH = 6;
 
         private static readonly Color PanelBg = new Color32(0, 0, 0, 180);
+        private static readonly Color HeaderBg = new Color32(40, 40, 55, 220);
         private static readonly Color BreakdownBg = new Color32(40, 40, 50, 200);
         private static readonly Color TabActiveColor = new Color32(60, 60, 80, 255);
         private static readonly Color TabInactiveColor = new Color32(35, 35, 50, 220);
@@ -88,16 +89,18 @@ namespace RogueliteAutoBattler.Editor
             rootLayout.childControlWidth = true;
             rootLayout.childControlHeight = true;
             rootLayout.childForceExpandWidth = true;
-            rootLayout.childForceExpandHeight = true;
+            rootLayout.childForceExpandHeight = false;
 
             var allyStatsPanelGo = new GameObject("AllyStatsPanel");
             GameObjectUtility.SetParentAndAlign(allyStatsPanelGo, rootGo);
             EditorUIFactory.Stretch(allyStatsPanelGo.AddComponent<RectTransform>());
+            LayoutElement allyStatsPanelLE = allyStatsPanelGo.AddComponent<LayoutElement>();
+            allyStatsPanelLE.flexibleHeight = 1;
             CanvasGroup panelCanvasGroup = EditorUIFactory.SetupCanvasGroup(allyStatsPanelGo, false);
 
             VerticalLayoutGroup panelLayout = allyStatsPanelGo.AddComponent<VerticalLayoutGroup>();
             panelLayout.childControlWidth = true;
-            panelLayout.childControlHeight = false;
+            panelLayout.childControlHeight = true;
             panelLayout.childForceExpandWidth = true;
             panelLayout.childForceExpandHeight = false;
 
@@ -127,7 +130,13 @@ namespace RogueliteAutoBattler.Editor
 
             var emptyStateLabelGo = new GameObject("EmptyStateLabel");
             GameObjectUtility.SetParentAndAlign(emptyStateLabelGo, rootGo);
-            EditorUIFactory.Stretch(emptyStateLabelGo.AddComponent<RectTransform>());
+            RectTransform emptyStateLabelRT = emptyStateLabelGo.AddComponent<RectTransform>();
+            emptyStateLabelRT.anchorMin = Vector2.zero;
+            emptyStateLabelRT.anchorMax = Vector2.one;
+            emptyStateLabelRT.offsetMin = Vector2.zero;
+            emptyStateLabelRT.offsetMax = Vector2.zero;
+            LayoutElement emptyStateLabelLE = emptyStateLabelGo.AddComponent<LayoutElement>();
+            emptyStateLabelLE.ignoreLayout = true;
             TextMeshProUGUI emptyStateLabel = emptyStateLabelGo.AddComponent<TextMeshProUGUI>();
             emptyStateLabel.text = "Select an ally";
             emptyStateLabel.fontSize = EmptyStateFontSize;
@@ -184,6 +193,7 @@ namespace RogueliteAutoBattler.Editor
             var headerGo = new GameObject("Header");
             GameObjectUtility.SetParentAndAlign(headerGo, parent.gameObject);
             headerGo.AddComponent<RectTransform>();
+            headerGo.AddComponent<Image>().color = HeaderBg;
 
             HorizontalLayoutGroup headerLayout = headerGo.AddComponent<HorizontalLayoutGroup>();
             headerLayout.padding = new RectOffset((int)HeaderPaddingH, (int)HeaderPaddingH, HeaderPaddingV, HeaderPaddingV);
@@ -482,6 +492,8 @@ namespace RogueliteAutoBattler.Editor
             var go = new GameObject(name);
             GameObjectUtility.SetParentAndAlign(go, parent.gameObject);
             EditorUIFactory.Stretch(go.AddComponent<RectTransform>());
+            LayoutElement placeholderLE = go.AddComponent<LayoutElement>();
+            placeholderLE.flexibleHeight = 1;
             go.SetActive(activeByDefault);
 
             var labelGo = new GameObject("PlaceholderLabel");
