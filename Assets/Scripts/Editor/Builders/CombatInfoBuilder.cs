@@ -41,7 +41,12 @@ namespace RogueliteAutoBattler.Editor
         private const float EquipBonusFontSize = 9f;
         private const float SectionHeaderFontSize = 10f;
         private const float SectionHeaderHeight = 16f;
+        private const float EquipSlotLabelHeight = 12f;
         private const float VerticalSeparatorWidth = 1f;
+        private const float EquipColumnPadding = 4f;
+        private const float EquipColumnSpacing = 2f;
+        private const int EquipGridColumns = 2;
+        private const float HorizontalSeparatorHeight = 1f;
 
         private static readonly Color PanelBg = new Color32(0, 0, 0, 180);
         private static readonly Color HeaderBg = new Color32(40, 40, 55, 220);
@@ -84,6 +89,16 @@ namespace RogueliteAutoBattler.Editor
             new StatRowCfg("StatRow_SPD",   "\u26A1 SPD",      SpdAccent),
             new StatRowCfg("StatRow_REGEN", "\u2665 REGEN",    RegenAccent),
             new StatRowCfg("StatRow_CRIT",  "\u2605 CRIT",     CritAccent),
+        };
+
+        private static readonly (string SlotName, string SlotLabel)[] EquipSlotDefinitions = new[]
+        {
+            ("Slot_Weapon", "Wpn"),
+            ("Slot_Armor",  "Arm"),
+            ("Slot_Helm",   "Hlm"),
+            ("Slot_Boots",  "Bts"),
+            ("Slot_Ring",   "Rng"),
+            ("Slot_Amulet", "Amt"),
         };
 
         internal static UIScreen CreateCombatInfo(Transform infoAreaParent)
@@ -180,10 +195,9 @@ namespace RogueliteAutoBattler.Editor
             SerializedProperty statCardGroupsProp = EditorUIFactory.FindProp(so, "_statCardGroups");
             if (statCardGroupsProp != null)
             {
-                statCardGroupsProp.arraySize = 3;
-                statCardGroupsProp.GetArrayElementAtIndex(0).objectReferenceValue = statRowGroups[0];
-                statCardGroupsProp.GetArrayElementAtIndex(1).objectReferenceValue = statRowGroups[1];
-                statCardGroupsProp.GetArrayElementAtIndex(2).objectReferenceValue = statRowGroups[2];
+                statCardGroupsProp.arraySize = statRowGroups.Length;
+                for (int i = 0; i < statRowGroups.Length; i++)
+                    statCardGroupsProp.GetArrayElementAtIndex(i).objectReferenceValue = statRowGroups[i];
             }
 
             so.ApplyModifiedProperties();
@@ -344,18 +358,7 @@ namespace RogueliteAutoBattler.Editor
             statsColumnLE.flexibleWidth = 1;
             statsColumnLE.flexibleHeight = 1;
 
-            var statsHeaderGo = new GameObject("StatsHeader");
-            GameObjectUtility.SetParentAndAlign(statsHeaderGo, statsColumnGo);
-            statsHeaderGo.AddComponent<RectTransform>();
-            LayoutElement statsHeaderLE = statsHeaderGo.AddComponent<LayoutElement>();
-            statsHeaderLE.preferredHeight = SectionHeaderHeight;
-            statsHeaderLE.flexibleHeight = 0;
-            TextMeshProUGUI statsHeaderLabel = statsHeaderGo.AddComponent<TextMeshProUGUI>();
-            statsHeaderLabel.text = "STATS";
-            statsHeaderLabel.fontSize = SectionHeaderFontSize;
-            statsHeaderLabel.color = SectionHeaderColor;
-            statsHeaderLabel.alignment = TextAlignmentOptions.Center;
-            statsHeaderLabel.fontStyle = FontStyles.Bold;
+            CreateSectionHeader(statsColumnGo, "StatsHeader", "STATS");
 
             var scrollViewGo = new GameObject("StatsScrollView");
             GameObjectUtility.SetParentAndAlign(scrollViewGo, statsColumnGo);
@@ -399,8 +402,6 @@ namespace RogueliteAutoBattler.Editor
             breakdownTexts = new TextMeshProUGUI[rowCount];
             statRowGroups = new CanvasGroup[rowCount];
 
-            panelComponent = null;
-
             for (int i = 0; i < rowCount; i++)
             {
                 StatRowCfg cfg = StatRowConfigs[i];
@@ -414,8 +415,15 @@ namespace RogueliteAutoBattler.Editor
             if (panelComponent == null)
                 panelComponent = parent.gameObject.AddComponent<AllyStatsPanel>();
 
+            CreateEquipColumn(tabContentGo.transform);
+
+            return tabContentGo;
+        }
+
+        private static void CreateEquipColumn(Transform tabContentParent)
+        {
             var columnSeparatorGo = new GameObject("ColumnSeparator");
-            GameObjectUtility.SetParentAndAlign(columnSeparatorGo, tabContentGo);
+            GameObjectUtility.SetParentAndAlign(columnSeparatorGo, tabContentParent.gameObject);
             columnSeparatorGo.AddComponent<RectTransform>();
             columnSeparatorGo.AddComponent<Image>().color = SeparatorColor;
             LayoutElement columnSeparatorLE = columnSeparatorGo.AddComponent<LayoutElement>();
@@ -423,11 +431,13 @@ namespace RogueliteAutoBattler.Editor
             columnSeparatorLE.flexibleWidth = 0;
 
             var equipColumnGo = new GameObject("EquipColumn");
-            GameObjectUtility.SetParentAndAlign(equipColumnGo, tabContentGo);
+            GameObjectUtility.SetParentAndAlign(equipColumnGo, tabContentParent.gameObject);
             equipColumnGo.AddComponent<RectTransform>();
             VerticalLayoutGroup equipColumnLayout = equipColumnGo.AddComponent<VerticalLayoutGroup>();
-            equipColumnLayout.padding = new RectOffset(4, 4, 4, 4);
-            equipColumnLayout.spacing = 2;
+            equipColumnLayout.padding = new RectOffset(
+                (int)EquipColumnPadding, (int)EquipColumnPadding,
+                (int)EquipColumnPadding, (int)EquipColumnPadding);
+            equipColumnLayout.spacing = EquipColumnSpacing;
             equipColumnLayout.childControlWidth = true;
             equipColumnLayout.childControlHeight = false;
             equipColumnLayout.childForceExpandWidth = true;
@@ -437,31 +447,19 @@ namespace RogueliteAutoBattler.Editor
             equipColumnLE.flexibleWidth = 0;
             equipColumnLE.flexibleHeight = 1;
 
-            var equipHeaderGo = new GameObject("EquipHeader");
-            GameObjectUtility.SetParentAndAlign(equipHeaderGo, equipColumnGo);
-            equipHeaderGo.AddComponent<RectTransform>();
-            LayoutElement equipHeaderLE = equipHeaderGo.AddComponent<LayoutElement>();
-            equipHeaderLE.preferredHeight = SectionHeaderHeight;
-            equipHeaderLE.flexibleHeight = 0;
-            TextMeshProUGUI equipHeaderLabel = equipHeaderGo.AddComponent<TextMeshProUGUI>();
-            equipHeaderLabel.text = "EQUIP";
-            equipHeaderLabel.fontSize = SectionHeaderFontSize;
-            equipHeaderLabel.color = SectionHeaderColor;
-            equipHeaderLabel.alignment = TextAlignmentOptions.Center;
-            equipHeaderLabel.fontStyle = FontStyles.Bold;
+            CreateSectionHeader(equipColumnGo, "EquipHeader", "EQUIP");
 
             var equipGridGo = new GameObject("EquipGrid");
             GameObjectUtility.SetParentAndAlign(equipGridGo, equipColumnGo);
             equipGridGo.AddComponent<RectTransform>();
             GridLayoutGroup equipGrid = equipGridGo.AddComponent<GridLayoutGroup>();
-            equipGrid.cellSize = new Vector2(EquipSlotSize, EquipSlotSize + 12f);
+            equipGrid.cellSize = new Vector2(EquipSlotSize, EquipSlotSize + EquipSlotLabelHeight);
             equipGrid.spacing = new Vector2(EquipGridSpacing, EquipGridSpacing);
             equipGrid.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
-            equipGrid.constraintCount = 2;
+            equipGrid.constraintCount = EquipGridColumns;
             equipGrid.childAlignment = TextAnchor.UpperCenter;
 
-            var equipSlotDefs = new[] { ("Slot_Weapon", "Wpn"), ("Slot_Armor", "Arm"), ("Slot_Helm", "Hlm"), ("Slot_Boots", "Bts"), ("Slot_Ring", "Rng"), ("Slot_Amulet", "Amt") };
-            foreach ((string slotName, string slotLabel) in equipSlotDefs)
+            foreach ((string slotName, string slotLabel) in EquipSlotDefinitions)
             {
                 var slotGo = new GameObject(slotName);
                 GameObjectUtility.SetParentAndAlign(slotGo, equipGridGo);
@@ -486,8 +484,6 @@ namespace RogueliteAutoBattler.Editor
             bonusSummaryLabel.fontSize = EquipBonusFontSize;
             bonusSummaryLabel.color = SectionHeaderColor;
             bonusSummaryLabel.alignment = TextAlignmentOptions.Left;
-
-            return tabContentGo;
         }
 
         private static void CreateStatRow(Transform parent, StatRowCfg cfg, int rowIndex,
@@ -564,7 +560,7 @@ namespace RogueliteAutoBattler.Editor
             separatorGo.AddComponent<RectTransform>();
             separatorGo.AddComponent<Image>().color = SeparatorColor;
             LayoutElement separatorLE = separatorGo.AddComponent<LayoutElement>();
-            separatorLE.preferredHeight = 1f;
+            separatorLE.preferredHeight = HorizontalSeparatorHeight;
             separatorLE.flexibleWidth = 1;
 
             var breakdownGo = new GameObject("Breakdown");
@@ -615,6 +611,22 @@ namespace RogueliteAutoBattler.Editor
             label.alignment = TextAlignmentOptions.Center;
 
             return go;
+        }
+
+        private static void CreateSectionHeader(GameObject parent, string gameObjectName, string labelText)
+        {
+            var headerGo = new GameObject(gameObjectName);
+            GameObjectUtility.SetParentAndAlign(headerGo, parent);
+            headerGo.AddComponent<RectTransform>();
+            LayoutElement headerLE = headerGo.AddComponent<LayoutElement>();
+            headerLE.preferredHeight = SectionHeaderHeight;
+            headerLE.flexibleHeight = 0;
+            TextMeshProUGUI headerLabel = headerGo.AddComponent<TextMeshProUGUI>();
+            headerLabel.text = labelText;
+            headerLabel.fontSize = SectionHeaderFontSize;
+            headerLabel.color = SectionHeaderColor;
+            headerLabel.alignment = TextAlignmentOptions.Center;
+            headerLabel.fontStyle = FontStyles.Bold;
         }
 
         private static void WireTabButtonListeners(Image[] tabButtonImages, AllyStatsPanel panel)

@@ -186,7 +186,7 @@ Assets/
     SpriteOutline2D.shader
     SpriteSilhouette2D.shader
   Sprites/
-    Characters/  (155 files)
+    Characters/  (156 files)
     Effects/  (25 files)
     Environment/
       backgroundtest.png
@@ -194,7 +194,7 @@ Assets/
       grid_ground_blue.png
       map.png
       placeholder_white.png
-    Items/  (53 files)
+    Items/  (54 files)
     UI/  (1 file)
   Tests/
     EditMode/

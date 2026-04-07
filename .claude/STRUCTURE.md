@@ -1,5 +1,5 @@
 # Project Structure
-Generated: 2026-04-06 (updated feature/9-hud-stats-aventurier)
+Generated: 2026-04-07 (updated feature/9-hud-stats-aventurier)
 
 .github/
   workflows/
@@ -30,6 +30,7 @@ Assets/
     plan-issue-80.md
     plan-level-scroll-transition.md
     premier-jet-roguelite.html
+    propositions-stats-inventaire.html
     techtreeidea.png
   Fonts/  (empty)
   Materials/  (1 file)
@@ -55,6 +56,9 @@ Assets/
         CombatSpawnManager.cs
         CombatStats.cs
         FormationLayout.cs
+        StatBreakdownData.cs
+        StatModifierEntry.cs
+        StatType.cs
         TargetFinder.cs
         UnitSelectionManager.cs
       Environment/
@@ -96,7 +100,9 @@ Assets/
       Builders/
         BootstrapSceneBuilder.cs
         CombatHudBuilder.cs
+        CombatInfoBuilder.cs
         CombatWorldBuilder.cs
+        RoundedRectSpriteGenerator.cs
         SetupNavigationSceneEditor.cs
         SkillTreeBuilder.cs
       Windows/
@@ -154,7 +160,7 @@ Assets/
     SpriteOutline2D.shader
     SpriteSilhouette2D.shader
   Sprites/
-    Characters/  (155 files)
+    Characters/  (156 files)
     Effects/  (25 files)
     Environment/
       backgroundtest.png
@@ -162,25 +168,27 @@ Assets/
       grid_ground_blue.png
       map.png
       placeholder_white.png
-    Items/  (53 files)
-    UI/
-      circle_white.png
+    Items/  (54 files)
+    UI/  (1 file)
   Tests/
     EditMode/
       Tests.EditMode.asmdef
       AttackSlotRegistryTests.cs
+      CombatStatsBreakdownTests.cs
       CombatStatsDamageEventTests.cs
       CombatStatsTests.cs
       FormationLayoutTests.cs
       GoldFormatterTests.cs
       RecalculateFormationTests.cs
       SkillTreeDataTests.cs
+      StatBreakdownDataTests.cs
       TargetFinderTests.cs
     PlayMode/
       Tests.PlayMode.asmdef
       TestUtils/
         PlayModeTestBase.cs
         TestCharacterFactory.cs
+      AllyStatsPanelTabTests.cs
       AllyStatsPanelTests.cs
       AnimationEventRelayTests.cs
       BattleIndicatorBadgeTests.cs
