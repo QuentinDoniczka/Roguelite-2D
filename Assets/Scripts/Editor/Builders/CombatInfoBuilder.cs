@@ -33,14 +33,13 @@ namespace RogueliteAutoBattler.Editor
         private const int HeaderPaddingV = 4;
         private const int RowMainPaddingH = 6;
 
-        private const float EquipSlotSize = 52f;
-        private const float EquipGridSpacing = 6f;
+        private const float EquipGridSpacing = 8f;
+        private const float EquipSlotPreferredHeight = 72f;
         private const float SectionHeaderHeight = 24f;
         private const float EquipSlotLabelHeight = 18f;
         private const float VerticalSeparatorWidth = 1f;
         private const float EquipColumnPadding = 8f;
-        private const float EquipColumnSpacing = 4f;
-        private const int EquipGridColumns = 2;
+        private const float EquipColumnSpacing = 6f;
         private const float HorizontalSeparatorHeight = 1f;
 
         private static readonly Color PanelBg = new Color32(0, 0, 0, 180);
@@ -445,32 +444,55 @@ namespace RogueliteAutoBattler.Editor
 
             CreateSectionHeader(equipColumnGo, "EquipHeader", "EQUIP", font);
 
-            var equipGridGo = new GameObject("EquipGrid");
-            GameObjectUtility.SetParentAndAlign(equipGridGo, equipColumnGo);
-            equipGridGo.AddComponent<RectTransform>();
-            GridLayoutGroup equipGrid = equipGridGo.AddComponent<GridLayoutGroup>();
-            equipGrid.cellSize = new Vector2(EquipSlotSize, EquipSlotSize + EquipSlotLabelHeight);
-            equipGrid.spacing = new Vector2(EquipGridSpacing, EquipGridSpacing);
-            equipGrid.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
-            equipGrid.constraintCount = EquipGridColumns;
-            equipGrid.childAlignment = TextAnchor.UpperCenter;
+            var equipRowsGo = new GameObject("EquipRows");
+            GameObjectUtility.SetParentAndAlign(equipRowsGo, equipColumnGo);
+            equipRowsGo.AddComponent<RectTransform>();
+            VerticalLayoutGroup equipRowsLayout = equipRowsGo.AddComponent<VerticalLayoutGroup>();
+            equipRowsLayout.spacing = EquipGridSpacing;
+            equipRowsLayout.childControlWidth = true;
+            equipRowsLayout.childControlHeight = false;
+            equipRowsLayout.childForceExpandWidth = true;
+            equipRowsLayout.childForceExpandHeight = false;
+            LayoutElement equipRowsLE = equipRowsGo.AddComponent<LayoutElement>();
+            equipRowsLE.flexibleWidth = 1;
 
-            foreach ((string slotName, string slotLabel) in EquipSlotDefinitions)
+            int slotCount = EquipSlotDefinitions.Length;
+            for (int rowIndex = 0; rowIndex < slotCount; rowIndex += 2)
             {
-                var slotGo = new GameObject(slotName);
-                GameObjectUtility.SetParentAndAlign(slotGo, equipGridGo);
-                slotGo.AddComponent<RectTransform>();
-                slotGo.AddComponent<Image>().color = EquipSlotEmptyColor;
+                var rowGo = new GameObject("EquipRow_" + (rowIndex / 2));
+                GameObjectUtility.SetParentAndAlign(rowGo, equipRowsGo);
+                rowGo.AddComponent<RectTransform>();
+                HorizontalLayoutGroup rowLayout = rowGo.AddComponent<HorizontalLayoutGroup>();
+                rowLayout.spacing = EquipGridSpacing;
+                rowLayout.childControlWidth = true;
+                rowLayout.childControlHeight = false;
+                rowLayout.childForceExpandWidth = true;
+                rowLayout.childForceExpandHeight = false;
+                LayoutElement rowLE = rowGo.AddComponent<LayoutElement>();
+                rowLE.preferredHeight = EquipSlotPreferredHeight;
 
-                var slotLabelGo = new GameObject("Label");
-                GameObjectUtility.SetParentAndAlign(slotLabelGo, slotGo);
-                EditorUIFactory.Stretch(slotLabelGo.AddComponent<RectTransform>());
-                TextMeshProUGUI slotLabelTmp = slotLabelGo.AddComponent<TextMeshProUGUI>();
-                slotLabelTmp.text = slotLabel;
-                slotLabelTmp.fontSize = MainFontSize;
-                slotLabelTmp.color = LabelColor;
-                slotLabelTmp.alignment = TextAlignmentOptions.Center;
-                EditorUIFactory.ApplyFont(slotLabelTmp, font);
+                for (int colIndex = 0; colIndex < 2 && rowIndex + colIndex < slotCount; colIndex++)
+                {
+                    (string slotName, string slotLabel) = EquipSlotDefinitions[rowIndex + colIndex];
+
+                    var slotGo = new GameObject(slotName);
+                    GameObjectUtility.SetParentAndAlign(slotGo, rowGo);
+                    slotGo.AddComponent<RectTransform>();
+                    slotGo.AddComponent<Image>().color = EquipSlotEmptyColor;
+                    LayoutElement slotLE = slotGo.AddComponent<LayoutElement>();
+                    slotLE.flexibleWidth = 1;
+                    slotLE.preferredHeight = EquipSlotPreferredHeight;
+
+                    var slotLabelGo = new GameObject("Label");
+                    GameObjectUtility.SetParentAndAlign(slotLabelGo, slotGo);
+                    EditorUIFactory.Stretch(slotLabelGo.AddComponent<RectTransform>());
+                    TextMeshProUGUI slotLabelTmp = slotLabelGo.AddComponent<TextMeshProUGUI>();
+                    slotLabelTmp.text = slotLabel;
+                    slotLabelTmp.fontSize = MainFontSize;
+                    slotLabelTmp.color = LabelColor;
+                    slotLabelTmp.alignment = TextAlignmentOptions.Center;
+                    EditorUIFactory.ApplyFont(slotLabelTmp, font);
+                }
             }
 
             var bonusSummaryGo = new GameObject("BonusSummary");
