@@ -1,3 +1,4 @@
+using System.Globalization;
 using UnityEngine;
 
 namespace RogueliteAutoBattler.Combat.Core
@@ -16,6 +17,70 @@ namespace RogueliteAutoBattler.Combat.Core
         public int Atk => _atk;
         public float AttackSpeed => _attackSpeed;
         public bool IsDead => _currentHp <= 0;
+
+        public static StatType[] DisplayOrder => new[]
+        {
+            StatType.Hp, StatType.Atk, StatType.Def,
+            StatType.AttackSpeed, StatType.RegenHp, StatType.CritRate
+        };
+
+        public StatBreakdownData GetBreakdown(StatType statType)
+        {
+            switch (statType)
+            {
+                case StatType.Hp:
+                {
+                    string finalValue = $"{_currentHp} / {_maxHp}";
+                    string baseValue = $"{_maxHp}";
+                    return new StatBreakdownData("HP", finalValue, new[]
+                    {
+                        new StatModifierEntry("Base", baseValue, true)
+                    });
+                }
+                case StatType.Atk:
+                {
+                    string value = $"{_atk}";
+                    return new StatBreakdownData("ATK", value, new[]
+                    {
+                        new StatModifierEntry("Base", value, true)
+                    });
+                }
+                case StatType.Def:
+                {
+                    return new StatBreakdownData("DEF", "0", new[]
+                    {
+                        new StatModifierEntry("Base", "0", true)
+                    });
+                }
+                case StatType.AttackSpeed:
+                {
+                    string value = _attackSpeed.ToString("F1", CultureInfo.InvariantCulture);
+                    return new StatBreakdownData("SPD", value, new[]
+                    {
+                        new StatModifierEntry("Base", value, true)
+                    });
+                }
+                case StatType.RegenHp:
+                {
+                    string value = _regenHpPerSecond.ToString("F1", CultureInfo.InvariantCulture) + "/s";
+                    return new StatBreakdownData("REGEN", value, new[]
+                    {
+                        new StatModifierEntry("Base", value, true)
+                    });
+                }
+                case StatType.CritRate:
+                {
+                    return new StatBreakdownData("CRIT", "0%", new[]
+                    {
+                        new StatModifierEntry("Base", "0%", true)
+                    });
+                }
+                default:
+                {
+                    return new StatBreakdownData("", "", new StatModifierEntry[0]);
+                }
+            }
+        }
 
         public void InitializeDirect(int maxHp, int atk, float attackSpeed, float regenHpPerSecond = 0f)
         {
