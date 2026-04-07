@@ -34,7 +34,7 @@ namespace RogueliteAutoBattler.Editor
         private const float PlaceholderFontSize = 16f;
         private const int HeaderPaddingV = 4;
         private const int RowMainPaddingH = 6;
-        private const float EquipColumnPreferredWidth = 125f;
+
         private const float EquipSlotSize = 36f;
         private const float EquipGridSpacing = 3f;
         private const float EquipSlotLabelFontSize = 8f;
@@ -218,7 +218,7 @@ namespace RogueliteAutoBattler.Editor
             headerLayout.padding = new RectOffset((int)HeaderPaddingH, (int)HeaderPaddingH, HeaderPaddingV, HeaderPaddingV);
             headerLayout.spacing = HeaderSpacing;
             headerLayout.childAlignment = TextAnchor.MiddleLeft;
-            headerLayout.childControlWidth = false;
+            headerLayout.childControlWidth = true;
             headerLayout.childControlHeight = true;
             headerLayout.childForceExpandWidth = false;
             headerLayout.childForceExpandHeight = true;
@@ -368,6 +368,8 @@ namespace RogueliteAutoBattler.Editor
             scrollRect.horizontal = false;
             scrollRect.vertical = true;
             scrollRect.movementType = ScrollRect.MovementType.Clamped;
+            LayoutElement scrollViewLE = scrollViewGo.AddComponent<LayoutElement>();
+            scrollViewLE.flexibleHeight = 1;
 
             var contentGo = new GameObject("Content");
             GameObjectUtility.SetParentAndAlign(contentGo, scrollViewGo);
@@ -443,8 +445,7 @@ namespace RogueliteAutoBattler.Editor
             equipColumnLayout.childForceExpandWidth = true;
             equipColumnLayout.childForceExpandHeight = false;
             LayoutElement equipColumnLE = equipColumnGo.AddComponent<LayoutElement>();
-            equipColumnLE.preferredWidth = EquipColumnPreferredWidth;
-            equipColumnLE.flexibleWidth = 0;
+            equipColumnLE.flexibleWidth = 1;
             equipColumnLE.flexibleHeight = 1;
 
             CreateSectionHeader(equipColumnGo, "EquipHeader", "EQUIP");
