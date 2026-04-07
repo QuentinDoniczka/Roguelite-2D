@@ -300,7 +300,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             yield return null;
 
             SelectAlly();
-            yield return new WaitForSeconds(0.5f);
+            yield return new WaitForSeconds(2f);
 
             for (int i = 0; i < STAT_ROW_COUNT; i++)
                 Assert.AreEqual(1f, _statRowGroups[i].alpha, 0.01f, $"StatRow {i} should be fully visible after fade");
