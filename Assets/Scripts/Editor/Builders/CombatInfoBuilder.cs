@@ -34,6 +34,8 @@ namespace RogueliteAutoBattler.Editor
         private const int HeaderPaddingV = 4;
         private const int RowMainPaddingH = 12;
 
+        private const float StatsColumnMinWidth = 200f;
+        private const float EquipColumnMinWidth = 140f;
         private const float EquipGridSpacing = 8f;
         private const float SectionHeaderHeight = 24f;
         private const int EquipGridColumns = 2;
@@ -353,6 +355,7 @@ namespace RogueliteAutoBattler.Editor
             statsColumnLayout.childForceExpandWidth = true;
             statsColumnLayout.childForceExpandHeight = false;
             LayoutElement statsColumnLE = statsColumnGo.AddComponent<LayoutElement>();
+            statsColumnLE.minWidth = StatsColumnMinWidth;
             statsColumnLE.flexibleWidth = 1;
             statsColumnLE.flexibleHeight = 1;
 
@@ -443,6 +446,7 @@ namespace RogueliteAutoBattler.Editor
             equipColumnLayout.childForceExpandWidth = true;
             equipColumnLayout.childForceExpandHeight = false;
             LayoutElement equipColumnLE = equipColumnGo.AddComponent<LayoutElement>();
+            equipColumnLE.minWidth = EquipColumnMinWidth;
             equipColumnLE.flexibleWidth = 1;
             equipColumnLE.flexibleHeight = 1;
 
