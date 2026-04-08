@@ -1,5 +1,5 @@
 # Project Structure
-Generated: 2026-04-07 (updated feature/9-hud-stats-aventurier)
+Generated: 2026-04-08
 
 .github/
   workflows/
@@ -32,7 +32,8 @@ Assets/
     premier-jet-roguelite.html
     propositions-stats-inventaire.html
     techtreeidea.png
-  Fonts/  (empty)
+  Fonts/
+    Bangers SDF.asset
   Materials/  (1 file)
   MedievalFantasyCharacters/  (asset store package)
   Prefabs/
@@ -90,6 +91,12 @@ Assets/
     Core/
       CanvasFactory.cs
       GameBootstrap.cs
+    Data/
+      DamageNumberConfig.cs
+      LevelDataTypes.cs
+      LevelDatabase.cs
+      SkillTreeData.cs
+      TeamDatabase.cs
     Economy/
       GoldFormatter.cs
       GoldWallet.cs
@@ -112,12 +119,6 @@ Assets/
         SkillTreeDesignerWindow.cs
         TeamBuilderTab.cs
     Items/  (empty)
-    Data/
-      DamageNumberConfig.cs
-      LevelDataTypes.cs
-      LevelDatabase.cs
-      SkillTreeData.cs
-      TeamDatabase.cs
     Services/
       Local/  (empty)
     UI/
@@ -145,6 +146,7 @@ Assets/
         AllyStatsPanel.cs
         BattleIndicatorBadge.cs
         GoldHudBadge.cs
+        SquareGridSizer.cs
         StepProgressBar.cs
     Village/  (empty)
   Settings/
@@ -226,5 +228,6 @@ Assets/
       VisualEquipmentTestLoopTests.cs
       WorldConveyorTests.cs
   TextMesh Pro/  (173 files -- TMP package: fonts, shaders, examples)
+  _Recovery/  (2 files)
 
 ProjectSettings/  (Unity defaults)

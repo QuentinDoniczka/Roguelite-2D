@@ -25,7 +25,7 @@
 Doc detaille : `Assets/doc/premier-jet-roguelite.html`
 
 # Project Structure
-Generated: 2026-04-07
+Generated: 2026-04-08
 
 .github/
   workflows/
@@ -172,6 +172,7 @@ Assets/
         AllyStatsPanel.cs
         BattleIndicatorBadge.cs
         GoldHudBadge.cs
+        SquareGridSizer.cs
         StepProgressBar.cs
     Village/  (empty)
   Settings/
