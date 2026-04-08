@@ -11,7 +11,7 @@ namespace RogueliteAutoBattler.Editor
     internal static class CombatInfoBuilder
     {
         private const float HeaderHeight = 54f;
-        private const float CharIconSize = 38f;
+        private const float CharIconSize = 46f;
         private const float TabButtonSize = 26f;
         private const float StatRowHeight = 52f;
         private const float MainFontSize = 26f;
@@ -25,7 +25,8 @@ namespace RogueliteAutoBattler.Editor
         private const float RowMainSpacing = 6f;
         private const float ContentSpacing = 2f;
         private const float ContentPaddingH = 20f;
-        private const float ContentPaddingV = 12f;
+        private const float ContentPaddingTop = 12f;
+        private const float ContentPaddingBottom = 24f;
         private const float HeaderPaddingH = 8f;
         private const float BreakdownPaddingH = 16f;
         private const float BreakdownPaddingV = 6f;
@@ -57,7 +58,8 @@ namespace RogueliteAutoBattler.Editor
         private static readonly Color RegenAccent = new Color32(50, 200, 100, 255);
         private static readonly Color CritAccent = new Color32(255, 220, 0, 255);
         private static readonly Color CharIconPlaceholderColor = new Color32(80, 80, 100, 200);
-        private static readonly Color EquipSlotEmptyColor = new Color32(60, 60, 70, 180);
+        private static readonly Color EquipSlotEmptyColor = new Color32(90, 90, 110, 220);
+        private static readonly Color EquipSlotBorderColor = new Color32(140, 140, 160, 255);
         private static readonly Color SectionHeaderColor = new Color32(140, 140, 160, 255);
 
         private readonly struct StatRowCfg
@@ -211,7 +213,7 @@ namespace RogueliteAutoBattler.Editor
             headerLayout.childControlWidth = true;
             headerLayout.childControlHeight = true;
             headerLayout.childForceExpandWidth = false;
-            headerLayout.childForceExpandHeight = true;
+            headerLayout.childForceExpandHeight = false;
 
             var charIconGo = new GameObject("CharacterIcon");
             GameObjectUtility.SetParentAndAlign(charIconGo, headerGo);
@@ -379,7 +381,7 @@ namespace RogueliteAutoBattler.Editor
             VerticalLayoutGroup contentLayout = contentGo.AddComponent<VerticalLayoutGroup>();
             contentLayout.padding = new RectOffset(
                 (int)ContentPaddingH, (int)ContentPaddingH,
-                (int)ContentPaddingV, (int)ContentPaddingV);
+                (int)ContentPaddingTop, (int)ContentPaddingBottom);
             contentLayout.spacing = ContentSpacing;
             contentLayout.childControlWidth = true;
             contentLayout.childControlHeight = false;
@@ -491,6 +493,9 @@ namespace RogueliteAutoBattler.Editor
                 GameObjectUtility.SetParentAndAlign(slotGo, equipContentGo);
                 slotGo.AddComponent<RectTransform>();
                 slotGo.AddComponent<Image>().color = EquipSlotEmptyColor;
+                Outline slotOutline = slotGo.AddComponent<Outline>();
+                slotOutline.effectColor = EquipSlotBorderColor;
+                slotOutline.effectDistance = new Vector2(2, 2);
 
                 var slotLabelGo = new GameObject("Label");
                 GameObjectUtility.SetParentAndAlign(slotLabelGo, slotGo);
