@@ -10,19 +10,11 @@ namespace RogueliteAutoBattler.UI.Widgets
 {
     public class AllyStatsPanel : MonoBehaviour
     {
-        [Header("Labels")]
-        [SerializeField] private TMP_Text _hpLabel;
-        [SerializeField] private TMP_Text _atkLabel;
-        [SerializeField] private TMP_Text _attackSpeedLabel;
-
         [Header("Visibility")]
         [SerializeField] private CanvasGroup _canvasGroup;
 
         [Header("Empty State")]
         [SerializeField] private TMP_Text _emptyStateLabel;
-
-        [Header("Stat Cards")]
-        [SerializeField] private CanvasGroup[] _statCardGroups;
 
         [Header("Tabs")]
         [SerializeField] private GameObject _tabHeaderContainer;
@@ -40,6 +32,10 @@ namespace RogueliteAutoBattler.UI.Widgets
 
         [Header("Scroll")]
         [SerializeField] private ScrollRect _scrollRect;
+
+        [Header("Animation")]
+        [SerializeField] private float _staggerDelay = 0.05f;
+        [SerializeField] private float _fadeDuration = 0.15f;
 
         private UnitSelectionManager _selectionManager;
         private CombatStats _trackedStats;
@@ -141,30 +137,18 @@ namespace RogueliteAutoBattler.UI.Widgets
         {
             if (_trackedStats == null) return;
 
-            if (_hpLabel != null)
-                _hpLabel.SetText("{0} / {1}", _trackedStats.CurrentHp, _trackedStats.MaxHp);
-
-            if (_atkLabel != null)
-                _atkLabel.SetText("{0}", _trackedStats.Atk);
-
-            if (_attackSpeedLabel != null)
-                _attackSpeedLabel.SetText("{0:1}", _trackedStats.AttackSpeed);
-
-            if (_statValueLabels != null)
+            var displayOrder = CombatStats.DisplayOrder;
+            for (int i = 0; i < _statValueLabels.Length && i < displayOrder.Count; i++)
             {
-                var displayOrder = CombatStats.DisplayOrder;
-                for (int i = 0; i < _statValueLabels.Length && i < displayOrder.Count; i++)
+                if (_statValueLabels[i] != null)
                 {
-                    if (_statValueLabels[i] != null)
-                    {
-                        var breakdown = _trackedStats.GetBreakdown(displayOrder[i]);
-                        _statValueLabels[i].SetText(breakdown.FinalValue);
-                    }
+                    var breakdown = _trackedStats.GetBreakdown(displayOrder[i]);
+                    _statValueLabels[i].SetText(breakdown.FinalValue);
                 }
-
-                if (_expandedRowIndex >= 0)
-                    PopulateBreakdownText(_expandedRowIndex);
             }
+
+            if (_expandedRowIndex >= 0)
+                PopulateBreakdownText(_expandedRowIndex);
         }
 
         private void Show()
@@ -191,39 +175,37 @@ namespace RogueliteAutoBattler.UI.Widgets
 
         private IEnumerator StaggeredFadeInCoroutine()
         {
-            var groups = (_statRowGroups != null && _statRowGroups.Length > 0) ? _statRowGroups : _statCardGroups;
-
-            if (groups == null || groups.Length == 0)
+            if (_statRowGroups == null || _statRowGroups.Length == 0)
                 yield break;
 
-            for (int i = 0; i < groups.Length; i++)
-                if (groups[i] != null)
-                    groups[i].alpha = 0f;
+            for (int i = 0; i < _statRowGroups.Length; i++)
+                if (_statRowGroups[i] != null)
+                    _statRowGroups[i].alpha = 0f;
 
-            const float staggerDelay = 0.05f;
-            const float fadeDuration = 0.15f;
-
-            for (int i = 0; i < groups.Length; i++)
+            for (int i = 0; i < _statRowGroups.Length; i++)
             {
-                if (groups[i] == null) continue;
+                if (_statRowGroups[i] == null) continue;
 
                 float staggerElapsed = 0f;
-                while (staggerElapsed < staggerDelay)
+                while (staggerElapsed < _staggerDelay)
                 {
                     staggerElapsed += Time.deltaTime;
                     yield return null;
                 }
 
-                float elapsed = 0f;
-                while (elapsed < fadeDuration)
+                if (_fadeDuration > 0f)
                 {
-                    elapsed += Time.deltaTime;
-                    float t = Mathf.Clamp01(elapsed / fadeDuration);
-                    float easeOut = 1f - (1f - t) * (1f - t);
-                    groups[i].alpha = easeOut;
-                    yield return null;
+                    float elapsed = 0f;
+                    while (elapsed < _fadeDuration)
+                    {
+                        elapsed += Time.deltaTime;
+                        float t = Mathf.Clamp01(elapsed / _fadeDuration);
+                        float easeOut = 1f - (1f - t) * (1f - t);
+                        _statRowGroups[i].alpha = easeOut;
+                        yield return null;
+                    }
                 }
-                groups[i].alpha = 1f;
+                _statRowGroups[i].alpha = 1f;
             }
             _fadeCoroutine = null;
         }
@@ -239,13 +221,6 @@ namespace RogueliteAutoBattler.UI.Widgets
             if (_canvasGroup == null) return;
             _canvasGroup.alpha = 0f;
             _canvasGroup.blocksRaycasts = false;
-
-            if (_statCardGroups != null)
-            {
-                for (int i = 0; i < _statCardGroups.Length; i++)
-                    if (_statCardGroups[i] != null)
-                        _statCardGroups[i].alpha = 0f;
-            }
 
             if (_emptyStateLabel != null)
                 _emptyStateLabel.gameObject.SetActive(true);
@@ -370,35 +345,15 @@ namespace RogueliteAutoBattler.UI.Widgets
             _statNameLabels != null && rowIndex >= 0 && rowIndex < _statNameLabels.Length && _statNameLabels[rowIndex] != null
                 ? _statNameLabels[rowIndex].text : "";
 
-        internal string HpText => _hpLabel != null ? _hpLabel.text : "";
-        internal string AtkText => _atkLabel != null ? _atkLabel.text : "";
-        internal string AttackSpeedText => _attackSpeedLabel != null ? _attackSpeedLabel.text : "";
         internal float PanelAlpha => _canvasGroup != null ? _canvasGroup.alpha : 0f;
         internal bool IsVisible => _canvasGroup != null && _canvasGroup.alpha > 0f;
 
         internal bool IsEmptyStateLabelActive => _emptyStateLabel != null && _emptyStateLabel.gameObject.activeSelf;
 
-        internal float StatCardAlpha(int index) =>
-            _statCardGroups != null && index >= 0 && index < _statCardGroups.Length && _statCardGroups[index] != null
-                ? _statCardGroups[index].alpha
+        internal float StatRowAlpha(int index) =>
+            _statRowGroups != null && index >= 0 && index < _statRowGroups.Length && _statRowGroups[index] != null
+                ? _statRowGroups[index].alpha
                 : -1f;
-
-        internal void InitializeForTest(UnitSelectionManager selectionManager,
-            TMP_Text hpLabel, TMP_Text atkLabel, TMP_Text attackSpeedLabel,
-            CanvasGroup canvasGroup, int allyLayer,
-            TMP_Text emptyStateLabel = null, CanvasGroup[] statCardGroups = null)
-        {
-            _selectionManager = selectionManager;
-            _hpLabel = hpLabel;
-            _atkLabel = atkLabel;
-            _attackSpeedLabel = attackSpeedLabel;
-            _canvasGroup = canvasGroup;
-            _cachedAllyLayer = allyLayer;
-            _emptyStateLabel = emptyStateLabel;
-            _statCardGroups = statCardGroups;
-
-            FinalizeTestInitialization();
-        }
 
         internal void InitializeForTest(
             UnitSelectionManager selectionManager,

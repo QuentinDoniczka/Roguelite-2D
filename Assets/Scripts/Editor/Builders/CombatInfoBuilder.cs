@@ -36,9 +36,7 @@ namespace RogueliteAutoBattler.Editor
 
         private const float StatsColumnMinWidth = 200f;
         private const float EquipColumnMinWidth = 140f;
-        private const float EquipGridSpacing = 8f;
         private const float SectionHeaderHeight = 24f;
-        private const int EquipGridColumns = 2;
         private const float VerticalSeparatorWidth = 1f;
         private const float EquipColumnPadding = 12f;
         private const float EquipColumnSpacing = 6f;
@@ -60,8 +58,6 @@ namespace RogueliteAutoBattler.Editor
         private static readonly Color RegenAccent = new Color32(50, 200, 100, 255);
         private static readonly Color CritAccent = new Color32(255, 220, 0, 255);
         private static readonly Color CharIconPlaceholderColor = new Color32(80, 80, 100, 200);
-        private static readonly Color EquipSlotEmptyColor = new Color32(90, 90, 110, 220);
-        private static readonly Color EquipSlotBorderColor = new Color32(140, 140, 160, 255);
         private static readonly Color SectionHeaderColor = new Color32(140, 140, 160, 255);
 
         private readonly struct StatRowCfg
@@ -86,16 +82,6 @@ namespace RogueliteAutoBattler.Editor
             new StatRowCfg("StatRow_SPD",   "\u26A1 SPD",      SpdAccent),
             new StatRowCfg("StatRow_REGEN", "\u2665 REGEN",    RegenAccent),
             new StatRowCfg("StatRow_CRIT",  "\u2605 CRIT",     CritAccent),
-        };
-
-        private static readonly (string SlotName, string SlotLabel)[] EquipSlotDefinitions = new[]
-        {
-            ("Slot_Weapon", "Wpn"),
-            ("Slot_Armor",  "Arm"),
-            ("Slot_Helm",   "Hlm"),
-            ("Slot_Boots",  "Bts"),
-            ("Slot_Ring",   "Rng"),
-            ("Slot_Amulet", "Amt"),
         };
 
         internal static UIScreen CreateCombatInfo(Transform infoAreaParent)
@@ -136,7 +122,7 @@ namespace RogueliteAutoBattler.Editor
             headerLE.preferredHeight = HeaderHeight;
             headerLE.flexibleHeight = 0;
 
-            GameObject tabContentStatsEquip = CreateStatsEquipTabContent(allyStatsPanelGo.transform, bangersFont,
+            GameObject tabContentStats = CreateStatsTabContent(allyStatsPanelGo.transform, bangersFont,
                 out ScrollRect scrollRect,
                 out TextMeshProUGUI[] statNameLabels,
                 out TextMeshProUGUI[] statValueLabels,
@@ -145,8 +131,8 @@ namespace RogueliteAutoBattler.Editor
                 out CanvasGroup[] statRowGroups,
                 out AllyStatsPanel panelComponent);
 
-            LayoutElement statsEquipContentLE = tabContentStatsEquip.AddComponent<LayoutElement>();
-            statsEquipContentLE.flexibleHeight = 1;
+            LayoutElement statsContentLE = tabContentStats.AddComponent<LayoutElement>();
+            statsContentLE.flexibleHeight = 1;
 
             GameObject tabContentTraits = CreatePlaceholderTabContent(allyStatsPanelGo.transform, "TabContent_Traits", "Traits \u2014 Coming soon", false, bangersFont);
             GameObject tabContentLoot = CreatePlaceholderTabContent(allyStatsPanelGo.transform, "TabContent_Loot", "Loot \u2014 Coming soon", false, bangersFont);
@@ -164,7 +150,7 @@ namespace RogueliteAutoBattler.Editor
             EditorUIFactory.ApplyFont(emptyStateLabel, bangersFont);
 
             WireTabButtonListeners(tabButtonImages, panelComponent);
-            WireStatRowButtonListeners(tabContentStatsEquip, panelComponent);
+            WireStatRowButtonListeners(tabContentStats, panelComponent);
 
             var so = new SerializedObject(panelComponent);
 
@@ -178,7 +164,7 @@ namespace RogueliteAutoBattler.Editor
 
             EditorUIFactory.WireArray(so, "_tabContents", new Object[]
             {
-                tabContentStatsEquip, tabContentTraits, tabContentLoot
+                tabContentStats, tabContentTraits, tabContentLoot
             });
 
             EditorUIFactory.WireArray(so, "_tabButtonImages", tabButtonImages);
@@ -187,12 +173,6 @@ namespace RogueliteAutoBattler.Editor
             EditorUIFactory.WireArray(so, "_breakdownContainers", breakdownContainers);
             EditorUIFactory.WireArray(so, "_breakdownTexts", breakdownTexts);
             EditorUIFactory.WireArray(so, "_statRowGroups", statRowGroups);
-
-            EditorUIFactory.SetObj(so, "_hpLabel", statValueLabels[0]);
-            EditorUIFactory.SetObj(so, "_atkLabel", statValueLabels[1]);
-            EditorUIFactory.SetObj(so, "_attackSpeedLabel", statValueLabels[3]);
-
-            EditorUIFactory.WireArray(so, "_statCardGroups", statRowGroups);
 
             so.ApplyModifiedProperties();
 
@@ -319,14 +299,14 @@ namespace RogueliteAutoBattler.Editor
         {
             switch (index)
             {
-                case 0: return "StatsEquip";
+                case 0: return "Stats";
                 case 1: return "Traits";
                 case 2: return "Loot";
                 default: return index.ToString();
             }
         }
 
-        private static GameObject CreateStatsEquipTabContent(Transform parent, TMP_FontAsset font,
+        private static GameObject CreateStatsTabContent(Transform parent, TMP_FontAsset font,
             out ScrollRect scrollRect,
             out TextMeshProUGUI[] statNameLabels,
             out TextMeshProUGUI[] statValueLabels,
@@ -335,7 +315,7 @@ namespace RogueliteAutoBattler.Editor
             out CanvasGroup[] statRowGroups,
             out AllyStatsPanel panelComponent)
         {
-            var tabContentGo = new GameObject("TabContent_StatsEquip");
+            var tabContentGo = new GameObject("TabContent_Stats");
             GameObjectUtility.SetParentAndAlign(tabContentGo, parent.gameObject);
             tabContentGo.AddComponent<RectTransform>();
 
@@ -452,75 +432,15 @@ namespace RogueliteAutoBattler.Editor
 
             CreateSectionHeader(equipColumnGo, "EquipHeader", "EQUIP", font);
 
-            var equipScrollGo = new GameObject("EquipScrollView");
-            GameObjectUtility.SetParentAndAlign(equipScrollGo, equipColumnGo);
-            EditorUIFactory.Stretch(equipScrollGo.AddComponent<RectTransform>());
-            equipScrollGo.AddComponent<RectMask2D>();
-            ScrollRect equipScrollRect = equipScrollGo.AddComponent<ScrollRect>();
-            equipScrollRect.horizontal = false;
-            equipScrollRect.vertical = true;
-            equipScrollRect.movementType = ScrollRect.MovementType.Clamped;
-            LayoutElement equipScrollLE = equipScrollGo.AddComponent<LayoutElement>();
-            equipScrollLE.flexibleHeight = 1;
-
-            var equipContentGo = new GameObject("Content");
-            GameObjectUtility.SetParentAndAlign(equipContentGo, equipScrollGo);
-            RectTransform equipContentRT = equipContentGo.AddComponent<RectTransform>();
-            equipContentRT.anchorMin = new Vector2(0, 1);
-            equipContentRT.anchorMax = new Vector2(1, 1);
-            equipContentRT.pivot = new Vector2(0.5f, 1);
-            equipContentRT.offsetMin = Vector2.zero;
-            equipContentRT.offsetMax = Vector2.zero;
-
-            ContentSizeFitter equipContentFitter = equipContentGo.AddComponent<ContentSizeFitter>();
-            equipContentFitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
-            equipContentFitter.horizontalFit = ContentSizeFitter.FitMode.Unconstrained;
-
-            equipScrollRect.content = equipContentRT;
-            equipScrollRect.viewport = (RectTransform)equipScrollGo.transform;
-
-            GridLayoutGroup equipGrid = equipContentGo.AddComponent<GridLayoutGroup>();
-            equipGrid.cellSize = new Vector2(50, 50);
-            equipGrid.spacing = new Vector2(EquipGridSpacing, EquipGridSpacing);
-            equipGrid.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
-            equipGrid.constraintCount = EquipGridColumns;
-            equipGrid.childAlignment = TextAnchor.UpperCenter;
-
-            var sizer = equipContentGo.AddComponent<SquareGridSizer>();
-            var sizerSO = new SerializedObject(sizer);
-            sizerSO.FindProperty("_columnCount").intValue = EquipGridColumns;
-            sizerSO.ApplyModifiedPropertiesWithoutUndo();
-
-            foreach ((string slotName, string slotLabel) in EquipSlotDefinitions)
-            {
-                var slotGo = new GameObject(slotName);
-                GameObjectUtility.SetParentAndAlign(slotGo, equipContentGo);
-                slotGo.AddComponent<RectTransform>();
-                slotGo.AddComponent<Image>().color = EquipSlotEmptyColor;
-                Outline slotOutline = slotGo.AddComponent<Outline>();
-                slotOutline.effectColor = EquipSlotBorderColor;
-                slotOutline.effectDistance = new Vector2(2, 2);
-
-                var slotLabelGo = new GameObject("Label");
-                GameObjectUtility.SetParentAndAlign(slotLabelGo, slotGo);
-                EditorUIFactory.Stretch(slotLabelGo.AddComponent<RectTransform>());
-                TextMeshProUGUI slotLabelTmp = slotLabelGo.AddComponent<TextMeshProUGUI>();
-                slotLabelTmp.text = slotLabel;
-                slotLabelTmp.fontSize = MainFontSize;
-                slotLabelTmp.color = LabelColor;
-                slotLabelTmp.alignment = TextAlignmentOptions.Center;
-                EditorUIFactory.ApplyFont(slotLabelTmp, font);
-            }
-
-            var bonusSummaryGo = new GameObject("BonusSummary");
-            GameObjectUtility.SetParentAndAlign(bonusSummaryGo, equipColumnGo);
-            bonusSummaryGo.AddComponent<RectTransform>();
-            TextMeshProUGUI bonusSummaryLabel = bonusSummaryGo.AddComponent<TextMeshProUGUI>();
-            bonusSummaryLabel.text = "";
-            bonusSummaryLabel.fontSize = MainFontSize;
-            bonusSummaryLabel.color = SectionHeaderColor;
-            bonusSummaryLabel.alignment = TextAlignmentOptions.Left;
-            EditorUIFactory.ApplyFont(bonusSummaryLabel, font);
+            var placeholderLabelGo = new GameObject("EquipPlaceholderLabel");
+            GameObjectUtility.SetParentAndAlign(placeholderLabelGo, equipColumnGo);
+            EditorUIFactory.Stretch(placeholderLabelGo.AddComponent<RectTransform>());
+            TextMeshProUGUI placeholderLabel = placeholderLabelGo.AddComponent<TextMeshProUGUI>();
+            placeholderLabel.text = "Coming soon";
+            placeholderLabel.fontSize = PlaceholderFontSize;
+            placeholderLabel.color = LabelColor;
+            placeholderLabel.alignment = TextAlignmentOptions.Center;
+            EditorUIFactory.ApplyFont(placeholderLabel, font);
         }
 
         private static void CreateStatRow(Transform parent, StatRowCfg cfg, int rowIndex, TMP_FontAsset font,

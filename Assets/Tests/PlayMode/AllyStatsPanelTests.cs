@@ -20,7 +20,11 @@ namespace RogueliteAutoBattler.Tests.PlayMode
         private CombatStats _allyCombatStats;
         private GameObject _enemyGo;
         private TMP_Text _emptyStateLabel;
-        private CanvasGroup[] _statCardGroups;
+        private CanvasGroup[] _statRowGroups;
+        private TMP_Text[] _statValueLabels;
+        private TMP_Text[] _statNameLabels;
+
+        private const int STAT_ROW_COUNT = 6;
 
         [SetUp]
         public void SetUp()
@@ -56,37 +60,73 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             var panelGo = new GameObject("AllyStatsPanel");
             panelGo.transform.SetParent(canvasGo.transform, false);
             panelGo.AddComponent<RectTransform>();
-
-            var hpLabelGo = new GameObject("HpLabel");
-            hpLabelGo.transform.SetParent(panelGo.transform, false);
-            var hpLabel = hpLabelGo.AddComponent<TextMeshProUGUI>();
-
-            var atkLabelGo = new GameObject("AtkLabel");
-            atkLabelGo.transform.SetParent(panelGo.transform, false);
-            var atkLabel = atkLabelGo.AddComponent<TextMeshProUGUI>();
-
-            var atkSpeedLabelGo = new GameObject("AtkSpeedLabel");
-            atkSpeedLabelGo.transform.SetParent(panelGo.transform, false);
-            var atkSpeedLabel = atkSpeedLabelGo.AddComponent<TextMeshProUGUI>();
-
             var canvasGroup = panelGo.AddComponent<CanvasGroup>();
 
             var emptyStateLabelGo = new GameObject("EmptyStateLabel");
             emptyStateLabelGo.transform.SetParent(canvasGo.transform, false);
             _emptyStateLabel = emptyStateLabelGo.AddComponent<TextMeshProUGUI>();
 
-            _statCardGroups = new CanvasGroup[3];
-            for (int i = 0; i < 3; i++)
+            _statValueLabels = new TMP_Text[STAT_ROW_COUNT];
+            _statNameLabels = new TMP_Text[STAT_ROW_COUNT];
+            _statRowGroups = new CanvasGroup[STAT_ROW_COUNT];
+            var breakdownContainers = new GameObject[STAT_ROW_COUNT];
+            var breakdownTexts = new TMP_Text[STAT_ROW_COUNT];
+
+            for (int i = 0; i < STAT_ROW_COUNT; i++)
             {
-                var cardGo = new GameObject($"StatCard_{i}");
-                cardGo.transform.SetParent(panelGo.transform, false);
-                cardGo.AddComponent<RectTransform>();
-                _statCardGroups[i] = cardGo.AddComponent<CanvasGroup>();
+                var rowGo = new GameObject($"StatRow_{i}");
+                rowGo.transform.SetParent(panelGo.transform, false);
+                rowGo.AddComponent<RectTransform>();
+                _statRowGroups[i] = rowGo.AddComponent<CanvasGroup>();
+
+                var nameGo = new GameObject($"StatName_{i}");
+                nameGo.transform.SetParent(rowGo.transform, false);
+                _statNameLabels[i] = nameGo.AddComponent<TextMeshProUGUI>();
+
+                var valueGo = new GameObject($"StatValue_{i}");
+                valueGo.transform.SetParent(rowGo.transform, false);
+                _statValueLabels[i] = valueGo.AddComponent<TextMeshProUGUI>();
+
+                var breakdownGo = new GameObject($"Breakdown_{i}");
+                breakdownGo.transform.SetParent(rowGo.transform, false);
+                breakdownGo.SetActive(false);
+                breakdownContainers[i] = breakdownGo;
+
+                var bdTextGo = new GameObject($"BreakdownText_{i}");
+                bdTextGo.transform.SetParent(breakdownGo.transform, false);
+                breakdownTexts[i] = bdTextGo.AddComponent<TextMeshProUGUI>();
             }
 
+            var tabHeaderGo = new GameObject("TabHeader");
+            tabHeaderGo.transform.SetParent(panelGo.transform, false);
+
+            var tabContents = new GameObject[1];
+            var tabButtonImages = new Image[1];
+
+            var contentGo = new GameObject("TabContent_0");
+            contentGo.transform.SetParent(panelGo.transform, false);
+            tabContents[0] = contentGo;
+
+            var btnGo = new GameObject("TabBtn_0");
+            btnGo.transform.SetParent(tabHeaderGo.transform, false);
+            tabButtonImages[0] = btnGo.AddComponent<Image>();
+
             _panel = panelGo.AddComponent<AllyStatsPanel>();
-            _panel.InitializeForTest(_selectionManager, hpLabel, atkLabel, atkSpeedLabel,
-                canvasGroup, PhysicsLayers.AllyLayer, _emptyStateLabel, _statCardGroups);
+            _panel.InitializeForTest(
+                _selectionManager,
+                canvasGroup,
+                PhysicsLayers.AllyLayer,
+                _emptyStateLabel,
+                _statValueLabels,
+                _statNameLabels,
+                _statRowGroups,
+                breakdownContainers,
+                breakdownTexts,
+                tabHeaderGo,
+                tabContents,
+                tabButtonImages,
+                Color.white,
+                Color.gray);
 
             _allyGo = TestCharacterFactory.CreateSelectableCharacter(
                 name: "Ally",
@@ -126,9 +166,9 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             yield return null;
 
             Assert.IsTrue(_panel.IsVisible);
-            Assert.AreEqual("100 / 100", _panel.HpText);
-            Assert.AreEqual("15", _panel.AtkText);
-            Assert.AreEqual("1.2", _panel.AttackSpeedText);
+            Assert.AreEqual("100 / 100", _panel.StatValueText(0));
+            Assert.AreEqual("15", _panel.StatValueText(1));
+            Assert.AreEqual("1.2", _panel.StatValueText(3));
         }
 
         [UnityTest]
@@ -172,7 +212,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             _allyCombatStats.TakeDamage(30);
             yield return null;
 
-            Assert.AreEqual("70 / 100", _panel.HpText);
+            Assert.AreEqual("70 / 100", _panel.StatValueText(0));
         }
 
         [UnityTest]
@@ -205,14 +245,14 @@ namespace RogueliteAutoBattler.Tests.PlayMode
 
             _selectionManager.SimulateClickAtWorldPos(new Vector2(0f, 0f));
             yield return null;
-            Assert.AreEqual("100 / 100", _panel.HpText);
-            Assert.AreEqual("15", _panel.AtkText);
+            Assert.AreEqual("100 / 100", _panel.StatValueText(0));
+            Assert.AreEqual("15", _panel.StatValueText(1));
 
             _selectionManager.SimulateClickAtWorldPos(new Vector2(0f, 2f));
             yield return null;
 
-            Assert.AreEqual("200 / 200", _panel.HpText);
-            Assert.AreEqual("25", _panel.AtkText);
+            Assert.AreEqual("200 / 200", _panel.StatValueText(0));
+            Assert.AreEqual("25", _panel.StatValueText(1));
         }
 
         [UnityTest]
@@ -250,19 +290,19 @@ namespace RogueliteAutoBattler.Tests.PlayMode
         }
 
         [UnityTest]
-        public IEnumerator StatCards_FadeInOnSelection()
+        public IEnumerator StatRows_FadeInOnSelection()
         {
             yield return null;
 
             _selectionManager.SimulateClickAtWorldPos(new Vector2(0f, 0f));
-            yield return new WaitForSeconds(0.5f);
+            yield return new WaitForSeconds(2f);
 
-            for (int i = 0; i < 3; i++)
-                Assert.AreEqual(1f, _panel.StatCardAlpha(i), 0.01f, $"StatCard {i} should be fully visible");
+            for (int i = 0; i < STAT_ROW_COUNT; i++)
+                Assert.AreEqual(1f, _panel.StatRowAlpha(i), 0.01f, $"StatRow {i} should be fully visible");
         }
 
         [UnityTest]
-        public IEnumerator StatCards_ResetToZeroOnHide()
+        public IEnumerator StatRows_ResetToZeroOnHide()
         {
             yield return null;
 
@@ -272,8 +312,8 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             _selectionManager.SimulateClickAtWorldPos(new Vector2(100f, 100f));
             yield return null;
 
-            for (int i = 0; i < 3; i++)
-                Assert.AreEqual(0f, _panel.StatCardAlpha(i), 0.01f, $"StatCard {i} should be hidden");
+            for (int i = 0; i < STAT_ROW_COUNT; i++)
+                Assert.AreEqual(0f, _panel.StatRowAlpha(i), 0.01f, $"StatRow {i} should be hidden");
         }
     }
 }

@@ -1,5 +1,5 @@
 # Project Structure
-Generated: 2026-04-08
+Generated: 2026-04-10
 
 .github/
   workflows/
@@ -7,7 +7,7 @@ Generated: 2026-04-08
     protect-main.yml
 
 Assets/
-  Animations/  (23 files: .anim + .controller)
+  Animations/  (24 files: .anim + .controller)
   Audio/  (empty)
   Data/
     Adventurers/  (empty)
@@ -35,7 +35,6 @@ Assets/
   Fonts/
     Bangers SDF.asset
   Materials/  (1 file)
-  MedievalFantasyCharacters/  (asset store package)
   Prefabs/
     Characters/  (5 prefabs)
     Effects/  (empty)
@@ -91,12 +90,6 @@ Assets/
     Core/
       CanvasFactory.cs
       GameBootstrap.cs
-    Data/
-      DamageNumberConfig.cs
-      LevelDataTypes.cs
-      LevelDatabase.cs
-      SkillTreeData.cs
-      TeamDatabase.cs
     Economy/
       GoldFormatter.cs
       GoldWallet.cs
@@ -119,6 +112,12 @@ Assets/
         SkillTreeDesignerWindow.cs
         TeamBuilderTab.cs
     Items/  (empty)
+    Data/
+      DamageNumberConfig.cs
+      LevelDataTypes.cs
+      LevelDatabase.cs
+      SkillTreeData.cs
+      TeamDatabase.cs
     Services/
       Local/  (empty)
     UI/
@@ -146,7 +145,6 @@ Assets/
         AllyStatsPanel.cs
         BattleIndicatorBadge.cs
         GoldHudBadge.cs
-        SquareGridSizer.cs
         StepProgressBar.cs
     Village/  (empty)
   Settings/
@@ -162,7 +160,7 @@ Assets/
     SpriteOutline2D.shader
     SpriteSilhouette2D.shader
   Sprites/
-    Characters/  (156 files)
+    Characters/  (155 files)
     Effects/  (25 files)
     Environment/
       backgroundtest.png
@@ -170,7 +168,7 @@ Assets/
       grid_ground_blue.png
       map.png
       placeholder_white.png
-    Items/  (54 files)
+    Items/  (53 files)
     UI/  (1 file)
   Tests/
     EditMode/
@@ -228,6 +226,5 @@ Assets/
       VisualEquipmentTestLoopTests.cs
       WorldConveyorTests.cs
   TextMesh Pro/  (173 files -- TMP package: fonts, shaders, examples)
-  _Recovery/  (2 files)
 
 ProjectSettings/  (Unity defaults)
