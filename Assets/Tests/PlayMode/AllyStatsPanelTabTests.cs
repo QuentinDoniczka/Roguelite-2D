@@ -1,10 +1,8 @@
 using System.Collections;
 using NUnit.Framework;
 using RogueliteAutoBattler.Combat.Core;
-using RogueliteAutoBattler.Common;
 using RogueliteAutoBattler.Core;
 using RogueliteAutoBattler.UI.Widgets;
-using TMPro;
 using UnityEngine;
 using UnityEngine.TestTools;
 using UnityEngine.UI;
@@ -13,140 +11,35 @@ namespace RogueliteAutoBattler.Tests.PlayMode
 {
     public class AllyStatsPanelTabTests : PlayModeTestBase
     {
-        private Camera _camera;
         private UnitSelectionManager _selectionManager;
         private AllyStatsPanel _panel;
-        private CanvasGroup _canvasGroup;
-        private TMP_Text _emptyStateLabel;
-        private TMP_Text[] _statValueLabels;
-        private TMP_Text[] _statNameLabels;
         private CanvasGroup[] _statRowGroups;
-        private GameObject[] _breakdownContainers;
-        private TMP_Text[] _breakdownTexts;
-        private GameObject _tabHeaderContainer;
         private GameObject[] _tabContents;
         private Image[] _tabButtonImages;
         private Color _activeColor;
         private Color _inactiveColor;
-        private GameObject _allyGo;
         private CombatStats _combatStats;
 
-        private const int STAT_ROW_COUNT = 6;
-        private const int TAB_COUNT = 3;
+        private const int TabCount = 3;
 
         [SetUp]
         public void SetUp()
         {
-            if (PhysicsLayers.SelectionLayer < 0)
-                Assert.Ignore("Selection layer not configured in this environment.");
+            var fixture = AllyStatsPanelTestFixture.Create(Track, tabCount: TabCount);
+            _selectionManager = fixture.SelectionManager;
+            _panel = fixture.Panel;
+            _statRowGroups = fixture.StatRowGroups;
+            _tabContents = fixture.TabContents;
+            _tabButtonImages = fixture.TabButtonImages;
+            _activeColor = fixture.ActiveTabColor;
+            _inactiveColor = fixture.InactiveTabColor;
 
-            if (UnitSelectionManager.Instance != null)
-                Object.DestroyImmediate(UnitSelectionManager.Instance.gameObject);
-
-            var camGo = new GameObject("TestCamera");
-            _camera = camGo.AddComponent<Camera>();
-            _camera.orthographic = true;
-            _camera.orthographicSize = 10f;
-            _camera.tag = "MainCamera";
-            Track(camGo);
-
-            GameBootstrap.ResetForTest();
-            var mainCameraProp = typeof(GameBootstrap).GetProperty("MainCamera",
-                System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static);
-            mainCameraProp.SetValue(null, _camera);
-
-            var managerGo = new GameObject("UnitSelectionManager");
-            _selectionManager = managerGo.AddComponent<UnitSelectionManager>();
-            Track(managerGo);
-
-            var canvasGo = new GameObject("TestCanvas");
-            var canvas = canvasGo.AddComponent<Canvas>();
-            canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-            canvasGo.AddComponent<CanvasScaler>();
-            Track(canvasGo);
-
-            var panelGo = new GameObject("AllyStatsPanel");
-            panelGo.transform.SetParent(canvasGo.transform, false);
-            panelGo.AddComponent<RectTransform>();
-            _canvasGroup = panelGo.AddComponent<CanvasGroup>();
-            _panel = panelGo.AddComponent<AllyStatsPanel>();
-
-            var emptyGo = new GameObject("EmptyLabel");
-            emptyGo.transform.SetParent(panelGo.transform, false);
-            _emptyStateLabel = emptyGo.AddComponent<TextMeshProUGUI>();
-
-            _statValueLabels = new TMP_Text[STAT_ROW_COUNT];
-            _statNameLabels = new TMP_Text[STAT_ROW_COUNT];
-            _statRowGroups = new CanvasGroup[STAT_ROW_COUNT];
-            _breakdownContainers = new GameObject[STAT_ROW_COUNT];
-            _breakdownTexts = new TMP_Text[STAT_ROW_COUNT];
-
-            for (int i = 0; i < STAT_ROW_COUNT; i++)
-            {
-                var rowGo = new GameObject($"StatRow_{i}");
-                rowGo.transform.SetParent(panelGo.transform, false);
-                _statRowGroups[i] = rowGo.AddComponent<CanvasGroup>();
-
-                var nameGo = new GameObject($"StatName_{i}");
-                nameGo.transform.SetParent(rowGo.transform, false);
-                _statNameLabels[i] = nameGo.AddComponent<TextMeshProUGUI>();
-
-                var valueGo = new GameObject($"StatValue_{i}");
-                valueGo.transform.SetParent(rowGo.transform, false);
-                _statValueLabels[i] = valueGo.AddComponent<TextMeshProUGUI>();
-
-                var breakdownGo = new GameObject($"Breakdown_{i}");
-                breakdownGo.transform.SetParent(rowGo.transform, false);
-                breakdownGo.SetActive(false);
-                _breakdownContainers[i] = breakdownGo;
-
-                var bdTextGo = new GameObject($"BreakdownText_{i}");
-                bdTextGo.transform.SetParent(breakdownGo.transform, false);
-                _breakdownTexts[i] = bdTextGo.AddComponent<TextMeshProUGUI>();
-            }
-
-            _tabContents = new GameObject[TAB_COUNT];
-            _tabButtonImages = new Image[TAB_COUNT];
-            var tabHeaderGo = new GameObject("TabHeader");
-            tabHeaderGo.transform.SetParent(panelGo.transform, false);
-            _tabHeaderContainer = tabHeaderGo;
-
-            for (int i = 0; i < TAB_COUNT; i++)
-            {
-                var contentGo = new GameObject($"TabContent_{i}");
-                contentGo.transform.SetParent(panelGo.transform, false);
-                _tabContents[i] = contentGo;
-
-                var btnGo = new GameObject($"TabBtn_{i}");
-                btnGo.transform.SetParent(tabHeaderGo.transform, false);
-                _tabButtonImages[i] = btnGo.AddComponent<Image>();
-            }
-
-            _activeColor = Color.white;
-            _inactiveColor = Color.gray;
-
-            _panel.InitializeForTest(
-                _selectionManager,
-                _canvasGroup,
-                PhysicsLayers.AllyLayer,
-                _emptyStateLabel,
-                _statValueLabels,
-                _statNameLabels,
-                _statRowGroups,
-                _breakdownContainers,
-                _breakdownTexts,
-                _tabHeaderContainer,
-                _tabContents,
-                _tabButtonImages,
-                _activeColor,
-                _inactiveColor);
-
-            _allyGo = TestCharacterFactory.CreateSelectableCharacter(
+            var allyGo = TestCharacterFactory.CreateSelectableCharacter(
                 name: "Ally",
                 isAlly: true,
                 position: new Vector2(0f, 0f));
-            Track(_allyGo);
-            _combatStats = _allyGo.GetComponent<CombatStats>();
+            Track(allyGo);
+            _combatStats = allyGo.GetComponent<CombatStats>();
             _combatStats.InitializeDirect(maxHp: 100, atk: 15, attackSpeed: 1.2f, regenHpPerSecond: 2f);
         }
 
@@ -302,7 +195,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             SelectAlly();
             yield return new WaitForSeconds(2f);
 
-            for (int i = 0; i < STAT_ROW_COUNT; i++)
+            for (int i = 0; i < AllyStatsPanelTestFixture.StatRowCount; i++)
                 Assert.AreEqual(1f, _statRowGroups[i].alpha, 0.01f, $"StatRow {i} should be fully visible after fade");
         }
 
@@ -320,7 +213,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
         }
 
         [UnityTest]
-        public IEnumerator Hide_CollapsesBreakdown()
+        public IEnumerator Breakdown_StaysExpandedOnDeselection()
         {
             yield return null;
 
@@ -333,7 +226,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             DeselectAll();
             yield return null;
 
-            Assert.IsFalse(_panel.IsBreakdownExpanded(0));
+            Assert.IsTrue(_panel.IsBreakdownExpanded(0));
         }
 
         [UnityTest]

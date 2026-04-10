@@ -142,6 +142,13 @@ namespace RogueliteAutoBattler.Combat.Core
 
         public void ForceDeselect() => Deselect();
 
+        public void ForceSelect(GameObject unit)
+        {
+            if (unit == null) return;
+
+            Select(unit);
+        }
+
         internal void SimulateClickAtWorldPos(Vector2 worldPos)
         {
             SelectOrDeselectAtWorldPos(worldPos);
