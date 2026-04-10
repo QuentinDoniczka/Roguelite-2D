@@ -19,6 +19,8 @@ namespace RogueliteAutoBattler.Editor
         private const float BreakdownFontSize = 22f;
         private const float EmptyStateFontSize = 26f;
         private const float TabLabelFontSize = 20f;
+        private const float ArrowButtonSize = 30f;
+        private const float ArrowFontSize = 20f;
         private const float PlaceholderFontSize = 20f;
         private const float HeaderSpacing = 6f;
         private const float TabButtonSpacing = 4f;
@@ -116,7 +118,12 @@ namespace RogueliteAutoBattler.Editor
 
             GameObject headerGo = CreateHeader(allyStatsPanelGo.transform, bangersFont,
                 out GameObject tabButtonsContainer,
-                out Image[] tabButtonImages);
+                out Image[] tabButtonImages,
+                out TextMeshProUGUI nameLabel,
+                out TextMeshProUGUI teamPosLabel,
+                out Button prevAllyButton,
+                out Button nextAllyButton,
+                out Button teamPosButton);
 
             LayoutElement headerLE = headerGo.AddComponent<LayoutElement>();
             headerLE.preferredHeight = HeaderHeight;
@@ -174,14 +181,26 @@ namespace RogueliteAutoBattler.Editor
             EditorUIFactory.WireArray(so, "_breakdownTexts", breakdownTexts);
             EditorUIFactory.WireArray(so, "_statRowGroups", statRowGroups);
 
+            EditorUIFactory.SetObj(so, "_nameLabel", nameLabel);
+            EditorUIFactory.SetObj(so, "_teamPosLabel", teamPosLabel);
+
             so.ApplyModifiedProperties();
+
+            UnityEventTools.AddPersistentListener(prevAllyButton.onClick, panelComponent.NavigateToPreviousAlly);
+            UnityEventTools.AddPersistentListener(nextAllyButton.onClick, panelComponent.NavigateToNextAlly);
+            UnityEventTools.AddPersistentListener(teamPosButton.onClick, panelComponent.NavigateToNextAlly);
 
             return screen;
         }
 
         private static GameObject CreateHeader(Transform parent, TMP_FontAsset font,
             out GameObject tabButtonsContainer,
-            out Image[] tabButtonImages)
+            out Image[] tabButtonImages,
+            out TextMeshProUGUI nameLabel,
+            out TextMeshProUGUI teamPosLabel,
+            out Button prevAllyButton,
+            out Button nextAllyButton,
+            out Button teamPosButton)
         {
             var headerGo = new GameObject("Header");
             GameObjectUtility.SetParentAndAlign(headerGo, parent.gameObject);
@@ -225,23 +244,85 @@ namespace RogueliteAutoBattler.Editor
             var nameLabelGo = new GameObject("NameLabel");
             GameObjectUtility.SetParentAndAlign(nameLabelGo, charInfoGo);
             nameLabelGo.AddComponent<RectTransform>();
-            TextMeshProUGUI nameLabel = nameLabelGo.AddComponent<TextMeshProUGUI>();
-            nameLabel.text = "Guerrier C \u2014 Niv.8";
+            nameLabel = nameLabelGo.AddComponent<TextMeshProUGUI>();
+            nameLabel.text = "";
             nameLabel.fontSize = HeaderFontSize;
             nameLabel.color = Color.white;
             nameLabel.alignment = TextAlignmentOptions.Left;
             nameLabel.fontStyle = FontStyles.Bold;
             EditorUIFactory.ApplyFont(nameLabel, font);
 
+            var teamNavRowGo = new GameObject("TeamNavRow");
+            GameObjectUtility.SetParentAndAlign(teamNavRowGo, charInfoGo);
+            teamNavRowGo.AddComponent<RectTransform>();
+            LayoutElement teamNavRowLE = teamNavRowGo.AddComponent<LayoutElement>();
+            teamNavRowLE.flexibleWidth = 0;
+            HorizontalLayoutGroup teamNavLayout = teamNavRowGo.AddComponent<HorizontalLayoutGroup>();
+            teamNavLayout.spacing = 0;
+            teamNavLayout.childAlignment = TextAnchor.MiddleLeft;
+            teamNavLayout.childControlWidth = true;
+            teamNavLayout.childControlHeight = true;
+            teamNavLayout.childForceExpandWidth = false;
+            teamNavLayout.childForceExpandHeight = false;
+
+            var prevAllyButtonGo = new GameObject("PrevAllyButton");
+            GameObjectUtility.SetParentAndAlign(prevAllyButtonGo, teamNavRowGo);
+            prevAllyButtonGo.AddComponent<RectTransform>();
+            LayoutElement prevAllyButtonLE = prevAllyButtonGo.AddComponent<LayoutElement>();
+            prevAllyButtonLE.minWidth = ArrowButtonSize;
+            prevAllyButtonLE.minHeight = ArrowButtonSize;
+            prevAllyButtonLE.preferredWidth = ArrowButtonSize;
+            prevAllyButtonLE.preferredHeight = ArrowButtonSize;
+            prevAllyButtonLE.flexibleWidth = 0;
+            prevAllyButtonGo.AddComponent<Image>().color = TabInactiveColor;
+            prevAllyButton = prevAllyButtonGo.AddComponent<Button>();
+            var prevArrowLabelGo = new GameObject("Label");
+            GameObjectUtility.SetParentAndAlign(prevArrowLabelGo, prevAllyButtonGo);
+            EditorUIFactory.Stretch(prevArrowLabelGo.AddComponent<RectTransform>());
+            TextMeshProUGUI prevArrowLabel = prevArrowLabelGo.AddComponent<TextMeshProUGUI>();
+            prevArrowLabel.text = "\u25C4";
+            prevArrowLabel.fontSize = ArrowFontSize;
+            prevArrowLabel.color = Color.white;
+            prevArrowLabel.alignment = TextAlignmentOptions.Center;
+            prevArrowLabel.fontStyle = FontStyles.Bold;
+            EditorUIFactory.ApplyFont(prevArrowLabel, font);
+
             var teamPosLabelGo = new GameObject("TeamPosLabel");
-            GameObjectUtility.SetParentAndAlign(teamPosLabelGo, charInfoGo);
+            GameObjectUtility.SetParentAndAlign(teamPosLabelGo, teamNavRowGo);
             teamPosLabelGo.AddComponent<RectTransform>();
-            TextMeshProUGUI teamPosLabel = teamPosLabelGo.AddComponent<TextMeshProUGUI>();
-            teamPosLabel.text = "\u25C4 2/4 \u25BA";
+            LayoutElement teamPosLE = teamPosLabelGo.AddComponent<LayoutElement>();
+            teamPosLE.flexibleWidth = 0;
+            teamPosLE.preferredWidth = 50f;
+            teamPosLabelGo.AddComponent<Image>().color = Color.clear;
+            teamPosButton = teamPosLabelGo.AddComponent<Button>();
+            teamPosLabel = teamPosLabelGo.AddComponent<TextMeshProUGUI>();
+            teamPosLabel.text = "1/1";
             teamPosLabel.fontSize = MainFontSize;
             teamPosLabel.color = LabelColor;
-            teamPosLabel.alignment = TextAlignmentOptions.Left;
+            teamPosLabel.alignment = TextAlignmentOptions.Center;
             EditorUIFactory.ApplyFont(teamPosLabel, font);
+
+            var nextAllyButtonGo = new GameObject("NextAllyButton");
+            GameObjectUtility.SetParentAndAlign(nextAllyButtonGo, teamNavRowGo);
+            nextAllyButtonGo.AddComponent<RectTransform>();
+            LayoutElement nextAllyButtonLE = nextAllyButtonGo.AddComponent<LayoutElement>();
+            nextAllyButtonLE.minWidth = ArrowButtonSize;
+            nextAllyButtonLE.minHeight = ArrowButtonSize;
+            nextAllyButtonLE.preferredWidth = ArrowButtonSize;
+            nextAllyButtonLE.preferredHeight = ArrowButtonSize;
+            nextAllyButtonLE.flexibleWidth = 0;
+            nextAllyButtonGo.AddComponent<Image>().color = TabInactiveColor;
+            nextAllyButton = nextAllyButtonGo.AddComponent<Button>();
+            var nextArrowLabelGo = new GameObject("Label");
+            GameObjectUtility.SetParentAndAlign(nextArrowLabelGo, nextAllyButtonGo);
+            EditorUIFactory.Stretch(nextArrowLabelGo.AddComponent<RectTransform>());
+            TextMeshProUGUI nextArrowLabel = nextArrowLabelGo.AddComponent<TextMeshProUGUI>();
+            nextArrowLabel.text = "\u25BA";
+            nextArrowLabel.fontSize = ArrowFontSize;
+            nextArrowLabel.color = Color.white;
+            nextArrowLabel.alignment = TextAlignmentOptions.Center;
+            nextArrowLabel.fontStyle = FontStyles.Bold;
+            EditorUIFactory.ApplyFont(nextArrowLabel, font);
 
             var tabButtonsGo = new GameObject("TabButtons");
             GameObjectUtility.SetParentAndAlign(tabButtonsGo, headerGo);

@@ -153,10 +153,6 @@ namespace RogueliteAutoBattler.UI.Widgets
 
         private void HandleUnitDeselected()
         {
-            if (_displayingDeadUnit) return;
-
-            UntrackStats();
-            Hide();
         }
 
         private void UntrackStats()
@@ -423,7 +419,9 @@ namespace RogueliteAutoBattler.UI.Widgets
         {
             if (_teamPosLabel == null) return;
 
-            _teamPosLabel.SetText($"{_currentRosterIndex + 1}/{_teamRoster.Count}");
+            _stringBuilder.Clear();
+            _stringBuilder.Append(_currentRosterIndex + 1).Append('/').Append(_teamRoster.Count);
+            _teamPosLabel.SetText(_stringBuilder.ToString());
         }
 
         private void UpdateNameLabel()

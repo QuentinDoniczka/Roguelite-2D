@@ -7,7 +7,7 @@ Generated: 2026-04-10
     protect-main.yml
 
 Assets/
-  Animations/  (24 files: .anim + .controller)
+  Animations/  (23 files: .anim + .controller)
   Audio/  (empty)
   Data/
     Adventurers/  (empty)
@@ -186,6 +186,7 @@ Assets/
     PlayMode/
       Tests.PlayMode.asmdef
       TestUtils/
+        AllyStatsPanelTestFixture.cs
         PlayModeTestBase.cs
         TestCharacterFactory.cs
       AllyStatsPanelTabTests.cs
