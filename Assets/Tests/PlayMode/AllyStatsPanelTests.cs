@@ -216,7 +216,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
         }
 
         [UnityTest]
-        public IEnumerator Panel_HidesOnTrackedAllyDeath()
+        public IEnumerator Panel_StaysVisibleOnTrackedAllyDeath()
         {
             yield return null;
 
@@ -227,7 +227,8 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             _allyCombatStats.TakeDamage(200);
             yield return null;
 
-            Assert.IsFalse(_panel.IsVisible);
+            Assert.IsTrue(_panel.IsVisible);
+            Assert.IsTrue(_panel.IsDisplayingDeadUnit);
         }
 
         [UnityTest]
