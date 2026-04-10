@@ -1,7 +1,9 @@
 using System.Collections;
+using System.Collections.Generic;
 using System.Text;
 using RogueliteAutoBattler.Combat.Core;
 using RogueliteAutoBattler.Common;
+using RogueliteAutoBattler.Core;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -33,6 +35,11 @@ namespace RogueliteAutoBattler.UI.Widgets
         [Header("Scroll")]
         [SerializeField] private ScrollRect _scrollRect;
 
+        [Header("Team Navigation")]
+        [SerializeField] private TMP_Text _nameLabel;
+        [SerializeField] private TMP_Text _teamPosLabel;
+        [SerializeField] private Transform _teamContainer;
+
         [Header("Animation")]
         [SerializeField] private float _staggerDelay = 0.05f;
         [SerializeField] private float _fadeDuration = 0.15f;
@@ -45,12 +52,25 @@ namespace RogueliteAutoBattler.UI.Widgets
         private int _activeTabIndex;
         private int _expandedRowIndex = -1;
 
+        private readonly List<GameObject> _teamRoster = new List<GameObject>();
+        private StatSnapshot[] _snapshots;
+        private int _currentRosterIndex = -1;
+        private bool _isSyncingSelection;
+        private bool _displayingDeadUnit;
+
         private const string BreakdownSeparator = "\u2500\u2500\u2500\u2500\u2500\u2500";
         private readonly StringBuilder _stringBuilder = new StringBuilder(128);
 
-        private void Start()
+        private struct StatSnapshot
         {
-            if (_initializedForTest) return;
+            internal string UnitName;
+            internal string[] StatValues;
+            internal bool IsValid;
+        }
+
+        private IEnumerator Start()
+        {
+            if (_initializedForTest) yield break;
 
             _cachedAllyLayer = PhysicsLayers.AllyLayer;
 
@@ -59,7 +79,7 @@ namespace RogueliteAutoBattler.UI.Widgets
             {
                 Debug.LogWarning($"[{nameof(AllyStatsPanel)}] UnitSelectionManager.Instance not found — panel will not track selections.", this);
                 Hide();
-                return;
+                yield break;
             }
 
             _selectionManager.OnUnitSelected += HandleUnitSelected;
@@ -69,6 +89,21 @@ namespace RogueliteAutoBattler.UI.Widgets
 
             if (_emptyStateLabel != null)
                 _emptyStateLabel.gameObject.SetActive(true);
+
+            if (_teamContainer == null)
+            {
+                var combatWorld = GameBootstrap.CombatWorld;
+                if (combatWorld != null)
+                    _teamContainer = combatWorld.Find(CombatSetupHelper.TeamContainerName);
+            }
+
+            if (_teamContainer != null)
+            {
+                yield return null;
+                RefreshTeamRoster();
+                if (_teamRoster.Count > 0)
+                    DisplayTeamMember(0);
+            }
         }
 
         private void OnDestroy()
@@ -104,10 +139,22 @@ namespace RogueliteAutoBattler.UI.Widgets
             _trackedStats.OnDied += HandleDied;
             UpdateDisplay();
             Show();
+
+            if (!_isSyncingSelection)
+            {
+                int index = FindRosterIndex(unit);
+                if (index >= 0)
+                    _currentRosterIndex = index;
+                _displayingDeadUnit = false;
+                UpdateNameLabel();
+                UpdateTeamPositionLabel();
+            }
         }
 
         private void HandleUnitDeselected()
         {
+            if (_displayingDeadUnit) return;
+
             UntrackStats();
             Hide();
         }
@@ -129,8 +176,10 @@ namespace RogueliteAutoBattler.UI.Widgets
 
         private void HandleDied()
         {
+            CaptureSnapshot(_currentRosterIndex);
             UntrackStats();
-            Hide();
+            _displayingDeadUnit = true;
+            _selectionManager?.ForceDeselect();
         }
 
         private void UpdateDisplay()
@@ -327,6 +376,141 @@ namespace RogueliteAutoBattler.UI.Widgets
             _breakdownTexts[rowIndex].SetText(_stringBuilder.ToString());
         }
 
+        public void NavigateToNextAlly()
+        {
+            if (_teamRoster.Count == 0) return;
+
+            int nextIndex = (_currentRosterIndex + 1) % _teamRoster.Count;
+            DisplayTeamMember(nextIndex);
+        }
+
+        public void NavigateToPreviousAlly()
+        {
+            if (_teamRoster.Count == 0) return;
+
+            int previousIndex = (_currentRosterIndex - 1 + _teamRoster.Count) % _teamRoster.Count;
+            DisplayTeamMember(previousIndex);
+        }
+
+        private void RefreshTeamRoster()
+        {
+            _teamRoster.Clear();
+
+            if (_teamContainer == null) return;
+
+            for (int i = 0; i < _teamContainer.childCount; i++)
+            {
+                var child = _teamContainer.GetChild(i);
+                if (child.TryGetComponent<CombatStats>(out _))
+                    _teamRoster.Add(child.gameObject);
+            }
+
+            _snapshots = new StatSnapshot[_teamRoster.Count];
+        }
+
+        private int FindRosterIndex(GameObject unit)
+        {
+            for (int i = 0; i < _teamRoster.Count; i++)
+            {
+                if (_teamRoster[i] == unit)
+                    return i;
+            }
+
+            return -1;
+        }
+
+        private void UpdateTeamPositionLabel()
+        {
+            if (_teamPosLabel == null) return;
+
+            _teamPosLabel.SetText($"{_currentRosterIndex + 1}/{_teamRoster.Count}");
+        }
+
+        private void UpdateNameLabel()
+        {
+            if (_nameLabel == null) return;
+
+            if (_displayingDeadUnit && _currentRosterIndex >= 0
+                && _snapshots != null && _currentRosterIndex < _snapshots.Length
+                && _snapshots[_currentRosterIndex].IsValid)
+            {
+                _nameLabel.SetText(_snapshots[_currentRosterIndex].UnitName);
+                return;
+            }
+
+            if (_currentRosterIndex >= 0 && _currentRosterIndex < _teamRoster.Count
+                && _teamRoster[_currentRosterIndex] != null)
+            {
+                _nameLabel.SetText(_teamRoster[_currentRosterIndex].name);
+                return;
+            }
+
+            _nameLabel.SetText("");
+        }
+
+        private void CaptureSnapshot(int rosterIndex)
+        {
+            if (_trackedStats == null || rosterIndex < 0
+                || _snapshots == null || rosterIndex >= _snapshots.Length)
+                return;
+
+            var displayOrder = CombatStats.DisplayOrder;
+            var statValues = new string[displayOrder.Count];
+            for (int i = 0; i < displayOrder.Count; i++)
+                statValues[i] = _trackedStats.GetBreakdown(displayOrder[i]).FinalValue;
+
+            _snapshots[rosterIndex] = new StatSnapshot
+            {
+                UnitName = _teamRoster[rosterIndex] != null ? _teamRoster[rosterIndex].name : "",
+                StatValues = statValues,
+                IsValid = true
+            };
+        }
+
+        private void DisplaySnapshot(int rosterIndex)
+        {
+            if (_snapshots == null || rosterIndex < 0 || rosterIndex >= _snapshots.Length)
+                return;
+
+            var snapshot = _snapshots[rosterIndex];
+            if (!snapshot.IsValid) return;
+
+            for (int i = 0; i < _statValueLabels.Length && i < snapshot.StatValues.Length; i++)
+            {
+                if (_statValueLabels[i] != null)
+                    _statValueLabels[i].SetText(snapshot.StatValues[i]);
+            }
+        }
+
+        private void DisplayTeamMember(int rosterIndex)
+        {
+            _currentRosterIndex = rosterIndex;
+            _displayingDeadUnit = false;
+
+            var unit = _teamRoster[rosterIndex];
+
+            bool isDeadOrDestroyed = unit == null
+                || (unit.TryGetComponent<CombatStats>(out var stats) && stats.IsDead);
+
+            if (isDeadOrDestroyed)
+            {
+                _displayingDeadUnit = true;
+                UntrackStats();
+                DisplaySnapshot(rosterIndex);
+                Show();
+                _selectionManager?.ForceDeselect();
+            }
+            else
+            {
+                _isSyncingSelection = true;
+                _selectionManager?.ForceSelect(unit);
+                _isSyncingSelection = false;
+            }
+
+            UpdateNameLabel();
+            UpdateTeamPositionLabel();
+        }
+
         internal int ActiveTabIndex => _activeTabIndex;
 
         internal bool IsBreakdownExpanded(int rowIndex) =>
@@ -355,6 +539,12 @@ namespace RogueliteAutoBattler.UI.Widgets
                 ? _statRowGroups[index].alpha
                 : -1f;
 
+        internal string NameLabelText => _nameLabel != null ? _nameLabel.text : "";
+        internal string TeamPosLabelText => _teamPosLabel != null ? _teamPosLabel.text : "";
+        internal int CurrentRosterIndex => _currentRosterIndex;
+        internal int TeamRosterCount => _teamRoster.Count;
+        internal bool IsDisplayingDeadUnit => _displayingDeadUnit;
+
         internal void InitializeForTest(
             UnitSelectionManager selectionManager,
             CanvasGroup canvasGroup,
@@ -370,6 +560,9 @@ namespace RogueliteAutoBattler.UI.Widgets
             Image[] tabButtonImages,
             Color tabActiveColor,
             Color tabInactiveColor,
+            Transform teamContainer = null,
+            TMP_Text nameLabel = null,
+            TMP_Text teamPosLabel = null,
             ScrollRect scrollRect = null)
         {
             _selectionManager = selectionManager;
@@ -386,6 +579,9 @@ namespace RogueliteAutoBattler.UI.Widgets
             _tabButtonImages = tabButtonImages;
             _tabActiveColor = tabActiveColor;
             _tabInactiveColor = tabInactiveColor;
+            _teamContainer = teamContainer;
+            _nameLabel = nameLabel;
+            _teamPosLabel = teamPosLabel;
             _scrollRect = scrollRect;
 
             FinalizeTestInitialization();
@@ -402,6 +598,10 @@ namespace RogueliteAutoBattler.UI.Widgets
 
             if (_emptyStateLabel != null)
                 _emptyStateLabel.gameObject.SetActive(true);
+
+            RefreshTeamRoster();
+            if (_teamRoster.Count > 0)
+                DisplayTeamMember(0);
         }
     }
 }
