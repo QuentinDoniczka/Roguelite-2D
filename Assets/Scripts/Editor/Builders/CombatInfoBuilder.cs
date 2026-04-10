@@ -19,7 +19,7 @@ namespace RogueliteAutoBattler.Editor
         private const float BreakdownFontSize = 22f;
         private const float EmptyStateFontSize = 26f;
         private const float TabLabelFontSize = 20f;
-        private const float ArrowButtonSize = 40f;
+        private const float ArrowButtonSize = 48f;
         private const float ArrowFontSize = 24f;
         private const float PlaceholderFontSize = 20f;
         private const float HeaderSpacing = 6f;
@@ -43,6 +43,8 @@ namespace RogueliteAutoBattler.Editor
         private const float EquipColumnPadding = 12f;
         private const float EquipColumnSpacing = 6f;
         private const float HorizontalSeparatorHeight = 1f;
+        private const float NameNavPaddingLeft = 8f;
+        private const float TeamPosPreferredWidth = 50f;
 
         private static readonly Color PanelBg = new Color32(0, 0, 0, 180);
         private static readonly Color HeaderBg = new Color32(40, 40, 55, 220);
@@ -59,6 +61,7 @@ namespace RogueliteAutoBattler.Editor
         private static readonly Color SpdAccent = new Color32(70, 150, 255, 255);
         private static readonly Color RegenAccent = new Color32(50, 200, 100, 255);
         private static readonly Color CritAccent = new Color32(255, 220, 0, 255);
+        private static readonly Color ArrowPressedColor = new Color32(80, 80, 110, 255);
         private static readonly Color CharIconPlaceholderColor = new Color32(80, 80, 100, 200);
         private static readonly Color SectionHeaderColor = new Color32(140, 140, 160, 255);
 
@@ -230,7 +233,7 @@ namespace RogueliteAutoBattler.Editor
             GameObjectUtility.SetParentAndAlign(nameAndNavGo, headerGo);
             nameAndNavGo.AddComponent<RectTransform>();
             HorizontalLayoutGroup nameAndNavLayout = nameAndNavGo.AddComponent<HorizontalLayoutGroup>();
-            nameAndNavLayout.padding = new RectOffset(8, 0, 0, 0);
+            nameAndNavLayout.padding = new RectOffset((int)NameNavPaddingLeft, 0, 0, 0);
             nameAndNavLayout.spacing = 0;
             nameAndNavLayout.childAlignment = TextAnchor.MiddleLeft;
             nameAndNavLayout.childControlWidth = true;
@@ -251,6 +254,7 @@ namespace RogueliteAutoBattler.Editor
             nameLabel.color = Color.white;
             nameLabel.alignment = TextAlignmentOptions.Left;
             nameLabel.fontStyle = FontStyles.Bold;
+            nameLabel.raycastTarget = false;
             EditorUIFactory.ApplyFont(nameLabel, font);
 
             prevAllyButton = CreateArrowButton(nameAndNavGo, "PrevAllyButton", "\u25C4", font);
@@ -260,7 +264,7 @@ namespace RogueliteAutoBattler.Editor
             teamPosLabelGo.AddComponent<RectTransform>();
             LayoutElement teamPosLE = teamPosLabelGo.AddComponent<LayoutElement>();
             teamPosLE.flexibleWidth = 0;
-            teamPosLE.preferredWidth = 50f;
+            teamPosLE.preferredWidth = TeamPosPreferredWidth;
             teamPosButton = teamPosLabelGo.AddComponent<Button>();
             teamPosLabel = teamPosLabelGo.AddComponent<TextMeshProUGUI>();
             teamPosLabel.raycastTarget = true;
@@ -316,6 +320,7 @@ namespace RogueliteAutoBattler.Editor
                 tabLabel.color = Color.white;
                 tabLabel.alignment = TextAlignmentOptions.Center;
                 tabLabel.fontStyle = FontStyles.Bold;
+                tabLabel.raycastTarget = false;
                 EditorUIFactory.ApplyFont(tabLabel, font);
             }
 
@@ -670,7 +675,7 @@ namespace RogueliteAutoBattler.Editor
             ColorBlock colors = button.colors;
             colors.normalColor = TabInactiveColor;
             colors.highlightedColor = TabActiveColor;
-            colors.pressedColor = new Color32(80, 80, 110, 255);
+            colors.pressedColor = ArrowPressedColor;
             colors.selectedColor = TabActiveColor;
             button.colors = colors;
 
@@ -683,6 +688,7 @@ namespace RogueliteAutoBattler.Editor
             label.color = Color.white;
             label.alignment = TextAlignmentOptions.Center;
             label.fontStyle = FontStyles.Bold;
+            label.raycastTarget = false;
             EditorUIFactory.ApplyFont(label, font);
 
             return button;

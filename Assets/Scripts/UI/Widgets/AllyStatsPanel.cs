@@ -200,6 +200,7 @@ namespace RogueliteAutoBattler.UI.Widgets
 
             _canvasGroup.alpha = 1f;
             _canvasGroup.blocksRaycasts = true;
+            _canvasGroup.interactable = true;
 
             _fadeCoroutine = StartCoroutine(StaggeredFadeInCoroutine());
 
@@ -258,6 +259,7 @@ namespace RogueliteAutoBattler.UI.Widgets
             if (_canvasGroup == null) return;
             _canvasGroup.alpha = 0f;
             _canvasGroup.blocksRaycasts = false;
+            _canvasGroup.interactable = false;
 
             if (_emptyStateLabel != null)
                 _emptyStateLabel.gameObject.SetActive(true);
