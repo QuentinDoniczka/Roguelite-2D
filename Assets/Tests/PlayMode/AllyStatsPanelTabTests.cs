@@ -214,7 +214,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
         }
 
         [UnityTest]
-        public IEnumerator Hide_CollapsesBreakdown()
+        public IEnumerator Breakdown_StaysExpandedOnDeselection()
         {
             yield return null;
 
@@ -227,7 +227,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             DeselectAll();
             yield return null;
 
-            Assert.IsFalse(_panel.IsBreakdownExpanded(0));
+            Assert.IsTrue(_panel.IsBreakdownExpanded(0));
         }
 
         [UnityTest]

@@ -67,7 +67,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
         }
 
         [UnityTest]
-        public IEnumerator Panel_HidesOnDeselection()
+        public IEnumerator Panel_StaysVisibleOnDeselection()
         {
             yield return null;
 
@@ -78,7 +78,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             _selectionManager.SimulateClickAtWorldPos(new Vector2(100f, 100f));
             yield return null;
 
-            Assert.IsFalse(_panel.IsVisible);
+            Assert.IsTrue(_panel.IsVisible);
         }
 
         [UnityTest]
@@ -171,7 +171,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
         }
 
         [UnityTest]
-        public IEnumerator EmptyStateLabel_ShowsOnDeselection()
+        public IEnumerator EmptyStateLabel_StaysHiddenOnDeselection()
         {
             yield return null;
 
@@ -182,7 +182,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             _selectionManager.SimulateClickAtWorldPos(new Vector2(100f, 100f));
             yield return null;
 
-            Assert.IsTrue(_panel.IsEmptyStateLabelActive);
+            Assert.IsFalse(_panel.IsEmptyStateLabelActive);
         }
 
         [UnityTest]
@@ -198,7 +198,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
         }
 
         [UnityTest]
-        public IEnumerator StatRows_ResetToZeroOnHide()
+        public IEnumerator StatRows_StayVisibleOnDeselection()
         {
             yield return null;
 
@@ -209,7 +209,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             yield return null;
 
             for (int i = 0; i < AllyStatsPanelTestFixture.StatRowCount; i++)
-                Assert.AreEqual(0f, _panel.StatRowAlpha(i), 0.01f, $"StatRow {i} should be hidden");
+                Assert.AreEqual(1f, _panel.StatRowAlpha(i), 0.01f, $"StatRow {i} should stay visible");
         }
     }
 }
