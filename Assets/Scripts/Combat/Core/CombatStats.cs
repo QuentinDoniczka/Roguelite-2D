@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Globalization;
 using UnityEngine;
 
 namespace RogueliteAutoBattler.Combat.Core
@@ -16,6 +18,49 @@ namespace RogueliteAutoBattler.Combat.Core
         public int Atk => _atk;
         public float AttackSpeed => _attackSpeed;
         public bool IsDead => _currentHp <= 0;
+
+        private static readonly StatType[] DisplayOrderArray =
+        {
+            StatType.Hp, StatType.Atk, StatType.Def,
+            StatType.AttackSpeed, StatType.RegenHp, StatType.CritRate
+        };
+
+        public static IReadOnlyList<StatType> DisplayOrder => DisplayOrderArray;
+
+        private readonly StatModifierEntry[] _singleModifierBuffer = new StatModifierEntry[1];
+
+        public StatBreakdownData GetBreakdown(StatType statType)
+        {
+            switch (statType)
+            {
+                case StatType.Hp:
+                    return MakeBaseBreakdown("HP", $"{_currentHp} / {_maxHp}", $"{_maxHp}");
+                case StatType.Atk:
+                    return MakeBaseBreakdown("ATK", $"{_atk}");
+                case StatType.Def:
+                    return MakeBaseBreakdown("DEF", "0");
+                case StatType.AttackSpeed:
+                    return MakeBaseBreakdown("SPD", _attackSpeed.ToString("F1", CultureInfo.InvariantCulture));
+                case StatType.RegenHp:
+                    return MakeBaseBreakdown("REGEN", _regenHpPerSecond.ToString("F1", CultureInfo.InvariantCulture) + "/s");
+                case StatType.CritRate:
+                    return MakeBaseBreakdown("CRIT", "0%");
+                default:
+                    return new StatBreakdownData("", "", System.Array.Empty<StatModifierEntry>());
+            }
+        }
+
+        private StatBreakdownData MakeBaseBreakdown(string statName, string formattedValue)
+        {
+            _singleModifierBuffer[0] = new StatModifierEntry("Base", formattedValue, true);
+            return new StatBreakdownData(statName, formattedValue, _singleModifierBuffer);
+        }
+
+        private StatBreakdownData MakeBaseBreakdown(string statName, string finalValue, string baseValue)
+        {
+            _singleModifierBuffer[0] = new StatModifierEntry("Base", baseValue, true);
+            return new StatBreakdownData(statName, finalValue, _singleModifierBuffer);
+        }
 
         public void InitializeDirect(int maxHp, int atk, float attackSpeed, float regenHpPerSecond = 0f)
         {

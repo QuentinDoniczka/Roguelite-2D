@@ -1,0 +1,1454 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Propositions UI — Stats / Inventaire Panel (v2)</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Courier New', monospace; background: #fff; color: #222; padding: 30px; max-width: 1200px; margin: 0 auto; line-height: 1.6; }
+        h1 { font-size: 24px; border-bottom: 3px solid #222; padding-bottom: 10px; margin-bottom: 20px; }
+        h2 { font-size: 20px; margin: 50px 0 10px; border-bottom: 2px solid #222; padding-bottom: 5px; }
+        h3 { font-size: 16px; margin: 25px 0 8px; }
+        h4 { font-size: 13px; margin: 15px 0 5px; color: #555; }
+        p, li { font-size: 13px; }
+        ul { margin-left: 20px; margin-bottom: 10px; }
+        li { margin-bottom: 3px; }
+        .note { font-size: 12px; color: #555; background: #f5f5f5; border-left: 3px solid #222; padding: 8px 12px; margin: 10px 0; }
+        .ref { font-size: 11px; color: #888; background: #fafafa; border: 1px dashed #ccc; padding: 6px 10px; margin: 8px 0; }
+        .pros { color: #2a7; font-size: 12px; }
+        .cons { color: #c44; font-size: 12px; }
+        .tag { display: inline-block; border: 1px solid #222; padding: 1px 6px; font-size: 10px; font-weight: bold; margin-right: 4px; }
+        .tag-best { background: #222; color: #fff; }
+        .tag-mobile { background: #e8f5e9; }
+        .tag-ref { background: #fff3e0; }
+
+        /* Phone mockup */
+        .phone { border: 3px solid #222; width: 340px; margin: 15px auto; border-radius: 8px; overflow: hidden; background: #fafafa; }
+        .phone-notch { text-align: center; font-size: 9px; color: #999; border-bottom: 1px solid #ddd; padding: 3px; }
+        .phone-nav { display: flex; gap: 0; border-top: 2px solid #222; }
+        .phone-nav div { flex: 1; text-align: center; padding: 6px 2px; font-size: 8px; border-right: 1px solid #222; }
+        .phone-nav div:last-child { border-right: none; }
+        .phone-nav .active { background: #222; color: #fff; }
+        .phone-nav .combat-btn { flex: 1.4; font-size: 10px; font-weight: bold; background: #222; color: #fff; }
+
+        /* Wireframe elements */
+        .wf-box { border: 1px solid #222; padding: 6px; margin: 3px; text-align: center; font-size: 10px; display: flex; align-items: center; justify-content: center; }
+        .wf-box-dashed { border: 1px dashed #999; padding: 6px; margin: 3px; text-align: center; font-size: 9px; color: #777; display: flex; align-items: center; justify-content: center; }
+        .wf-btn { border: 2px solid #222; padding: 4px 10px; font-size: 10px; font-family: inherit; background: #fff; display: inline-block; margin: 2px; }
+        .wf-btn-active { background: #222; color: #fff; }
+
+        /* Stat row — clickable, no bars */
+        .stat-row { display: flex; justify-content: space-between; font-size: 10px; padding: 4px 6px; border-bottom: 1px dotted #ccc; cursor: pointer; }
+        .stat-row:hover { background: #f0f0f0; }
+        .stat-label { color: #555; }
+        .stat-value { font-weight: bold; }
+        .stat-bonus { font-size: 9px; color: #2a7; }
+
+        /* Stat detail breakdown (shown on click) */
+        .stat-detail { background: #f5f5f0; border: 1px solid #ccc; border-radius: 4px; padding: 6px 8px; margin: 2px 0 4px; font-size: 9px; }
+        .stat-detail-row { display: flex; justify-content: space-between; padding: 1px 0; }
+        .stat-detail-label { color: #777; }
+        .stat-detail-value { }
+        .stat-detail-total { border-top: 1px solid #222; font-weight: bold; margin-top: 2px; padding-top: 2px; }
+
+        /* Scrollable area indicator */
+        .scroll-area { border: 1px solid #ddd; border-radius: 4px; padding: 4px; position: relative; overflow: hidden; }
+        .scroll-indicator { position: absolute; bottom: 0; left: 0; right: 0; height: 16px; background: linear-gradient(transparent, rgba(250,250,250,0.9)); text-align: center; font-size: 7px; color: #999; padding-top: 6px; }
+
+        /* Battlefield placeholder */
+        .battlefield { height: 200px; border-bottom: 2px solid #222; background: #f0f0f0; display: flex; align-items: center; justify-content: center; font-size: 10px; color: #aaa; position: relative; }
+
+        /* Layout helpers */
+        .flex { display: flex; }
+        .flex-col { display: flex; flex-direction: column; }
+        .gap-2 { gap: 2px; }
+        .gap-4 { gap: 4px; }
+        .gap-6 { gap: 6px; }
+        .grow { flex: 1; }
+        .center { text-align: center; }
+        .bold { font-weight: bold; }
+        .small { font-size: 9px; }
+        .tiny { font-size: 8px; }
+        .muted { color: #777; }
+
+        /* Tab styles */
+        .tab-bar { display: flex; border: 1px solid #222; margin-bottom: 6px; }
+        .tab { flex: 1; text-align: center; padding: 5px; font-size: 10px; cursor: pointer; }
+        .tab-active { background: #222; color: #fff; font-weight: bold; }
+        .tab-inactive { border-right: 1px solid #222; }
+
+        /* Equipment slot */
+        .eq-slot { width: 32px; height: 32px; border: 1px solid #222; display: flex; align-items: center; justify-content: center; font-size: 7px; }
+        .eq-slot-empty { border: 1px dashed #999; color: #bbb; }
+        .eq-slot-filled { background: #f5f5f0; }
+
+        /* Propositions side by side */
+        .duo { display: flex; gap: 30px; justify-content: center; flex-wrap: wrap; }
+        .trio { display: flex; gap: 20px; justify-content: center; flex-wrap: wrap; }
+
+        /* Comparison table */
+        .compare { border-collapse: collapse; width: 100%; margin: 15px 0; font-size: 12px; }
+        .compare th, .compare td { border: 1px solid #222; padding: 6px 10px; text-align: left; }
+        .compare th { background: #eee; font-size: 11px; }
+
+        hr { border: none; border-top: 2px dashed #ccc; margin: 40px 0; }
+        .page-break { page-break-before: always; }
+    </style>
+</head>
+<body>
+
+<h1>PROPOSITIONS UI — Panel Stats / Inventaire (v2)</h1>
+<p class="note">
+    <strong>Principes appliques a toutes les propositions :</strong><br>
+    1. <strong>Pas de barres de vie / barres de stats</strong> — uniquement des valeurs numeriques<br>
+    2. <strong>Stats scrollables</strong> — le panel peut avoir plus de stats que l'espace visible<br>
+    3. <strong>Tap sur une stat = detail du calcul</strong> — ex: "ATK 57 = 45 base + 12 equip + 10% trait"<br>
+    4. Le <strong>style Prop 5 (onglets icones)</strong> est le favori
+</p>
+
+<!-- ============================================================ -->
+<!-- SOMMAIRE                                                      -->
+<!-- ============================================================ -->
+
+<h2>Sommaire</h2>
+<ol style="font-size: 13px; line-height: 2;">
+    <li><strong>Toggle Classique</strong> — 2 onglets horizontaux texte</li>
+    <li><strong>Bottom Sheet Slide-Up</strong> — Panel extensible par swipe</li>
+    <li><strong>Segmented Control</strong> — Pill-style iOS</li>
+    <li><strong>Swipe Horizontal</strong> — Pages gauche/droite</li>
+    <li><strong>Onglets Icones</strong> — Compact, extensible (FAVORI)</li>
+    <li><strong>Stats Inline + Drawer</strong> — Stats fixes, inventaire en tiroir</li>
+    <li><strong>Card Flip</strong> — Carte retournable</li>
+    <li><strong>Split Panel</strong> — Stats + Equip cote a cote</li>
+    <li><strong>Radial / Mannequin</strong> — Slots autour du perso</li>
+    <li><strong>Mini-Stats + Popup</strong> — Compact + detail plein ecran</li>
+</ol>
+
+<p class="note"><strong>Detail stat (commun a toutes les props)</strong> — Quand le joueur tap une ligne de stat, un dropdown s'ouvre en-dessous montrant la decomposition :</p>
+
+<div style="max-width: 280px; margin: 10px auto; border: 1px solid #222; padding: 8px; border-radius: 4px; background: #fafafa;">
+    <div class="stat-row" style="background:#eee;">
+        <span class="stat-label">&#9876; ATK</span>
+        <span><span class="stat-value">57</span> <span class="stat-bonus">(+12)</span></span>
+    </div>
+    <div class="stat-detail">
+        <div class="stat-detail-row"><span class="stat-detail-label">Base</span><span>45</span></div>
+        <div class="stat-detail-row"><span class="stat-detail-label">Epee +12</span><span style="color:#2a7;">+12</span></div>
+        <div class="stat-detail-row"><span class="stat-detail-label">Trait: Force brute</span><span style="color:#2a7;">+10%</span></div>
+        <div class="stat-detail-row stat-detail-total"><span>Total</span><span>57</span></div>
+    </div>
+    <div class="stat-row">
+        <span class="stat-label">&#128737; DEF</span>
+        <span><span class="stat-value">30</span> <span class="stat-bonus">(+8)</span></span>
+    </div>
+    <div class="stat-row">
+        <span class="stat-label">&#9889; VIT ATK</span>
+        <span class="stat-value">1.2/s</span>
+    </div>
+    <div class="tiny center muted" style="margin-top:4px;">&#9650; tap une stat pour voir le detail | scroll pour plus</div>
+</div>
+
+<!-- ============================================================ -->
+<!-- PROPOSITION 1                                                 -->
+<!-- ============================================================ -->
+
+<hr>
+<h2>1. Toggle Classique <span class="tag tag-ref">Forge Master</span> <span class="tag tag-mobile">Mobile-friendly</span></h2>
+<p>Deux onglets texte en haut du panel. Simple, prouve. Stats scrollables avec tap-to-detail.</p>
+<div class="ref">Ref: Forge Master, Idle Miner. Zero apprentissage.</div>
+
+<div class="duo">
+    <div>
+        <h4>Vue Stats</h4>
+        <div class="phone">
+            <div class="phone-notch">Battle 5-12 | 3420 or | 211 gems</div>
+            <div class="battlefield">[ champ de bataille ]</div>
+            <div style="padding: 8px; min-height: 190px;">
+                <div class="tab-bar">
+                    <div class="tab tab-active">&#9881; STATS</div>
+                    <div class="tab">&#128188; INVENTAIRE</div>
+                </div>
+                <div style="border: 1px solid #222; padding: 6px;">
+                    <div style="display:flex; justify-content:space-between; font-size:10px; font-weight:bold; border-bottom:1px solid #222; padding-bottom:3px; margin-bottom:4px;">
+                        <span>&#9876; Guerrier Rang C — Niv.8</span>
+                        <span class="muted small">&#9664; 2/4 &#9654;</span>
+                    </div>
+                    <div class="scroll-area" style="max-height:110px;">
+                        <div class="stat-row"><span class="stat-label">&#10084; PV</span><span class="stat-value">280 / 340</span></div>
+                        <div class="stat-row" style="background:#eee;"><span class="stat-label">&#9876; ATK</span><span><span class="stat-value">57</span> <span class="stat-bonus">(+12)</span></span></div>
+                        <div class="stat-detail">
+                            <div class="stat-detail-row"><span class="stat-detail-label">Base</span><span>45</span></div>
+                            <div class="stat-detail-row"><span class="stat-detail-label">Epee +12</span><span style="color:#2a7;">+12</span></div>
+                            <div class="stat-detail-row stat-detail-total"><span>Total</span><span>57</span></div>
+                        </div>
+                        <div class="stat-row"><span class="stat-label">&#128737; DEF</span><span><span class="stat-value">30</span> <span class="stat-bonus">(+8)</span></span></div>
+                        <div class="stat-row"><span class="stat-label">&#9889; VIT ATK</span><span class="stat-value">1.2/s</span></div>
+                        <div class="stat-row"><span class="stat-label">&#10084; Regen</span><span class="stat-value">2/s</span></div>
+                        <div class="stat-row"><span class="stat-label">&#9733; Crit</span><span><span class="stat-value">12%</span> <span class="stat-bonus">(+12%)</span></span></div>
+                        <div class="scroll-indicator">&#9660; scroll</div>
+                    </div>
+                </div>
+            </div>
+            <div class="phone-nav">
+                <div>&#127968;<br>Village</div>
+                <div>&#127795;<br>Arbre</div>
+                <div class="combat-btn active">&#9876;<br>COMBAT</div>
+                <div>&#128101;<br>Guilde</div>
+                <div>&#128176;<br>Shop</div>
+            </div>
+        </div>
+    </div>
+
+    <div>
+        <h4>Vue Inventaire</h4>
+        <div class="phone">
+            <div class="phone-notch">Battle 5-12 | 3420 or | 211 gems</div>
+            <div class="battlefield">[ champ de bataille ]</div>
+            <div style="padding: 8px; min-height: 190px;">
+                <div class="tab-bar">
+                    <div class="tab tab-inactive">&#9881; STATS</div>
+                    <div class="tab tab-active">&#128188; INVENTAIRE</div>
+                </div>
+                <div style="border: 1px solid #222; padding: 6px;">
+                    <div class="tiny bold" style="margin-bottom:4px;">&#9876; Guerrier — Equipement (2/6)</div>
+                    <div class="flex gap-4" style="flex-wrap:wrap;">
+                        <div class="flex-col" style="align-items:center;">
+                            <div class="eq-slot eq-slot-filled">&#9876;<br><span class="tiny">Epee</span></div>
+                            <div class="tiny muted">ATK+12</div>
+                        </div>
+                        <div class="flex-col" style="align-items:center;">
+                            <div class="eq-slot eq-slot-filled">&#128737;<br><span class="tiny">Armure</span></div>
+                            <div class="tiny muted">DEF+8</div>
+                        </div>
+                        <div class="flex-col" style="align-items:center;">
+                            <div class="eq-slot eq-slot-empty">--</div>
+                            <div class="tiny muted">Casque</div>
+                        </div>
+                        <div class="flex-col" style="align-items:center;">
+                            <div class="eq-slot eq-slot-empty">--</div>
+                            <div class="tiny muted">Bottes</div>
+                        </div>
+                        <div class="flex-col" style="align-items:center;">
+                            <div class="eq-slot eq-slot-empty">--</div>
+                            <div class="tiny muted">Anneau</div>
+                        </div>
+                        <div class="flex-col" style="align-items:center;">
+                            <div class="eq-slot eq-slot-empty">--</div>
+                            <div class="tiny muted">Amulette</div>
+                        </div>
+                    </div>
+                    <div style="border-top:1px dashed #ccc; margin-top:6px; padding-top:4px;">
+                        <div class="tiny bold">Loot (6/8)</div>
+                        <div class="flex gap-2" style="flex-wrap:wrap; margin-top:3px;">
+                            <div class="wf-box" style="width:48px; height:34px; flex-direction:column; font-size:7px;">&#9876; +12<br>iLvl14</div>
+                            <div class="wf-box" style="width:48px; height:34px; flex-direction:column; font-size:7px;">&#128737; +8<br>iLvl10</div>
+                            <div class="wf-box" style="width:48px; height:34px; flex-direction:column; font-size:7px;">&#127993; +15<br>iLvl18</div>
+                            <div class="wf-box" style="width:48px; height:34px; flex-direction:column; font-size:7px;">&#128302; +20<br>iLvl22</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="phone-nav">
+                <div>&#127968;<br>Village</div>
+                <div>&#127795;<br>Arbre</div>
+                <div class="combat-btn active">&#9876;<br>COMBAT</div>
+                <div>&#128101;<br>Guilde</div>
+                <div>&#128176;<br>Shop</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<p class="pros">+ Simple, zero friction. Scroll naturel. Detail au tap.</p>
+<p class="cons">- Perd la vue stats quand on regarde l'inventaire. Basique visuellement.</p>
+
+<!-- ============================================================ -->
+<!-- PROPOSITION 2                                                 -->
+<!-- ============================================================ -->
+
+<hr>
+<h2>2. Bottom Sheet Slide-Up <span class="tag tag-ref">AFK Arena</span> <span class="tag tag-mobile">Touch-first</span></h2>
+<p>Bottom sheet extensible. Compact = resume 1 ligne. Expanse = stats scrollables completes + onglets. Le combat reste visible en mode compact.</p>
+<div class="ref">Ref: AFK Arena, Genshin Impact, Google Maps. UX mobile native.</div>
+
+<div class="duo">
+    <div>
+        <h4>Compact (par defaut)</h4>
+        <div class="phone">
+            <div class="phone-notch">Battle 5-12</div>
+            <div class="battlefield" style="height:280px;">[ champ de bataille — plus grand ]</div>
+            <div style="padding: 6px 8px; border-top: 3px solid #222; min-height: 70px; background: #fff;">
+                <div style="width:40px; height:4px; background:#ccc; border-radius:2px; margin: 0 auto 6px;"></div>
+                <div class="flex" style="align-items:center; gap:8px;">
+                    <div style="width:36px; height:36px; border:2px solid #222; display:flex; align-items:center; justify-content:center; font-size:16px;">&#9876;</div>
+                    <div class="grow">
+                        <div class="small bold">Guerrier C — Niv.8</div>
+                        <div class="flex gap-6" style="margin-top:2px;">
+                            <span class="tiny">PV 280/340</span>
+                            <span class="tiny">ATK 57</span>
+                            <span class="tiny">DEF 30</span>
+                        </div>
+                    </div>
+                    <div class="tiny muted">&#9650;</div>
+                </div>
+            </div>
+            <div class="phone-nav">
+                <div>&#127968;<br>Village</div>
+                <div>&#127795;<br>Arbre</div>
+                <div class="combat-btn active">&#9876;<br>COMBAT</div>
+                <div>&#128101;<br>Guilde</div>
+                <div>&#128176;<br>Shop</div>
+            </div>
+        </div>
+    </div>
+
+    <div>
+        <h4>Expanse (swipe up)</h4>
+        <div class="phone">
+            <div class="phone-notch">Battle 5-12</div>
+            <div class="battlefield" style="height:90px;">[ battlefield reduit ]</div>
+            <div style="padding: 6px 8px; border-top: 3px solid #222; min-height: 260px; background: #fff;">
+                <div style="width:40px; height:4px; background:#ccc; border-radius:2px; margin: 0 auto 6px;"></div>
+                <div class="flex" style="align-items:center; gap:8px; margin-bottom:6px;">
+                    <div style="width:36px; height:36px; border:2px solid #222; display:flex; align-items:center; justify-content:center; font-size:16px;">&#9876;</div>
+                    <div class="grow small bold">Guerrier C — Niv.8</div>
+                </div>
+                <div class="tab-bar" style="margin-bottom:4px;">
+                    <div class="tab tab-active" style="font-size:9px;">STATS</div>
+                    <div class="tab" style="font-size:9px;">EQUIP</div>
+                    <div class="tab" style="font-size:9px;">TRAITS</div>
+                </div>
+                <div class="scroll-area" style="max-height: 140px;">
+                    <div class="stat-row"><span class="stat-label">&#10084; PV</span><span class="stat-value">280 / 340</span></div>
+                    <div class="stat-row"><span class="stat-label">&#9876; ATK</span><span><span class="stat-value">57</span> <span class="stat-bonus">(+12)</span></span></div>
+                    <div class="stat-row"><span class="stat-label">&#128737; DEF</span><span><span class="stat-value">30</span> <span class="stat-bonus">(+8)</span></span></div>
+                    <div class="stat-row"><span class="stat-label">&#9889; VIT ATK</span><span class="stat-value">1.2/s</span></div>
+                    <div class="stat-row"><span class="stat-label">&#10084; Regen</span><span class="stat-value">2/s</span></div>
+                    <div class="stat-row"><span class="stat-label">&#9733; Crit</span><span><span class="stat-value">12%</span></span></div>
+                    <div class="stat-row"><span class="stat-label">&#127919; Portee</span><span class="stat-value">1.5</span></div>
+                    <div class="stat-row"><span class="stat-label">&#128170; Esquive</span><span class="stat-value">3%</span></div>
+                    <div class="scroll-indicator">&#9660; scroll pour plus</div>
+                </div>
+            </div>
+            <div class="phone-nav">
+                <div>&#127968;<br>Village</div>
+                <div>&#127795;<br>Arbre</div>
+                <div class="combat-btn active">&#9876;<br>COMBAT</div>
+                <div>&#128101;<br>Guilde</div>
+                <div>&#128176;<br>Shop</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<p class="pros">+ Combat visible en mode compact. Beaucoup de place en mode expanse. 3+ onglets. Scroll naturel.</p>
+<p class="cons">- Gesture drag complexe a implanter. Le joueur peut ne pas decouvrir le swipe.</p>
+
+<!-- ============================================================ -->
+<!-- PROPOSITION 3                                                 -->
+<!-- ============================================================ -->
+
+<hr>
+<h2>3. Segmented Control <span class="tag tag-ref">Archero</span> <span class="tag tag-mobile">Modern</span></h2>
+<p>Pill-button iOS-style avec highlight glissant. Stats en grille 2 colonnes, scrollable. Tap = detail.</p>
+<div class="ref">Ref: Archero, Brawl Stars, iOS natif. Feel premium.</div>
+
+<div class="duo">
+    <div>
+        <h4>Vue Stats</h4>
+        <div class="phone">
+            <div class="phone-notch">Battle 5-12</div>
+            <div class="battlefield">[ champ de bataille ]</div>
+            <div style="padding: 8px; min-height: 190px;">
+                <div style="display:flex; background:#e0e0e0; border-radius:20px; padding:3px; margin-bottom:8px;">
+                    <div style="flex:1; text-align:center; padding:5px; font-size:10px; font-weight:bold; background:#222; color:#fff; border-radius:18px;">&#9881; Stats</div>
+                    <div style="flex:1; text-align:center; padding:5px; font-size:10px; color:#555;">&#128188; Inventaire</div>
+                </div>
+                <div class="flex" style="align-items:center; gap:6px; margin-bottom:6px;">
+                    <div style="width:40px; height:40px; border:2px solid #222; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:16px; background:#f5f5f5;">&#9876;</div>
+                    <div>
+                        <div class="small bold">Guerrier Rang C</div>
+                        <div class="tiny muted">Niv.8 — 2/4</div>
+                    </div>
+                </div>
+                <div class="scroll-area" style="max-height:100px;">
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:0;">
+                        <div class="stat-row"><span class="stat-label">PV</span><span class="stat-value">280/340</span></div>
+                        <div class="stat-row"><span class="stat-label">ATK</span><span><span class="stat-value">57</span> <span class="stat-bonus">(+12)</span></span></div>
+                        <div class="stat-row"><span class="stat-label">DEF</span><span><span class="stat-value">30</span> <span class="stat-bonus">(+8)</span></span></div>
+                        <div class="stat-row"><span class="stat-label">VIT ATK</span><span class="stat-value">1.2/s</span></div>
+                        <div class="stat-row"><span class="stat-label">Regen</span><span class="stat-value">2/s</span></div>
+                        <div class="stat-row"><span class="stat-label">Crit</span><span class="stat-value">12%</span></div>
+                    </div>
+                    <div class="scroll-indicator">&#9660; scroll | tap = detail</div>
+                </div>
+            </div>
+            <div class="phone-nav">
+                <div>&#127968;<br>Village</div>
+                <div>&#127795;<br>Arbre</div>
+                <div class="combat-btn active">&#9876;<br>COMBAT</div>
+                <div>&#128101;<br>Guilde</div>
+                <div>&#128176;<br>Shop</div>
+            </div>
+        </div>
+    </div>
+
+    <div>
+        <h4>Stats avec detail ouvert</h4>
+        <div class="phone">
+            <div class="phone-notch">Battle 5-12</div>
+            <div class="battlefield">[ champ de bataille ]</div>
+            <div style="padding: 8px; min-height: 190px;">
+                <div style="display:flex; background:#e0e0e0; border-radius:20px; padding:3px; margin-bottom:8px;">
+                    <div style="flex:1; text-align:center; padding:5px; font-size:10px; font-weight:bold; background:#222; color:#fff; border-radius:18px;">&#9881; Stats</div>
+                    <div style="flex:1; text-align:center; padding:5px; font-size:10px; color:#555;">&#128188; Inventaire</div>
+                </div>
+                <div class="scroll-area" style="max-height:130px;">
+                    <div class="stat-row"><span class="stat-label">&#10084; PV</span><span class="stat-value">280/340</span></div>
+                    <div class="stat-row" style="background:#eee;"><span class="stat-label">&#9876; ATK</span><span><span class="stat-value">57</span> <span class="stat-bonus">(+12)</span></span></div>
+                    <div class="stat-detail">
+                        <div class="stat-detail-row"><span class="stat-detail-label">Base (classe Guerrier)</span><span>45</span></div>
+                        <div class="stat-detail-row"><span class="stat-detail-label">&#9876; Epee +12</span><span style="color:#2a7;">+12</span></div>
+                        <div class="stat-detail-row"><span class="stat-detail-label">Trait: Force brute</span><span style="color:#2a7;">+10%</span></div>
+                        <div class="stat-detail-row"><span class="stat-detail-label">Benediction</span><span style="color:#2a7;">+2</span></div>
+                        <div class="stat-detail-row stat-detail-total"><span>Total</span><span>57</span></div>
+                    </div>
+                    <div class="stat-row"><span class="stat-label">&#128737; DEF</span><span><span class="stat-value">30</span> <span class="stat-bonus">(+8)</span></span></div>
+                    <div class="stat-row"><span class="stat-label">&#9889; VIT ATK</span><span class="stat-value">1.2/s</span></div>
+                    <div class="scroll-indicator">&#9660; scroll</div>
+                </div>
+            </div>
+            <div class="phone-nav">
+                <div>&#127968;<br>Village</div>
+                <div>&#127795;<br>Arbre</div>
+                <div class="combat-btn active">&#9876;<br>COMBAT</div>
+                <div>&#128101;<br>Guilde</div>
+                <div>&#128176;<br>Shop</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<p class="pros">+ Moderne, smooth. Le detail s'insere inline dans le scroll. Grille 2 colonnes = compact.</p>
+<p class="cons">- Pill limiteee a 2-3 onglets max visuellement. Prop 1 en plus joli, meme limites.</p>
+
+<!-- ============================================================ -->
+<!-- PROPOSITION 4                                                 -->
+<!-- ============================================================ -->
+
+<hr>
+<h2>4. Swipe Horizontal (Pages) <span class="tag tag-ref">TFT Mobile</span></h2>
+<p>Carousel horizontal. Page 1 = stats scrollables, page 2 = equip, page 3 = traits. Dots indiquent la page. Chaque page scrolle verticalement independamment.</p>
+<div class="ref">Ref: TFT Mobile, Pokemon Unite. Naturel sur mobile.</div>
+
+<div class="duo">
+    <div>
+        <h4>Page 1 : Stats (swipe &#8594;)</h4>
+        <div class="phone">
+            <div class="phone-notch">Battle 5-12</div>
+            <div class="battlefield">[ champ de bataille ]</div>
+            <div style="padding: 8px; min-height: 190px;">
+                <div class="center" style="margin-bottom:4px;">
+                    <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#222; margin:0 3px;"></span>
+                    <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#ccc; margin:0 3px;"></span>
+                    <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#ccc; margin:0 3px;"></span>
+                </div>
+                <div class="flex" style="align-items:center; gap:8px; margin-bottom:4px;">
+                    <div style="width:40px; height:40px; border:2px solid #222; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:18px;">&#9876;</div>
+                    <div>
+                        <div class="small bold">Guerrier Rang C — Niv.8</div>
+                        <div class="tiny muted">Traits: +12% crit | -8% regen</div>
+                    </div>
+                </div>
+                <div class="scroll-area" style="max-height:100px;">
+                    <div class="stat-row"><span class="stat-label">&#10084; PV</span><span class="stat-value">280 / 340</span></div>
+                    <div class="stat-row"><span class="stat-label">&#9876; ATK</span><span><span class="stat-value">57</span> <span class="stat-bonus">(+12)</span></span></div>
+                    <div class="stat-row"><span class="stat-label">&#128737; DEF</span><span><span class="stat-value">30</span> <span class="stat-bonus">(+8)</span></span></div>
+                    <div class="stat-row"><span class="stat-label">&#9889; VIT ATK</span><span class="stat-value">1.2/s</span></div>
+                    <div class="stat-row"><span class="stat-label">&#10084; Regen</span><span class="stat-value">2/s</span></div>
+                    <div class="stat-row"><span class="stat-label">&#9733; Crit</span><span class="stat-value">12%</span></div>
+                    <div class="stat-row"><span class="stat-label">&#127919; Portee</span><span class="stat-value">1.5</span></div>
+                    <div class="scroll-indicator">&#9660; scroll | &#8594; swipe page</div>
+                </div>
+            </div>
+            <div class="phone-nav">
+                <div>&#127968;<br>Village</div>
+                <div>&#127795;<br>Arbre</div>
+                <div class="combat-btn active">&#9876;<br>COMBAT</div>
+                <div>&#128101;<br>Guilde</div>
+                <div>&#128176;<br>Shop</div>
+            </div>
+        </div>
+    </div>
+
+    <div>
+        <h4>Page 2 : Equipement</h4>
+        <div class="phone">
+            <div class="phone-notch">Battle 5-12</div>
+            <div class="battlefield">[ champ de bataille ]</div>
+            <div style="padding: 8px; min-height: 190px;">
+                <div class="center" style="margin-bottom:4px;">
+                    <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#ccc; margin:0 3px;"></span>
+                    <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#222; margin:0 3px;"></span>
+                    <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#ccc; margin:0 3px;"></span>
+                </div>
+                <div class="small bold" style="margin-bottom:4px;">&#9876; Guerrier — Equipement (2/6)</div>
+                <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:4px;">
+                    <div style="border:2px solid #222; padding:4px; border-radius:4px; text-align:center; background:#f9f9f0;">
+                        <div style="font-size:14px;">&#9876;</div>
+                        <div class="tiny bold">Epee +12</div>
+                        <div class="tiny muted">iLvl14</div>
+                    </div>
+                    <div style="border:2px solid #222; padding:4px; border-radius:4px; text-align:center; background:#f9f9f0;">
+                        <div style="font-size:14px;">&#128737;</div>
+                        <div class="tiny bold">Plate +8</div>
+                        <div class="tiny muted">iLvl10</div>
+                    </div>
+                    <div style="border:1px dashed #aaa; padding:4px; border-radius:4px; text-align:center; color:#bbb;">
+                        <div style="font-size:14px;">&#9935;</div>
+                        <div class="tiny">vide</div>
+                    </div>
+                    <div style="border:1px dashed #aaa; padding:4px; border-radius:4px; text-align:center; color:#bbb;">
+                        <div style="font-size:14px;">&#128095;</div>
+                        <div class="tiny">vide</div>
+                    </div>
+                    <div style="border:1px dashed #aaa; padding:4px; border-radius:4px; text-align:center; color:#bbb;">
+                        <div style="font-size:14px;">&#128141;</div>
+                        <div class="tiny">vide</div>
+                    </div>
+                    <div style="border:1px dashed #aaa; padding:4px; border-radius:4px; text-align:center; color:#bbb;">
+                        <div style="font-size:14px;">&#128255;</div>
+                        <div class="tiny">vide</div>
+                    </div>
+                </div>
+            </div>
+            <div class="phone-nav">
+                <div>&#127968;<br>Village</div>
+                <div>&#127795;<br>Arbre</div>
+                <div class="combat-btn active">&#9876;<br>COMBAT</div>
+                <div>&#128101;<br>Guilde</div>
+                <div>&#128176;<br>Shop</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<p class="pros">+ Pages illimitees. Chaque page scrolle independamment. Clean, pas de boutons.</p>
+<p class="cons">- Discoverability faible (pas de label visible). Conflit scroll vertical vs swipe horizontal. PC unfriendly.</p>
+
+<!-- ============================================================ -->
+<!-- PROPOSITION 5                                                 -->
+<!-- ============================================================ -->
+
+<hr>
+<h2>5. Onglets Icones (Compact) <span class="tag tag-ref">Idle Heroes</span> <span class="tag tag-best">FAVORI</span></h2>
+<p>Petits onglets icones en haut a droite du panel (sans texte). Max de place pour le contenu scrollable. Extensible a 4+ onglets. Tap stat = detail breakdown.</p>
+<div class="ref">Ref: Idle Heroes, Epic Seven, Summoners War. Le standard RPG mobile.</div>
+
+<div class="trio">
+    <div>
+        <h4>Onglet Stats &#9829;</h4>
+        <div class="phone">
+            <div class="phone-notch">Battle 5-12</div>
+            <div class="battlefield">[ champ de bataille ]</div>
+            <div style="padding: 8px; min-height: 190px;">
+                <div class="flex" style="align-items:center; gap:6px; margin-bottom:4px;">
+                    <div style="width:34px; height:34px; border:2px solid #222; border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:14px; background:#f5f5f5;">&#9876;</div>
+                    <div class="grow">
+                        <div class="small bold">Guerrier C — Niv.8</div>
+                        <div class="tiny muted">&#9664; 2/4 &#9654;</div>
+                    </div>
+                    <div class="flex gap-2">
+                        <div style="width:26px; height:26px; border:2px solid #222; background:#222; color:#fff; display:flex; align-items:center; justify-content:center; font-size:11px; border-radius:4px;">&#9829;</div>
+                        <div style="width:26px; height:26px; border:1px solid #999; display:flex; align-items:center; justify-content:center; font-size:11px; border-radius:4px;">&#9876;</div>
+                        <div style="width:26px; height:26px; border:1px solid #999; display:flex; align-items:center; justify-content:center; font-size:11px; border-radius:4px;">&#10024;</div>
+                        <div style="width:26px; height:26px; border:1px solid #999; display:flex; align-items:center; justify-content:center; font-size:11px; border-radius:4px;">&#128188;</div>
+                    </div>
+                </div>
+                <div style="border-top:1px solid #222;">
+                    <div class="scroll-area" style="max-height:120px; padding-top:2px;">
+                        <div class="stat-row"><span class="stat-label">&#10084; PV</span><span class="stat-value">280 / 340</span></div>
+                        <div class="stat-row"><span class="stat-label">&#9876; ATK</span><span><span class="stat-value">57</span> <span class="stat-bonus">(+12)</span></span></div>
+                        <div class="stat-row"><span class="stat-label">&#128737; DEF</span><span><span class="stat-value">30</span> <span class="stat-bonus">(+8)</span></span></div>
+                        <div class="stat-row"><span class="stat-label">&#9889; VIT ATK</span><span class="stat-value">1.2/s</span></div>
+                        <div class="stat-row"><span class="stat-label">&#10084; Regen</span><span class="stat-value">2/s</span></div>
+                        <div class="stat-row"><span class="stat-label">&#9733; Crit</span><span><span class="stat-value">12%</span> <span class="stat-bonus">(+12%)</span></span></div>
+                        <div class="stat-row"><span class="stat-label">&#127919; Portee</span><span class="stat-value">1.5</span></div>
+                        <div class="stat-row"><span class="stat-label">&#128170; Esquive</span><span class="stat-value">3%</span></div>
+                        <div class="scroll-indicator">&#9660; scroll | tap = detail</div>
+                    </div>
+                </div>
+            </div>
+            <div class="phone-nav">
+                <div>&#127968;<br>Village</div>
+                <div>&#127795;<br>Arbre</div>
+                <div class="combat-btn active">&#9876;<br>COMBAT</div>
+                <div>&#128101;<br>Guilde</div>
+                <div>&#128176;<br>Shop</div>
+            </div>
+        </div>
+    </div>
+
+    <div>
+        <h4>Stats avec detail ATK ouvert</h4>
+        <div class="phone">
+            <div class="phone-notch">Battle 5-12</div>
+            <div class="battlefield">[ champ de bataille ]</div>
+            <div style="padding: 8px; min-height: 190px;">
+                <div class="flex" style="align-items:center; gap:6px; margin-bottom:4px;">
+                    <div style="width:34px; height:34px; border:2px solid #222; border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:14px; background:#f5f5f5;">&#9876;</div>
+                    <div class="grow small bold">Guerrier C — Niv.8</div>
+                    <div class="flex gap-2">
+                        <div style="width:26px; height:26px; border:2px solid #222; background:#222; color:#fff; display:flex; align-items:center; justify-content:center; font-size:11px; border-radius:4px;">&#9829;</div>
+                        <div style="width:26px; height:26px; border:1px solid #999; display:flex; align-items:center; justify-content:center; font-size:11px; border-radius:4px;">&#9876;</div>
+                        <div style="width:26px; height:26px; border:1px solid #999; display:flex; align-items:center; justify-content:center; font-size:11px; border-radius:4px;">&#10024;</div>
+                        <div style="width:26px; height:26px; border:1px solid #999; display:flex; align-items:center; justify-content:center; font-size:11px; border-radius:4px;">&#128188;</div>
+                    </div>
+                </div>
+                <div style="border-top:1px solid #222;">
+                    <div class="scroll-area" style="max-height:120px; padding-top:2px;">
+                        <div class="stat-row"><span class="stat-label">&#10084; PV</span><span class="stat-value">280 / 340</span></div>
+                        <div class="stat-row" style="background:#eee; border-left:3px solid #222;">
+                            <span class="stat-label">&#9876; ATK</span>
+                            <span><span class="stat-value">57</span> <span class="stat-bonus">(+12)</span></span>
+                        </div>
+                        <div class="stat-detail">
+                            <div class="stat-detail-row"><span class="stat-detail-label">Base (Guerrier C)</span><span>45</span></div>
+                            <div class="stat-detail-row"><span class="stat-detail-label">&#9876; Epee +12</span><span style="color:#2a7;">+12</span></div>
+                            <div class="stat-detail-row"><span class="stat-detail-label">Trait: Force brute</span><span style="color:#2a7;">+10%</span></div>
+                            <div class="stat-detail-row"><span class="stat-detail-label">Arbre: ATK I</span><span style="color:#2a7;">+3</span></div>
+                            <div class="stat-detail-row stat-detail-total"><span>Total</span><span>57</span></div>
+                        </div>
+                        <div class="stat-row"><span class="stat-label">&#128737; DEF</span><span><span class="stat-value">30</span> <span class="stat-bonus">(+8)</span></span></div>
+                        <div class="stat-row"><span class="stat-label">&#9889; VIT ATK</span><span class="stat-value">1.2/s</span></div>
+                        <div class="scroll-indicator">&#9660; scroll</div>
+                    </div>
+                </div>
+            </div>
+            <div class="phone-nav">
+                <div>&#127968;<br>Village</div>
+                <div>&#127795;<br>Arbre</div>
+                <div class="combat-btn active">&#9876;<br>COMBAT</div>
+                <div>&#128101;<br>Guilde</div>
+                <div>&#128176;<br>Shop</div>
+            </div>
+        </div>
+    </div>
+
+    <div>
+        <h4>Onglet Equipement &#9876;</h4>
+        <div class="phone">
+            <div class="phone-notch">Battle 5-12</div>
+            <div class="battlefield">[ champ de bataille ]</div>
+            <div style="padding: 8px; min-height: 190px;">
+                <div class="flex" style="align-items:center; gap:6px; margin-bottom:4px;">
+                    <div style="width:34px; height:34px; border:2px solid #222; border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:14px; background:#f5f5f5;">&#9876;</div>
+                    <div class="grow small bold">Guerrier C — Niv.8</div>
+                    <div class="flex gap-2">
+                        <div style="width:26px; height:26px; border:1px solid #999; display:flex; align-items:center; justify-content:center; font-size:11px; border-radius:4px;">&#9829;</div>
+                        <div style="width:26px; height:26px; border:2px solid #222; background:#222; color:#fff; display:flex; align-items:center; justify-content:center; font-size:11px; border-radius:4px;">&#9876;</div>
+                        <div style="width:26px; height:26px; border:1px solid #999; display:flex; align-items:center; justify-content:center; font-size:11px; border-radius:4px;">&#10024;</div>
+                        <div style="width:26px; height:26px; border:1px solid #999; display:flex; align-items:center; justify-content:center; font-size:11px; border-radius:4px;">&#128188;</div>
+                    </div>
+                </div>
+                <div style="border-top:1px solid #222; padding-top:4px;">
+                    <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:4px;">
+                        <div style="border:2px solid #222; padding:4px; border-radius:4px; text-align:center; background:#f9f9f0;">
+                            <div style="font-size:14px;">&#9876;</div>
+                            <div class="tiny bold">Epee +12</div>
+                            <div class="tiny" style="color:#2a7;">ATK +12</div>
+                            <div class="tiny muted">iLvl14 &#9733;&#9733;&#9733;</div>
+                        </div>
+                        <div style="border:2px solid #222; padding:4px; border-radius:4px; text-align:center; background:#f9f9f0;">
+                            <div style="font-size:14px;">&#128737;</div>
+                            <div class="tiny bold">Plate +8</div>
+                            <div class="tiny" style="color:#48c;">DEF +8</div>
+                            <div class="tiny muted">iLvl10 &#9733;&#9733;</div>
+                        </div>
+                        <div style="border:1px dashed #aaa; padding:4px; border-radius:4px; text-align:center; color:#bbb;">
+                            <div style="font-size:14px;">&#9935;</div>
+                            <div class="tiny">Casque</div>
+                            <div class="tiny">vide</div>
+                        </div>
+                        <div style="border:1px dashed #aaa; padding:4px; border-radius:4px; text-align:center; color:#bbb;">
+                            <div style="font-size:14px;">&#128095;</div>
+                            <div class="tiny">Bottes</div>
+                            <div class="tiny">vide</div>
+                        </div>
+                        <div style="border:1px dashed #aaa; padding:4px; border-radius:4px; text-align:center; color:#bbb;">
+                            <div style="font-size:14px;">&#128141;</div>
+                            <div class="tiny">Anneau</div>
+                            <div class="tiny">vide</div>
+                        </div>
+                        <div style="border:1px dashed #aaa; padding:4px; border-radius:4px; text-align:center; color:#bbb;">
+                            <div style="font-size:14px;">&#128255;</div>
+                            <div class="tiny">Amulette</div>
+                            <div class="tiny">vide</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="phone-nav">
+                <div>&#127968;<br>Village</div>
+                <div>&#127795;<br>Arbre</div>
+                <div class="combat-btn active">&#9876;<br>COMBAT</div>
+                <div>&#128101;<br>Guilde</div>
+                <div>&#128176;<br>Shop</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<p class="pros">+ Tres compact, max de place pour le contenu. 4+ onglets facilement (Stats/Equip/Traits/Loot). Le detail inline se scroll naturellement avec le reste. Pattern prouve RPG mobile.</p>
+<p class="cons">- Icones doivent etre claires. Stats et equip pas visibles en meme temps.</p>
+
+<!-- ============================================================ -->
+<!-- PROPOSITION 6                                                 -->
+<!-- ============================================================ -->
+
+<hr>
+<h2>6. Stats Inline + Drawer Inventaire <span class="tag tag-ref">Forge Master</span></h2>
+<p>Stats scrollables toujours visibles en bas. Bouton "Sac" ouvre un drawer lateral sur le combat. Les stats ne disparaissent jamais.</p>
+<div class="ref">Ref: Forge Master, certains idle games.</div>
+
+<div class="duo">
+    <div>
+        <h4>Normal (stats visibles)</h4>
+        <div class="phone">
+            <div class="phone-notch">Battle 5-12</div>
+            <div class="battlefield">[ champ de bataille ]</div>
+            <div style="padding: 8px; min-height: 160px;">
+                <div class="flex" style="align-items:center; gap:6px; margin-bottom:4px;">
+                    <div style="width:30px; height:30px; border:2px solid #222; border-radius:4px; display:flex; align-items:center; justify-content:center; font-size:12px;">&#9876;</div>
+                    <div class="grow small bold">Guerrier C — Niv.8</div>
+                    <div class="wf-btn" style="font-size:8px; padding:3px 8px;">&#128188; SAC</div>
+                </div>
+                <div class="scroll-area" style="max-height:95px;">
+                    <div class="stat-row"><span class="stat-label">&#10084; PV</span><span class="stat-value">280/340</span></div>
+                    <div class="stat-row"><span class="stat-label">&#9876; ATK</span><span><span class="stat-value">57</span> <span class="stat-bonus">(+12)</span></span></div>
+                    <div class="stat-row"><span class="stat-label">&#128737; DEF</span><span><span class="stat-value">30</span> <span class="stat-bonus">(+8)</span></span></div>
+                    <div class="stat-row"><span class="stat-label">&#9889; VIT ATK</span><span class="stat-value">1.2/s</span></div>
+                    <div class="stat-row"><span class="stat-label">&#10084; Regen</span><span class="stat-value">2/s</span></div>
+                    <div class="stat-row"><span class="stat-label">&#9733; Crit</span><span class="stat-value">12%</span></div>
+                    <div class="scroll-indicator">&#9660; scroll | tap = detail</div>
+                </div>
+                <!-- Mini equip preview -->
+                <div class="flex gap-2" style="margin-top:4px; border-top:1px dashed #ccc; padding-top:3px;">
+                    <div style="width:22px; height:22px; border:1px solid #222; border-radius:3px; display:flex; align-items:center; justify-content:center; font-size:9px; background:#f9f9f0;">&#9876;</div>
+                    <div style="width:22px; height:22px; border:1px solid #222; border-radius:3px; display:flex; align-items:center; justify-content:center; font-size:9px; background:#f9f9f0;">&#128737;</div>
+                    <div style="width:22px; height:22px; border:1px dashed #aaa; border-radius:3px; display:flex; align-items:center; justify-content:center; font-size:7px; color:#bbb;">--</div>
+                    <div style="width:22px; height:22px; border:1px dashed #aaa; border-radius:3px; display:flex; align-items:center; justify-content:center; font-size:7px; color:#bbb;">--</div>
+                    <div class="tiny muted" style="align-self:center;">2/6</div>
+                </div>
+            </div>
+            <div class="phone-nav">
+                <div>&#127968;<br>Village</div>
+                <div>&#127795;<br>Arbre</div>
+                <div class="combat-btn active">&#9876;<br>COMBAT</div>
+                <div>&#128101;<br>Guilde</div>
+                <div>&#128176;<br>Shop</div>
+            </div>
+        </div>
+    </div>
+
+    <div>
+        <h4>Drawer ouvert</h4>
+        <div class="phone">
+            <div class="phone-notch">Battle 5-12</div>
+            <div style="height:200px; border-bottom:2px solid #222; background:#f0f0f0; position:relative;">
+                <div style="position:absolute; top:0; right:0; bottom:0; width:65%; background:rgba(255,255,255,0.97); border-left:2px solid #222; padding:8px;">
+                    <div class="flex" style="justify-content:space-between; margin-bottom:4px;">
+                        <div class="small bold">&#128188; Inventaire (6/8)</div>
+                        <span style="font-size:10px; cursor:pointer;">&#10005;</span>
+                    </div>
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:3px;">
+                        <div class="wf-box" style="flex-direction:column; font-size:7px; padding:3px;">&#9876; Epee +12<br><span class="muted">iLvl14</span></div>
+                        <div class="wf-box" style="flex-direction:column; font-size:7px; padding:3px;">&#128737; Armure +8<br><span class="muted">iLvl10</span></div>
+                        <div class="wf-box" style="flex-direction:column; font-size:7px; padding:3px;">&#127993; Arc +15<br><span class="muted">iLvl18</span></div>
+                        <div class="wf-box" style="flex-direction:column; font-size:7px; padding:3px;">&#128302; Baton +20<br><span class="muted">iLvl22</span></div>
+                        <div class="wf-box" style="flex-direction:column; font-size:7px; padding:3px;">&#128095; Bottes +5<br><span class="muted">iLvl6</span></div>
+                        <div class="wf-box" style="flex-direction:column; font-size:7px; padding:3px;">&#9935; Casque +3<br><span class="muted">iLvl4</span></div>
+                    </div>
+                </div>
+                <div style="position:absolute; left:8px; top:45%; font-size:9px; color:#aaa;">[ battle ]</div>
+            </div>
+            <div style="padding: 8px; min-height: 130px;">
+                <div class="flex" style="align-items:center; gap:6px; margin-bottom:4px;">
+                    <div style="width:30px; height:30px; border:2px solid #222; border-radius:4px; display:flex; align-items:center; justify-content:center; font-size:12px;">&#9876;</div>
+                    <div class="grow small bold">Guerrier C — Niv.8</div>
+                </div>
+                <div class="stat-row"><span class="stat-label">&#10084; PV</span><span class="stat-value">280/340</span></div>
+                <div class="stat-row"><span class="stat-label">&#9876; ATK</span><span class="stat-value">57</span></div>
+                <div class="stat-row"><span class="stat-label">&#128737; DEF</span><span class="stat-value">30</span></div>
+            </div>
+            <div class="phone-nav">
+                <div>&#127968;<br>Village</div>
+                <div>&#127795;<br>Arbre</div>
+                <div class="combat-btn active">&#9876;<br>COMBAT</div>
+                <div>&#128101;<br>Guilde</div>
+                <div>&#128176;<br>Shop</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<p class="pros">+ Stats jamais cachees. Mini-preview equip en 1 ligne. Drawer n'impacte pas le panel bas.</p>
+<p class="cons">- Deux zones interactives. Le drawer cache le combat. Plus complexe.</p>
+
+<!-- ============================================================ -->
+<!-- PROPOSITION 7                                                 -->
+<!-- ============================================================ -->
+
+<hr>
+<h2>7. Card Flip <span class="tag tag-ref">Card RPGs</span></h2>
+<p>Le panel est une carte. Tap = flip 3D. Recto = stats scrollables avec tap-detail. Verso = equipement.</p>
+<div class="ref">Ref: Hearthstone inspection, gachas. Unique et satisfaisant.</div>
+
+<div class="duo">
+    <div>
+        <h4>Recto : Stats</h4>
+        <div class="phone">
+            <div class="phone-notch">Battle 5-12</div>
+            <div class="battlefield">[ champ de bataille ]</div>
+            <div style="padding: 8px; min-height: 190px;">
+                <div style="border:2px solid #222; border-radius:8px; padding:8px; background:#fefefe; position:relative;">
+                    <div style="position:absolute; top:4px; right:6px; font-size:7px; color:#aaa;">&#8635; tap retourner</div>
+                    <div class="flex" style="gap:8px; margin-bottom:4px;">
+                        <div style="width:40px; height:48px; border:2px solid #222; border-radius:4px; display:flex; align-items:center; justify-content:center; font-size:20px; background:#f5f5f5;">&#9876;</div>
+                        <div>
+                            <div class="small bold">Guerrier Rang C</div>
+                            <div class="tiny">Niv.8 — &#9664; 2/4 &#9654;</div>
+                        </div>
+                    </div>
+                    <div class="scroll-area" style="max-height:85px;">
+                        <div class="stat-row"><span class="stat-label">&#10084; PV</span><span class="stat-value">280 / 340</span></div>
+                        <div class="stat-row"><span class="stat-label">&#9876; ATK</span><span><span class="stat-value">57</span> <span class="stat-bonus">(+12)</span></span></div>
+                        <div class="stat-row"><span class="stat-label">&#128737; DEF</span><span><span class="stat-value">30</span> <span class="stat-bonus">(+8)</span></span></div>
+                        <div class="stat-row"><span class="stat-label">&#9889; VIT ATK</span><span class="stat-value">1.2/s</span></div>
+                        <div class="stat-row"><span class="stat-label">&#10084; Regen</span><span class="stat-value">2/s</span></div>
+                        <div class="stat-row"><span class="stat-label">&#9733; Crit</span><span class="stat-value">12%</span></div>
+                        <div class="scroll-indicator">&#9660; scroll | tap stat = detail</div>
+                    </div>
+                </div>
+            </div>
+            <div class="phone-nav">
+                <div>&#127968;<br>Village</div>
+                <div>&#127795;<br>Arbre</div>
+                <div class="combat-btn active">&#9876;<br>COMBAT</div>
+                <div>&#128101;<br>Guilde</div>
+                <div>&#128176;<br>Shop</div>
+            </div>
+        </div>
+    </div>
+
+    <div>
+        <h4>Verso : Equipement</h4>
+        <div class="phone">
+            <div class="phone-notch">Battle 5-12</div>
+            <div class="battlefield">[ champ de bataille ]</div>
+            <div style="padding: 8px; min-height: 190px;">
+                <div style="border:2px solid #222; border-radius:8px; padding:8px; background:#f8f8f2; position:relative;">
+                    <div style="position:absolute; top:4px; right:6px; font-size:7px; color:#aaa;">&#8635; tap retourner</div>
+                    <div class="small bold" style="margin-bottom:6px;">&#9876; Guerrier — Equipement</div>
+                    <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:4px;">
+                        <div style="border:2px solid #222; padding:4px; border-radius:6px; text-align:center; background:#fff;">
+                            <div style="font-size:14px;">&#9876;</div>
+                            <div class="tiny bold">Epee +12</div>
+                            <div class="tiny" style="color:#2a7;">ATK+12</div>
+                        </div>
+                        <div style="border:2px solid #222; padding:4px; border-radius:6px; text-align:center; background:#fff;">
+                            <div style="font-size:14px;">&#128737;</div>
+                            <div class="tiny bold">Plate +8</div>
+                            <div class="tiny" style="color:#48c;">DEF+8</div>
+                        </div>
+                        <div style="border:1px dashed #aaa; padding:4px; border-radius:6px; text-align:center; color:#bbb;">
+                            <div style="font-size:14px;">&#9935;</div>
+                            <div class="tiny">vide</div>
+                        </div>
+                        <div style="border:1px dashed #aaa; padding:4px; border-radius:6px; text-align:center; color:#bbb;">
+                            <div style="font-size:14px;">&#128095;</div>
+                            <div class="tiny">vide</div>
+                        </div>
+                        <div style="border:1px dashed #aaa; padding:4px; border-radius:6px; text-align:center; color:#bbb;">
+                            <div style="font-size:14px;">&#128141;</div>
+                            <div class="tiny">vide</div>
+                        </div>
+                        <div style="border:1px dashed #aaa; padding:4px; border-radius:6px; text-align:center; color:#bbb;">
+                            <div style="font-size:14px;">&#128255;</div>
+                            <div class="tiny">vide</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="phone-nav">
+                <div>&#127968;<br>Village</div>
+                <div>&#127795;<br>Arbre</div>
+                <div class="combat-btn active">&#9876;<br>COMBAT</div>
+                <div>&#128101;<br>Guilde</div>
+                <div>&#128176;<br>Shop</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<p class="pros">+ Animation satisfaisante. Unique. Bonne utilisation de l'espace.</p>
+<p class="cons">- Limite a 2 vues. Pas extensible. Le flip peut etre lent en combat rapide.</p>
+
+<!-- ============================================================ -->
+<!-- PROPOSITION 8                                                 -->
+<!-- ============================================================ -->
+
+<hr>
+<h2>8. Split Panel <span class="tag tag-ref">Epic Seven</span> <span class="tag tag-best">FAVORI</span></h2>
+<p>Stats scrollables a gauche, equipement a droite. Tout visible en permanence. Tap stat = detail inline. Le cote stats scrolle independamment.</p>
+<div class="ref">Ref: Epic Seven, Raid: Shadow Legends. Optimal quand on veut tout voir.</div>
+
+<div class="duo">
+    <div>
+        <h4>Vue par defaut</h4>
+        <div class="phone">
+            <div class="phone-notch">Battle 5-12 | 3420 or</div>
+            <div class="battlefield" style="height:185px;">[ champ de bataille ]</div>
+            <div style="padding: 6px; min-height: 200px;">
+                <div class="flex" style="align-items:center; gap:6px; margin-bottom:4px; border-bottom:1px solid #222; padding-bottom:3px;">
+                    <div style="width:28px; height:28px; border:2px solid #222; border-radius:4px; display:flex; align-items:center; justify-content:center; font-size:12px;">&#9876;</div>
+                    <div class="grow small bold">Guerrier C — Niv.8</div>
+                    <div class="tiny muted">&#9664; 2/4 &#9654;</div>
+                </div>
+                <div class="flex gap-4">
+                    <!-- Left: scrollable stats -->
+                    <div class="grow" style="border-right:1px dashed #ccc; padding-right:6px;">
+                        <div class="tiny bold muted" style="margin-bottom:2px;">STATS</div>
+                        <div class="scroll-area" style="max-height:120px;">
+                            <div class="stat-row"><span class="stat-label tiny">&#10084; PV</span><span class="tiny stat-value">280/340</span></div>
+                            <div class="stat-row"><span class="stat-label tiny">&#9876; ATK</span><span class="tiny"><span class="stat-value">57</span> <span class="stat-bonus">(+12)</span></span></div>
+                            <div class="stat-row"><span class="stat-label tiny">&#128737; DEF</span><span class="tiny"><span class="stat-value">30</span> <span class="stat-bonus">(+8)</span></span></div>
+                            <div class="stat-row"><span class="stat-label tiny">&#9889; VIT</span><span class="tiny stat-value">1.2/s</span></div>
+                            <div class="stat-row"><span class="stat-label tiny">&#10084; Regen</span><span class="tiny stat-value">2/s</span></div>
+                            <div class="stat-row"><span class="stat-label tiny">&#9733; Crit</span><span class="tiny stat-value">12%</span></div>
+                            <div class="stat-row"><span class="stat-label tiny">&#127919; Portee</span><span class="tiny stat-value">1.5</span></div>
+                            <div class="scroll-indicator">&#9660; scroll | tap = detail</div>
+                        </div>
+                    </div>
+                    <!-- Right: equipment -->
+                    <div style="min-width:125px;">
+                        <div class="tiny bold muted" style="margin-bottom:2px;">EQUIP</div>
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:3px;">
+                            <div style="border:1px solid #222; padding:2px; border-radius:3px; text-align:center; background:#f9f9f0;">
+                                <div style="font-size:11px;">&#9876;</div>
+                                <div style="font-size:7px;">Epee +12</div>
+                            </div>
+                            <div style="border:1px solid #222; padding:2px; border-radius:3px; text-align:center; background:#f9f9f0;">
+                                <div style="font-size:11px;">&#128737;</div>
+                                <div style="font-size:7px;">Plate +8</div>
+                            </div>
+                            <div style="border:1px dashed #aaa; padding:2px; border-radius:3px; text-align:center; color:#bbb;">
+                                <div style="font-size:11px;">&#9935;</div>
+                                <div style="font-size:7px;">--</div>
+                            </div>
+                            <div style="border:1px dashed #aaa; padding:2px; border-radius:3px; text-align:center; color:#bbb;">
+                                <div style="font-size:11px;">&#128095;</div>
+                                <div style="font-size:7px;">--</div>
+                            </div>
+                            <div style="border:1px dashed #aaa; padding:2px; border-radius:3px; text-align:center; color:#bbb;">
+                                <div style="font-size:11px;">&#128141;</div>
+                                <div style="font-size:7px;">--</div>
+                            </div>
+                            <div style="border:1px dashed #aaa; padding:2px; border-radius:3px; text-align:center; color:#bbb;">
+                                <div style="font-size:11px;">&#128255;</div>
+                                <div style="font-size:7px;">--</div>
+                            </div>
+                        </div>
+                        <div style="margin-top:4px; border-top:1px dotted #ccc; padding-top:2px;">
+                            <div class="tiny" style="color:#2a7;">+12% crit</div>
+                            <div class="tiny" style="color:#c44;">-8% regen</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="phone-nav">
+                <div>&#127968;<br>Village</div>
+                <div>&#127795;<br>Arbre</div>
+                <div class="combat-btn active">&#9876;<br>COMBAT</div>
+                <div>&#128101;<br>Guilde</div>
+                <div>&#128176;<br>Shop</div>
+            </div>
+        </div>
+    </div>
+
+    <div>
+        <h4>Avec detail ATK ouvert</h4>
+        <div class="phone">
+            <div class="phone-notch">Battle 5-12 | 3420 or</div>
+            <div class="battlefield" style="height:185px;">[ champ de bataille ]</div>
+            <div style="padding: 6px; min-height: 200px;">
+                <div class="flex" style="align-items:center; gap:6px; margin-bottom:4px; border-bottom:1px solid #222; padding-bottom:3px;">
+                    <div style="width:28px; height:28px; border:2px solid #222; border-radius:4px; display:flex; align-items:center; justify-content:center; font-size:12px;">&#9876;</div>
+                    <div class="grow small bold">Guerrier C — Niv.8</div>
+                </div>
+                <div class="flex gap-4">
+                    <div class="grow" style="border-right:1px dashed #ccc; padding-right:6px;">
+                        <div class="tiny bold muted" style="margin-bottom:2px;">STATS</div>
+                        <div class="scroll-area" style="max-height:120px;">
+                            <div class="stat-row"><span class="stat-label tiny">&#10084; PV</span><span class="tiny stat-value">280/340</span></div>
+                            <div class="stat-row" style="background:#eee; border-left:2px solid #222;">
+                                <span class="stat-label tiny">&#9876; ATK</span>
+                                <span class="tiny"><span class="stat-value">57</span> <span class="stat-bonus">(+12)</span></span>
+                            </div>
+                            <div class="stat-detail" style="font-size:8px;">
+                                <div class="stat-detail-row"><span class="stat-detail-label">Base</span><span>45</span></div>
+                                <div class="stat-detail-row"><span class="stat-detail-label">Epee +12</span><span style="color:#2a7;">+12</span></div>
+                                <div class="stat-detail-row"><span class="stat-detail-label">Trait</span><span style="color:#2a7;">+10%</span></div>
+                                <div class="stat-detail-row stat-detail-total"><span>Total</span><span>57</span></div>
+                            </div>
+                            <div class="stat-row"><span class="stat-label tiny">&#128737; DEF</span><span class="tiny stat-value">30</span></div>
+                            <div class="stat-row"><span class="stat-label tiny">&#9889; VIT</span><span class="tiny stat-value">1.2/s</span></div>
+                            <div class="scroll-indicator">&#9660; scroll</div>
+                        </div>
+                    </div>
+                    <div style="min-width:125px;">
+                        <div class="tiny bold muted" style="margin-bottom:2px;">EQUIP</div>
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:3px;">
+                            <div style="border:1px solid #222; padding:2px; border-radius:3px; text-align:center; background:#f9f9f0;">
+                                <div style="font-size:11px;">&#9876;</div>
+                                <div style="font-size:7px;">Epee +12</div>
+                            </div>
+                            <div style="border:1px solid #222; padding:2px; border-radius:3px; text-align:center; background:#f9f9f0;">
+                                <div style="font-size:11px;">&#128737;</div>
+                                <div style="font-size:7px;">Plate +8</div>
+                            </div>
+                            <div style="border:1px dashed #aaa; padding:2px; border-radius:3px; text-align:center; color:#bbb;">
+                                <div style="font-size:11px;">&#9935;</div>
+                                <div style="font-size:7px;">--</div>
+                            </div>
+                            <div style="border:1px dashed #aaa; padding:2px; border-radius:3px; text-align:center; color:#bbb;">
+                                <div style="font-size:11px;">&#128095;</div>
+                                <div style="font-size:7px;">--</div>
+                            </div>
+                            <div style="border:1px dashed #aaa; padding:2px; border-radius:3px; text-align:center; color:#bbb;">
+                                <div style="font-size:11px;">&#128141;</div>
+                                <div style="font-size:7px;">--</div>
+                            </div>
+                            <div style="border:1px dashed #aaa; padding:2px; border-radius:3px; text-align:center; color:#bbb;">
+                                <div style="font-size:11px;">&#128255;</div>
+                                <div style="font-size:7px;">--</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="phone-nav">
+                <div>&#127968;<br>Village</div>
+                <div>&#127795;<br>Arbre</div>
+                <div class="combat-btn active">&#9876;<br>COMBAT</div>
+                <div>&#128101;<br>Guilde</div>
+                <div>&#128176;<br>Shop</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<p class="pros">+ Tout visible en permanence. Le detail s'ouvre dans le scroll gauche sans bouger l'equip. Zero switch.</p>
+<p class="cons">- Chaque colonne est etroite. Pas extensible a 3+ vues sans redesign. Le panel doit etre assez haut.</p>
+
+<!-- ============================================================ -->
+<!-- PROPOSITION 9                                                 -->
+<!-- ============================================================ -->
+
+<hr>
+<h2>9. Radial / Mannequin <span class="tag tag-ref">Diablo-like</span></h2>
+<p>Perso au centre, slots d'equip autour. Stats scrollables a gauche. Tap stat = detail. Tap slot = items compatibles.</p>
+<div class="ref">Ref: Diablo, Path of Exile. Familier pour joueurs RPG.</div>
+
+<div class="duo">
+    <div>
+        <h4>Layout Mannequin</h4>
+        <div class="phone">
+            <div class="phone-notch">Battle 5-12</div>
+            <div class="battlefield" style="height:165px;">[ champ de bataille ]</div>
+            <div style="padding: 6px; min-height: 220px;">
+                <div class="small bold center" style="margin-bottom:4px;">Guerrier Rang C — Niv.8</div>
+                <div class="flex">
+                    <!-- Stats -->
+                    <div style="width:85px;">
+                        <div class="scroll-area" style="max-height:140px; font-size:8px;">
+                            <div class="stat-row" style="font-size:8px;"><span>PV</span><span>280/340</span></div>
+                            <div class="stat-row" style="font-size:8px;"><span>ATK</span><span>57 <span class="stat-bonus">(+12)</span></span></div>
+                            <div class="stat-row" style="font-size:8px;"><span>DEF</span><span>30 <span class="stat-bonus">(+8)</span></span></div>
+                            <div class="stat-row" style="font-size:8px;"><span>VIT</span><span>1.2/s</span></div>
+                            <div class="stat-row" style="font-size:8px;"><span>Regen</span><span>2/s</span></div>
+                            <div class="stat-row" style="font-size:8px;"><span>Crit</span><span>12%</span></div>
+                            <div class="stat-row" style="font-size:8px;"><span>Portee</span><span>1.5</span></div>
+                            <div class="scroll-indicator" style="font-size:6px;">&#9660; scroll</div>
+                        </div>
+                        <div style="margin-top:3px; font-size:7px;">
+                            <div style="color:#2a7;">+12% crit</div>
+                            <div style="color:#c44;">-8% regen</div>
+                        </div>
+                    </div>
+                    <!-- Mannequin -->
+                    <div class="grow center" style="position:relative; min-height:140px;">
+                        <div style="position:absolute; top:0; left:50%; transform:translateX(-50%);">
+                            <div style="width:26px; height:26px; border:1px dashed #aaa; border-radius:3px; display:flex; align-items:center; justify-content:center; color:#bbb; font-size:9px;">&#9935;</div>
+                        </div>
+                        <div style="position:absolute; top:28px; left:50%; transform:translateX(-50%); width:38px; height:56px; border:2px solid #222; border-radius:4px; display:flex; align-items:center; justify-content:center; font-size:20px; background:#f5f5f5;">&#9876;</div>
+                        <div style="position:absolute; top:38px; left:2px;">
+                            <div style="width:26px; height:26px; border:2px solid #222; border-radius:3px; display:flex; align-items:center; justify-content:center; font-size:9px; background:#f9f9f0;">&#9876;</div>
+                        </div>
+                        <div style="position:absolute; top:38px; right:2px;">
+                            <div style="width:26px; height:26px; border:2px solid #222; border-radius:3px; display:flex; align-items:center; justify-content:center; font-size:9px; background:#f9f9f0;">&#128737;</div>
+                        </div>
+                        <div style="position:absolute; bottom:12px; left:10px;">
+                            <div style="width:22px; height:22px; border:1px dashed #aaa; border-radius:3px; display:flex; align-items:center; justify-content:center; color:#bbb; font-size:8px;">&#128141;</div>
+                        </div>
+                        <div style="position:absolute; bottom:0; left:50%; transform:translateX(-50%);">
+                            <div style="width:26px; height:26px; border:1px dashed #aaa; border-radius:3px; display:flex; align-items:center; justify-content:center; color:#bbb; font-size:9px;">&#128095;</div>
+                        </div>
+                        <div style="position:absolute; bottom:12px; right:10px;">
+                            <div style="width:22px; height:22px; border:1px dashed #aaa; border-radius:3px; display:flex; align-items:center; justify-content:center; color:#bbb; font-size:8px;">&#128255;</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="phone-nav">
+                <div>&#127968;<br>Village</div>
+                <div>&#127795;<br>Arbre</div>
+                <div class="combat-btn active">&#9876;<br>COMBAT</div>
+                <div>&#128101;<br>Guilde</div>
+                <div>&#128176;<br>Shop</div>
+            </div>
+        </div>
+    </div>
+
+    <div>
+        <h4>Tap sur ATK = detail</h4>
+        <div class="phone">
+            <div class="phone-notch">Battle 5-12</div>
+            <div class="battlefield" style="height:165px;">[ champ de bataille ]</div>
+            <div style="padding: 6px; min-height: 220px;">
+                <div class="small bold center" style="margin-bottom:4px;">Guerrier Rang C — Niv.8</div>
+                <div class="flex">
+                    <div style="width:85px;">
+                        <div class="scroll-area" style="max-height:140px; font-size:8px;">
+                            <div class="stat-row" style="font-size:8px;"><span>PV</span><span>280/340</span></div>
+                            <div class="stat-row" style="font-size:8px; background:#eee; border-left:2px solid #222;"><span>ATK</span><span>57</span></div>
+                            <div class="stat-detail" style="font-size:7px;">
+                                <div class="stat-detail-row"><span class="stat-detail-label">Base</span><span>45</span></div>
+                                <div class="stat-detail-row"><span class="stat-detail-label">Epee</span><span style="color:#2a7;">+12</span></div>
+                                <div class="stat-detail-row"><span class="stat-detail-label">Trait</span><span style="color:#2a7;">+10%</span></div>
+                                <div class="stat-detail-row stat-detail-total"><span>Total</span><span>57</span></div>
+                            </div>
+                            <div class="stat-row" style="font-size:8px;"><span>DEF</span><span>30</span></div>
+                            <div class="stat-row" style="font-size:8px;"><span>VIT</span><span>1.2/s</span></div>
+                            <div class="scroll-indicator" style="font-size:6px;">&#9660;</div>
+                        </div>
+                    </div>
+                    <div class="grow center" style="position:relative; min-height:140px;">
+                        <div style="position:absolute; top:28px; left:50%; transform:translateX(-50%); width:38px; height:56px; border:2px solid #222; border-radius:4px; display:flex; align-items:center; justify-content:center; font-size:20px; background:#f5f5f5;">&#9876;</div>
+                        <div style="position:absolute; top:0; left:50%; transform:translateX(-50%);">
+                            <div style="width:26px; height:26px; border:1px dashed #aaa; border-radius:3px; display:flex; align-items:center; justify-content:center; color:#bbb; font-size:9px;">&#9935;</div>
+                        </div>
+                        <div style="position:absolute; top:38px; left:2px;">
+                            <div style="width:26px; height:26px; border:2px solid #222; border-radius:3px; display:flex; align-items:center; justify-content:center; font-size:9px; background:#f9f9f0;">&#9876;</div>
+                        </div>
+                        <div style="position:absolute; top:38px; right:2px;">
+                            <div style="width:26px; height:26px; border:2px solid #222; border-radius:3px; display:flex; align-items:center; justify-content:center; font-size:9px; background:#f9f9f0;">&#128737;</div>
+                        </div>
+                        <div style="position:absolute; bottom:12px; left:10px;">
+                            <div style="width:22px; height:22px; border:1px dashed #aaa; border-radius:3px; display:flex; align-items:center; justify-content:center; color:#bbb; font-size:8px;">&#128141;</div>
+                        </div>
+                        <div style="position:absolute; bottom:0; left:50%; transform:translateX(-50%);">
+                            <div style="width:26px; height:26px; border:1px dashed #aaa; border-radius:3px; display:flex; align-items:center; justify-content:center; color:#bbb; font-size:9px;">&#128095;</div>
+                        </div>
+                        <div style="position:absolute; bottom:12px; right:10px;">
+                            <div style="width:22px; height:22px; border:1px dashed #aaa; border-radius:3px; display:flex; align-items:center; justify-content:center; color:#bbb; font-size:8px;">&#128255;</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="phone-nav">
+                <div>&#127968;<br>Village</div>
+                <div>&#127795;<br>Arbre</div>
+                <div class="combat-btn active">&#9876;<br>COMBAT</div>
+                <div>&#128101;<br>Guilde</div>
+                <div>&#128176;<br>Shop</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<p class="pros">+ Intuitif RPG. Stats scrollent a cote du mannequin. Detail inline fonctionne bien dans la colonne etroite.</p>
+<p class="cons">- Prend beaucoup de place. Slots minuscules sur mobile. Positionnement absolu = fragile en responsive.</p>
+
+<!-- ============================================================ -->
+<!-- PROPOSITION 10                                                -->
+<!-- ============================================================ -->
+
+<hr>
+<h2>10. Mini-Stats + Popup Detail <span class="tag tag-ref">Auto Chess</span></h2>
+<p>Panel compact = liste equipe (1 ligne par perso, resume). Tap = popup plein ecran avec stats scrollables, detail au tap, onglets complets.</p>
+<div class="ref">Ref: Auto Chess, Dota Underlords. Max combat visible, detail a la demande.</div>
+
+<div class="duo">
+    <div>
+        <h4>Compact (pendant le combat)</h4>
+        <div class="phone">
+            <div class="phone-notch">Battle 5-12</div>
+            <div class="battlefield" style="height:265px;">[ champ de bataille — tres grand ]</div>
+            <div style="padding: 6px; min-height: 90px;">
+                <div class="tiny bold muted" style="margin-bottom:3px;">EQUIPE — tap pour detail</div>
+                <div style="border:1px solid #222; padding:4px; margin-bottom:2px; display:flex; align-items:center; gap:6px; background:#fff;">
+                    <div style="width:22px; height:22px; border:2px solid #c44; border-radius:4px; display:flex; align-items:center; justify-content:center; font-size:10px; background:#fff5f5;">&#9876;</div>
+                    <span class="tiny bold">Guerrier C8</span>
+                    <span class="tiny grow" style="text-align:right;">PV 280/340 | ATK 57 | DEF 30</span>
+                </div>
+                <div style="border:1px solid #222; padding:4px; margin-bottom:2px; display:flex; align-items:center; gap:6px;">
+                    <div style="width:22px; height:22px; border:1px solid #222; border-radius:4px; display:flex; align-items:center; justify-content:center; font-size:10px;">&#128737;</div>
+                    <span class="tiny bold">Tank D5</span>
+                    <span class="tiny grow" style="text-align:right;">PV 520/520 | ATK 22 | DEF 55</span>
+                </div>
+                <div style="border:1px solid #222; padding:4px; margin-bottom:2px; display:flex; align-items:center; gap:6px;">
+                    <div style="width:22px; height:22px; border:1px solid #222; border-radius:4px; display:flex; align-items:center; justify-content:center; font-size:10px;">&#10014;</div>
+                    <span class="tiny bold">Healer E3</span>
+                    <span class="tiny grow" style="text-align:right;">PV 180/200 | ATK 15 | DEF 10</span>
+                </div>
+            </div>
+            <div class="phone-nav">
+                <div>&#127968;<br>Village</div>
+                <div>&#127795;<br>Arbre</div>
+                <div class="combat-btn active">&#9876;<br>COMBAT</div>
+                <div>&#128101;<br>Guilde</div>
+                <div>&#128176;<br>Shop</div>
+            </div>
+        </div>
+    </div>
+
+    <div>
+        <h4>Popup detail (tap Guerrier)</h4>
+        <div class="phone">
+            <div class="phone-notch">Battle 5-12</div>
+            <div style="min-height: 395px; padding: 8px; background: rgba(250,250,250,0.98);">
+                <div class="flex" style="justify-content:space-between; margin-bottom:4px;">
+                    <div class="small bold">&#9876; Guerrier Rang C — Niv.8</div>
+                    <span style="font-size:10px; cursor:pointer; border:1px solid #222; padding:1px 5px;">&#10005;</span>
+                </div>
+                <div class="tab-bar" style="margin-bottom:4px;">
+                    <div class="tab tab-active" style="font-size:9px;">STATS</div>
+                    <div class="tab" style="font-size:9px;">EQUIP</div>
+                    <div class="tab" style="font-size:9px;">TRAITS</div>
+                    <div class="tab" style="font-size:9px;">LOOT</div>
+                </div>
+                <!-- Full scrollable stats -->
+                <div class="scroll-area" style="max-height: 260px;">
+                    <div class="stat-row"><span class="stat-label">&#10084; PV</span><span class="stat-value">280 / 340</span></div>
+                    <div class="stat-row" style="background:#eee; border-left:3px solid #222;">
+                        <span class="stat-label">&#9876; ATK</span>
+                        <span><span class="stat-value">57</span> <span class="stat-bonus">(+12)</span></span>
+                    </div>
+                    <div class="stat-detail">
+                        <div class="stat-detail-row"><span class="stat-detail-label">Base (Guerrier C)</span><span>45</span></div>
+                        <div class="stat-detail-row"><span class="stat-detail-label">&#9876; Epee +12</span><span style="color:#2a7;">+12</span></div>
+                        <div class="stat-detail-row"><span class="stat-detail-label">Trait: Force brute</span><span style="color:#2a7;">+10%</span></div>
+                        <div class="stat-detail-row"><span class="stat-detail-label">Arbre: ATK I</span><span style="color:#2a7;">+3</span></div>
+                        <div class="stat-detail-row"><span class="stat-detail-label">Benediction</span><span style="color:#2a7;">+2</span></div>
+                        <div class="stat-detail-row stat-detail-total"><span>Total</span><span>57</span></div>
+                    </div>
+                    <div class="stat-row"><span class="stat-label">&#128737; DEF</span><span><span class="stat-value">30</span> <span class="stat-bonus">(+8)</span></span></div>
+                    <div class="stat-row"><span class="stat-label">&#9889; VIT ATK</span><span class="stat-value">1.2/s</span></div>
+                    <div class="stat-row"><span class="stat-label">&#10084; Regen PV</span><span class="stat-value">2/s</span></div>
+                    <div class="stat-row"><span class="stat-label">&#9733; Crit</span><span><span class="stat-value">12%</span> <span class="stat-bonus">(+12%)</span></span></div>
+                    <div class="stat-row"><span class="stat-label">&#127919; Portee</span><span class="stat-value">1.5</span></div>
+                    <div class="stat-row"><span class="stat-label">&#128170; Esquive</span><span class="stat-value">3%</span></div>
+                    <div class="stat-row"><span class="stat-label">&#128293; Degats feu</span><span class="stat-value">0</span></div>
+                    <div class="stat-row"><span class="stat-label">&#10052; Degats glace</span><span class="stat-value">0</span></div>
+                    <div class="scroll-indicator">&#9660; scroll | tap = detail</div>
+                </div>
+                <!-- Mini equip preview -->
+                <div style="border-top:1px solid #222; margin-top:4px; padding-top:4px;">
+                    <div class="tiny bold muted" style="margin-bottom:2px;">Equip. rapide :</div>
+                    <div class="flex gap-2">
+                        <div style="width:26px; height:26px; border:1px solid #222; border-radius:3px; display:flex; align-items:center; justify-content:center; font-size:9px; background:#f9f9f0;">&#9876;</div>
+                        <div style="width:26px; height:26px; border:1px solid #222; border-radius:3px; display:flex; align-items:center; justify-content:center; font-size:9px; background:#f9f9f0;">&#128737;</div>
+                        <div style="width:26px; height:26px; border:1px dashed #aaa; border-radius:3px; display:flex; align-items:center; justify-content:center; font-size:7px; color:#bbb;">--</div>
+                        <div style="width:26px; height:26px; border:1px dashed #aaa; border-radius:3px; display:flex; align-items:center; justify-content:center; font-size:7px; color:#bbb;">--</div>
+                        <div style="width:26px; height:26px; border:1px dashed #aaa; border-radius:3px; display:flex; align-items:center; justify-content:center; font-size:7px; color:#bbb;">--</div>
+                        <div style="width:26px; height:26px; border:1px dashed #aaa; border-radius:3px; display:flex; align-items:center; justify-content:center; font-size:7px; color:#bbb;">--</div>
+                    </div>
+                </div>
+            </div>
+            <div class="phone-nav">
+                <div>&#127968;<br>Village</div>
+                <div>&#127795;<br>Arbre</div>
+                <div class="combat-btn active">&#9876;<br>COMBAT</div>
+                <div>&#128101;<br>Guilde</div>
+                <div>&#128176;<br>Shop</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<p class="pros">+ Max place pour le combat. La popup a tout l'espace. Le detail breakdown a de la place pour etre complet. 4 onglets dans popup. Vue equipe entiere d'un coup.</p>
+<p class="cons">- 2 taps pour acceder au detail. La popup cache le combat. Fermeture manuelle.</p>
+
+<!-- ============================================================ -->
+<!-- TABLEAU COMPARATIF                                            -->
+<!-- ============================================================ -->
+
+<hr class="page-break">
+<h2>Tableau Comparatif</h2>
+
+<table class="compare">
+    <tr>
+        <th>#</th>
+        <th>Nom</th>
+        <th>Ref</th>
+        <th>Stats+Equip simultanees</th>
+        <th>Extensible 3+ onglets</th>
+        <th>Scroll stats</th>
+        <th>Detail au tap</th>
+        <th>Complexite</th>
+    </tr>
+    <tr>
+        <td>1</td><td>Toggle Classique</td><td>Forge Master</td>
+        <td>Non</td><td>Oui</td><td>Oui</td><td>Oui</td><td>Faible</td>
+    </tr>
+    <tr>
+        <td>2</td><td>Bottom Sheet</td><td>AFK Arena</td>
+        <td>Partiel</td><td>Oui</td><td>Oui</td><td>Oui</td><td>Moyenne</td>
+    </tr>
+    <tr>
+        <td>3</td><td>Segmented Control</td><td>Archero</td>
+        <td>Non</td><td>2-3 max</td><td>Oui</td><td>Oui</td><td>Faible</td>
+    </tr>
+    <tr>
+        <td>4</td><td>Swipe Horizontal</td><td>TFT Mobile</td>
+        <td>Non</td><td>Illimite</td><td>Oui</td><td>Oui</td><td>Moyenne</td>
+    </tr>
+    <tr style="background:#f0f5f0;">
+        <td><strong>5</strong></td><td><strong>Onglets Icones</strong></td><td><strong>Idle Heroes</strong></td>
+        <td>Non</td><td><strong>4+ facile</strong></td><td><strong>Oui</strong></td><td><strong>Oui</strong></td><td>Faible</td>
+    </tr>
+    <tr>
+        <td>6</td><td>Stats + Drawer</td><td>Forge Master</td>
+        <td>Oui</td><td>Non</td><td>Oui</td><td>Oui</td><td>Elevee</td>
+    </tr>
+    <tr>
+        <td>7</td><td>Card Flip</td><td>Card RPGs</td>
+        <td>Non</td><td>Non (2)</td><td>Oui</td><td>Oui</td><td>Moyenne</td>
+    </tr>
+    <tr style="background:#f0f5f0;">
+        <td><strong>8</strong></td><td><strong>Split Panel</strong></td><td><strong>Epic Seven</strong></td>
+        <td><strong>Oui</strong></td><td>Non</td><td><strong>Oui (gauche)</strong></td><td><strong>Oui</strong></td><td>Faible</td>
+    </tr>
+    <tr>
+        <td>9</td><td>Radial/Mannequin</td><td>Diablo</td>
+        <td>Oui</td><td>Non</td><td>Oui</td><td>Oui</td><td>Elevee</td>
+    </tr>
+    <tr>
+        <td>10</td><td>Mini + Popup</td><td>Auto Chess</td>
+        <td>Dans popup</td><td>Dans popup</td><td>Oui</td><td>Oui</td><td>Moyenne</td>
+    </tr>
+</table>
+
+<!-- ============================================================ -->
+<!-- RECOMMANDATION                                                -->
+<!-- ============================================================ -->
+
+<hr>
+<h2>Recommandation : Hybride 5 + 8</h2>
+
+<p><strong>Onglets icones (Prop 5)</strong> pour la navigation + <strong>premier onglet en split Stats/Equip (Prop 8)</strong>. Stats scrollables a gauche avec tap-to-detail, equip a droite. Onglets suivants = Traits, Loot.</p>
+
+<div class="phone" style="margin-top:15px;">
+    <div class="phone-notch">HYBRIDE 5+8 — RECOMMANDE</div>
+    <div class="battlefield" style="height:175px;">[ champ de bataille ]</div>
+    <div style="padding: 6px; min-height: 210px;">
+        <div class="flex" style="align-items:center; gap:6px; margin-bottom:4px;">
+            <div style="width:32px; height:32px; border:2px solid #222; border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:14px; background:#f5f5f5;">&#9876;</div>
+            <div class="grow">
+                <div class="small bold">Guerrier C — Niv.8</div>
+                <div class="tiny muted">&#9664; 2/4 &#9654;</div>
+            </div>
+            <div class="flex gap-2">
+                <div style="width:24px; height:24px; border:2px solid #222; background:#222; color:#fff; display:flex; align-items:center; justify-content:center; font-size:10px; border-radius:4px;">&#9829;</div>
+                <div style="width:24px; height:24px; border:1px solid #999; display:flex; align-items:center; justify-content:center; font-size:10px; border-radius:4px;">&#10024;</div>
+                <div style="width:24px; height:24px; border:1px solid #999; display:flex; align-items:center; justify-content:center; font-size:10px; border-radius:4px;">&#128188;</div>
+            </div>
+        </div>
+        <div style="border-top:1px solid #222; padding-top:4px;">
+            <div class="flex gap-4">
+                <!-- Left: scrollable stats with detail -->
+                <div class="grow" style="border-right:1px dashed #ccc; padding-right:6px;">
+                    <div class="tiny bold muted" style="margin-bottom:2px;">STATS</div>
+                    <div class="scroll-area" style="max-height:125px;">
+                        <div class="stat-row"><span class="stat-label tiny">&#10084; PV</span><span class="tiny stat-value">280/340</span></div>
+                        <div class="stat-row" style="background:#eee; border-left:2px solid #222;">
+                            <span class="stat-label tiny">&#9876; ATK</span>
+                            <span class="tiny"><span class="stat-value">57</span> <span class="stat-bonus">(+12)</span></span>
+                        </div>
+                        <div class="stat-detail" style="font-size:8px;">
+                            <div class="stat-detail-row"><span class="stat-detail-label">Base</span><span>45</span></div>
+                            <div class="stat-detail-row"><span class="stat-detail-label">Epee +12</span><span style="color:#2a7;">+12</span></div>
+                            <div class="stat-detail-row"><span class="stat-detail-label">Trait</span><span style="color:#2a7;">+10%</span></div>
+                            <div class="stat-detail-row stat-detail-total"><span>Total</span><span>57</span></div>
+                        </div>
+                        <div class="stat-row"><span class="stat-label tiny">&#128737; DEF</span><span class="tiny"><span class="stat-value">30</span> <span class="stat-bonus">(+8)</span></span></div>
+                        <div class="stat-row"><span class="stat-label tiny">&#9889; VIT</span><span class="tiny stat-value">1.2/s</span></div>
+                        <div class="stat-row"><span class="stat-label tiny">&#10084; Regen</span><span class="tiny stat-value">2/s</span></div>
+                        <div class="stat-row"><span class="stat-label tiny">&#9733; Crit</span><span class="tiny stat-value">12%</span></div>
+                        <div class="scroll-indicator">&#9660; scroll | tap = detail</div>
+                    </div>
+                </div>
+                <!-- Right: equipment -->
+                <div style="min-width:120px;">
+                    <div class="tiny bold muted" style="margin-bottom:2px;">EQUIP</div>
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:3px;">
+                        <div style="border:1px solid #222; padding:2px; border-radius:3px; text-align:center; background:#f9f9f0;">
+                            <div style="font-size:11px;">&#9876;</div>
+                            <div style="font-size:7px;">Epee +12</div>
+                        </div>
+                        <div style="border:1px solid #222; padding:2px; border-radius:3px; text-align:center; background:#f9f9f0;">
+                            <div style="font-size:11px;">&#128737;</div>
+                            <div style="font-size:7px;">Plate +8</div>
+                        </div>
+                        <div style="border:1px dashed #aaa; padding:2px; border-radius:3px; text-align:center; color:#bbb;">
+                            <div style="font-size:11px;">&#9935;</div>
+                            <div style="font-size:7px;">--</div>
+                        </div>
+                        <div style="border:1px dashed #aaa; padding:2px; border-radius:3px; text-align:center; color:#bbb;">
+                            <div style="font-size:11px;">&#128095;</div>
+                            <div style="font-size:7px;">--</div>
+                        </div>
+                        <div style="border:1px dashed #aaa; padding:2px; border-radius:3px; text-align:center; color:#bbb;">
+                            <div style="font-size:11px;">&#128141;</div>
+                            <div style="font-size:7px;">--</div>
+                        </div>
+                        <div style="border:1px dashed #aaa; padding:2px; border-radius:3px; text-align:center; color:#bbb;">
+                            <div style="font-size:11px;">&#128255;</div>
+                            <div style="font-size:7px;">--</div>
+                        </div>
+                    </div>
+                    <div style="margin-top:4px; border-top:1px dotted #ccc; padding-top:2px;">
+                        <div class="tiny" style="color:#2a7;">+12% crit</div>
+                        <div class="tiny" style="color:#c44;">-8% regen</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="phone-nav">
+        <div>&#127968;<br>Village</div>
+        <div>&#127795;<br>Arbre</div>
+        <div class="combat-btn active">&#9876;<br>COMBAT</div>
+        <div>&#128101;<br>Guilde</div>
+        <div>&#128176;<br>Shop</div>
+    </div>
+</div>
+
+<div style="margin-top:40px; border-top:2px solid #222; padding-top:15px; font-size:12px; color:#777; text-align:center;">
+    Propositions UI v2 — Stats / Inventaire — Roguelite Auto-Battler 2D
+</div>
+
+</body>
+</html>

@@ -69,7 +69,7 @@ namespace RogueliteAutoBattler.Editor
             UIScreen[] tabScreens = CreateTabPanels(gameArea.transform);
 
             GameObject infoArea = EditorUIFactory.CreateArea(canvasGo.transform, "InfoArea", NavRatio, InfoTop, Color.clear);
-            UIScreen defaultInfoScreen = CreateInfoPanel(infoArea.transform, "CombatInfo", "INVENTAIRE / STATS", InfoBg, true);
+            UIScreen defaultInfoScreen = CombatInfoBuilder.CreateCombatInfo(infoArea.transform);
             UIScreen[] infoScreens = CreateTabInfoPanels(infoArea.transform);
 
             GameObject navBar = CreateNavBar(canvasGo.transform);
