@@ -203,13 +203,16 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             yield return null;
 
             _selectionManager.SimulateClickAtWorldPos(new Vector2(0f, 0f));
-            yield return new WaitForSeconds(0.5f);
+            yield return new WaitForSeconds(2f);
+
+            for (int i = 0; i < AllyStatsPanelTestFixture.StatRowCount; i++)
+                Assert.AreEqual(1f, _panel.StatRowAlpha(i), 0.01f, $"StatRow {i} should be fully visible before deselect");
 
             _selectionManager.SimulateClickAtWorldPos(new Vector2(100f, 100f));
             yield return null;
 
             for (int i = 0; i < AllyStatsPanelTestFixture.StatRowCount; i++)
-                Assert.AreEqual(1f, _panel.StatRowAlpha(i), 0.01f, $"StatRow {i} should stay visible");
+                Assert.AreEqual(1f, _panel.StatRowAlpha(i), 0.01f, $"StatRow {i} should stay visible after deselect");
         }
     }
 }
