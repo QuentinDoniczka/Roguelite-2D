@@ -18,7 +18,6 @@ namespace RogueliteAutoBattler.Tests.PlayMode
         private Image[] _tabButtonImages;
         private Color _activeColor;
         private Color _inactiveColor;
-        private GameObject _allyGo;
         private CombatStats _combatStats;
 
         private const int TabCount = 3;
@@ -35,12 +34,12 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             _activeColor = fixture.ActiveTabColor;
             _inactiveColor = fixture.InactiveTabColor;
 
-            _allyGo = TestCharacterFactory.CreateSelectableCharacter(
+            var allyGo = TestCharacterFactory.CreateSelectableCharacter(
                 name: "Ally",
                 isAlly: true,
                 position: new Vector2(0f, 0f));
-            Track(_allyGo);
-            _combatStats = _allyGo.GetComponent<CombatStats>();
+            Track(allyGo);
+            _combatStats = allyGo.GetComponent<CombatStats>();
             _combatStats.InitializeDirect(maxHp: 100, atk: 15, attackSpeed: 1.2f, regenHpPerSecond: 2f);
         }
 

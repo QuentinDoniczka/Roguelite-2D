@@ -21,7 +21,6 @@ namespace RogueliteAutoBattler.Tests.PlayMode
         public CanvasGroup[] StatRowGroups;
         public GameObject[] BreakdownContainers;
         public TMP_Text[] BreakdownTexts;
-        public GameObject TabHeaderContainer;
         public GameObject[] TabContents;
         public Image[] TabButtonImages;
         public Color ActiveTabColor;
@@ -135,7 +134,6 @@ namespace RogueliteAutoBattler.Tests.PlayMode
                 statRowGroups,
                 breakdownContainers,
                 breakdownTexts,
-                tabHeaderGo,
                 tabContents,
                 tabButtonImages,
                 activeColor,
@@ -153,7 +151,6 @@ namespace RogueliteAutoBattler.Tests.PlayMode
                 StatRowGroups = statRowGroups,
                 BreakdownContainers = breakdownContainers,
                 BreakdownTexts = breakdownTexts,
-                TabHeaderContainer = tabHeaderGo,
                 TabContents = tabContents,
                 TabButtonImages = tabButtonImages,
                 ActiveTabColor = activeColor,

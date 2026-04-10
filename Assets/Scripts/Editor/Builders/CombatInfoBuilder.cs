@@ -117,7 +117,6 @@ namespace RogueliteAutoBattler.Editor
             panelLayout.childForceExpandHeight = false;
 
             GameObject headerGo = CreateHeader(allyStatsPanelGo.transform, bangersFont,
-                out GameObject tabButtonsContainer,
                 out Image[] tabButtonImages,
                 out TextMeshProUGUI nameLabel,
                 out TextMeshProUGUI teamPosLabel,
@@ -163,7 +162,6 @@ namespace RogueliteAutoBattler.Editor
 
             EditorUIFactory.SetObj(so, "_canvasGroup", panelCanvasGroup);
             EditorUIFactory.SetObj(so, "_emptyStateLabel", emptyStateLabel);
-            EditorUIFactory.SetObj(so, "_tabHeaderContainer", tabButtonsContainer);
             EditorUIFactory.SetObj(so, "_scrollRect", scrollRect);
 
             EditorUIFactory.SetColor(so, "_tabActiveColor", TabActiveColor);
@@ -194,7 +192,6 @@ namespace RogueliteAutoBattler.Editor
         }
 
         private static GameObject CreateHeader(Transform parent, TMP_FontAsset font,
-            out GameObject tabButtonsContainer,
             out Image[] tabButtonImages,
             out TextMeshProUGUI nameLabel,
             out TextMeshProUGUI teamPosLabel,
@@ -336,8 +333,6 @@ namespace RogueliteAutoBattler.Editor
             tabLayout.childForceExpandHeight = false;
             LayoutElement tabButtonsLE = tabButtonsGo.AddComponent<LayoutElement>();
             tabButtonsLE.flexibleWidth = 0;
-
-            tabButtonsContainer = tabButtonsGo;
 
             var tabConfigs = new[] { "\u2665", "\u2726", "\uD83D\uDCE6" };
             tabButtonImages = new Image[tabConfigs.Length];

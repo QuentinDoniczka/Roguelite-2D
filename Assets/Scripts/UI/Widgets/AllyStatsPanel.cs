@@ -19,7 +19,6 @@ namespace RogueliteAutoBattler.UI.Widgets
         [SerializeField] private TMP_Text _emptyStateLabel;
 
         [Header("Tabs")]
-        [SerializeField] private GameObject _tabHeaderContainer;
         [SerializeField] private GameObject[] _tabContents;
         [SerializeField] private Image[] _tabButtonImages;
         [SerializeField] private Color _tabActiveColor = new Color(0.24f, 0.24f, 0.31f, 1f);
@@ -83,7 +82,6 @@ namespace RogueliteAutoBattler.UI.Widgets
             }
 
             _selectionManager.OnUnitSelected += HandleUnitSelected;
-            _selectionManager.OnUnitDeselected += HandleUnitDeselected;
 
             Hide();
 
@@ -109,10 +107,7 @@ namespace RogueliteAutoBattler.UI.Widgets
         private void OnDestroy()
         {
             if (_selectionManager != null)
-            {
                 _selectionManager.OnUnitSelected -= HandleUnitSelected;
-                _selectionManager.OnUnitDeselected -= HandleUnitDeselected;
-            }
 
             UntrackStats();
         }
@@ -151,10 +146,6 @@ namespace RogueliteAutoBattler.UI.Widgets
             }
         }
 
-        private void HandleUnitDeselected()
-        {
-        }
-
         private void UntrackStats()
         {
             if (_trackedStats == null) return;
@@ -175,7 +166,8 @@ namespace RogueliteAutoBattler.UI.Widgets
             CaptureSnapshot(_currentRosterIndex);
             UntrackStats();
             _displayingDeadUnit = true;
-            _selectionManager?.ForceDeselect();
+            if (_selectionManager != null)
+                _selectionManager.ForceDeselect();
         }
 
         private void UpdateDisplay()
@@ -496,12 +488,14 @@ namespace RogueliteAutoBattler.UI.Widgets
                 UntrackStats();
                 DisplaySnapshot(rosterIndex);
                 Show();
-                _selectionManager?.ForceDeselect();
+                if (_selectionManager != null)
+                    _selectionManager.ForceDeselect();
             }
             else
             {
                 _isSyncingSelection = true;
-                _selectionManager?.ForceSelect(unit);
+                if (_selectionManager != null)
+                    _selectionManager.ForceSelect(unit);
                 _isSyncingSelection = false;
             }
 
@@ -553,7 +547,6 @@ namespace RogueliteAutoBattler.UI.Widgets
             CanvasGroup[] statRowGroups,
             GameObject[] breakdownContainers,
             TMP_Text[] breakdownTexts,
-            GameObject tabHeaderContainer,
             GameObject[] tabContents,
             Image[] tabButtonImages,
             Color tabActiveColor,
@@ -572,7 +565,6 @@ namespace RogueliteAutoBattler.UI.Widgets
             _statRowGroups = statRowGroups;
             _breakdownContainers = breakdownContainers;
             _breakdownTexts = breakdownTexts;
-            _tabHeaderContainer = tabHeaderContainer;
             _tabContents = tabContents;
             _tabButtonImages = tabButtonImages;
             _tabActiveColor = tabActiveColor;
@@ -590,7 +582,6 @@ namespace RogueliteAutoBattler.UI.Widgets
             _initializedForTest = true;
 
             _selectionManager.OnUnitSelected += HandleUnitSelected;
-            _selectionManager.OnUnitDeselected += HandleUnitDeselected;
 
             Hide();
 

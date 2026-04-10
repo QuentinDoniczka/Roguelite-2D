@@ -12,9 +12,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
     {
         private UnitSelectionManager _selectionManager;
         private AllyStatsPanel _panel;
-        private GameObject _allyGo;
         private CombatStats _allyCombatStats;
-        private GameObject _enemyGo;
 
         [SetUp]
         public void SetUp()
@@ -23,19 +21,19 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             _selectionManager = fixture.SelectionManager;
             _panel = fixture.Panel;
 
-            _allyGo = TestCharacterFactory.CreateSelectableCharacter(
+            var allyGo = TestCharacterFactory.CreateSelectableCharacter(
                 name: "Ally",
                 isAlly: true,
                 position: new Vector2(0f, 0f));
-            Track(_allyGo);
-            _allyCombatStats = _allyGo.GetComponent<CombatStats>();
+            Track(allyGo);
+            _allyCombatStats = allyGo.GetComponent<CombatStats>();
             _allyCombatStats.InitializeDirect(100, 15, 1.2f);
 
-            _enemyGo = TestCharacterFactory.CreateSelectableCharacter(
+            var enemyGo = TestCharacterFactory.CreateSelectableCharacter(
                 name: "Enemy",
                 isAlly: false,
                 position: new Vector2(3f, 0f));
-            Track(_enemyGo);
+            Track(enemyGo);
         }
 
         public override void TearDown()
