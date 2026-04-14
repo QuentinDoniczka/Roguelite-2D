@@ -25,7 +25,7 @@
 Doc detaille : `Assets/doc/premier-jet-roguelite.html`
 
 # Project Structure
-Generated: 2026-04-10
+Generated: 2026-04-14
 
 .github/
   workflows/
@@ -33,7 +33,7 @@ Generated: 2026-04-10
     protect-main.yml
 
 Assets/
-  Animations/  (23 files: .anim + .controller)
+  Animations/  (24 files: .anim + .controller)
   Audio/  (empty)
   Data/
     Adventurers/  (empty)
@@ -62,7 +62,7 @@ Assets/
     Bangers SDF.asset
   Materials/  (1 file)
   Prefabs/
-    Characters/  (5 prefabs)
+    Characters/  (6 prefabs)
     Effects/  (empty)
     UI/  (empty)
   Scenes/
@@ -119,6 +119,7 @@ Assets/
     Economy/
       GoldFormatter.cs
       GoldWallet.cs
+      SkillPointWallet.cs
     Editor/
       RogueliteAutoBattler.Editor.asmdef
       AssemblyInfo.cs
@@ -143,6 +144,7 @@ Assets/
       LevelDataTypes.cs
       LevelDatabase.cs
       SkillTreeData.cs
+      SkillTreeProgress.cs
       TeamDatabase.cs
     Services/
       Local/  (empty)
@@ -161,6 +163,7 @@ Assets/
         Shop/
           ShopScreen.cs
         SkillTree/
+          SkillTreeDetailPanel.cs
           SkillTreeInputHandler.cs
           SkillTreeNode.cs
           SkillTreeNodeManager.cs
@@ -207,6 +210,7 @@ Assets/
       GoldFormatterTests.cs
       RecalculateFormationTests.cs
       SkillTreeDataTests.cs
+      SkillTreeProgressTests.cs
       StatBreakdownDataTests.cs
       TargetFinderTests.cs
     PlayMode/
@@ -243,6 +247,8 @@ Assets/
       NavigationManagerTests.cs
       ScreenStackTests.cs
       SelectionOutlineTests.cs
+      SkillPointWalletTests.cs
+      SkillTreeDetailPanelTests.cs
       SkillTreeInputHandlerTests.cs
       SkillTreeNodeManagerTests.cs
       SkillTreeNodeTests.cs
