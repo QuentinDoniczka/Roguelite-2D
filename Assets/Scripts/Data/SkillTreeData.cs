@@ -167,6 +167,32 @@ namespace RogueliteAutoBattler.Data
             return cost;
         }
 
+        public static bool IsMaxLevel(SkillNodeEntry node, int currentLevel)
+        {
+            return node.maxLevel > 0 && currentLevel >= node.maxLevel;
+        }
+
+        public static string GetStatDisplayName(StatModifierType type)
+        {
+            return type switch
+            {
+                StatModifierType.HP => "HP",
+                StatModifierType.RegenHP => "Regen HP",
+                StatModifierType.Attack => "Attack",
+                StatModifierType.Defense => "Defense",
+                StatModifierType.Mana => "Mana",
+                StatModifierType.Power => "Power",
+                _ => type.ToString()
+            };
+        }
+
+        public static string FormatBonus(float value, StatModifierMode mode)
+        {
+            if (mode == StatModifierMode.Percent)
+                return $"+{value.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)}%";
+            return $"+{value.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)}";
+        }
+
         internal void SetNode(int index, SkillNodeEntry entry)
         {
             Debug.Assert(index >= 0 && index < nodes.Count, $"SetNode index {index} out of range [0, {nodes.Count})");
