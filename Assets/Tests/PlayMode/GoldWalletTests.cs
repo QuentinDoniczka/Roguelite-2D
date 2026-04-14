@@ -135,5 +135,64 @@ namespace RogueliteAutoBattler.Tests.PlayMode
 
             Assert.AreEqual(0, _wallet.Gold);
         }
+
+        [UnityTest]
+        public IEnumerator CanAfford_ReturnsTrueWhenEnough()
+        {
+            yield return null;
+            _wallet.Add(100);
+            Assert.IsTrue(_wallet.CanAfford(100));
+            Assert.IsTrue(_wallet.CanAfford(50));
+        }
+
+        [UnityTest]
+        public IEnumerator CanAfford_ReturnsFalseWhenNotEnough()
+        {
+            yield return null;
+            Assert.IsFalse(_wallet.CanAfford(1));
+            _wallet.Add(10);
+            Assert.IsFalse(_wallet.CanAfford(50));
+        }
+
+        [UnityTest]
+        public IEnumerator Spend_DeductsAndReturnsTrue()
+        {
+            yield return null;
+            _wallet.Add(100);
+            bool result = _wallet.Spend(40);
+            Assert.IsTrue(result);
+            Assert.AreEqual(60, _wallet.Gold);
+        }
+
+        [UnityTest]
+        public IEnumerator Spend_NotEnough_ReturnsFalseNoChange()
+        {
+            yield return null;
+            _wallet.Add(10);
+            bool result = _wallet.Spend(50);
+            Assert.IsFalse(result);
+            Assert.AreEqual(10, _wallet.Gold);
+        }
+
+        [UnityTest]
+        public IEnumerator Spend_ZeroOrNegative_ReturnsFalse()
+        {
+            yield return null;
+            _wallet.Add(100);
+            Assert.IsFalse(_wallet.Spend(0));
+            Assert.IsFalse(_wallet.Spend(-5));
+            Assert.AreEqual(100, _wallet.Gold);
+        }
+
+        [UnityTest]
+        public IEnumerator Spend_FiresOnGoldChanged()
+        {
+            yield return null;
+            _wallet.Add(100);
+            int received = -1;
+            _wallet.OnGoldChanged += v => received = v;
+            _wallet.Spend(30);
+            Assert.AreEqual(70, received);
+        }
     }
 }
