@@ -78,6 +78,7 @@ namespace RogueliteAutoBattler.UI.Screens.SkillTree
 
         public void ShowNode(SkillTreeNode node)
         {
+            if (node == null) return;
             _currentNodeIndex = node.NodeIndex;
             RefreshDisplay();
 

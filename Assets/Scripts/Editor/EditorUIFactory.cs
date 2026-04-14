@@ -17,7 +17,7 @@ namespace RogueliteAutoBattler.Editor
             return font;
         }
 
-        internal static void ApplyFont(TextMeshProUGUI label, TMP_FontAsset font)
+        internal static void ApplyFont(TMP_Text label, TMP_FontAsset font)
         {
             if (font != null)
                 label.font = font;

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using UnityEngine;
 
 namespace RogueliteAutoBattler.Data
@@ -189,8 +190,8 @@ namespace RogueliteAutoBattler.Data
         public static string FormatBonus(float value, StatModifierMode mode)
         {
             if (mode == StatModifierMode.Percent)
-                return $"+{value.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)}%";
-            return $"+{value.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)}";
+                return $"+{value.ToString("0.##", CultureInfo.InvariantCulture)}%";
+            return $"+{value.ToString("0.##", CultureInfo.InvariantCulture)}";
         }
 
         internal void SetNode(int index, SkillNodeEntry entry)
