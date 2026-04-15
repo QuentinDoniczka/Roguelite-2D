@@ -98,7 +98,7 @@ namespace RogueliteAutoBattler.Editor
             Undo.RegisterCreatedObjectUndo(canvasGo, "UICanvas");
         }
 
-        private static GameObject CreateEventSystem()
+        internal static GameObject CreateEventSystem()
         {
             var go = new GameObject("EventSystem");
             go.AddComponent<EventSystem>();
