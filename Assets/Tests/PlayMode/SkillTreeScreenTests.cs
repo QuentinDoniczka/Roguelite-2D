@@ -107,5 +107,86 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             Assert.IsFalse(canvasGroup.blocksRaycasts);
             Assert.IsFalse(canvasGroup.interactable);
         }
+
+        [UnityTest]
+        public IEnumerator OnShow_ExpandsGameArea()
+        {
+            var screenGo = new GameObject("SkillTreeScreen");
+            Track(screenGo);
+            screenGo.SetActive(false);
+            screenGo.AddComponent<CanvasGroup>();
+
+            var gameAreaGo = new GameObject("GameArea");
+            gameAreaGo.transform.SetParent(screenGo.transform, false);
+            var gameAreaRect = gameAreaGo.AddComponent<RectTransform>();
+            gameAreaRect.anchorMin = new Vector2(0, 0.40f);
+            gameAreaRect.anchorMax = new Vector2(1, 1f);
+
+            var infoAreaGo = new GameObject("InfoArea");
+            infoAreaGo.transform.SetParent(screenGo.transform, false);
+            var infoAreaRect = infoAreaGo.AddComponent<RectTransform>();
+            infoAreaRect.anchorMin = new Vector2(0, 0.08f);
+            infoAreaRect.anchorMax = new Vector2(1, 0.40f);
+
+            var screen = screenGo.AddComponent<SkillTreeScreen>();
+            TestCharacterFactory.SetPrivateField(screen, "_gameArea", gameAreaRect);
+            TestCharacterFactory.SetPrivateField(screen, "_infoArea", infoAreaRect);
+            screenGo.SetActive(true);
+
+            yield return null;
+
+            screen.OnShow();
+            Assert.AreEqual(0.08f, gameAreaRect.anchorMin.y, 0.001f);
+            Assert.AreEqual(0.08f, infoAreaRect.anchorMax.y, 0.001f);
+        }
+
+        [UnityTest]
+        public IEnumerator OnHide_RestoresGameArea()
+        {
+            var screenGo = new GameObject("SkillTreeScreen");
+            Track(screenGo);
+            screenGo.SetActive(false);
+            screenGo.AddComponent<CanvasGroup>();
+
+            var gameAreaGo = new GameObject("GameArea");
+            gameAreaGo.transform.SetParent(screenGo.transform, false);
+            var gameAreaRect = gameAreaGo.AddComponent<RectTransform>();
+            gameAreaRect.anchorMin = new Vector2(0, 0.40f);
+            gameAreaRect.anchorMax = new Vector2(1, 1f);
+
+            var infoAreaGo = new GameObject("InfoArea");
+            infoAreaGo.transform.SetParent(screenGo.transform, false);
+            var infoAreaRect = infoAreaGo.AddComponent<RectTransform>();
+            infoAreaRect.anchorMin = new Vector2(0, 0.08f);
+            infoAreaRect.anchorMax = new Vector2(1, 0.40f);
+
+            var screen = screenGo.AddComponent<SkillTreeScreen>();
+            TestCharacterFactory.SetPrivateField(screen, "_gameArea", gameAreaRect);
+            TestCharacterFactory.SetPrivateField(screen, "_infoArea", infoAreaRect);
+            screenGo.SetActive(true);
+
+            yield return null;
+
+            screen.OnShow();
+            screen.OnHide();
+            Assert.AreEqual(0.40f, gameAreaRect.anchorMin.y, 0.001f);
+            Assert.AreEqual(0.40f, infoAreaRect.anchorMax.y, 0.001f);
+        }
+
+        [UnityTest]
+        public IEnumerator OnShow_NullAreas_DoesNotThrow()
+        {
+            var screenGo = new GameObject("SkillTreeScreen");
+            Track(screenGo);
+            screenGo.SetActive(false);
+            screenGo.AddComponent<CanvasGroup>();
+            var screen = screenGo.AddComponent<SkillTreeScreen>();
+            screenGo.SetActive(true);
+
+            yield return null;
+
+            Assert.DoesNotThrow(() => screen.OnShow());
+            Assert.DoesNotThrow(() => screen.OnHide());
+        }
     }
 }

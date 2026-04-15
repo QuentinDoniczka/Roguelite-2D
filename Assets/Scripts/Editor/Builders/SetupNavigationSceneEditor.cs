@@ -20,6 +20,7 @@ namespace RogueliteAutoBattler.Editor
         private const float InfoTop = 0.40f;
 
         private const int TabCount = 5;
+        private const int SkillTreeTabIndex = 1;
 
         private const int NavFontSize = 22;
         private const int PanelFontSize = 56;
@@ -71,6 +72,20 @@ namespace RogueliteAutoBattler.Editor
             GameObject infoArea = EditorUIFactory.CreateArea(canvasGo.transform, "InfoArea", NavRatio, InfoTop, Color.clear);
             UIScreen defaultInfoScreen = CombatInfoBuilder.CreateCombatInfo(infoArea.transform);
             UIScreen[] infoScreens = CreateTabInfoPanels(infoArea.transform);
+
+            Object.DestroyImmediate(infoScreens[SkillTreeTabIndex].gameObject);
+            infoScreens[SkillTreeTabIndex] = null;
+
+            SkillTreeBuilder.BuildDetailPanel(tabScreens[SkillTreeTabIndex].gameObject);
+
+            var skillTreeScreen = tabScreens[SkillTreeTabIndex] as SkillTreeScreen;
+            if (skillTreeScreen != null)
+            {
+                var screenSO = new SerializedObject(skillTreeScreen);
+                EditorUIFactory.SetObj(screenSO, "_gameArea", gameArea.GetComponent<RectTransform>());
+                EditorUIFactory.SetObj(screenSO, "_infoArea", infoArea.GetComponent<RectTransform>());
+                screenSO.ApplyModifiedProperties();
+            }
 
             GameObject navBar = CreateNavBar(canvasGo.transform);
             TabButton[] tabButtons = CreateTabButtons(navBar.transform);

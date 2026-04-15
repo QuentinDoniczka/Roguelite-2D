@@ -390,5 +390,51 @@ namespace RogueliteAutoBattler.Tests.EditMode
                 Assert.AreEqual(5, node.costAdditivePerLevel, $"Node {i} additive");
             }
         }
+
+        [Test]
+        public void IsMaxLevel_ZeroMaxLevel_NeverMaxed()
+        {
+            var node = new SkillTreeData.SkillNodeEntry { maxLevel = 0 };
+            Assert.IsFalse(SkillTreeData.IsMaxLevel(node, 0));
+            Assert.IsFalse(SkillTreeData.IsMaxLevel(node, 100));
+        }
+
+        [Test]
+        public void IsMaxLevel_AtMax_ReturnsTrue()
+        {
+            var node = new SkillTreeData.SkillNodeEntry { maxLevel = 5 };
+            Assert.IsFalse(SkillTreeData.IsMaxLevel(node, 4));
+            Assert.IsTrue(SkillTreeData.IsMaxLevel(node, 5));
+            Assert.IsTrue(SkillTreeData.IsMaxLevel(node, 6));
+        }
+
+        [Test]
+        public void GetStatDisplayName_ReturnsReadableNames()
+        {
+            Assert.AreEqual("HP", SkillTreeData.GetStatDisplayName(SkillTreeData.StatModifierType.HP));
+            Assert.AreEqual("Attack", SkillTreeData.GetStatDisplayName(SkillTreeData.StatModifierType.Attack));
+            Assert.AreEqual("Regen HP", SkillTreeData.GetStatDisplayName(SkillTreeData.StatModifierType.RegenHP));
+        }
+
+        [Test]
+        public void FormatBonus_Flat_NoPctSign()
+        {
+            string result = SkillTreeData.FormatBonus(5f, SkillTreeData.StatModifierMode.Flat);
+            Assert.AreEqual("+5", result);
+        }
+
+        [Test]
+        public void FormatBonus_Percent_HasPctSign()
+        {
+            string result = SkillTreeData.FormatBonus(10f, SkillTreeData.StatModifierMode.Percent);
+            Assert.AreEqual("+10%", result);
+        }
+
+        [Test]
+        public void FormatBonus_Decimal_TrimsTrailingZeros()
+        {
+            Assert.AreEqual("+2.5", SkillTreeData.FormatBonus(2.5f, SkillTreeData.StatModifierMode.Flat));
+            Assert.AreEqual("+2.5%", SkillTreeData.FormatBonus(2.5f, SkillTreeData.StatModifierMode.Percent));
+        }
     }
 }

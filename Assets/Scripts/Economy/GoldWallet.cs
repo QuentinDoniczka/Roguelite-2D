@@ -17,6 +17,19 @@ namespace RogueliteAutoBattler.Economy
             OnGoldChanged?.Invoke(_gold);
         }
 
+        public bool CanAfford(int cost)
+        {
+            return _gold >= cost;
+        }
+
+        public bool Spend(int cost)
+        {
+            if (cost <= 0 || _gold < cost) return false;
+            _gold -= cost;
+            OnGoldChanged?.Invoke(_gold);
+            return true;
+        }
+
         public void ResetGold()
         {
             _gold = 0;

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using UnityEngine;
 
 namespace RogueliteAutoBattler.Data
@@ -165,6 +166,32 @@ namespace RogueliteAutoBattler.Data
                 cost = Mathf.FloorToInt(cost * multiplier) + node.costAdditivePerLevel;
             }
             return cost;
+        }
+
+        public static bool IsMaxLevel(SkillNodeEntry node, int currentLevel)
+        {
+            return node.maxLevel > 0 && currentLevel >= node.maxLevel;
+        }
+
+        public static string GetStatDisplayName(StatModifierType type)
+        {
+            return type switch
+            {
+                StatModifierType.HP => "HP",
+                StatModifierType.RegenHP => "Regen HP",
+                StatModifierType.Attack => "Attack",
+                StatModifierType.Defense => "Defense",
+                StatModifierType.Mana => "Mana",
+                StatModifierType.Power => "Power",
+                _ => type.ToString()
+            };
+        }
+
+        public static string FormatBonus(float value, StatModifierMode mode)
+        {
+            if (mode == StatModifierMode.Percent)
+                return $"+{value.ToString("0.##", CultureInfo.InvariantCulture)}%";
+            return $"+{value.ToString("0.##", CultureInfo.InvariantCulture)}";
         }
 
         internal void SetNode(int index, SkillNodeEntry entry)
