@@ -21,8 +21,8 @@ Gameplay : recruter aventuriers → equiper → combat auto (gauche→droite) + 
 | `github-boards` | Gestion GitHub Projects : creer/lire/modifier les work items (Milestones = Epics, Issues = features), decomposer des features, gerer les etats (Todo, In Progress, Done). |
 | `git-unity` | Gestion git complete : verifier l'etat du repo, preparer les branches feature depuis dev, commiter (conventional commits), push, creer PR, et merger PR (squash merge si CI verte). |
 | `leaddev-unity` | Analyser la structure, planifier l'architecture (client/serveur/2D), lister classes/fonctions a creer ou modifier |
-| `dev-ux-unity` | **Agent principal pour tout ce qui est visuel/scene/UI.** Editor scripts, Canvas/HUD layout, hierarchie scene, world-space setup (CombatWorld, backgrounds), prefab wiring, configuration camera. Utilise AVANT `dev-unity` si la tache est visuelle. |
-| `dev-unity` | Implementer le code **runtime** Unity 2D (classes, fonctions, SO, MonoBehaviours, DTOs, services API, game logic). **Ne PAS utiliser pour du setup scene, UI layout, ou Editor scripts** — utiliser `dev-ux-unity` a la place. |
+| `dev-ux-toolkit` | **Agent principal pour tout ce qui est visuel/scene/UI.** Scene hierarchy, world-space setup, camera config, prefab wiring. **Screen-space UI genere en UI Toolkit (UXML/USS/C#)** pour efficacite de generation de code. Utilise AVANT `dev-unity` si la tache est visuelle. |
+| `dev-unity` | Implementer le code **runtime** Unity 2D (classes, fonctions, SO, MonoBehaviours, DTOs, services API, game logic). **Ne PAS utiliser pour du setup scene, UI layout, ou Editor scripts** — utiliser `dev-ux-toolkit` a la place. |
 | `refacto-unity` | Refactorer, optimiser, nettoyer, appliquer les patterns — verification 2D et client/serveur |
 | `review-commit-unity` | Auditer UNIQUEMENT les fichiers modifies/crees dans le dernier commit ou les changements non commites. Verifie aussi la frontiere client/serveur. Leger et scope. Read-only. |
 | `review-unity` | Audit COMPLET du projet entier. Utilise uniquement sur demande explicite (hors chaine principale). Read-only. |
@@ -140,9 +140,9 @@ Sous-tache 3: Arret — le personnage s'arrete a portee
 **4a. Implementer la sous-tache**
 
 Routing conditionnel — choisir le bon agent :
-- **UX/scene** (hierarchie, Canvas, HUD, Editor scripts, prefab wiring, camera) → `dev-ux-unity`
+- **UX/scene** (hierarchie, UI screen-space, HUD, Editor scripts, prefab wiring, camera) → `dev-ux-toolkit`
 - **Runtime** (game logic, MonoBehaviour, combat, AI, DTOs) → `dev-unity`
-- **Les deux** → `dev-ux-unity` d'abord, puis `dev-unity`
+- **Les deux** → `dev-ux-toolkit` d'abord, puis `dev-unity`
 
 **Ne JAMAIS utiliser `dev-unity` pour du setup scene, UI layout, ou Editor scripts.**
 
@@ -265,7 +265,7 @@ Ces agents ne sont **jamais** lances automatiquement dans le workflow. L'utilisa
 - **Pas de validation systematique** — avance de maniere autonome. Demande un choix uniquement quand il y a une vraie ambiguite.
 - **Un agent = une tache.**
 - **Si un agent echoue** — analyse et relance avec meilleur contexte.
-- **Si un agent propose une etape manuelle** — challenger et demander comment l'automatiser. Si c'est automatisable, router la tache au bon agent (generalement `dev-ux-unity` pour les assets Unity).
+- **Si un agent propose une etape manuelle** — challenger et demander comment l'automatiser. Si c'est automatisable, router la tache au bon agent (generalement `dev-ux-toolkit` pour les assets Unity).
 - **Toujours passer le contexte** aux agents.
 - **Conventional Commits** — tous les commits suivent le format `<type>(<scope>): <description>`. Inclure le numero d'Issue quand applicable (ex: `(#12)`).
 - **GitHub flow** — `dev` = branche d'integration. Les feature branches sont TOUJOURS creees depuis `dev`. Les PRs ciblent `dev` avec Squash and merge. `main` = branche stable/release.
