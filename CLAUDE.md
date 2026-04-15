@@ -25,7 +25,7 @@
 Doc detaille : `Assets/doc/premier-jet-roguelite.html`
 
 # Project Structure
-Generated: 2026-04-14
+Generated: 2026-04-15
 
 .github/
   workflows/
@@ -33,7 +33,7 @@ Generated: 2026-04-14
     protect-main.yml
 
 Assets/
-  Animations/  (24 files: .anim + .controller)
+  Animations/  (23 files: .anim + .controller)
   Audio/  (empty)
   Data/
     Adventurers/  (empty)
@@ -43,6 +43,7 @@ Assets/
     DamageNumberConfig.asset
     LevelDatabase.asset
     SkillTreeData.asset
+    SkillTreeProgress.asset
     TeamDatabase.asset
   doc/
     MedievalFantasyCharacters/  (14 files)
@@ -67,6 +68,7 @@ Assets/
     UI/  (empty)
   Scenes/
     GameScene.unity
+    NewGameScene.unity
   Scripts/
     RogueliteAutoBattler.Runtime.asmdef
     AssemblyInfo.cs
@@ -129,6 +131,7 @@ Assets/
         CombatHudBuilder.cs
         CombatInfoBuilder.cs
         CombatWorldBuilder.cs
+        NewGameSceneBuilder.cs
         RoundedRectSpriteGenerator.cs
         SetupNavigationSceneEditor.cs
         SkillTreeBuilder.cs
