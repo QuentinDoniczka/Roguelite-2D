@@ -7,13 +7,16 @@ namespace RogueliteAutoBattler.UI.Toolkit
     public class CombatHudController : MonoBehaviour
     {
         [SerializeField] private UIDocument _uiDocument;
+        [SerializeField] private VisualTreeAsset _infoPanelTemplate;
 
         private GoldBadgeController _goldBadge;
         private BattleIndicatorController _battleIndicator;
         private StepProgressBarController _stepProgressBar;
         private VisualElement _goldBadgeElement;
+        private AllyStatsPanelController _allyStatsPanel;
 
         internal GoldBadgeController GoldBadge => _goldBadge;
+        internal AllyStatsPanelController AllyStatsPanel => _allyStatsPanel;
         internal BattleIndicatorController BattleIndicator => _battleIndicator;
         internal StepProgressBarController StepProgressBar => _stepProgressBar;
 
@@ -49,6 +52,45 @@ namespace RogueliteAutoBattler.UI.Toolkit
             _battleIndicator.Initialize();
             _stepProgressBar.Initialize();
 
+            if (!TryQuery<VisualElement>(root, "info-area", out VisualElement infoArea)) return;
+
+            if (_infoPanelTemplate != null)
+            {
+                _infoPanelTemplate.CloneTree(infoArea);
+
+                var panelRoot = infoArea.Q<VisualElement>("info-panel-root");
+                var emptyLabel = infoArea.Q<Label>("info-empty-label");
+                var contentContainer = infoArea.Q<VisualElement>("info-content");
+                var nameLabel = infoArea.Q<Label>("info-name-label");
+                var teamPosLabel = infoArea.Q<Label>("info-team-pos-label");
+                var prevButton = infoArea.Q<Button>("nav-prev-btn");
+                var nextButton = infoArea.Q<Button>("nav-next-btn");
+
+                var tabButtons = new[]
+                {
+                    infoArea.Q<Button>("info-tab-stats"),
+                    infoArea.Q<Button>("info-tab-traits"),
+                    infoArea.Q<Button>("info-tab-loot")
+                };
+
+                var statsScrollView = infoArea.Q<ScrollView>("info-tab-content-stats");
+                var tabContents = new VisualElement[]
+                {
+                    statsScrollView,
+                    infoArea.Q<VisualElement>("info-tab-content-traits"),
+                    infoArea.Q<VisualElement>("info-tab-content-loot")
+                };
+
+                _allyStatsPanel = new AllyStatsPanelController(
+                    panelRoot, emptyLabel, contentContainer,
+                    nameLabel, teamPosLabel,
+                    prevButton, nextButton,
+                    tabButtons, tabContents,
+                    statsScrollView, this);
+
+                _allyStatsPanel.Initialize();
+            }
+
             _goldBadgeElement.RegisterCallback<GeometryChangedEvent>(OnGoldBadgeGeometryChanged);
         }
 
@@ -78,6 +120,7 @@ namespace RogueliteAutoBattler.UI.Toolkit
 
         private void OnDestroy()
         {
+            _allyStatsPanel?.Dispose();
             _goldBadge?.Dispose();
             _battleIndicator?.Dispose();
             _stepProgressBar?.Dispose();

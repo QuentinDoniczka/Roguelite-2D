@@ -59,6 +59,7 @@
                 </ui:VisualElement>
             </ui:VisualElement>
         </ui:VisualElement>
+        <ui:VisualElement name="info-area" class="info-area" />
         <ui:VisualElement name="nav-bar" class="nav-bar">
             <ui:Button name="tab-village" text="Village" class="tab-button tab-inactive" />
             <ui:Button name="tab-skilltree" text="Arbre" class="tab-button tab-inactive" />
