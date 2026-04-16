@@ -16,6 +16,10 @@ namespace RogueliteAutoBattler.Combat.Visuals
         private static Canvas _canvas;
         private static Sprite _coinSprite;
 
+        private static Rect _toolkitTargetWorldBound;
+        private static bool _useToolkitTarget;
+        private static Action _onToolkitCoinArrived;
+
         public static bool Suppressed { get; set; }
 
         private const int InitialPoolSize = 5;
@@ -35,6 +39,18 @@ namespace RogueliteAutoBattler.Combat.Visuals
             _pool.Initialize(() => CreateInstance(), InitialPoolSize);
         }
 
+        public static void InitializeToolkitTarget(Rect targetWorldBound, Action onCoinArrived)
+        {
+            _useToolkitTarget = true;
+            _toolkitTargetWorldBound = targetWorldBound;
+            _onToolkitCoinArrived = onCoinArrived;
+        }
+
+        public static void UpdateToolkitTargetBound(Rect worldBound)
+        {
+            _toolkitTargetWorldBound = worldBound;
+        }
+
         public static void Show(Vector3 worldPosition, Action onComplete = null)
         {
             if (!_pool.IsInitialized || Suppressed)
@@ -47,9 +63,20 @@ namespace RogueliteAutoBattler.Combat.Visuals
             RectTransformUtility.ScreenPointToLocalPointInRectangle(
                 _container, screenPoint, uiCamera, out Vector2 startLocal);
 
-            Vector2 targetScreenPoint = RectTransformUtility.WorldToScreenPoint(uiCamera, _targetBadge.position);
-            RectTransformUtility.ScreenPointToLocalPointInRectangle(
-                _container, targetScreenPoint, uiCamera, out Vector2 targetLocal);
+            Vector2 targetLocal;
+            if (_useToolkitTarget)
+            {
+                Vector2 targetScreenPoint = _toolkitTargetWorldBound.center;
+                targetScreenPoint.y = Screen.height - targetScreenPoint.y;
+                RectTransformUtility.ScreenPointToLocalPointInRectangle(
+                    _container, targetScreenPoint, uiCamera, out targetLocal);
+            }
+            else
+            {
+                Vector2 targetScreenPoint = RectTransformUtility.WorldToScreenPoint(uiCamera, _targetBadge.position);
+                RectTransformUtility.ScreenPointToLocalPointInRectangle(
+                    _container, targetScreenPoint, uiCamera, out targetLocal);
+            }
 
             CoinFly coin = _pool.Get();
             coin.Play(startLocal, targetLocal, Duration, () => OnCoinArrived(onComplete));
@@ -57,10 +84,19 @@ namespace RogueliteAutoBattler.Combat.Visuals
 
         private static void OnCoinArrived(Action onComplete)
         {
-            if (_targetBadgeComponent != null)
-                _targetBadgeComponent.Punch(onComplete);
-            else
+            if (_useToolkitTarget)
+            {
+                _onToolkitCoinArrived?.Invoke();
                 onComplete?.Invoke();
+            }
+            else if (_targetBadgeComponent != null)
+            {
+                _targetBadgeComponent.Punch(onComplete);
+            }
+            else
+            {
+                onComplete?.Invoke();
+            }
         }
 
         private static CoinFly CreateInstance()
@@ -97,6 +133,9 @@ namespace RogueliteAutoBattler.Combat.Visuals
             _camera = null;
             _canvas = null;
             _coinSprite = null;
+            _toolkitTargetWorldBound = default;
+            _useToolkitTarget = false;
+            _onToolkitCoinArrived = null;
             Suppressed = false;
         }
 
