@@ -2,12 +2,32 @@
     <ui:Style src="../Styles/MainStyle.uss" />
     <ui:VisualElement name="root" class="root">
         <ui:VisualElement name="game-area" class="game-area" picking-mode="Ignore">
-            <ui:VisualElement name="screen-default" class="screen-container" />
-            <ui:VisualElement name="screen-village" class="screen-container hidden" />
-            <ui:VisualElement name="screen-skilltree" class="screen-container hidden" />
-            <ui:VisualElement name="screen-autre" class="screen-container hidden" />
-            <ui:VisualElement name="screen-guilde" class="screen-container hidden" />
-            <ui:VisualElement name="screen-shop" class="screen-container hidden" />
+            <ui:VisualElement name="screen-default" class="screen-container screen-default" picking-mode="Ignore" />
+            <ui:VisualElement name="screen-village" class="screen-container hidden">
+                <ui:VisualElement class="screen-placeholder screen-village-bg">
+                    <ui:Label text="VILLAGE" class="screen-placeholder-label" />
+                </ui:VisualElement>
+            </ui:VisualElement>
+            <ui:VisualElement name="screen-skilltree" class="screen-container hidden">
+                <ui:VisualElement class="screen-placeholder screen-skilltree-bg">
+                    <ui:Label text="ARBRE DE COMPETENCES" class="screen-placeholder-label" />
+                </ui:VisualElement>
+            </ui:VisualElement>
+            <ui:VisualElement name="screen-autre" class="screen-container hidden">
+                <ui:VisualElement class="screen-placeholder screen-autre-bg">
+                    <ui:Label text="AUTRE" class="screen-placeholder-label" />
+                </ui:VisualElement>
+            </ui:VisualElement>
+            <ui:VisualElement name="screen-guilde" class="screen-container hidden">
+                <ui:VisualElement class="screen-placeholder screen-guilde-bg">
+                    <ui:Label text="GUILDE" class="screen-placeholder-label" />
+                </ui:VisualElement>
+            </ui:VisualElement>
+            <ui:VisualElement name="screen-shop" class="screen-container hidden">
+                <ui:VisualElement class="screen-placeholder screen-shop-bg">
+                    <ui:Label text="SHOP" class="screen-placeholder-label" />
+                </ui:VisualElement>
+            </ui:VisualElement>
         </ui:VisualElement>
         <ui:VisualElement name="nav-bar" class="nav-bar">
             <ui:Button name="tab-village" text="Village" class="tab-button tab-inactive" />

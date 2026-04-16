@@ -20,7 +20,7 @@
     flex-direction: column;
     width: 100%;
     height: 100%;
-    background-color: var(--color-bg-dark);
+    background-color: rgba(0, 0, 0, 0);
 }
 
 .game-area {
@@ -64,4 +64,41 @@
 .tab-active {
     background-color: var(--color-tab-active);
     color: var(--color-tab-text-active);
+}
+
+.screen-default {
+    background-color: rgba(0, 0, 0, 0);
+}
+
+.screen-placeholder {
+    flex-grow: 1;
+    align-items: center;
+    justify-content: center;
+}
+
+.screen-placeholder-label {
+    font-size: 48px;
+    color: #ffffff;
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+}
+
+.screen-village-bg {
+    background-color: rgba(45, 106, 79, 220);
+}
+
+.screen-skilltree-bg {
+    background-color: rgba(123, 45, 142, 220);
+}
+
+.screen-autre-bg {
+    background-color: rgba(85, 85, 85, 220);
+}
+
+.screen-guilde-bg {
+    background-color: rgba(29, 53, 87, 220);
+}
+
+.screen-shop-bg {
+    background-color: rgba(233, 196, 106, 220);
 }
