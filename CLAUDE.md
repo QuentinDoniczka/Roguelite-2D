@@ -25,7 +25,7 @@
 Doc detaille : `Assets/doc/premier-jet-roguelite.html`
 
 # Project Structure
-Generated: 2026-04-15
+Generated: 2026-04-16
 
 .github/
   workflows/
@@ -55,6 +55,7 @@ Assets/
     plan-issue-40.md
     plan-issue-59.md
     plan-issue-80.md
+    plan-issue-180.md
     plan-level-scroll-transition.md
     premier-jet-roguelite.html
     propositions-stats-inventaire.html
@@ -131,6 +132,7 @@ Assets/
         CombatHudBuilder.cs
         CombatInfoBuilder.cs
         CombatWorldBuilder.cs
+        NavigationHostBuilder.cs
         NewGameSceneBuilder.cs
         RoundedRectSpriteGenerator.cs
         SetupNavigationSceneEditor.cs
@@ -173,6 +175,11 @@ Assets/
           SkillTreeScreen.cs
         Village/
           VillageScreen.cs
+      Toolkit/
+        IScreen.cs
+        NavigationHost.cs
+        NavigationManager.cs
+        ScreenStack.cs
       Widgets/
         AllyStatsPanel.cs
         BattleIndicatorBadge.cs
@@ -205,6 +212,8 @@ Assets/
   Tests/
     EditMode/
       Tests.EditMode.asmdef
+      TestUtils/
+        StubScreen.cs
       AttackSlotRegistryTests.cs
       CombatStatsBreakdownTests.cs
       CombatStatsDamageEventTests.cs
@@ -216,6 +225,9 @@ Assets/
       SkillTreeProgressTests.cs
       StatBreakdownDataTests.cs
       TargetFinderTests.cs
+      ToolkitIScreenTests.cs
+      ToolkitNavigationManagerTests.cs
+      ToolkitScreenStackTests.cs
     PlayMode/
       Tests.PlayMode.asmdef
       TestUtils/
@@ -247,6 +259,7 @@ Assets/
       LevelManagerEventTests.cs
       LevelManagerStepTransitionTests.cs
       LevelManagerTotalLevelsTests.cs
+      NavigationHostTests.cs
       NavigationManagerTests.cs
       ScreenStackTests.cs
       SelectionOutlineTests.cs
@@ -262,5 +275,10 @@ Assets/
       VisualEquipmentTestLoopTests.cs
       WorldConveyorTests.cs
   TextMesh Pro/  (173 files -- TMP package: fonts, shaders, examples)
+  UI/
+    Layouts/
+      MainLayout.uxml
+    Styles/
+      MainStyle.uss
 
 ProjectSettings/  (Unity defaults)

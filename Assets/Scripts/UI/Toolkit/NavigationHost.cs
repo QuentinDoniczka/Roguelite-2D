@@ -7,18 +7,18 @@ namespace RogueliteAutoBattler.UI.Toolkit
 {
     public class NavigationHost : MonoBehaviour
     {
-        private static readonly string[] TAB_BUTTON_NAMES =
+        private static readonly string[] TabButtonNames =
         {
             "tab-village", "tab-skilltree", "tab-autre", "tab-guilde", "tab-shop"
         };
 
-        private static readonly string[] SCREEN_NAMES =
+        private static readonly string[] ScreenNames =
         {
             "screen-village", "screen-skilltree", "screen-autre", "screen-guilde", "screen-shop"
         };
 
-        private const string DEFAULT_SCREEN_NAME = "screen-default";
-        private const string HIDDEN_CLASS = "hidden";
+        private const string DefaultScreenName = "screen-default";
+        private const string HiddenClass = "hidden";
 
         [Header("UI Document")]
         [SerializeField] private UIDocument _uiDocument;
@@ -64,7 +64,7 @@ namespace RogueliteAutoBattler.UI.Toolkit
                 return;
             }
 
-            VisualElement defaultElement = root.Q<VisualElement>(DEFAULT_SCREEN_NAME);
+            VisualElement defaultElement = root.Q<VisualElement>(DefaultScreenName);
             if (defaultElement == null)
             {
                 Debug.LogWarning("[NavigationHost] Default screen element not found.");
@@ -79,17 +79,17 @@ namespace RogueliteAutoBattler.UI.Toolkit
 
         private Button[] QueryTabButtons(VisualElement root)
         {
-            var buttons = new Button[TAB_BUTTON_NAMES.Length];
+            var buttons = new Button[TabButtonNames.Length];
 
-            for (int i = 0; i < TAB_BUTTON_NAMES.Length; i++)
+            for (int i = 0; i < TabButtonNames.Length; i++)
             {
-                buttons[i] = root.Q<Button>(TAB_BUTTON_NAMES[i]);
+                buttons[i] = root.Q<Button>(TabButtonNames[i]);
                 if (buttons[i] != null)
                 {
                     continue;
                 }
 
-                Debug.LogWarning($"[NavigationHost] Tab button '{TAB_BUTTON_NAMES[i]}' not found.");
+                Debug.LogWarning($"[NavigationHost] Tab button '{TabButtonNames[i]}' not found.");
                 return null;
             }
 
@@ -98,12 +98,12 @@ namespace RogueliteAutoBattler.UI.Toolkit
 
         private void RegisterTabScreens(VisualElement root)
         {
-            for (int i = 0; i < SCREEN_NAMES.Length; i++)
+            for (int i = 0; i < ScreenNames.Length; i++)
             {
-                VisualElement screenElement = root.Q<VisualElement>(SCREEN_NAMES[i]);
+                VisualElement screenElement = root.Q<VisualElement>(ScreenNames[i]);
                 if (screenElement == null)
                 {
-                    Debug.LogWarning($"[NavigationHost] Screen element '{SCREEN_NAMES[i]}' not found.");
+                    Debug.LogWarning($"[NavigationHost] Screen element '{ScreenNames[i]}' not found.");
                     continue;
                 }
 
@@ -154,12 +154,12 @@ namespace RogueliteAutoBattler.UI.Toolkit
 
             public void OnShow()
             {
-                Root.RemoveFromClassList(HIDDEN_CLASS);
+                Root.RemoveFromClassList(HiddenClass);
             }
 
             public void OnHide()
             {
-                Root.AddToClassList(HIDDEN_CLASS);
+                Root.AddToClassList(HiddenClass);
             }
 
             public void OnPush()

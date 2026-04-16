@@ -1,5 +1,5 @@
 # Project Structure
-Generated: 2026-04-10
+Generated: 2026-04-16
 
 .github/
   workflows/
@@ -17,6 +17,7 @@ Assets/
     DamageNumberConfig.asset
     LevelDatabase.asset
     SkillTreeData.asset
+    SkillTreeProgress.asset
     TeamDatabase.asset
   doc/
     MedievalFantasyCharacters/  (14 files)
@@ -28,6 +29,7 @@ Assets/
     plan-issue-40.md
     plan-issue-59.md
     plan-issue-80.md
+    plan-issue-180.md
     plan-level-scroll-transition.md
     premier-jet-roguelite.html
     propositions-stats-inventaire.html
@@ -36,11 +38,12 @@ Assets/
     Bangers SDF.asset
   Materials/  (1 file)
   Prefabs/
-    Characters/  (5 prefabs)
+    Characters/  (6 prefabs)
     Effects/  (empty)
     UI/  (empty)
   Scenes/
     GameScene.unity
+    NewGameScene.unity
   Scripts/
     RogueliteAutoBattler.Runtime.asmdef
     AssemblyInfo.cs
@@ -93,6 +96,7 @@ Assets/
     Economy/
       GoldFormatter.cs
       GoldWallet.cs
+      SkillPointWallet.cs
     Editor/
       RogueliteAutoBattler.Editor.asmdef
       AssemblyInfo.cs
@@ -102,6 +106,8 @@ Assets/
         CombatHudBuilder.cs
         CombatInfoBuilder.cs
         CombatWorldBuilder.cs
+        NavigationHostBuilder.cs
+        NewGameSceneBuilder.cs
         RoundedRectSpriteGenerator.cs
         SetupNavigationSceneEditor.cs
         SkillTreeBuilder.cs
@@ -117,6 +123,7 @@ Assets/
       LevelDataTypes.cs
       LevelDatabase.cs
       SkillTreeData.cs
+      SkillTreeProgress.cs
       TeamDatabase.cs
     Services/
       Local/  (empty)
@@ -135,12 +142,18 @@ Assets/
         Shop/
           ShopScreen.cs
         SkillTree/
+          SkillTreeDetailPanel.cs
           SkillTreeInputHandler.cs
           SkillTreeNode.cs
           SkillTreeNodeManager.cs
           SkillTreeScreen.cs
         Village/
           VillageScreen.cs
+      Toolkit/
+        IScreen.cs
+        NavigationHost.cs
+        NavigationManager.cs
+        ScreenStack.cs
       Widgets/
         AllyStatsPanel.cs
         BattleIndicatorBadge.cs
@@ -173,6 +186,8 @@ Assets/
   Tests/
     EditMode/
       Tests.EditMode.asmdef
+      TestUtils/
+        StubScreen.cs
       AttackSlotRegistryTests.cs
       CombatStatsBreakdownTests.cs
       CombatStatsDamageEventTests.cs
@@ -181,8 +196,12 @@ Assets/
       GoldFormatterTests.cs
       RecalculateFormationTests.cs
       SkillTreeDataTests.cs
+      SkillTreeProgressTests.cs
       StatBreakdownDataTests.cs
       TargetFinderTests.cs
+      ToolkitIScreenTests.cs
+      ToolkitNavigationManagerTests.cs
+      ToolkitScreenStackTests.cs
     PlayMode/
       Tests.PlayMode.asmdef
       TestUtils/
@@ -214,9 +233,12 @@ Assets/
       LevelManagerEventTests.cs
       LevelManagerStepTransitionTests.cs
       LevelManagerTotalLevelsTests.cs
+      NavigationHostTests.cs
       NavigationManagerTests.cs
       ScreenStackTests.cs
       SelectionOutlineTests.cs
+      SkillPointWalletTests.cs
+      SkillTreeDetailPanelTests.cs
       SkillTreeInputHandlerTests.cs
       SkillTreeNodeManagerTests.cs
       SkillTreeNodeTests.cs
@@ -227,5 +249,10 @@ Assets/
       VisualEquipmentTestLoopTests.cs
       WorldConveyorTests.cs
   TextMesh Pro/  (173 files -- TMP package: fonts, shaders, examples)
+  UI/
+    Layouts/
+      MainLayout.uxml
+    Styles/
+      MainStyle.uss
 
 ProjectSettings/  (Unity defaults)

@@ -1,4 +1,3 @@
-using System;
 using NUnit.Framework;
 using RogueliteAutoBattler.UI.Toolkit;
 using UnityEngine.UIElements;
@@ -213,44 +212,6 @@ namespace RogueliteAutoBattler.Tests.EditMode
         public void SwitchTab_UnregisteredTab_DoesNotCrash()
         {
             Assert.DoesNotThrow(() => _navigationManager.SwitchTab(3));
-        }
-
-        private class StubScreen : IScreen
-        {
-            public VisualElement Root { get; }
-            public int ShowCount { get; private set; }
-            public int HideCount { get; private set; }
-            public int PushCount { get; private set; }
-            public int PopCount { get; private set; }
-
-            public StubScreen()
-            {
-                Root = new VisualElement();
-            }
-
-            public void OnShow()
-            {
-                ShowCount++;
-                Root.RemoveFromClassList("hidden");
-            }
-
-            public void OnHide()
-            {
-                HideCount++;
-                Root.AddToClassList("hidden");
-            }
-
-            public void OnPush()
-            {
-                PushCount++;
-                OnHide();
-            }
-
-            public void OnPop()
-            {
-                PopCount++;
-                OnShow();
-            }
         }
     }
 }

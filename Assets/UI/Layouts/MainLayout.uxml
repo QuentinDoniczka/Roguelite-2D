@@ -1,0 +1,20 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements">
+    <ui:Style src="../Styles/MainStyle.uss" />
+    <ui:VisualElement name="root" class="root">
+        <ui:VisualElement name="game-area" class="game-area" picking-mode="Ignore">
+            <ui:VisualElement name="screen-default" class="screen-container" />
+            <ui:VisualElement name="screen-village" class="screen-container hidden" />
+            <ui:VisualElement name="screen-skilltree" class="screen-container hidden" />
+            <ui:VisualElement name="screen-autre" class="screen-container hidden" />
+            <ui:VisualElement name="screen-guilde" class="screen-container hidden" />
+            <ui:VisualElement name="screen-shop" class="screen-container hidden" />
+        </ui:VisualElement>
+        <ui:VisualElement name="nav-bar" class="nav-bar">
+            <ui:Button name="tab-village" text="Village" class="tab-button tab-inactive" />
+            <ui:Button name="tab-skilltree" text="Arbre" class="tab-button tab-inactive" />
+            <ui:Button name="tab-autre" text="Autre" class="tab-button tab-inactive" />
+            <ui:Button name="tab-guilde" text="Guilde" class="tab-button tab-inactive" />
+            <ui:Button name="tab-shop" text="Shop" class="tab-button tab-inactive" />
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

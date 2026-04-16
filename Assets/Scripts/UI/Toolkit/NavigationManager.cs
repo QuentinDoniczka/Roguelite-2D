@@ -5,8 +5,8 @@ namespace RogueliteAutoBattler.UI.Toolkit
 {
     public class NavigationManager : IDisposable
     {
-        private const string TAB_ACTIVE_CLASS = "tab-active";
-        private const string TAB_INACTIVE_CLASS = "tab-inactive";
+        private const string TabActiveClass = "tab-active";
+        private const string TabInactiveClass = "tab-inactive";
 
         private readonly Button[] _tabButtons;
         private readonly IScreen _defaultScreen;
@@ -144,14 +144,14 @@ namespace RogueliteAutoBattler.UI.Toolkit
 
         private void ActivateTab(int index)
         {
-            _tabButtons[index].RemoveFromClassList(TAB_INACTIVE_CLASS);
-            _tabButtons[index].AddToClassList(TAB_ACTIVE_CLASS);
+            _tabButtons[index].RemoveFromClassList(TabInactiveClass);
+            _tabButtons[index].AddToClassList(TabActiveClass);
         }
 
         private void DeactivateTab(int index)
         {
-            _tabButtons[index].RemoveFromClassList(TAB_ACTIVE_CLASS);
-            _tabButtons[index].AddToClassList(TAB_INACTIVE_CLASS);
+            _tabButtons[index].RemoveFromClassList(TabActiveClass);
+            _tabButtons[index].AddToClassList(TabInactiveClass);
         }
     }
 }
