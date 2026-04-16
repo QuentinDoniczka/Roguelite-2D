@@ -47,7 +47,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             _coroutineHost = hostGo.AddComponent<CoroutineHostStub>();
             Track(hostGo);
 
-            _controller = CreateController();
+            _controller = BuildController();
             _controller.InitializeForTest(_selectionManager);
         }
 
@@ -58,7 +58,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             base.TearDown();
         }
 
-        private AllyStatsPanelController CreateController()
+        private AllyStatsPanelController BuildController()
         {
             var panelRoot = new VisualElement { name = "info-panel-root" };
             var emptyLabel = new Label("Select an ally") { name = "info-empty-label" };
@@ -108,37 +108,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
                 Track(ally);
             }
 
-            var panelRoot = new VisualElement { name = "info-panel-root" };
-            var emptyLabel = new Label("Select an ally") { name = "info-empty-label" };
-            var contentContainer = new VisualElement { name = "info-content" };
-            contentContainer.style.display = DisplayStyle.None;
-            var nameLabel = new Label { name = "info-name-label" };
-            var teamPosLabel = new Label { name = "info-team-pos-label" };
-            var prevButton = new Button { name = "nav-prev-btn", text = "<" };
-            var nextButton = new Button { name = "nav-next-btn", text = ">" };
-
-            var tabButtons = new[]
-            {
-                new Button { name = "info-tab-stats", text = "Stats" },
-                new Button { name = "info-tab-traits", text = "Traits" },
-                new Button { name = "info-tab-loot", text = "Loot" }
-            };
-
-            var statsScrollView = new ScrollView { name = "info-tab-content-stats" };
-            var tabContents = new VisualElement[]
-            {
-                statsScrollView,
-                new VisualElement { name = "info-tab-content-traits" },
-                new VisualElement { name = "info-tab-content-loot" }
-            };
-
-            var controller = new AllyStatsPanelController(
-                panelRoot, emptyLabel, contentContainer,
-                nameLabel, teamPosLabel,
-                prevButton, nextButton,
-                tabButtons, tabContents,
-                statsScrollView, _coroutineHost);
-
+            var controller = BuildController();
             controller.InitializeForTest(_selectionManager, teamContainer);
             return controller;
         }

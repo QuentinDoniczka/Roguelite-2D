@@ -1,7 +1,7 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements">
     <ui:VisualElement name="info-panel-root" class="info-panel-root">
         <ui:Label name="info-empty-label" text="Select an ally" class="info-empty-label" />
-        <ui:VisualElement name="info-content" class="info-panel-root" style="display: none;">
+        <ui:VisualElement name="info-content" class="info-content" style="display: none;">
             <ui:VisualElement name="info-header" class="info-header">
                 <ui:Button name="nav-prev-btn" text="&#x276E;" class="info-nav-btn" />
                 <ui:VisualElement name="info-icon" class="info-icon" />

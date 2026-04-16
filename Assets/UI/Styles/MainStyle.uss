@@ -55,6 +55,7 @@
     --info-font-size: 16px;
     --info-name-font-size: 20px;
     --info-nav-btn-size: 44px;
+    --info-breakdown-font-size: 13px;
 }
 
 .root {
@@ -284,6 +285,11 @@
     flex-direction: column;
 }
 
+.info-content {
+    flex-grow: 1;
+    flex-direction: column;
+}
+
 .info-header {
     flex-direction: row;
     align-items: center;
@@ -400,7 +406,7 @@
 }
 
 .breakdown-text {
-    font-size: 13px;
+    font-size: var(--info-breakdown-font-size);
     color: rgba(200, 200, 220, 0.8);
     white-space: normal;
 }

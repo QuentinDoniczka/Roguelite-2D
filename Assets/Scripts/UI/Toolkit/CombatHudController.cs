@@ -58,28 +58,22 @@ namespace RogueliteAutoBattler.UI.Toolkit
             {
                 _infoPanelTemplate.CloneTree(infoArea);
 
-                var panelRoot = infoArea.Q<VisualElement>("info-panel-root");
-                var emptyLabel = infoArea.Q<Label>("info-empty-label");
-                var contentContainer = infoArea.Q<VisualElement>("info-content");
-                var nameLabel = infoArea.Q<Label>("info-name-label");
-                var teamPosLabel = infoArea.Q<Label>("info-team-pos-label");
-                var prevButton = infoArea.Q<Button>("nav-prev-btn");
-                var nextButton = infoArea.Q<Button>("nav-next-btn");
+                if (!TryQuery<VisualElement>(infoArea, "info-panel-root", out VisualElement panelRoot)) return;
+                if (!TryQuery<Label>(infoArea, "info-empty-label", out Label emptyLabel)) return;
+                if (!TryQuery<VisualElement>(infoArea, "info-content", out VisualElement contentContainer)) return;
+                if (!TryQuery<Label>(infoArea, "info-name-label", out Label nameLabel)) return;
+                if (!TryQuery<Label>(infoArea, "info-team-pos-label", out Label teamPosLabel)) return;
+                if (!TryQuery<Button>(infoArea, "nav-prev-btn", out Button prevButton)) return;
+                if (!TryQuery<Button>(infoArea, "nav-next-btn", out Button nextButton)) return;
+                if (!TryQuery<Button>(infoArea, "info-tab-stats", out Button tabStats)) return;
+                if (!TryQuery<Button>(infoArea, "info-tab-traits", out Button tabTraits)) return;
+                if (!TryQuery<Button>(infoArea, "info-tab-loot", out Button tabLoot)) return;
+                if (!TryQuery<ScrollView>(infoArea, "info-tab-content-stats", out ScrollView statsScrollView)) return;
+                if (!TryQuery<VisualElement>(infoArea, "info-tab-content-traits", out VisualElement traitsContent)) return;
+                if (!TryQuery<VisualElement>(infoArea, "info-tab-content-loot", out VisualElement lootContent)) return;
 
-                var tabButtons = new[]
-                {
-                    infoArea.Q<Button>("info-tab-stats"),
-                    infoArea.Q<Button>("info-tab-traits"),
-                    infoArea.Q<Button>("info-tab-loot")
-                };
-
-                var statsScrollView = infoArea.Q<ScrollView>("info-tab-content-stats");
-                var tabContents = new VisualElement[]
-                {
-                    statsScrollView,
-                    infoArea.Q<VisualElement>("info-tab-content-traits"),
-                    infoArea.Q<VisualElement>("info-tab-content-loot")
-                };
+                var tabButtons = new[] { tabStats, tabTraits, tabLoot };
+                var tabContents = new VisualElement[] { statsScrollView, traitsContent, lootContent };
 
                 _allyStatsPanel = new AllyStatsPanelController(
                     panelRoot, emptyLabel, contentContainer,
