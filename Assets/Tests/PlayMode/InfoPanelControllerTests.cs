@@ -15,6 +15,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
         private InfoPanelController _controller;
         private GameObject _allyGo;
         private GameObject _enemyGo;
+        private CombatStats _allyCombatStats;
 
         private VisualElement _infoArea;
         private Label _emptyLabel;
@@ -57,6 +58,8 @@ namespace RogueliteAutoBattler.Tests.PlayMode
                 name: "Ally",
                 isAlly: true,
                 position: new Vector2(0f, 0f));
+            _allyCombatStats = _allyGo.GetComponent<CombatStats>();
+            _allyCombatStats.InitializeDirect(100, 15, 1.2f);
             Track(_allyGo);
 
             _enemyGo = TestCharacterFactory.CreateSelectableCharacter(
@@ -159,6 +162,39 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             _selectionManager.ForceSelect(_allyGo);
 
             Assert.IsFalse(_controller.IsVisible);
+        }
+
+        [Test]
+        public void StatsTabShowsAllStatValues()
+        {
+            _selectionManager.ForceSelect(_allyGo);
+
+            Assert.AreEqual("100 / 100", _controller.StatValueText(0));
+            Assert.AreEqual("15", _controller.StatValueText(1));
+            Assert.AreEqual("1.2", _controller.StatValueText(3));
+        }
+
+        [Test]
+        public void StatsTabUpdatesOnDamage()
+        {
+            _selectionManager.ForceSelect(_allyGo);
+
+            _allyCombatStats.TakeDamage(20);
+
+            Assert.AreEqual("80 / 100", _controller.StatValueText(0));
+        }
+
+        [Test]
+        public void StatRowsShowCorrectNames()
+        {
+            _selectionManager.ForceSelect(_allyGo);
+
+            Assert.AreEqual("HP", _controller.StatNameText(0));
+            Assert.AreEqual("ATK", _controller.StatNameText(1));
+            Assert.AreEqual("DEF", _controller.StatNameText(2));
+            Assert.AreEqual("SPD", _controller.StatNameText(3));
+            Assert.AreEqual("REGEN", _controller.StatNameText(4));
+            Assert.AreEqual("CRIT", _controller.StatNameText(5));
         }
     }
 }

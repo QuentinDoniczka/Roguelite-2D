@@ -14,6 +14,24 @@
                         <ui:Label name="announcement-label" class="announcement-label" />
                     </ui:VisualElement>
                 </ui:VisualElement>
+                <ui:VisualElement name="info-area" class="info-area">
+                    <ui:Label name="info-empty-label" text="Select an ally" class="info-empty-label" />
+                    <ui:VisualElement name="info-header" class="info-header hidden">
+                        <ui:VisualElement name="info-header-icon" class="info-header-icon" />
+                        <ui:Button name="info-prev-button" text="&#x25C0;" class="info-nav-button" />
+                        <ui:Label name="info-header-name" text="" class="info-header-name" />
+                        <ui:Label name="info-header-position" text="" class="info-header-position" />
+                        <ui:Button name="info-next-button" text="&#x25B6;" class="info-nav-button" />
+                    </ui:VisualElement>
+                    <ui:VisualElement name="info-tab-bar" class="info-tab-bar hidden">
+                        <ui:Button name="info-tab-stats" text="Stats" class="info-tab info-tab--active" />
+                        <ui:Button name="info-tab-traits" text="Traits" class="info-tab info-tab--inactive" />
+                        <ui:Button name="info-tab-loot" text="Loot" class="info-tab info-tab--inactive" />
+                    </ui:VisualElement>
+                    <ui:ScrollView name="info-scroll-view" class="info-scroll-view hidden">
+                        <ui:VisualElement name="info-tab-content" class="info-tab-content" />
+                    </ui:ScrollView>
+                </ui:VisualElement>
             </ui:VisualElement>
             <ui:VisualElement name="screen-village" class="screen-container hidden">
                 <ui:VisualElement class="screen-placeholder screen-village-bg">
