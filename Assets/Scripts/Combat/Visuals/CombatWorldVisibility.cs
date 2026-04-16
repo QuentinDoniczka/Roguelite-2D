@@ -1,8 +1,8 @@
 using System.Collections.Generic;
 using RogueliteAutoBattler.Combat.Core;
 using RogueliteAutoBattler.UI.Core;
-using RogueliteAutoBattler.UI.Toolkit;
 using UnityEngine;
+using ToolkitNavigationHost = RogueliteAutoBattler.UI.Toolkit.NavigationHost;
 using ToolkitNavigationManager = RogueliteAutoBattler.UI.Toolkit.NavigationManager;
 
 namespace RogueliteAutoBattler.Combat.Visuals
@@ -29,9 +29,10 @@ namespace RogueliteAutoBattler.Combat.Visuals
             if (_cachedNavigationManager != null)
                 _cachedNavigationManager.OnTabChanged += OnTabChanged;
 
-            if (NavigationHost.Instance != null && NavigationHost.Instance.Navigation != null)
+            if (ToolkitNavigationHost.Instance != null
+                && ToolkitNavigationHost.Instance.Navigation != null)
             {
-                _cachedToolkitNavigationManager = NavigationHost.Instance.Navigation;
+                _cachedToolkitNavigationManager = ToolkitNavigationHost.Instance.Navigation;
                 _cachedToolkitNavigationManager.OnTabChanged += OnTabChanged;
             }
         }
