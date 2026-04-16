@@ -8,7 +8,7 @@ using TMPro;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
-using UnityEngine.UIElements;
+using UIDocument = UnityEngine.UIElements.UIDocument;
 
 namespace RogueliteAutoBattler.Editor
 {
