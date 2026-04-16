@@ -42,6 +42,7 @@ namespace RogueliteAutoBattler.Editor
 
             GameObject navHostGo = NavigationHostBuilder.CreateNavigationHost();
             Undo.RegisterCreatedObjectUndo(navHostGo, "NavigationHost");
+            CombatHudBuilder.SetupToolkitCombatHud(navHostGo);
 
             Undo.CollapseUndoOperations(undoGroup);
             EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());

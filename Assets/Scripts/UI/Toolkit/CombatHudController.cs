@@ -11,8 +11,6 @@ namespace RogueliteAutoBattler.UI.Toolkit
         private BattleIndicatorController _battleIndicator;
         private StepProgressBarController _stepProgressBar;
 
-        public VisualElement GoldBadgeElement { get; private set; }
-
         internal GoldBadgeController GoldBadge => _goldBadge;
         internal BattleIndicatorController BattleIndicator => _battleIndicator;
         internal StepProgressBarController StepProgressBar => _stepProgressBar;
@@ -32,49 +30,12 @@ namespace RogueliteAutoBattler.UI.Toolkit
                 return;
             }
 
-            VisualElement goldBadgeElement = root.Q<VisualElement>("gold-badge");
-            if (goldBadgeElement == null)
-            {
-                Debug.LogWarning("[CombatHudController] Element 'gold-badge' not found.");
-                return;
-            }
-
-            Label goldLabel = root.Q<Label>("gold-label");
-            if (goldLabel == null)
-            {
-                Debug.LogWarning("[CombatHudController] Element 'gold-label' not found.");
-                return;
-            }
-
-            Label battleCompactLabel = root.Q<Label>("battle-compact-label");
-            if (battleCompactLabel == null)
-            {
-                Debug.LogWarning("[CombatHudController] Element 'battle-compact-label' not found.");
-                return;
-            }
-
-            VisualElement announcementOverlay = root.Q<VisualElement>("announcement-overlay");
-            if (announcementOverlay == null)
-            {
-                Debug.LogWarning("[CombatHudController] Element 'announcement-overlay' not found.");
-                return;
-            }
-
-            Label announcementLabel = root.Q<Label>("announcement-label");
-            if (announcementLabel == null)
-            {
-                Debug.LogWarning("[CombatHudController] Element 'announcement-label' not found.");
-                return;
-            }
-
-            VisualElement stepProgressContainer = root.Q<VisualElement>("step-progress-container");
-            if (stepProgressContainer == null)
-            {
-                Debug.LogWarning("[CombatHudController] Element 'step-progress-container' not found.");
-                return;
-            }
-
-            GoldBadgeElement = goldBadgeElement;
+            if (!TryQuery<VisualElement>(root, "gold-badge", out VisualElement goldBadgeElement)) return;
+            if (!TryQuery<Label>(root, "gold-label", out Label goldLabel)) return;
+            if (!TryQuery<Label>(root, "battle-compact-label", out Label battleCompactLabel)) return;
+            if (!TryQuery<VisualElement>(root, "announcement-overlay", out VisualElement announcementOverlay)) return;
+            if (!TryQuery<Label>(root, "announcement-label", out Label announcementLabel)) return;
+            if (!TryQuery<VisualElement>(root, "step-progress-container", out VisualElement stepProgressContainer)) return;
 
             _goldBadge = new GoldBadgeController(goldBadgeElement, goldLabel, this);
             _battleIndicator = new BattleIndicatorController(battleCompactLabel, announcementOverlay, announcementLabel, this);
@@ -95,6 +56,16 @@ namespace RogueliteAutoBattler.UI.Toolkit
         private void Update()
         {
             _stepProgressBar?.UpdateDotPosition();
+        }
+
+        private static bool TryQuery<T>(VisualElement root, string elementName, out T result)
+            where T : VisualElement
+        {
+            result = root.Q<T>(elementName);
+            if (result != null) return true;
+
+            Debug.LogWarning($"[CombatHudController] Element '{elementName}' not found.");
+            return false;
         }
     }
 }

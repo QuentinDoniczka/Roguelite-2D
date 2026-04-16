@@ -69,8 +69,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             yield return new WaitForSeconds(0.05f);
 
             Scale scaleValue = _badgeRoot.style.scale.value;
-            Assert.Greater(scaleValue.value.x, 1.0f,
-                "Badge root scale X should be greater than 1.0 during punch peak.");
+            Assert.Greater(scaleValue.value.x, 1.0f);
         }
     }
 }

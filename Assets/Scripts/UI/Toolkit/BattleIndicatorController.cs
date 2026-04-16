@@ -14,6 +14,8 @@ namespace RogueliteAutoBattler.UI.Toolkit
         private const float StartScale = 0.7f;
         private const string VisibleClass = "announcement-overlay--visible";
 
+        private static readonly WaitForSeconds WaitAnnouncementHold = new WaitForSeconds(HoldDuration);
+
         private readonly Label _compactLabel;
         private readonly VisualElement _announcementOverlay;
         private readonly Label _announcementLabel;
@@ -98,7 +100,7 @@ namespace RogueliteAutoBattler.UI.Toolkit
             _announcementOverlay.style.opacity = new StyleFloat(1f);
             _announcementOverlay.style.scale = new Scale(new Vector3(1f, 1f, 1f));
 
-            yield return new WaitForSeconds(HoldDuration);
+            yield return WaitAnnouncementHold;
 
             elapsed = 0f;
             while (elapsed < FadeOutDuration)

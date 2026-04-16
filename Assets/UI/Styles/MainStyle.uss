@@ -102,3 +102,129 @@
 .screen-shop-bg {
     background-color: rgba(233, 196, 106, 220);
 }
+
+.hud-overlay {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    flex-direction: column;
+}
+
+.hud-top-bar {
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    padding-top: 8px;
+    padding-left: 16px;
+    padding-right: 16px;
+}
+
+.gold-badge {
+    flex-direction: row;
+    align-items: center;
+    background-color: rgba(0, 0, 0, 0.63);
+    border-radius: 16px;
+    padding: 6px 12px;
+    margin-right: 12px;
+}
+
+.gold-icon {
+    width: 24px;
+    height: 24px;
+    background-color: rgb(255, 215, 0);
+    border-radius: 50%;
+}
+
+.gold-label {
+    font-size: 20px;
+    color: rgb(255, 215, 0);
+    margin-left: 6px;
+    -unity-font-style: bold;
+}
+
+.battle-indicator {
+    align-items: center;
+}
+
+.battle-compact-label {
+    font-size: 20px;
+    color: rgb(255, 255, 255);
+    -unity-font-style: bold;
+}
+
+.step-progress-container {
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    height: 20px;
+    margin-top: 8px;
+    padding-left: 32px;
+    padding-right: 32px;
+}
+
+.step-sphere {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    transition: background-color 0.2s;
+}
+
+.step-sphere--special {
+    width: 18px;
+    height: 18px;
+}
+
+.step-sphere--completed {
+    background-color: rgb(255, 255, 255);
+}
+
+.step-sphere--current {
+    background-color: rgb(100, 149, 237);
+}
+
+.step-sphere--upcoming {
+    background-color: rgba(255, 255, 255, 0.3);
+}
+
+.step-line {
+    flex-grow: 1;
+    height: 3px;
+    min-width: 4px;
+}
+
+.step-line--completed {
+    background-color: rgb(255, 255, 255);
+}
+
+.step-line--upcoming {
+    background-color: rgba(255, 255, 255, 0.3);
+}
+
+.step-scroll-dot {
+    position: absolute;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background-color: rgb(100, 149, 237);
+    display: none;
+}
+
+.announcement-overlay {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    display: none;
+}
+
+.announcement-overlay--visible {
+    display: flex;
+}
+
+.announcement-label {
+    font-size: 48px;
+    -unity-font-style: bold;
+    color: rgb(255, 255, 255);
+}

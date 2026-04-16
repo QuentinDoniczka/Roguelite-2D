@@ -16,12 +16,6 @@ namespace RogueliteAutoBattler.Combat.Visuals
                 return;
             }
 
-            if (_targetBadge == null)
-            {
-                Debug.LogError("[CoinFlyBootstrap] _targetBadge is not assigned. CoinFlyService will not initialize.");
-                return;
-            }
-
             if (_coinSprite == null)
             {
                 Debug.LogError("[CoinFlyBootstrap] _coinSprite is not assigned. CoinFlyService will not initialize.");

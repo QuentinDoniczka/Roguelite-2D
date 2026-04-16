@@ -157,8 +157,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             controller.Dispose();
             levelManager.StartLevel(1);
 
-            Assert.AreEqual(3, controller.SphereCount,
-                "SphereCount should remain 3 after Dispose since OnLevelStarted is unsubscribed.");
+            Assert.AreEqual(3, controller.SphereCount);
 
             Object.DestroyImmediate(database);
         }
