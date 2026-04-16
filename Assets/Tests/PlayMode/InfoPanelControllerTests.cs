@@ -196,5 +196,49 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             Assert.AreEqual("REGEN", _controller.StatNameText(4));
             Assert.AreEqual("CRIT", _controller.StatNameText(5));
         }
+
+        [Test]
+        public void StatsTabActiveByDefault()
+        {
+            _selectionManager.ForceSelect(_allyGo);
+
+            Assert.AreEqual(0, _controller.ActiveTabIndex);
+        }
+
+        [Test]
+        public void SwitchTabUpdatesActiveTabIndex()
+        {
+            _selectionManager.ForceSelect(_allyGo);
+
+            _controller.SwitchTab(1);
+
+            Assert.AreEqual(1, _controller.ActiveTabIndex);
+        }
+
+        [Test]
+        public void SwitchTabUpdatesTabButtonClasses()
+        {
+            _selectionManager.ForceSelect(_allyGo);
+
+            _controller.SwitchTab(1);
+
+            Assert.IsTrue(_tabButtons[1].ClassListContains("info-tab--active"));
+            Assert.IsFalse(_tabButtons[1].ClassListContains("info-tab--inactive"));
+            Assert.IsTrue(_tabButtons[0].ClassListContains("info-tab--inactive"));
+            Assert.IsFalse(_tabButtons[0].ClassListContains("info-tab--active"));
+        }
+
+        [Test]
+        public void SwitchTabResetsOnReshow()
+        {
+            _selectionManager.ForceSelect(_allyGo);
+            _controller.SwitchTab(2);
+            Assert.AreEqual(2, _controller.ActiveTabIndex);
+
+            _selectionManager.ForceSelect(_enemyGo);
+            _selectionManager.ForceSelect(_allyGo);
+
+            Assert.AreEqual(0, _controller.ActiveTabIndex);
+        }
     }
 }

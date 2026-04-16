@@ -11,6 +11,8 @@ namespace RogueliteAutoBattler.UI.Toolkit
     {
         private const string VisibleClass = "info-area--visible";
         private const string HiddenClass = "hidden";
+        private const string TabActiveClass = "info-tab--active";
+        private const string TabInactiveClass = "info-tab--inactive";
         private const int StatRowCount = 6;
 
         private readonly VisualElement _infoArea;
@@ -35,11 +37,13 @@ namespace RogueliteAutoBattler.UI.Toolkit
         private UnitSelectionManager _selectionManager;
         private CombatStats _trackedStats;
         private int _cachedAllyLayer;
+        private int _activeTabIndex;
         private GameObject _selectedUnit;
         private Coroutine _runningCoroutine;
 
         internal bool IsVisible => _infoArea.ClassListContains(VisibleClass);
         internal bool IsEmptyStateLabelVisible => !_emptyLabel.ClassListContains(HiddenClass);
+        internal int ActiveTabIndex => _activeTabIndex;
 
         internal string StatValueText(int rowIndex)
         {
@@ -93,6 +97,8 @@ namespace RogueliteAutoBattler.UI.Toolkit
             _cachedAllyLayer = PhysicsLayers.AllyLayer;
             SubscribeToEvents();
             BuildStatRows();
+            RegisterTabCallbacks();
+            SwitchTab(0);
             Hide();
         }
 
@@ -102,6 +108,8 @@ namespace RogueliteAutoBattler.UI.Toolkit
             _cachedAllyLayer = PhysicsLayers.AllyLayer;
             SubscribeToEvents();
             BuildStatRows();
+            RegisterTabCallbacks();
+            SwitchTab(0);
             Hide();
         }
 
@@ -135,6 +143,7 @@ namespace RogueliteAutoBattler.UI.Toolkit
             _tabBar.RemoveFromClassList(HiddenClass);
             _scrollView.RemoveFromClassList(HiddenClass);
             _emptyLabel.AddToClassList(HiddenClass);
+            SwitchTab(0);
         }
 
         private void Hide()
@@ -144,6 +153,49 @@ namespace RogueliteAutoBattler.UI.Toolkit
             _tabBar.AddToClassList(HiddenClass);
             _scrollView.AddToClassList(HiddenClass);
             _emptyLabel.RemoveFromClassList(HiddenClass);
+        }
+
+        internal void SwitchTab(int tabIndex)
+        {
+            if (tabIndex < 0 || tabIndex >= _tabButtons.Length)
+                return;
+
+            for (int i = 0; i < _tabButtons.Length; i++)
+            {
+                _tabButtons[i].RemoveFromClassList(TabActiveClass);
+                _tabButtons[i].AddToClassList(TabInactiveClass);
+            }
+
+            _tabButtons[tabIndex].RemoveFromClassList(TabInactiveClass);
+            _tabButtons[tabIndex].AddToClassList(TabActiveClass);
+            _activeTabIndex = tabIndex;
+
+            bool isStatsTab = tabIndex == 0;
+
+            for (int i = 0; i < StatRowCount; i++)
+            {
+                if (isStatsTab)
+                {
+                    _statRowElements[i].RemoveFromClassList(HiddenClass);
+                }
+                else
+                {
+                    _statRowElements[i].AddToClassList(HiddenClass);
+                    _breakdownContainers[i].AddToClassList(HiddenClass);
+                }
+            }
+
+            if (isStatsTab)
+                UpdateDisplay();
+        }
+
+        private void RegisterTabCallbacks()
+        {
+            for (int i = 0; i < _tabButtons.Length; i++)
+            {
+                int capturedIndex = i;
+                _tabButtons[i].clicked += () => SwitchTab(capturedIndex);
+            }
         }
 
         private void HandleUnitSelected(GameObject unit)
