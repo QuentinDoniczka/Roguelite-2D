@@ -1,4 +1,5 @@
 using RogueliteAutoBattler.Core;
+using RogueliteAutoBattler.UI.Toolkit;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -29,16 +30,23 @@ namespace RogueliteAutoBattler.Editor
             if (existingEs != null)
                 Undo.DestroyObjectImmediate(existingEs.gameObject);
 
+            NavigationHost existingHost = Object.FindFirstObjectByType<NavigationHost>(FindObjectsInactive.Include);
+            if (existingHost != null)
+                Undo.DestroyObjectImmediate(existingHost.gameObject);
+
             CombatWorldBuilder.ConfigureMainCamera();
             GameObject combatWorld = CombatWorldBuilder.CreateCombatWorld();
 
             GameObject esGo = SetupNavigationSceneEditor.CreateEventSystem();
             Undo.RegisterCreatedObjectUndo(esGo, "EventSystem");
 
+            GameObject navHostGo = NavigationHostBuilder.CreateNavigationHost();
+            Undo.RegisterCreatedObjectUndo(navHostGo, "NavigationHost");
+
             Undo.CollapseUndoOperations(undoGroup);
             EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
             Selection.activeGameObject = combatWorld;
-            Debug.Log("[SetupNewGameScene] Done. CombatWorld + EventSystem created. GameBootstrap auto-discovers refs at runtime.");
+            Debug.Log("[SetupNewGameScene] Done. CombatWorld + EventSystem + NavigationHost created.");
         }
     }
 }

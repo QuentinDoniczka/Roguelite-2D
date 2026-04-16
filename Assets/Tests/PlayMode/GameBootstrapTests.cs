@@ -86,14 +86,17 @@ namespace RogueliteAutoBattler.Tests.PlayMode
         }
 
         [UnityTest]
-        public IEnumerator Initialize_NoCanvas_SkipsValidation()
+        public IEnumerator Initialize_NoCanvas_StillValidatesRefs()
         {
             yield return null;
+
+            LogAssert.Expect(LogType.Error, new Regex("CombatWorld"));
+            LogAssert.Expect(LogType.Error, new Regex("navigation system"));
+            LogAssert.Expect(LogType.Error, new Regex("Main Camera"));
 
             GameBootstrap.Initialize();
 
             Assert.IsNull(GameBootstrap.Canvas);
-            LogAssert.NoUnexpectedReceived();
         }
 
         [UnityTest]
@@ -118,6 +121,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             Assert.IsNull(GameBootstrap.Canvas);
             Assert.IsNull(GameBootstrap.CombatWorld);
             Assert.IsNull(GameBootstrap.NavigationManager);
+            Assert.IsNull(GameBootstrap.NavigationHost);
             Assert.IsNull(GameBootstrap.MainCamera);
         }
     }
