@@ -176,10 +176,14 @@ Assets/
         Village/
           VillageScreen.cs
       Toolkit/
+        BattleIndicatorController.cs
+        CombatHudController.cs
+        GoldBadgeController.cs
         IScreen.cs
         NavigationHost.cs
         NavigationManager.cs
         ScreenStack.cs
+        StepProgressBarController.cs
       Widgets/
         AllyStatsPanel.cs
         BattleIndicatorBadge.cs
@@ -238,6 +242,7 @@ Assets/
       AllyStatsPanelTests.cs
       AnimationEventRelayTests.cs
       BattleIndicatorBadgeTests.cs
+      BattleIndicatorControllerTests.cs
       CanvasFactoryTests.cs
       CharacterAppearanceTests.cs
       CharacterMoverTests.cs
@@ -251,6 +256,7 @@ Assets/
       DamageNumberTests.cs
       FormationRecalculationTests.cs
       GameBootstrapTests.cs
+      GoldBadgeControllerTests.cs
       GoldHudBadgeTests.cs
       GoldWalletTests.cs
       HealthBarTrailTests.cs
@@ -269,6 +275,7 @@ Assets/
       SkillTreeNodeManagerTests.cs
       SkillTreeNodeTests.cs
       SkillTreeScreenTests.cs
+      StepProgressBarControllerTests.cs
       StepProgressBarTests.cs
       UIScreenTests.cs
       UnitSelectionManagerTests.cs
@@ -278,7 +285,11 @@ Assets/
   UI/
     Layouts/
       MainLayout.uxml
+    MainPanelSettings.asset
     Styles/
       MainStyle.uss
+  UI Toolkit/
+    UnityThemes/
+      UnityDefaultRuntimeTheme.tss
 
 ProjectSettings/  (Unity defaults)

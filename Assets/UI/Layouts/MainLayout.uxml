@@ -2,7 +2,23 @@
     <ui:Style src="../Styles/MainStyle.uss" />
     <ui:VisualElement name="root" class="root">
         <ui:VisualElement name="game-area" class="game-area" picking-mode="Ignore">
-            <ui:VisualElement name="screen-default" class="screen-container screen-default" picking-mode="Ignore" />
+            <ui:VisualElement name="screen-default" class="screen-container screen-default" picking-mode="Ignore">
+                <ui:VisualElement name="hud-overlay" picking-mode="Ignore" class="hud-overlay">
+                    <ui:VisualElement name="hud-top-bar" picking-mode="Ignore" class="hud-top-bar">
+                        <ui:VisualElement name="gold-badge" class="gold-badge">
+                            <ui:VisualElement name="gold-icon" class="gold-icon" />
+                            <ui:Label name="gold-label" text="0" class="gold-label" />
+                        </ui:VisualElement>
+                        <ui:VisualElement name="battle-indicator" class="battle-indicator">
+                            <ui:Label name="battle-compact-label" text="1-1" class="battle-compact-label" />
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+                    <ui:VisualElement name="step-progress-container" class="step-progress-container" />
+                    <ui:VisualElement name="announcement-overlay" picking-mode="Ignore" class="announcement-overlay">
+                        <ui:Label name="announcement-label" class="announcement-label" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+            </ui:VisualElement>
             <ui:VisualElement name="screen-village" class="screen-container hidden">
                 <ui:VisualElement class="screen-placeholder screen-village-bg">
                     <ui:Label text="VILLAGE" class="screen-placeholder-label" />

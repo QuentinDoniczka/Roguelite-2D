@@ -2,6 +2,8 @@ using System.Collections.Generic;
 using RogueliteAutoBattler.Combat.Core;
 using RogueliteAutoBattler.UI.Core;
 using UnityEngine;
+using ToolkitNavigationHost = RogueliteAutoBattler.UI.Toolkit.NavigationHost;
+using ToolkitNavigationManager = RogueliteAutoBattler.UI.Toolkit.NavigationManager;
 
 namespace RogueliteAutoBattler.Combat.Visuals
 {
@@ -14,6 +16,7 @@ namespace RogueliteAutoBattler.Combat.Visuals
         private int _lastEnemyChildCount;
         private readonly List<Renderer> _rendererBuffer = new List<Renderer>();
         private NavigationManager _cachedNavigationManager;
+        private ToolkitNavigationManager _cachedToolkitNavigationManager;
 
         public bool Visible => _visible;
 
@@ -25,12 +28,22 @@ namespace RogueliteAutoBattler.Combat.Visuals
             _cachedNavigationManager = NavigationManager.Instance;
             if (_cachedNavigationManager != null)
                 _cachedNavigationManager.OnTabChanged += OnTabChanged;
+
+            if (ToolkitNavigationHost.Instance != null
+                && ToolkitNavigationHost.Instance.Navigation != null)
+            {
+                _cachedToolkitNavigationManager = ToolkitNavigationHost.Instance.Navigation;
+                _cachedToolkitNavigationManager.OnTabChanged += OnTabChanged;
+            }
         }
 
         private void OnDestroy()
         {
             if (_cachedNavigationManager != null)
                 _cachedNavigationManager.OnTabChanged -= OnTabChanged;
+
+            if (_cachedToolkitNavigationManager != null)
+                _cachedToolkitNavigationManager.OnTabChanged -= OnTabChanged;
         }
 
         private void OnTabChanged(int tabIndex)
