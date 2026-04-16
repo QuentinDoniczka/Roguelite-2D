@@ -37,6 +37,12 @@ namespace RogueliteAutoBattler.UI.Toolkit
         private readonly VisualElement[] _breakdownContainers = new VisualElement[StatRowCount];
         private readonly Label[] _breakdownLabels = new Label[StatRowCount];
 
+        private readonly List<GameObject> _teamRoster = new List<GameObject>();
+        private Transform _teamContainer;
+        private int _currentRosterIndex = -1;
+        private bool _isSyncingSelection;
+        private bool _displayingDeadUnit;
+
         private UnitSelectionManager _selectionManager;
         private CombatStats _trackedStats;
         private int _cachedAllyLayer;
@@ -49,6 +55,11 @@ namespace RogueliteAutoBattler.UI.Toolkit
         internal bool IsVisible => _infoArea.ClassListContains(VisibleClass);
         internal bool IsEmptyStateLabelVisible => !_emptyLabel.ClassListContains(HiddenClass);
         internal int ActiveTabIndex => _activeTabIndex;
+        internal string NameLabelText => _nameLabel.text;
+        internal string TeamPosLabelText => _positionLabel.text;
+        internal int CurrentRosterIndex => _currentRosterIndex;
+        internal int TeamRosterCount => _teamRoster.Count;
+        internal bool IsDisplayingDeadUnit => _displayingDeadUnit;
 
         internal string StatValueText(int rowIndex)
         {
@@ -116,6 +127,12 @@ namespace RogueliteAutoBattler.UI.Toolkit
             RegisterTabCallbacks();
             SwitchTab(0);
             Hide();
+        }
+
+        internal void InitializeForTest(UnitSelectionManager selectionManager, Transform teamContainer)
+        {
+            InitializeForTest(selectionManager);
+            SetTeamContainer(teamContainer);
         }
 
         public void Dispose()
@@ -219,6 +236,9 @@ namespace RogueliteAutoBattler.UI.Toolkit
                 int capturedIndex = i;
                 _tabButtons[i].clicked += () => SwitchTab(capturedIndex);
             }
+
+            _prevButton.clicked += NavigateToPreviousAlly;
+            _nextButton.clicked += NavigateToNextAlly;
         }
 
         private void HandleUnitSelected(GameObject unit)
@@ -244,6 +264,16 @@ namespace RogueliteAutoBattler.UI.Toolkit
 
             _selectedUnit = unit;
             Show();
+
+            if (!_isSyncingSelection)
+            {
+                int index = FindRosterIndex(unit);
+                if (index >= 0)
+                    _currentRosterIndex = index;
+                _displayingDeadUnit = false;
+                UpdateNameLabel();
+                UpdateTeamPositionLabel();
+            }
         }
 
         private void HandleUnitDeselected()
@@ -386,6 +416,113 @@ namespace RogueliteAutoBattler.UI.Toolkit
         private void HandleHpChanged(int amount, int currentHp)
         {
             UpdateDisplay();
+        }
+
+        public void SetTeamContainer(Transform teamContainer)
+        {
+            _teamContainer = teamContainer;
+            RefreshTeamRoster();
+            if (_teamRoster.Count > 0)
+                DisplayTeamMember(0);
+        }
+
+        private void RefreshTeamRoster()
+        {
+            _teamRoster.Clear();
+
+            if (_teamContainer == null)
+                return;
+
+            for (int i = 0; i < _teamContainer.childCount; i++)
+            {
+                var child = _teamContainer.GetChild(i);
+                if (child.TryGetComponent<CombatStats>(out _))
+                    _teamRoster.Add(child.gameObject);
+            }
+        }
+
+        internal void NavigateToNextAlly()
+        {
+            if (_teamRoster.Count == 0)
+                return;
+
+            int nextIndex = (_currentRosterIndex + 1) % _teamRoster.Count;
+            DisplayTeamMember(nextIndex);
+        }
+
+        internal void NavigateToPreviousAlly()
+        {
+            if (_teamRoster.Count == 0)
+                return;
+
+            int prevIndex = (_currentRosterIndex - 1 + _teamRoster.Count) % _teamRoster.Count;
+            DisplayTeamMember(prevIndex);
+        }
+
+        private void DisplayTeamMember(int rosterIndex)
+        {
+            _currentRosterIndex = rosterIndex;
+            _displayingDeadUnit = false;
+
+            var unit = _teamRoster[rosterIndex];
+
+            bool isDeadOrDestroyed = unit == null
+                || (unit.TryGetComponent<CombatStats>(out var stats) && stats.IsDead);
+
+            if (isDeadOrDestroyed)
+            {
+                _displayingDeadUnit = true;
+                UntrackStats();
+                Show();
+                if (_selectionManager != null)
+                    _selectionManager.ForceDeselect();
+            }
+            else
+            {
+                _isSyncingSelection = true;
+                if (_selectionManager != null)
+                    _selectionManager.ForceSelect(unit);
+                _isSyncingSelection = false;
+            }
+
+            UpdateNameLabel();
+            UpdateTeamPositionLabel();
+        }
+
+        private int FindRosterIndex(GameObject unit)
+        {
+            for (int i = 0; i < _teamRoster.Count; i++)
+            {
+                if (_teamRoster[i] == unit)
+                    return i;
+            }
+
+            return -1;
+        }
+
+        private void UpdateNameLabel()
+        {
+            if (_displayingDeadUnit)
+            {
+                _nameLabel.text = string.Empty;
+                return;
+            }
+
+            if (_currentRosterIndex >= 0 && _currentRosterIndex < _teamRoster.Count
+                && _teamRoster[_currentRosterIndex] != null)
+            {
+                _nameLabel.text = _teamRoster[_currentRosterIndex].name;
+                return;
+            }
+
+            _nameLabel.text = string.Empty;
+        }
+
+        private void UpdateTeamPositionLabel()
+        {
+            _stringBuilder.Clear();
+            _stringBuilder.Append(_currentRosterIndex + 1).Append('/').Append(_teamRoster.Count);
+            _positionLabel.text = _stringBuilder.ToString();
         }
     }
 }
