@@ -75,6 +75,24 @@ namespace RogueliteAutoBattler.UI.Toolkit
             Navigation = new NavigationManager(tabButtons, defaultScreen);
 
             RegisterTabScreens(root);
+
+            root.RegisterCallback<GeometryChangedEvent>(ValidateFontOnFirstLayout);
+        }
+
+        private void ValidateFontOnFirstLayout(GeometryChangedEvent evt)
+        {
+            VisualElement root = _uiDocument.rootVisualElement;
+            root.UnregisterCallback<GeometryChangedEvent>(ValidateFontOnFirstLayout);
+
+            Label firstLabel = root.Q<Label>();
+            if (firstLabel == null)
+                return;
+
+            FontDefinition fontDef = firstLabel.resolvedStyle.unityFontDefinition;
+            if (fontDef.fontAsset == null && fontDef.font == null)
+            {
+                Debug.LogError("[NavigationHost] Font not resolved — check USS font path in MainStyle.uss (.root -unity-font-definition). Text will be invisible.");
+            }
         }
 
         private Button[] QueryTabButtons(VisualElement root)
