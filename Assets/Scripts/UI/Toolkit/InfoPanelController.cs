@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Text;
 using RogueliteAutoBattler.Combat.Core;
 using RogueliteAutoBattler.Common;
 using UnityEngine;
@@ -13,6 +14,8 @@ namespace RogueliteAutoBattler.UI.Toolkit
         private const string HiddenClass = "hidden";
         private const string TabActiveClass = "info-tab--active";
         private const string TabInactiveClass = "info-tab--inactive";
+        private const string BreakdownVisibleClass = "info-breakdown--visible";
+        private const string BreakdownSeparator = "\u2500\u2500\u2500\u2500\u2500\u2500";
         private const int StatRowCount = 6;
 
         private readonly VisualElement _infoArea;
@@ -38,8 +41,10 @@ namespace RogueliteAutoBattler.UI.Toolkit
         private CombatStats _trackedStats;
         private int _cachedAllyLayer;
         private int _activeTabIndex;
+        private int _expandedRowIndex = -1;
         private GameObject _selectedUnit;
         private Coroutine _runningCoroutine;
+        private readonly StringBuilder _stringBuilder = new StringBuilder(128);
 
         internal bool IsVisible => _infoArea.ClassListContains(VisibleClass);
         internal bool IsEmptyStateLabelVisible => !_emptyLabel.ClassListContains(HiddenClass);
@@ -138,6 +143,12 @@ namespace RogueliteAutoBattler.UI.Toolkit
 
         private void Show()
         {
+            if (_expandedRowIndex >= 0)
+            {
+                CollapseBreakdown(_expandedRowIndex);
+                _expandedRowIndex = -1;
+            }
+
             _infoArea.AddToClassList(VisibleClass);
             _header.RemoveFromClassList(HiddenClass);
             _tabBar.RemoveFromClassList(HiddenClass);
@@ -148,6 +159,12 @@ namespace RogueliteAutoBattler.UI.Toolkit
 
         private void Hide()
         {
+            if (_expandedRowIndex >= 0)
+            {
+                CollapseBreakdown(_expandedRowIndex);
+                _expandedRowIndex = -1;
+            }
+
             _infoArea.RemoveFromClassList(VisibleClass);
             _header.AddToClassList(HiddenClass);
             _tabBar.AddToClassList(HiddenClass);
@@ -171,6 +188,12 @@ namespace RogueliteAutoBattler.UI.Toolkit
             _activeTabIndex = tabIndex;
 
             bool isStatsTab = tabIndex == 0;
+
+            if (!isStatsTab && _expandedRowIndex >= 0)
+            {
+                CollapseBreakdown(_expandedRowIndex);
+                _expandedRowIndex = -1;
+            }
 
             for (int i = 0; i < StatRowCount; i++)
             {
@@ -254,6 +277,9 @@ namespace RogueliteAutoBattler.UI.Toolkit
                 breakdownLabel.AddToClassList("info-breakdown-text");
                 breakdownContainer.Add(breakdownLabel);
 
+                int capturedIndex = i;
+                row.RegisterCallback<ClickEvent>(evt => ToggleBreakdown(capturedIndex));
+
                 _statRowElements[i] = row;
                 _statNameLabels[i] = nameLabel;
                 _statValueLabels[i] = valueLabel;
@@ -275,6 +301,76 @@ namespace RogueliteAutoBattler.UI.Toolkit
                 _statNameLabels[i].text = breakdown.StatName;
                 _statValueLabels[i].text = breakdown.FinalValue;
             }
+
+            if (_expandedRowIndex >= 0)
+                PopulateBreakdownText(_expandedRowIndex);
+        }
+
+        internal void ToggleBreakdown(int rowIndex)
+        {
+            if (rowIndex < 0 || rowIndex >= StatRowCount)
+                return;
+
+            if (_expandedRowIndex == rowIndex)
+            {
+                CollapseBreakdown(rowIndex);
+                _expandedRowIndex = -1;
+            }
+            else
+            {
+                if (_expandedRowIndex >= 0)
+                    CollapseBreakdown(_expandedRowIndex);
+
+                _breakdownContainers[rowIndex].RemoveFromClassList(HiddenClass);
+                _breakdownContainers[rowIndex].AddToClassList(BreakdownVisibleClass);
+                PopulateBreakdownText(rowIndex);
+                _expandedRowIndex = rowIndex;
+            }
+        }
+
+        private void CollapseBreakdown(int rowIndex)
+        {
+            _breakdownContainers[rowIndex].AddToClassList(HiddenClass);
+            _breakdownContainers[rowIndex].RemoveFromClassList(BreakdownVisibleClass);
+        }
+
+        private void PopulateBreakdownText(int rowIndex)
+        {
+            if (_trackedStats == null)
+                return;
+
+            IReadOnlyList<StatType> displayOrder = CombatStats.DisplayOrder;
+            StatBreakdownData breakdown = _trackedStats.GetBreakdown(displayOrder[rowIndex]);
+
+            _stringBuilder.Clear();
+
+            if (breakdown.Modifiers != null)
+            {
+                for (int i = 0; i < breakdown.Modifiers.Length; i++)
+                {
+                    StatModifierEntry modifier = breakdown.Modifiers[i];
+                    _stringBuilder.Append(modifier.Source).Append(": ").AppendLine(modifier.Value);
+                }
+            }
+
+            _stringBuilder.AppendLine(BreakdownSeparator);
+            _stringBuilder.Append("Total: ").Append(breakdown.FinalValue);
+
+            _breakdownLabels[rowIndex].text = _stringBuilder.ToString();
+        }
+
+        internal bool IsBreakdownExpanded(int rowIndex)
+        {
+            if (rowIndex < 0 || rowIndex >= StatRowCount)
+                return false;
+            return !_breakdownContainers[rowIndex].ClassListContains(HiddenClass);
+        }
+
+        internal string BreakdownText(int rowIndex)
+        {
+            if (rowIndex < 0 || rowIndex >= StatRowCount)
+                return string.Empty;
+            return _breakdownLabels[rowIndex].text;
         }
 
         private void UntrackStats()

@@ -240,5 +240,58 @@ namespace RogueliteAutoBattler.Tests.PlayMode
 
             Assert.AreEqual(0, _controller.ActiveTabIndex);
         }
+
+        [Test]
+        public void StatRowExpandsBreakdownOnToggle()
+        {
+            _selectionManager.ForceSelect(_allyGo);
+
+            _controller.ToggleBreakdown(0);
+
+            Assert.IsTrue(_controller.IsBreakdownExpanded(0));
+        }
+
+        [Test]
+        public void StatRowCollapsesOnSecondToggle()
+        {
+            _selectionManager.ForceSelect(_allyGo);
+
+            _controller.ToggleBreakdown(0);
+            _controller.ToggleBreakdown(0);
+
+            Assert.IsFalse(_controller.IsBreakdownExpanded(0));
+        }
+
+        [Test]
+        public void StatRowOnlyOneExpandedAtATime()
+        {
+            _selectionManager.ForceSelect(_allyGo);
+
+            _controller.ToggleBreakdown(0);
+            _controller.ToggleBreakdown(1);
+
+            Assert.IsFalse(_controller.IsBreakdownExpanded(0));
+            Assert.IsTrue(_controller.IsBreakdownExpanded(1));
+        }
+
+        [Test]
+        public void StatRowBreakdownContainsBase()
+        {
+            _selectionManager.ForceSelect(_allyGo);
+
+            _controller.ToggleBreakdown(0);
+
+            Assert.IsTrue(_controller.BreakdownText(0).Contains("Base"));
+        }
+
+        [Test]
+        public void StatRowBreakdownContainsTotal()
+        {
+            _selectionManager.ForceSelect(_allyGo);
+
+            _controller.ToggleBreakdown(0);
+
+            Assert.IsTrue(_controller.BreakdownText(0).Contains("Total"));
+        }
     }
 }
