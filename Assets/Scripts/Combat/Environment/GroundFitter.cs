@@ -42,15 +42,22 @@ namespace RogueliteAutoBattler.Combat.Environment
         {
             float orthoSize = _camera.orthographicSize;
             float aspect = _camera.aspect;
-            float visibleHeight = orthoSize * 2f;
-            float visibleWidth = visibleHeight * aspect;
+            float totalHeight = orthoSize * 2f;
+            float visibleWidth = totalHeight * aspect;
+
+            // Info-area (35% panel + 10% nav-bar) covers the bottom 45% of screen.
+            // Size the ground to the visible top 55% only to avoid unnecessary tiling below the UI.
+            const float uiBottomNormalizedHeight = 0.45f;
+            float groundHeight = totalHeight * (1f - uiBottomNormalizedHeight);
+            float groundTopY = orthoSize;
+            float groundCenterY = groundTopY - groundHeight * 0.5f;
 
             float width = Mathf.Max(_groundWidth, visibleWidth + 2f);
-            _renderer.size = new Vector2(width, visibleHeight);
+            _renderer.size = new Vector2(width, groundHeight);
 
             float visibleHalfWidth = visibleWidth * 0.5f;
             float anchorX = -(visibleHalfWidth + 1f) + width * 0.5f;
-            transform.localPosition = new Vector3(anchorX, 0f, 0f);
+            transform.localPosition = new Vector3(anchorX, groundCenterY, 0f);
 
             _lastOrthoSize = orthoSize;
             _lastAspect = aspect;

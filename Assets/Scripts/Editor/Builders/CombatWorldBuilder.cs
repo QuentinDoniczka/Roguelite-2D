@@ -63,9 +63,6 @@ namespace RogueliteAutoBattler.Editor
             cam.backgroundColor = Color.black;
             cam.clearFlags = CameraClearFlags.SolidColor;
 
-            if (cam.GetComponent<CameraViewportFitter>() == null)
-                cam.gameObject.AddComponent<CameraViewportFitter>();
-
             return cam;
         }
 
