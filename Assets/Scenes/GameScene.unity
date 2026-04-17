@@ -15680,7 +15680,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 619dfd52e55902a418aea05a2822a8f5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: RogueliteAutoBattler.Runtime::RogueliteAutoBattler.Combat.Environment.GroundFitter
-  _gameAreaBottomRatio: 0.4
   _groundWidth: 200
 --- !u!4 &1724418989
 Transform:

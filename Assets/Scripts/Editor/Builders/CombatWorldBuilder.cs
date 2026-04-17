@@ -17,7 +17,6 @@ namespace RogueliteAutoBattler.Editor
         private const float CameraOrthoSize = 5.4f;
         private const float CameraZPosition = -10f;
         private const float GroundWidth = 200f;
-        private const float GameAreaBottomRatio = 0.40f;
 
         private const string WeaponSpritesFolder = "Assets/Sprites/Items/melee weapons";
         private const string HatSpritesFolder    = "Assets/Sprites/Items/Wardrobe/cloth";
@@ -84,14 +83,11 @@ namespace RogueliteAutoBattler.Editor
             groundRenderer.drawMode = SpriteDrawMode.Tiled;
 
             float visibleHeight = CameraOrthoSize * 2f;
-            float gameAreaBottom = -CameraOrthoSize + GameAreaBottomRatio * visibleHeight;
-            float groundHeight = CameraOrthoSize - gameAreaBottom;
-            float groundCenterY = (gameAreaBottom + CameraOrthoSize) * 0.5f;
             float previewAspect = 9f / 16f;
             float previewHalfWidth = CameraOrthoSize * previewAspect;
             float anchorX = -previewHalfWidth + GroundWidth * 0.5f;
-            groundGo.transform.localPosition = new Vector3(anchorX, groundCenterY, 0f);
-            groundRenderer.size = new Vector2(GroundWidth, groundHeight);
+            groundGo.transform.localPosition = new Vector3(anchorX, 0f, 0f);
+            groundRenderer.size = new Vector2(GroundWidth, visibleHeight);
             groundRenderer.sortingLayerName = SortingLayers.Background;
             groundRenderer.sortingOrder = -10;
             groundRenderer.color = Color.white;
