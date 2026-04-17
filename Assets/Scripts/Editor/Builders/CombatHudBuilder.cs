@@ -162,9 +162,6 @@ namespace RogueliteAutoBattler.Editor
             CombatHudController combatHud = navigationHostGo.AddComponent<CombatHudController>();
             var combatHudSo = new SerializedObject(combatHud);
             EditorUIFactory.SetObj(combatHudSo, "_uiDocument", uiDocument);
-            var infoPanelTemplate = AssetDatabase.LoadAssetAtPath<UnityEngine.UIElements.VisualTreeAsset>(
-                "Assets/UI/Layouts/InfoPanel.uxml");
-            EditorUIFactory.SetObj(combatHudSo, "_infoPanelTemplate", infoPanelTemplate);
             combatHudSo.ApplyModifiedProperties();
 
             var coinFlyOverlayGo = new GameObject("CoinFlyOverlay");

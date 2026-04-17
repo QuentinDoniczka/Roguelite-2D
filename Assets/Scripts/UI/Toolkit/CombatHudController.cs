@@ -7,7 +7,6 @@ namespace RogueliteAutoBattler.UI.Toolkit
     public class CombatHudController : MonoBehaviour
     {
         [SerializeField] private UIDocument _uiDocument;
-        [SerializeField] private VisualTreeAsset _infoPanelTemplate;
 
         private GoldBadgeController _goldBadge;
         private BattleIndicatorController _battleIndicator;
@@ -47,36 +46,29 @@ namespace RogueliteAutoBattler.UI.Toolkit
             _battleIndicator.Initialize();
             _stepProgressBar.Initialize();
 
-            if (!TryQuery<VisualElement>(root, "info-area", out VisualElement infoArea)) return;
+            if (!TryQuery<VisualElement>(root, "info-panel-root", out VisualElement panelRoot)) return;
+            if (!TryQuery<Label>(root, "info-empty-label", out Label emptyLabel)) return;
+            if (!TryQuery<VisualElement>(root, "info-content", out VisualElement contentContainer)) return;
+            if (!TryQuery<Label>(root, "info-name-label", out Label nameLabel)) return;
+            if (!TryQuery<Label>(root, "info-team-pos-label", out Label teamPosLabel)) return;
+            if (!TryQuery<Button>(root, "nav-prev-btn", out Button prevButton)) return;
+            if (!TryQuery<Button>(root, "nav-next-btn", out Button nextButton)) return;
+            if (!TryQuery<Button>(root, "info-tab-stats", out Button tabStats)) return;
+            if (!TryQuery<Button>(root, "info-tab-traits", out Button tabTraits)) return;
+            if (!TryQuery<Button>(root, "info-tab-loot", out Button tabLoot)) return;
+            if (!TryQuery<ScrollView>(root, "info-tab-content-stats", out ScrollView statsScrollView)) return;
+            if (!TryQuery<VisualElement>(root, "info-tab-content-traits", out VisualElement traitsContent)) return;
+            if (!TryQuery<VisualElement>(root, "info-tab-content-loot", out VisualElement lootContent)) return;
 
-            if (_infoPanelTemplate != null)
-            {
-                _infoPanelTemplate.CloneTree(infoArea);
+            var tabButtons = new[] { tabStats, tabTraits, tabLoot };
+            var tabContents = new VisualElement[] { statsScrollView, traitsContent, lootContent };
 
-                if (!TryQuery<VisualElement>(infoArea, "info-panel-root", out VisualElement panelRoot)) return;
-                if (!TryQuery<Label>(infoArea, "info-empty-label", out Label emptyLabel)) return;
-                if (!TryQuery<VisualElement>(infoArea, "info-content", out VisualElement contentContainer)) return;
-                if (!TryQuery<Label>(infoArea, "info-name-label", out Label nameLabel)) return;
-                if (!TryQuery<Label>(infoArea, "info-team-pos-label", out Label teamPosLabel)) return;
-                if (!TryQuery<Button>(infoArea, "nav-prev-btn", out Button prevButton)) return;
-                if (!TryQuery<Button>(infoArea, "nav-next-btn", out Button nextButton)) return;
-                if (!TryQuery<Button>(infoArea, "info-tab-stats", out Button tabStats)) return;
-                if (!TryQuery<Button>(infoArea, "info-tab-traits", out Button tabTraits)) return;
-                if (!TryQuery<Button>(infoArea, "info-tab-loot", out Button tabLoot)) return;
-                if (!TryQuery<ScrollView>(infoArea, "info-tab-content-stats", out ScrollView statsScrollView)) return;
-                if (!TryQuery<VisualElement>(infoArea, "info-tab-content-traits", out VisualElement traitsContent)) return;
-                if (!TryQuery<VisualElement>(infoArea, "info-tab-content-loot", out VisualElement lootContent)) return;
-
-                var tabButtons = new[] { tabStats, tabTraits, tabLoot };
-                var tabContents = new VisualElement[] { statsScrollView, traitsContent, lootContent };
-
-                _allyStatsPanel = new AllyStatsPanelController(
-                    panelRoot, emptyLabel, contentContainer,
-                    nameLabel, teamPosLabel,
-                    prevButton, nextButton,
-                    tabButtons, tabContents,
-                    statsScrollView, this);
-            }
+            _allyStatsPanel = new AllyStatsPanelController(
+                panelRoot, emptyLabel, contentContainer,
+                nameLabel, teamPosLabel,
+                prevButton, nextButton,
+                tabButtons, tabContents,
+                statsScrollView, this);
 
             _goldBadgeElement.RegisterCallback<GeometryChangedEvent>(OnGoldBadgeGeometryChanged);
         }
