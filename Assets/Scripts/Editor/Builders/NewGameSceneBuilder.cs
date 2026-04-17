@@ -4,6 +4,7 @@ using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.InputSystem.UI;
 
 namespace RogueliteAutoBattler.Editor
 {
@@ -37,7 +38,9 @@ namespace RogueliteAutoBattler.Editor
             CombatWorldBuilder.ConfigureMainCamera();
             GameObject combatWorld = CombatWorldBuilder.CreateCombatWorld();
 
-            GameObject esGo = SetupNavigationSceneEditor.CreateEventSystem();
+            var esGo = new GameObject("EventSystem");
+            esGo.AddComponent<EventSystem>();
+            esGo.AddComponent<InputSystemUIInputModule>();
             Undo.RegisterCreatedObjectUndo(esGo, "EventSystem");
 
             GameObject navHostGo = NavigationHostBuilder.CreateNavigationHost();

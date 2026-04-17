@@ -43,9 +43,6 @@
     --hud-step-color-current: rgb(100, 149, 237);
     --hud-step-color-upcoming: rgba(255, 255, 255, 0.3);
 
-    --info-height: 35%;
-    --info-min-height: 200px;
-    --info-max-height: 320px;
     --info-bg: rgba(20, 20, 40, 0.95);
     --info-header-height: 48px;
     --info-tab-height: 36px;
@@ -64,7 +61,7 @@
     width: 100%;
     height: 100%;
     background-color: rgba(0, 0, 0, 0);
-    -unity-font-definition: url("/Assets/Fonts/Bangers.ttf");
+    -unity-font-definition: url("project://database/Assets/Fonts/Bangers.ttf");
     -unity-text-outline-width: var(--text-outline-width);
     -unity-text-outline-color: var(--text-outline-color);
 }
@@ -272,9 +269,9 @@
 }
 
 .info-area {
-    height: var(--info-height);
-    min-height: var(--info-min-height);
-    max-height: var(--info-max-height);
+    flex-grow: 0;
+    flex-shrink: 0;
+    height: 280px;
     background-color: var(--info-bg);
     flex-direction: column;
     overflow: hidden;
@@ -362,6 +359,7 @@
 
 .info-empty-label {
     flex-grow: 1;
+    min-height: 48px;
     -unity-text-align: middle-center;
     font-size: var(--info-font-size);
     color: rgba(160, 160, 176, 1);
