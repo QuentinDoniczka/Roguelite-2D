@@ -1,3 +1,4 @@
+using System.Collections;
 using RogueliteAutoBattler.Combat.Visuals;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -75,6 +76,12 @@ namespace RogueliteAutoBattler.UI.Toolkit
 
         private void Start()
         {
+            StartCoroutine(InitializeEndOfFrame());
+        }
+
+        private IEnumerator InitializeEndOfFrame()
+        {
+            yield return new WaitForEndOfFrame();
             _allyStatsPanel?.Initialize();
         }
 
