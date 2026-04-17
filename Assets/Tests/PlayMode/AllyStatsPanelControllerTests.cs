@@ -432,6 +432,195 @@ namespace RogueliteAutoBattler.Tests.PlayMode
 
             Assert.AreEqual("2/3", _controller.TeamPosLabelText);
         }
+
+        [UnityTest]
+        public IEnumerator ForceSelect_ShowsPanelAndHidesEmptyLabel()
+        {
+            var ally = TestCharacterFactory.CreateSelectableCharacter("Ally", 100, 15, true, new Vector2(0, 0));
+            Track(ally);
+
+            Assert.IsFalse(_controller.IsVisible);
+            Assert.IsTrue(_controller.IsEmptyStateLabelActive);
+
+            _selectionManager.ForceSelect(ally);
+            yield return null;
+
+            Assert.IsTrue(_controller.IsVisible);
+            Assert.IsFalse(_controller.IsEmptyStateLabelActive);
+        }
+
+        [UnityTest]
+        public IEnumerator ForceSelect_PopulatesAllStatValuesWithNonEmptyStrings()
+        {
+            var ally = TestCharacterFactory.CreateSelectableCharacter("Ally", 100, 15, true, new Vector2(0, 0));
+            Track(ally);
+
+            _selectionManager.ForceSelect(ally);
+            yield return null;
+
+            int statCount = CombatStats.DisplayOrder.Count;
+            for (int i = 0; i < statCount; i++)
+            {
+                string value = _controller.StatValueText(i);
+                Assert.IsFalse(string.IsNullOrEmpty(value), $"Stat row {i} value should not be empty");
+            }
+        }
+
+        [UnityTest]
+        public IEnumerator ForceSelect_PopulatesAllStatNamesWithNonEmptyStrings()
+        {
+            var ally = TestCharacterFactory.CreateSelectableCharacter("Ally", 100, 15, true, new Vector2(0, 0));
+            Track(ally);
+
+            _selectionManager.ForceSelect(ally);
+            yield return null;
+
+            int statCount = CombatStats.DisplayOrder.Count;
+            for (int i = 0; i < statCount; i++)
+            {
+                string name = _controller.StatNameText(i);
+                Assert.IsFalse(string.IsNullOrEmpty(name), $"Stat row {i} name should not be empty");
+            }
+        }
+
+        [UnityTest]
+        public IEnumerator NameLabel_UpdatesOnNavigateNext()
+        {
+            _controller.Dispose();
+
+            _controller = CreateControllerWithTeam(out _, 3);
+            yield return null;
+
+            Assert.AreEqual("Ally_0", _controller.NameLabelText);
+
+            _controller.NavigateToNextAlly();
+            yield return null;
+
+            Assert.AreEqual("Ally_1", _controller.NameLabelText);
+
+            _controller.NavigateToNextAlly();
+            yield return null;
+
+            Assert.AreEqual("Ally_2", _controller.NameLabelText);
+        }
+
+        [UnityTest]
+        public IEnumerator NameLabel_UpdatesOnNavigatePrev()
+        {
+            _controller.Dispose();
+
+            _controller = CreateControllerWithTeam(out _, 3);
+            yield return null;
+
+            Assert.AreEqual("Ally_0", _controller.NameLabelText);
+
+            _controller.NavigateToPreviousAlly();
+            yield return null;
+
+            Assert.AreEqual("Ally_2", _controller.NameLabelText);
+        }
+
+        [UnityTest]
+        public IEnumerator TeamPosLabel_UpdatesOnNavigatePrev()
+        {
+            _controller.Dispose();
+
+            _controller = CreateControllerWithTeam(out _, 3);
+            yield return null;
+
+            Assert.AreEqual("1/3", _controller.TeamPosLabelText);
+
+            _controller.NavigateToPreviousAlly();
+            yield return null;
+
+            Assert.AreEqual("3/3", _controller.TeamPosLabelText);
+        }
+
+        [UnityTest]
+        public IEnumerator NavigateToDeadUnit_SetsIsDisplayingDeadUnitTrue()
+        {
+            _controller.Dispose();
+
+            _controller = CreateControllerWithTeam(out var teamContainer, 3);
+            yield return null;
+
+            var secondAlly = teamContainer.GetChild(1).gameObject;
+            secondAlly.GetComponent<CombatStats>().TakeDamage(9999);
+            yield return null;
+
+            _controller.NavigateToNextAlly();
+            yield return null;
+
+            Assert.AreEqual(1, _controller.CurrentRosterIndex);
+            Assert.IsTrue(_controller.IsDisplayingDeadUnit);
+        }
+
+        [UnityTest]
+        public IEnumerator NavigateToDeadUnit_StillShowsPanel()
+        {
+            _controller.Dispose();
+
+            _controller = CreateControllerWithTeam(out var teamContainer, 2);
+            yield return null;
+
+            var secondAlly = teamContainer.GetChild(1).gameObject;
+            secondAlly.GetComponent<CombatStats>().TakeDamage(9999);
+            yield return null;
+
+            _controller.NavigateToNextAlly();
+            yield return null;
+
+            Assert.IsTrue(_controller.IsVisible);
+            Assert.IsTrue(_controller.IsDisplayingDeadUnit);
+        }
+
+        [UnityTest]
+        public IEnumerator NavigateToDeadUnit_ShowsSnapshotName()
+        {
+            _controller.Dispose();
+
+            _controller = CreateControllerWithTeam(out var teamContainer, 2);
+            yield return null;
+
+            _selectionManager.ForceSelect(teamContainer.GetChild(1).gameObject);
+            yield return null;
+
+            teamContainer.GetChild(1).GetComponent<CombatStats>().TakeDamage(9999);
+            yield return null;
+
+            _controller.NavigateToPreviousAlly();
+            yield return null;
+            Assert.AreEqual("Ally_0", _controller.NameLabelText);
+
+            _controller.NavigateToNextAlly();
+            yield return null;
+
+            Assert.AreEqual("Ally_1", _controller.NameLabelText);
+            Assert.IsTrue(_controller.IsDisplayingDeadUnit);
+        }
+
+        [UnityTest]
+        public IEnumerator NavigateAwayFromDeadUnit_ClearsDeadUnitFlag()
+        {
+            _controller.Dispose();
+
+            _controller = CreateControllerWithTeam(out var teamContainer, 2);
+            yield return null;
+
+            var secondAlly = teamContainer.GetChild(1).gameObject;
+            _selectionManager.ForceSelect(secondAlly);
+            yield return null;
+
+            secondAlly.GetComponent<CombatStats>().TakeDamage(9999);
+            yield return null;
+            Assert.IsTrue(_controller.IsDisplayingDeadUnit);
+
+            _controller.NavigateToNextAlly();
+            yield return null;
+
+            Assert.AreEqual(0, _controller.CurrentRosterIndex);
+            Assert.IsFalse(_controller.IsDisplayingDeadUnit);
+        }
     }
 
     public class CoroutineHostStub : MonoBehaviour { }
