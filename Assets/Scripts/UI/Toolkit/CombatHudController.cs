@@ -81,11 +81,14 @@ namespace RogueliteAutoBattler.UI.Toolkit
                     prevButton, nextButton,
                     tabButtons, tabContents,
                     statsScrollView, this);
-
-                _allyStatsPanel.Initialize();
             }
 
             _goldBadgeElement.RegisterCallback<GeometryChangedEvent>(OnGoldBadgeGeometryChanged);
+        }
+
+        private void Start()
+        {
+            _allyStatsPanel?.Initialize();
         }
 
         private void OnGoldBadgeGeometryChanged(GeometryChangedEvent evt)
