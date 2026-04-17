@@ -266,7 +266,7 @@
 .info-area {
     flex-grow: 0;
     flex-shrink: 0;
-    height: 30%;
+    height: 53%;
     background-color: var(--info-bg);
     flex-direction: column;
     overflow: hidden;
