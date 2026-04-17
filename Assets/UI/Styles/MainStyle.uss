@@ -42,7 +42,7 @@
     --hud-step-color-current: rgb(100, 149, 237);
     --hud-step-color-upcoming: rgba(255, 255, 255, 0.3);
 
-    --info-bg: rgba(20, 20, 40, 0.95);
+    --info-bg: rgb(20, 20, 40);
     --info-tab-active-bg: var(--color-tab-active);
     --info-tab-inactive-bg: rgba(50, 50, 80, 0.8);
     --info-font-size: 16px;
@@ -266,7 +266,7 @@
 .info-area {
     flex-grow: 0;
     flex-shrink: 0;
-    height: 35%;
+    height: 30%;
     background-color: var(--info-bg);
     flex-direction: column;
     overflow: hidden;
