@@ -18,7 +18,6 @@
     --text-outline-color: rgb(0, 0, 0);
 
     --nav-height: 10%;
-    --nav-min-height: 80px;
     --nav-tab-font-size: 28px;
     --nav-tab-radius: 8px;
     --nav-tab-margin: 4px;
@@ -44,11 +43,8 @@
     --hud-step-color-upcoming: rgba(255, 255, 255, 0.3);
 
     --info-bg: rgba(20, 20, 40, 0.95);
-    --info-header-height: 48px;
-    --info-tab-height: 36px;
     --info-tab-active-bg: var(--color-tab-active);
     --info-tab-inactive-bg: rgba(50, 50, 80, 0.8);
-    --info-stat-row-height: 40px;
     --info-font-size: 16px;
     --info-name-font-size: 20px;
     --info-nav-btn-size: 44px;
@@ -84,7 +80,6 @@
 .nav-bar {
     flex-direction: row;
     height: var(--nav-height);
-    min-height: var(--nav-min-height);
     background-color: var(--color-nav-bg);
     padding: 0;
 }
@@ -271,7 +266,7 @@
 .info-area {
     flex-grow: 0;
     flex-shrink: 0;
-    height: 280px;
+    height: 35%;
     background-color: var(--info-bg);
     flex-direction: column;
     overflow: hidden;
@@ -290,7 +285,7 @@
 .info-header {
     flex-direction: row;
     align-items: center;
-    height: var(--info-header-height);
+    height: 12%;
     padding-left: 8px;
     padding-right: 8px;
 }
@@ -331,7 +326,7 @@
 
 .info-tab-bar {
     flex-direction: row;
-    height: var(--info-tab-height);
+    height: 9%;
 }
 
 .info-tab {
@@ -359,7 +354,6 @@
 
 .info-empty-label {
     flex-grow: 1;
-    min-height: 48px;
     -unity-text-align: middle-center;
     font-size: var(--info-font-size);
     color: rgba(160, 160, 176, 1);
@@ -377,7 +371,7 @@
     flex-direction: row;
     justify-content: space-between;
     align-items: center;
-    height: var(--info-stat-row-height);
+    height: 40px;
     padding-left: 12px;
     padding-right: 12px;
 }
