@@ -15,11 +15,6 @@ namespace RogueliteAutoBattler.UI.Toolkit
         private VisualElement _goldBadgeElement;
         private AllyStatsPanelController _allyStatsPanel;
 
-        internal GoldBadgeController GoldBadge => _goldBadge;
-        internal AllyStatsPanelController AllyStatsPanel => _allyStatsPanel;
-        internal BattleIndicatorController BattleIndicator => _battleIndicator;
-        internal StepProgressBarController StepProgressBar => _stepProgressBar;
-
         private void Awake()
         {
             if (_uiDocument == null)

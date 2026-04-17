@@ -25,7 +25,7 @@
 Doc detaille : `Assets/doc/premier-jet-roguelite.html`
 
 # Project Structure
-Generated: 2026-04-16
+Generated: 2026-04-17
 
 .github/
   workflows/
@@ -65,7 +65,7 @@ Assets/
     Bangers.ttf
   Materials/  (1 file)
   Prefabs/
-    Characters/  (6 prefabs)
+    Characters/  (5 prefabs)
     Effects/  (empty)
     UI/  (empty)
   Scenes/
