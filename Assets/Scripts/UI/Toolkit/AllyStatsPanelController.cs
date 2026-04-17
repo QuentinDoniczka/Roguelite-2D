@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Text;
@@ -13,11 +14,15 @@ namespace RogueliteAutoBattler.UI.Toolkit
     {
         private const float StaggerDelay = 0.05f;
         private const float FadeDuration = 0.15f;
-        private const string BreakdownSeparator = "\u2500\u2500\u2500\u2500\u2500\u2500";
-        private const string TabActiveClass = "info-tab--active";
-        private const string TabContentHiddenClass = "info-tab-content--hidden";
-        private const string BreakdownHiddenClass = "stat-breakdown--hidden";
-        private const string EmptyLabelHiddenClass = "info-empty-label--hidden";
+
+        private static class UssClasses
+        {
+            internal const string BreakdownSeparator = "\u2500\u2500\u2500\u2500\u2500\u2500";
+            internal const string TabActive = "info-tab--active";
+            internal const string TabContentHidden = "info-tab-content--hidden";
+            internal const string BreakdownHidden = "stat-breakdown--hidden";
+            internal const string EmptyLabelHidden = "info-empty-label--hidden";
+        }
 
         private readonly VisualElement _panelRoot;
         private readonly Label _emptyLabel;
@@ -31,7 +36,10 @@ namespace RogueliteAutoBattler.UI.Toolkit
         private readonly ScrollView _statsScrollView;
         private readonly MonoBehaviour _coroutineHost;
         private readonly StatRowView[] _statRows;
-        private readonly List<GameObject> _teamRoster = new List<GameObject>();
+        private readonly Action[] _tabClickHandlers;
+        private readonly EventCallback<ClickEvent>[] _rowHeaderClickHandlers;
+        private readonly VisualElement[] _rowHeaders;
+        private readonly List<GameObject> _teamRoster = new();
         private readonly StringBuilder _stringBuilder = new StringBuilder(128);
 
         private UnitSelectionManager _selectionManager;
@@ -87,15 +95,19 @@ namespace RogueliteAutoBattler.UI.Toolkit
             _coroutineHost = coroutineHost;
 
             _statRows = new StatRowView[CombatStats.DisplayOrder.Count];
+            _rowHeaders = new VisualElement[_statRows.Length];
+            _rowHeaderClickHandlers = new EventCallback<ClickEvent>[_statRows.Length];
             BuildStatRows();
 
             _prevButton.clicked += NavigateToPreviousAlly;
             _nextButton.clicked += NavigateToNextAlly;
 
+            _tabClickHandlers = new Action[_tabButtons.Length];
             for (int i = 0; i < _tabButtons.Length; i++)
             {
                 int tabIndex = i;
-                _tabButtons[i].clicked += () => SwitchTab(tabIndex);
+                _tabClickHandlers[i] = () => SwitchTab(tabIndex);
+                _tabButtons[i].clicked += _tabClickHandlers[i];
             }
         }
 
@@ -111,7 +123,10 @@ namespace RogueliteAutoBattler.UI.Toolkit
 
                 var statRowHeader = new VisualElement();
                 statRowHeader.AddToClassList("stat-row-header");
-                statRowHeader.RegisterCallback<ClickEvent>(_ => ToggleBreakdown(rowIndex));
+                EventCallback<ClickEvent> headerClickHandler = _ => ToggleBreakdown(rowIndex);
+                statRowHeader.RegisterCallback(headerClickHandler);
+                _rowHeaders[i] = statRowHeader;
+                _rowHeaderClickHandlers[i] = headerClickHandler;
 
                 var statName = new Label();
                 statName.AddToClassList("stat-name");
@@ -125,7 +140,7 @@ namespace RogueliteAutoBattler.UI.Toolkit
 
                 var breakdownContainer = new VisualElement();
                 breakdownContainer.AddToClassList("stat-breakdown");
-                breakdownContainer.AddToClassList(BreakdownHiddenClass);
+                breakdownContainer.AddToClassList(UssClasses.BreakdownHidden);
 
                 var breakdownText = new Label();
                 breakdownText.AddToClassList("breakdown-text");
@@ -147,34 +162,29 @@ namespace RogueliteAutoBattler.UI.Toolkit
 
         public void Initialize()
         {
-            _cachedAllyLayer = PhysicsLayers.AllyLayer;
-            _selectionManager = UnitSelectionManager.Instance;
-
-            if (_selectionManager == null)
+            var selectionManager = UnitSelectionManager.Instance;
+            if (selectionManager == null)
             {
+                _cachedAllyLayer = PhysicsLayers.AllyLayer;
                 Debug.LogWarning($"[{nameof(AllyStatsPanelController)}] UnitSelectionManager.Instance not found.");
                 Hide();
                 return;
             }
 
-            _selectionManager.OnUnitSelected += HandleUnitSelected;
-
-            Hide();
-
+            Transform teamContainer = null;
             var combatWorld = GameBootstrap.CombatWorld;
             if (combatWorld != null)
-            {
-                var teamContainer = combatWorld.Find(CombatSetupHelper.TeamContainerName);
-                if (teamContainer != null)
-                {
-                    RefreshTeamRoster(teamContainer);
-                    if (_teamRoster.Count > 0)
-                        DisplayTeamMember(0);
-                }
-            }
+                teamContainer = combatWorld.Find(CombatSetupHelper.TeamContainerName);
+
+            InitializeCore(selectionManager, teamContainer);
         }
 
         internal void InitializeForTest(UnitSelectionManager selectionManager, Transform teamContainer = null)
+        {
+            InitializeCore(selectionManager, teamContainer);
+        }
+
+        private void InitializeCore(UnitSelectionManager selectionManager, Transform teamContainer)
         {
             _cachedAllyLayer = PhysicsLayers.AllyLayer;
             _selectionManager = selectionManager;
@@ -199,6 +209,24 @@ namespace RogueliteAutoBattler.UI.Toolkit
 
             _prevButton.clicked -= NavigateToPreviousAlly;
             _nextButton.clicked -= NavigateToNextAlly;
+
+            if (_tabClickHandlers != null)
+            {
+                for (int i = 0; i < _tabButtons.Length && i < _tabClickHandlers.Length; i++)
+                {
+                    if (_tabClickHandlers[i] != null)
+                        _tabButtons[i].clicked -= _tabClickHandlers[i];
+                }
+            }
+
+            if (_rowHeaders != null && _rowHeaderClickHandlers != null)
+            {
+                for (int i = 0; i < _rowHeaders.Length; i++)
+                {
+                    if (_rowHeaders[i] != null && _rowHeaderClickHandlers[i] != null)
+                        _rowHeaders[i].UnregisterCallback(_rowHeaderClickHandlers[i]);
+                }
+            }
 
             if (_fadeCoroutine != null && _coroutineHost != null)
                 _coroutineHost.StopCoroutine(_fadeCoroutine);
@@ -283,7 +311,7 @@ namespace RogueliteAutoBattler.UI.Toolkit
             if (_fadeCoroutine != null && _coroutineHost != null)
                 _coroutineHost.StopCoroutine(_fadeCoroutine);
 
-            _emptyLabel.AddToClassList(EmptyLabelHiddenClass);
+            _emptyLabel.AddToClassList(UssClasses.EmptyLabelHidden);
             _contentContainer.style.display = DisplayStyle.Flex;
 
             _fadeCoroutine = _coroutineHost.StartCoroutine(StaggeredFadeInCoroutine());
@@ -335,13 +363,13 @@ namespace RogueliteAutoBattler.UI.Toolkit
                 _fadeCoroutine = null;
             }
 
-            _emptyLabel.RemoveFromClassList(EmptyLabelHiddenClass);
+            _emptyLabel.RemoveFromClassList(UssClasses.EmptyLabelHidden);
             _contentContainer.style.display = DisplayStyle.None;
 
             _expandedRowIndex = -1;
             for (int i = 0; i < _statRows.Length; i++)
             {
-                _statRows[i].BreakdownContainer.AddToClassList(BreakdownHiddenClass);
+                _statRows[i].BreakdownContainer.AddToClassList(UssClasses.BreakdownHidden);
                 _statRows[i].Root.style.opacity = 0f;
             }
         }
@@ -351,16 +379,16 @@ namespace RogueliteAutoBattler.UI.Toolkit
             if (tabIndex < 0 || tabIndex >= _tabButtons.Length) return;
 
             for (int i = 0; i < _tabButtons.Length; i++)
-                _tabButtons[i].RemoveFromClassList(TabActiveClass);
+                _tabButtons[i].RemoveFromClassList(UssClasses.TabActive);
 
-            _tabButtons[tabIndex].AddToClassList(TabActiveClass);
+            _tabButtons[tabIndex].AddToClassList(UssClasses.TabActive);
 
             for (int i = 0; i < _tabContents.Length; i++)
             {
                 if (i == tabIndex)
-                    _tabContents[i].RemoveFromClassList(TabContentHiddenClass);
+                    _tabContents[i].RemoveFromClassList(UssClasses.TabContentHidden);
                 else
-                    _tabContents[i].AddToClassList(TabContentHiddenClass);
+                    _tabContents[i].AddToClassList(UssClasses.TabContentHidden);
             }
 
             if (tabIndex == 0)
@@ -383,7 +411,7 @@ namespace RogueliteAutoBattler.UI.Toolkit
                 if (_expandedRowIndex >= 0)
                     CollapseBreakdown(_expandedRowIndex);
 
-                _statRows[rowIndex].BreakdownContainer.RemoveFromClassList(BreakdownHiddenClass);
+                _statRows[rowIndex].BreakdownContainer.RemoveFromClassList(UssClasses.BreakdownHidden);
                 PopulateBreakdownText(rowIndex);
                 _expandedRowIndex = rowIndex;
             }
@@ -392,7 +420,7 @@ namespace RogueliteAutoBattler.UI.Toolkit
         private void CollapseBreakdown(int rowIndex)
         {
             if (rowIndex >= 0 && rowIndex < _statRows.Length)
-                _statRows[rowIndex].BreakdownContainer.AddToClassList(BreakdownHiddenClass);
+                _statRows[rowIndex].BreakdownContainer.AddToClassList(UssClasses.BreakdownHidden);
         }
 
         private void PopulateBreakdownText(int rowIndex)
@@ -415,7 +443,7 @@ namespace RogueliteAutoBattler.UI.Toolkit
                 }
             }
 
-            _stringBuilder.AppendLine(BreakdownSeparator);
+            _stringBuilder.AppendLine(UssClasses.BreakdownSeparator);
             _stringBuilder.Append("Total: ").Append(breakdown.FinalValue);
 
             _statRows[rowIndex].BreakdownText.text = _stringBuilder.ToString();
@@ -557,7 +585,7 @@ namespace RogueliteAutoBattler.UI.Toolkit
 
         internal bool IsBreakdownExpanded(int rowIndex) =>
             rowIndex >= 0 && rowIndex < _statRows.Length
-            && !_statRows[rowIndex].BreakdownContainer.ClassListContains(BreakdownHiddenClass);
+            && !_statRows[rowIndex].BreakdownContainer.ClassListContains(UssClasses.BreakdownHidden);
 
         internal string BreakdownText(int rowIndex) =>
             rowIndex >= 0 && rowIndex < _statRows.Length
@@ -576,11 +604,11 @@ namespace RogueliteAutoBattler.UI.Toolkit
             || _contentContainer.style.display == new StyleEnum<DisplayStyle>(DisplayStyle.Flex);
 
         internal bool IsEmptyStateLabelActive =>
-            !_emptyLabel.ClassListContains(EmptyLabelHiddenClass);
+            !_emptyLabel.ClassListContains(UssClasses.EmptyLabelHidden);
 
         internal float StatRowOpacity(int index) =>
             index >= 0 && index < _statRows.Length
-                ? _statRows[index].Root.style.opacity.value
+                ? _statRows[index].Root.resolvedStyle.opacity
                 : -1f;
 
         internal string NameLabelText => _nameLabel.text;

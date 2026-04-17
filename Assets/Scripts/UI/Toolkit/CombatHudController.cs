@@ -104,13 +104,13 @@ namespace RogueliteAutoBattler.UI.Toolkit
 
         private void OnDestroy()
         {
+            if (_goldBadgeElement != null)
+                _goldBadgeElement.UnregisterCallback<GeometryChangedEvent>(OnGoldBadgeGeometryChanged);
+
             _allyStatsPanel?.Dispose();
             _goldBadge?.Dispose();
             _battleIndicator?.Dispose();
             _stepProgressBar?.Dispose();
-
-            if (_goldBadgeElement != null)
-                _goldBadgeElement.UnregisterCallback<GeometryChangedEvent>(OnGoldBadgeGeometryChanged);
         }
 
         private void Update()
