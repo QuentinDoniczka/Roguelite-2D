@@ -1,6 +1,6 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements">
     <ui:Style src="../Styles/MainStyle.uss" />
-    <ui:VisualElement name="root" class="root">
+    <ui:VisualElement name="root" class="root" picking-mode="Ignore">
         <ui:VisualElement name="game-area" class="game-area" picking-mode="Ignore">
             <ui:VisualElement name="screen-default" class="screen-container screen-default" picking-mode="Ignore">
                 <ui:VisualElement name="hud-overlay" picking-mode="Ignore" class="hud-overlay">
