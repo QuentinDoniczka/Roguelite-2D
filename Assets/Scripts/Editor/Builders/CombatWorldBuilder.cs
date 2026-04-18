@@ -18,6 +18,11 @@ namespace RogueliteAutoBattler.Editor
         private const float CameraZPosition = -10f;
         private const float GroundWidth = 200f;
 
+        // Editor-only initial Ground placement (runtime GroundFitter recomputes on Play).
+        private const float EditorGroundX = 95.96f;
+        private const float EditorGroundY = 2.16f;
+        private const float EditorGroundHeight = 6.48f;
+
         private const string WeaponSpritesFolder = "Assets/Sprites/Items/melee weapons";
         private const string HatSpritesFolder    = "Assets/Sprites/Items/Wardrobe/cloth";
         private const string ShieldSpritePath    = "Assets/Sprites/Items/melee weapons/shield.png";
@@ -79,12 +84,8 @@ namespace RogueliteAutoBattler.Editor
             groundRenderer.sprite = CreateOrLoadGridSprite();
             groundRenderer.drawMode = SpriteDrawMode.Tiled;
 
-            float visibleHeight = CameraOrthoSize * 2f;
-            float previewAspect = 9f / 16f;
-            float previewHalfWidth = CameraOrthoSize * previewAspect;
-            float anchorX = -previewHalfWidth + GroundWidth * 0.5f;
-            groundGo.transform.localPosition = new Vector3(anchorX, 0f, 0f);
-            groundRenderer.size = new Vector2(GroundWidth, visibleHeight);
+            groundGo.transform.localPosition = new Vector3(EditorGroundX, EditorGroundY, 0f);
+            groundRenderer.size = new Vector2(GroundWidth, EditorGroundHeight);
             groundRenderer.sortingLayerName = SortingLayers.Background;
             groundRenderer.sortingOrder = -10;
             groundRenderer.color = Color.white;
