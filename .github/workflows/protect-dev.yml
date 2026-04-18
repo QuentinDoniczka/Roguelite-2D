@@ -14,6 +14,7 @@ jobs:
           echo "Source branch: $SOURCE"
 
           if [[ "$SOURCE" == feature/* ]] || \
+             [[ "$SOURCE" == feat/* ]] || \
              [[ "$SOURCE" == fix/* ]] || \
              [[ "$SOURCE" == refactor/* ]] || \
              [[ "$SOURCE" == chore/* ]] || \
@@ -21,7 +22,7 @@ jobs:
             echo "Allowed: $SOURCE can target dev."
           else
             echo "BLOCKED: '$SOURCE' cannot target dev."
-            echo "Only feature/*, fix/*, refactor/*, chore/*, test/* branches may merge into dev."
+            echo "Only feature/*, feat/*, fix/*, refactor/*, chore/*, test/* branches may merge into dev."
             echo "Release and hotfix branches must target main."
             exit 1
           fi
