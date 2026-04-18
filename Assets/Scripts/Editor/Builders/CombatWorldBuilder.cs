@@ -158,8 +158,8 @@ namespace RogueliteAutoBattler.Editor
             if (levelDb != null)
                 EditorUIFactory.SetObj(soLevelManager, "_levelDatabase", levelDb);
 
-            var teamAnchor = FindOrCreateHomeAnchor(CombatSetupHelper.TeamHomeAnchorName, new Vector2(0.12f, 0.63f), new Vector2(0f, HomeAnchorWorldOffsetY));
-            var enemiesAnchor = FindOrCreateHomeAnchor(CombatSetupHelper.EnemiesHomeAnchorName, new Vector2(0.88f, 0.63f), new Vector2(0f, HomeAnchorWorldOffsetY));
+            var teamAnchor = FindOrCreateHomeAnchor(CombatSetupHelper.TeamHomeAnchorName, new Vector2(0.12f, 0.676f), new Vector2(0f, HomeAnchorWorldOffsetY));
+            var enemiesAnchor = FindOrCreateHomeAnchor(CombatSetupHelper.EnemiesHomeAnchorName, new Vector2(0.88f, 0.676f), new Vector2(0f, HomeAnchorWorldOffsetY));
             var combatTrigger = FindOrCreateHomeAnchor(CombatSetupHelper.CombatTriggerZoneName, new Vector2(1f, 0.5f));
 
             EditorUIFactory.SetObj(soSpawnManager, "_teamHomeAnchor", teamAnchor);
