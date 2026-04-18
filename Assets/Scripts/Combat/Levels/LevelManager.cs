@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using RogueliteAutoBattler.Combat.Core;
 using RogueliteAutoBattler.Combat.Environment;
+using RogueliteAutoBattler.Combat.Visuals;
 using RogueliteAutoBattler.Data;
 using RogueliteAutoBattler.Economy;
 using UnityEngine;
@@ -185,11 +186,14 @@ namespace RogueliteAutoBattler.Combat.Levels
             var stage = _levelDatabase.Stages[stageIndex];
             _currentStageIndex = stageIndex;
 
-            if (stage.Terrain != null && _groundRenderer != null)
+            if (_groundRenderer != null)
             {
-                _groundRenderer.sprite = stage.Terrain;
+                Sprite terrainSprite = stage.Terrain != null
+                    ? stage.Terrain
+                    : ProceduralGroundSprite.GetOrCreate();
+                _groundRenderer.sprite = terrainSprite;
 #if UNITY_EDITOR
-                Debug.Log($"[{nameof(LevelManager)}] Applied terrain '{stage.Terrain.name}' for stage '{stage.StageName}'");
+                Debug.Log($"[{nameof(LevelManager)}] Applied terrain for stage '{stage.StageName}': {(stage.Terrain != null ? stage.Terrain.name : "procedural fallback")}");
 #endif
             }
 

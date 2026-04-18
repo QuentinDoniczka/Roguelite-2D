@@ -184,8 +184,6 @@ namespace RogueliteAutoBattler.Editor
                     stagesProp.arraySize++;
                     var newStage = stagesProp.GetArrayElementAtIndex(stagesProp.arraySize - 1);
                     newStage.FindPropertyRelative("stageName").stringValue = $"Stage {stagesProp.arraySize}";
-                    var defaultTerrain = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/Environment/grid_ground.png");
-                    newStage.FindPropertyRelative("terrain").objectReferenceValue = defaultTerrain;
                     newStage.FindPropertyRelative("levels").arraySize = 0;
                     _levelSelectedStageIndex = stagesProp.arraySize - 1;
                     _levelSelectedLevelIndex = -1;

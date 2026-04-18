@@ -5,6 +5,7 @@ namespace RogueliteAutoBattler.Combat.Environment
     public class ScreenAnchor : MonoBehaviour
     {
         [SerializeField] private Vector2 _viewportPosition = new Vector2(0.5f, 0.5f);
+        [SerializeField] private Vector2 _worldOffset = Vector2.zero;
 
         private Camera _camera;
         private float _lastOrthoSize;
@@ -37,7 +38,7 @@ namespace RogueliteAutoBattler.Combat.Environment
         private void UpdatePosition()
         {
             Vector3 worldPos = _camera.ViewportToWorldPoint(new Vector3(_viewportPosition.x, _viewportPosition.y, 0f));
-            transform.position = new Vector3(worldPos.x, worldPos.y, 0f);
+            transform.position = new Vector3(worldPos.x + _worldOffset.x, worldPos.y + _worldOffset.y, 0f);
             _lastOrthoSize = _camera.orthographicSize;
             _lastAspect = _camera.aspect;
         }
