@@ -149,7 +149,7 @@ MonoBehaviour:
   m_Name:
   m_EditorClassIdentifier: RogueliteAutoBattler.Runtime::RogueliteAutoBattler.Combat.Environment.ScreenAnchor
   _viewportPosition: {x: 0.88, y: 0.676}
-  _worldOffset: {x: 0, y: 0.5}
+  _worldOffset: {x: 0, y: 0.25}
 --- !u!4 &42668107
 Transform:
   m_ObjectHideFlags: 0
@@ -313,7 +313,7 @@ MonoBehaviour:
   m_Name:
   m_EditorClassIdentifier: RogueliteAutoBattler.Runtime::RogueliteAutoBattler.Combat.Environment.ScreenAnchor
   _viewportPosition: {x: 0.12, y: 0.676}
-  _worldOffset: {x: 0, y: 0.5}
+  _worldOffset: {x: 0, y: 0.25}
 --- !u!4 &538497906
 Transform:
   m_ObjectHideFlags: 0
