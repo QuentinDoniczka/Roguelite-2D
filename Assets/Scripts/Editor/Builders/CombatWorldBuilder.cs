@@ -23,6 +23,8 @@ namespace RogueliteAutoBattler.Editor
         private const float EditorGroundY = 2.16f;
         private const float EditorGroundHeight = 6.48f;
 
+        private const float HomeAnchorWorldOffsetY = 0.5f;
+
         private const string WeaponSpritesFolder = "Assets/Sprites/Items/melee weapons";
         private const string HatSpritesFolder    = "Assets/Sprites/Items/Wardrobe/cloth";
         private const string ShieldSpritePath    = "Assets/Sprites/Items/melee weapons/shield.png";
@@ -36,12 +38,6 @@ namespace RogueliteAutoBattler.Editor
         };
 
         private const string GridSpritePath = "Assets/Sprites/Environment/grid_ground.png";
-        private const int GridTextureSize = 64;
-        private const int GridCellSize = 8;
-        private const int GridPixelsPerUnit = 64;
-
-        private static readonly Color32 GridColorA = new Color32(45, 90, 39, 255);
-        private static readonly Color32 GridColorB = new Color32(61, 122, 55, 255);
 
         internal static Camera ConfigureMainCamera()
         {
@@ -162,8 +158,8 @@ namespace RogueliteAutoBattler.Editor
             if (levelDb != null)
                 EditorUIFactory.SetObj(soLevelManager, "_levelDatabase", levelDb);
 
-            var teamAnchor = FindOrCreateHomeAnchor(CombatSetupHelper.TeamHomeAnchorName, new Vector2(0.12f, 0.63f));
-            var enemiesAnchor = FindOrCreateHomeAnchor(CombatSetupHelper.EnemiesHomeAnchorName, new Vector2(0.88f, 0.63f));
+            var teamAnchor = FindOrCreateHomeAnchor(CombatSetupHelper.TeamHomeAnchorName, new Vector2(0.12f, 0.63f), new Vector2(0f, HomeAnchorWorldOffsetY));
+            var enemiesAnchor = FindOrCreateHomeAnchor(CombatSetupHelper.EnemiesHomeAnchorName, new Vector2(0.88f, 0.63f), new Vector2(0f, HomeAnchorWorldOffsetY));
             var combatTrigger = FindOrCreateHomeAnchor(CombatSetupHelper.CombatTriggerZoneName, new Vector2(1f, 0.5f));
 
             EditorUIFactory.SetObj(soSpawnManager, "_teamHomeAnchor", teamAnchor);
@@ -256,7 +252,7 @@ namespace RogueliteAutoBattler.Editor
                 prop.GetArrayElementAtIndex(i).objectReferenceValue = sprites[i];
         }
 
-        private static Transform FindOrCreateHomeAnchor(string anchorName, Vector2 viewportPosition)
+        private static Transform FindOrCreateHomeAnchor(string anchorName, Vector2 viewportPosition, Vector2 worldOffset = default)
         {
             var existing = GameObject.Find(anchorName);
             if (existing != null)
@@ -267,6 +263,7 @@ namespace RogueliteAutoBattler.Editor
                     Undo.RecordObject(existingAnchor, $"Update {anchorName}");
                     var so = new SerializedObject(existingAnchor);
                     so.FindProperty("_viewportPosition").vector2Value = viewportPosition;
+                    so.FindProperty("_worldOffset").vector2Value = worldOffset;
                     so.ApplyModifiedProperties();
                 }
                 return existing.transform;
@@ -279,6 +276,7 @@ namespace RogueliteAutoBattler.Editor
             var anchor = go.AddComponent<ScreenAnchor>();
             var so2 = new SerializedObject(anchor);
             so2.FindProperty("_viewportPosition").vector2Value = viewportPosition;
+            so2.FindProperty("_worldOffset").vector2Value = worldOffset;
             so2.ApplyModifiedProperties();
 
             return go.transform;
@@ -286,10 +284,10 @@ namespace RogueliteAutoBattler.Editor
 
         private static Sprite CreateOrLoadGridSprite()
         {
-            return CreateOrLoadCheckerboardSprite(GridSpritePath, GridColorA, GridColorB);
+            return CreateOrLoadCheckerboardSprite(GridSpritePath);
         }
 
-        private static Sprite CreateOrLoadCheckerboardSprite(string path, Color32 colorA, Color32 colorB)
+        private static Sprite CreateOrLoadCheckerboardSprite(string path)
         {
             Sprite existing = AssetDatabase.LoadAssetAtPath<Sprite>(path);
             if (existing != null)
@@ -297,16 +295,16 @@ namespace RogueliteAutoBattler.Editor
 
             EditorUIFactory.EnsureDirectoryExists(path);
 
-            var tex = new Texture2D(GridTextureSize, GridTextureSize, TextureFormat.RGBA32, false);
-            var pixels = new Color32[GridTextureSize * GridTextureSize];
+            var tex = new Texture2D(ProceduralGroundSprite.TextureSize, ProceduralGroundSprite.TextureSize, TextureFormat.RGBA32, false);
+            var pixels = new Color32[ProceduralGroundSprite.TextureSize * ProceduralGroundSprite.TextureSize];
 
-            for (int y = 0; y < GridTextureSize; y++)
+            for (int y = 0; y < ProceduralGroundSprite.TextureSize; y++)
             {
-                for (int x = 0; x < GridTextureSize; x++)
+                for (int x = 0; x < ProceduralGroundSprite.TextureSize; x++)
                 {
-                    int cellX = x / GridCellSize;
-                    int cellY = y / GridCellSize;
-                    pixels[y * GridTextureSize + x] = ((cellX + cellY) % 2 == 0) ? colorA : colorB;
+                    int cellX = x / ProceduralGroundSprite.CellSize;
+                    int cellY = y / ProceduralGroundSprite.CellSize;
+                    pixels[y * ProceduralGroundSprite.TextureSize + x] = ((cellX + cellY) % 2 == 0) ? ProceduralGroundSprite.ColorA : ProceduralGroundSprite.ColorB;
                 }
             }
 
@@ -323,7 +321,7 @@ namespace RogueliteAutoBattler.Editor
             {
                 importer.textureType = TextureImporterType.Sprite;
                 importer.spriteImportMode = SpriteImportMode.Single;
-                importer.spritePixelsPerUnit = GridPixelsPerUnit;
+                importer.spritePixelsPerUnit = ProceduralGroundSprite.PixelsPerUnit;
                 importer.filterMode = FilterMode.Point;
                 importer.wrapMode = TextureWrapMode.Repeat;
                 importer.textureCompression = TextureImporterCompression.Uncompressed;
