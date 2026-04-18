@@ -23,7 +23,7 @@ namespace RogueliteAutoBattler.Editor
         private const float EditorGroundY = 2.16f;
         private const float EditorGroundHeight = 6.48f;
 
-        private const float HomeAnchorWorldOffsetY = 0.25f;
+        private const float HomeAnchorWorldOffsetY = 0f;
 
         private const string WeaponSpritesFolder = "Assets/Sprites/Items/melee weapons";
         private const string HatSpritesFolder    = "Assets/Sprites/Items/Wardrobe/cloth";
