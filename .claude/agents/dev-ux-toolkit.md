@@ -396,6 +396,51 @@ public void SkillTreeScreen_UXML_HasRequiredElements()
 }
 ```
 
+## Zero Manual Editor Steps — Scene-Dependent Components MUST Self-Attach
+
+**CRITICAL RULE (see `feedback_zero_manual_steps.md`):** The user must NEVER have to open Unity to attach a component, assign a reference, or click a menu just to make existing scenes work with a new feature. The only acceptable user actions are: (1) pressing Play to test, (2) clicking a setup menu item ONCE for a brand-new scene that doesn't exist yet.
+
+### When You Introduce a New MonoBehaviour That Needs to Be on a Specific GameObject
+
+If the component must live on something that already exists in a committed scene (e.g., `Main Camera` in `NewGameScene.unity`, a `CombatWorld` root, a `UIDocument` GameObject), you MUST pick ONE of these options — NEVER ask the user to "run the setup menu" or "add the component in the Inspector":
+
+**Option A — Runtime auto-attach (preferred for behavior components):**
+```csharp
+public class CameraViewportFitter : MonoBehaviour
+{
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
+    private static void AutoAttach()
+    {
+        var cam = Camera.main;
+        if (cam == null) return;
+        if (cam.GetComponent<CameraViewportFitter>() == null)
+            cam.gameObject.AddComponent<CameraViewportFitter>();
+    }
+}
+```
+Use `RuntimeInitializeLoadType.AfterSceneLoad` (or `BeforeSceneLoad` if the component must exist before Awake of other scripts). Always guard with a null check and a duplicate-attach check.
+
+**Option B — Attach from an existing bootstrap:**
+If `GameBootstrap.Initialize` or another already-running Awake in the scene is the natural place, add the attach there. Do not create a new bootstrap just for this — reuse existing ones.
+
+**Option C — Edit the scene YAML directly:**
+If the component has serialized fields that MUST be set at author time (not runtime), edit `Assets/Scenes/*.unity` YAML to add the component block to the target GameObject. Read the scene first to find the right fileID, then append the new MonoBehaviour block and reference it in the target GameObject's `m_Component` list. Also update any related prefabs.
+
+### FORBIDDEN Final-Note Patterns
+
+Never end a task with any of these:
+- "Manual step required: run `Roguelite/Setup > X` menu on the existing scene."
+- "Add the component in the Inspector on the Main Camera."
+- "Drag the reference into the field manually."
+- "Open the scene and assign..."
+- "You'll need to reconfigure the existing scene in the editor."
+
+If you catch yourself about to write one of these, STOP — the task is not complete. Pick Option A, B, or C above instead.
+
+### Editor Setup Scripts Are for New Scenes Only
+
+`[MenuItem("Roguelite/Setup ...")]` scripts are valid for **bootstrapping a brand-new scene from scratch**. They are NOT a substitute for making existing scenes self-heal. If an existing scene needs a new component, runtime auto-attach or YAML edit — the setup menu script is a bonus for new scenes, never a requirement for existing ones.
+
 ## Unity Asset YAML Editing
 
 You can directly edit Unity asset files serialized as text YAML:
@@ -425,6 +470,7 @@ Rules:
 - **2D only** — SpriteRenderer, Collider2D, Rigidbody2D for world objects
 - **Always set sortingLayerName** on SpriteRenderers (never leave on "Default")
 - **Auto-wire everything** — never leave references for user to assign manually
+- **Zero manual Editor steps on existing scenes** — new scene-dependent components MUST self-attach via `RuntimeInitializeOnLoadMethod`, an existing bootstrap Awake, or direct scene-YAML edit. NEVER end a task asking the user to run a setup menu or Inspector-add a component on a scene that already exists.
 - **Always use `Undo`** — RegisterCreatedObjectUndo, DestroyObjectImmediate
 - **Always `MarkSceneDirty`** after scene modifications
 - **Use `FindFirstObjectByType<T>(FindObjectsInactive.Include)`** for finding existing objects

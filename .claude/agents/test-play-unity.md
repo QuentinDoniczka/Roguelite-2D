@@ -339,23 +339,34 @@ Unity Editor locks the main project directory when open, which prevents batch-mo
 | **Main project** (Editor open here) | `C:/Users/donic/RiderProjects/Roguelite-2D` |
 | **Test worktree** (batch mode runs here) | `C:/Users/donic/RiderProjects/Roguelite-2D-tests` |
 
-**The worktree only sees committed and pushed code.** Before running any tests, you MUST ensure:
-1. All changes are **committed** on the current branch
-2. The branch is **pushed** to origin
-3. The worktree is **synced** to the latest pushed code
+**The worktree only sees committed and pushed code.** Before running any tests, the branch MUST be:
+1. **Committed** on the current branch
+2. **Pushed** to origin
+3. **Synced** to the latest pushed code in the worktree (read-only sync — `git fetch` + `git checkout` + `git reset --hard` in the worktree path only)
 
-### Syncing the worktree
+### CRITICAL — NEVER Run Git Operations on the Main Project
 
-Before every test run, execute this to sync the worktree with the current branch:
+**You are FORBIDDEN from running any of the following on `C:/Users/donic/RiderProjects/Roguelite-2D` (the main project):**
+- `git add`, `git commit`, `git stash`, `git push`, `git pull`, `git merge`, `git rebase`, `git reset`, `git checkout` (branch switch)
+- `gh pr create`, `gh pr merge`, `gh pr edit`, any `gh` command that mutates remote state
+
+**If the main project has uncommitted changes blocking the test run, STOP and hand off to the lead. Do NOT commit, do NOT push, do NOT stash.** Report clearly: "Uncommitted changes in main project prevent worktree sync — handing off to `git-unity` (via lead) for commit + push before I can run tests." Then exit.
+
+**Why:** Git state is owned exclusively by the `git-unity` agent and the lead orchestrator. The user follows a strict "commit → wait for OK → push → PR" cycle (see `feedback_no_push_before_ok.md`). A test agent pushing on its own initiative violates this cycle even when the push would technically be allowed by branch protection (`feedback_push_permissions.md` describes what branch protection permits, NOT what agents may do on their own).
+
+### Syncing the worktree (READ-ONLY operations, worktree path only)
+
+These are the ONLY git commands you are permitted to run, and ONLY against the worktree path:
 ```bash
 cd "C:/Users/donic/RiderProjects/Roguelite-2D-tests" && git fetch origin && git checkout <branch> && git reset --hard origin/<branch>
 ```
 Replace `<branch>` with the current feature branch name (e.g., `feature/12-combat-flow`).
 
-To find the current branch name from the main project:
+To find the current branch name from the main project (read-only):
 ```bash
 git -C "C:/Users/donic/RiderProjects/Roguelite-2D" branch --show-current
 ```
+`git -C <main> status` and `git -C <main> log` are also allowed (read-only inspection). Anything that mutates main-project git state is forbidden.
 
 ## Running Tests — MANDATORY
 
@@ -372,7 +383,7 @@ git -C "C:/Users/donic/RiderProjects/Roguelite-2D" branch --show-current
 
 - **Exit code 0** = all passed. **Exit code 2** = some failed.
 - Parse the XML results file to report pass/fail counts and failure details.
-- If tests fail, fix the code **in the main project**, commit, push, sync worktree, and re-run until all pass.
+- If tests fail, fix the code **in the main project** (edit files only). **Do NOT run `git commit` / `git push` yourself** — stop and hand off to the lead for commit + push via `git-unity`, then the lead re-invokes you to re-sync the worktree and re-run.
 - **Important:** The worktree eliminates the "Unity already open" problem for the main project. If batch mode still fails, check that no other Unity instance has the worktree path open.
 
 ## When Invoked
@@ -489,3 +500,4 @@ Tests verify that the app behaves correctly. The goal is that **the final test s
 - **Mock the server** — never hit a real API in Play Mode tests
 - **Use fake accounts** — always set up test data via TestAccountFactory, never rely on persistent state
 - **Test at multiple progression levels** — a feature should work for new players AND end-game players
+- **NO GIT MUTATIONS** — `git-unity` owns git. You may only run `git fetch`, `git checkout`, `git reset --hard origin/<branch>` on the **worktree path**, plus read-only inspection (`status`, `log`, `branch --show-current`) on the main project. Anything else (`add`, `commit`, `push`, `stash`, `merge`, `gh pr ...`) is forbidden — stop and hand off.
