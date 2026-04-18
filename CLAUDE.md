@@ -25,7 +25,7 @@
 Doc detaille : `Assets/doc/premier-jet-roguelite.html`
 
 # Project Structure
-Generated: 2026-04-16
+Generated: 2026-04-17
 
 .github/
   workflows/
@@ -62,9 +62,10 @@ Assets/
     techtreeidea.png
   Fonts/
     Bangers SDF.asset
+    Bangers.ttf
   Materials/  (1 file)
   Prefabs/
-    Characters/  (6 prefabs)
+    Characters/  (5 prefabs)
     Effects/  (empty)
     UI/  (empty)
   Scenes/
@@ -176,6 +177,7 @@ Assets/
         Village/
           VillageScreen.cs
       Toolkit/
+        AllyStatsPanelController.cs
         BattleIndicatorController.cs
         CombatHudController.cs
         GoldBadgeController.cs
@@ -238,6 +240,7 @@ Assets/
         AllyStatsPanelTestFixture.cs
         PlayModeTestBase.cs
         TestCharacterFactory.cs
+      AllyStatsPanelControllerTests.cs
       AllyStatsPanelTabTests.cs
       AllyStatsPanelTests.cs
       AnimationEventRelayTests.cs
@@ -284,6 +287,7 @@ Assets/
   TextMesh Pro/  (173 files -- TMP package: fonts, shaders, examples)
   UI/
     Layouts/
+      InfoPanel.uxml
       MainLayout.uxml
     MainPanelSettings.asset
     Styles/

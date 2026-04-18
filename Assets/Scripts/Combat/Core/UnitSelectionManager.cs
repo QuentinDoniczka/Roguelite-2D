@@ -4,6 +4,7 @@ using RogueliteAutoBattler.Core;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
+using UnityEngine.UIElements;
 
 namespace RogueliteAutoBattler.Combat.Core
 {
@@ -80,10 +81,26 @@ namespace RogueliteAutoBattler.Combat.Core
             if (eventSystem != null && eventSystem.IsPointerOverGameObject())
                 return;
 
+            if (IsPointerOverUIToolkit(screenPos))
+                return;
+
             if (_camera == null) return;
 
             Vector2 worldPos = _camera.ScreenToWorldPoint(screenPos);
             SelectOrDeselectAtWorldPos(worldPos);
+        }
+
+        private static bool IsPointerOverUIToolkit(Vector2 screenPos)
+        {
+            var uiDoc = Object.FindFirstObjectByType<UIDocument>(FindObjectsInactive.Exclude);
+            if (uiDoc == null || uiDoc.rootVisualElement == null) return false;
+
+            var panel = uiDoc.rootVisualElement.panel;
+            if (panel == null) return false;
+
+            Vector2 panelPos = RuntimePanelUtils.ScreenToPanel(panel, new Vector2(screenPos.x, Screen.height - screenPos.y));
+            VisualElement hit = panel.Pick(panelPos);
+            return hit != null && hit.pickingMode != PickingMode.Ignore;
         }
 
         private void SelectOrDeselectAtWorldPos(Vector2 worldPos)

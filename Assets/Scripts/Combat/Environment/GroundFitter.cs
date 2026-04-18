@@ -5,7 +5,6 @@ namespace RogueliteAutoBattler.Combat.Environment
     [RequireComponent(typeof(SpriteRenderer))]
     public class GroundFitter : MonoBehaviour
     {
-        [SerializeField] private float _gameAreaBottomRatio = 0.40f;
         [SerializeField] private float _groundWidth = 200f;
 
         private SpriteRenderer _renderer;
@@ -43,12 +42,15 @@ namespace RogueliteAutoBattler.Combat.Environment
         {
             float orthoSize = _camera.orthographicSize;
             float aspect = _camera.aspect;
-            float visibleHeight = orthoSize * 2f;
-            float visibleWidth = visibleHeight * aspect;
-            float gameAreaBottom = -orthoSize + _gameAreaBottomRatio * visibleHeight;
-            float gameAreaTop = orthoSize;
-            float groundHeight = gameAreaTop - gameAreaBottom;
-            float groundCenterY = (gameAreaBottom + gameAreaTop) * 0.5f;
+            float totalHeight = orthoSize * 2f;
+            float visibleWidth = totalHeight * aspect;
+
+            // Info-area (35% panel + 10% nav-bar) covers the bottom 45% of screen.
+            // Size the ground to the visible top 55% only to avoid unnecessary tiling below the UI.
+            const float uiBottomNormalizedHeight = 0.45f;
+            float groundHeight = totalHeight * (1f - uiBottomNormalizedHeight);
+            float groundTopY = orthoSize;
+            float groundCenterY = groundTopY - groundHeight * 0.5f;
 
             float width = Mathf.Max(_groundWidth, visibleWidth + 2f);
             _renderer.size = new Vector2(width, groundHeight);

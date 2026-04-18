@@ -1,6 +1,5 @@
 using System;
 using RogueliteAutoBattler.Common;
-using RogueliteAutoBattler.UI.Widgets;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -11,7 +10,6 @@ namespace RogueliteAutoBattler.Combat.Visuals
         private static readonly StaticPool<CoinFly> _pool = new StaticPool<CoinFly>();
         private static RectTransform _container;
         private static RectTransform _targetBadge;
-        private static GoldHudBadge _targetBadgeComponent;
         private static Camera _camera;
         private static Canvas _canvas;
         private static Sprite _coinSprite;
@@ -31,7 +29,6 @@ namespace RogueliteAutoBattler.Combat.Visuals
         {
             _container = container;
             _targetBadge = targetBadge;
-            _targetBadgeComponent = targetBadge != null ? targetBadge.GetComponent<GoldHudBadge>() : null;
             _camera = camera;
             _canvas = canvas;
             _coinSprite = coinSprite;
@@ -89,10 +86,6 @@ namespace RogueliteAutoBattler.Combat.Visuals
                 _onToolkitCoinArrived?.Invoke();
                 onComplete?.Invoke();
             }
-            else if (_targetBadgeComponent != null)
-            {
-                _targetBadgeComponent.Punch(onComplete);
-            }
             else
             {
                 onComplete?.Invoke();
@@ -129,7 +122,6 @@ namespace RogueliteAutoBattler.Combat.Visuals
             _pool.Clear();
             _container = null;
             _targetBadge = null;
-            _targetBadgeComponent = null;
             _camera = null;
             _canvas = null;
             _coinSprite = null;

@@ -1,3 +1,4 @@
+using System.Collections;
 using RogueliteAutoBattler.Combat.Visuals;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -12,10 +13,7 @@ namespace RogueliteAutoBattler.UI.Toolkit
         private BattleIndicatorController _battleIndicator;
         private StepProgressBarController _stepProgressBar;
         private VisualElement _goldBadgeElement;
-
-        internal GoldBadgeController GoldBadge => _goldBadge;
-        internal BattleIndicatorController BattleIndicator => _battleIndicator;
-        internal StepProgressBarController StepProgressBar => _stepProgressBar;
+        private AllyStatsPanelController _allyStatsPanel;
 
         private void Awake()
         {
@@ -49,7 +47,42 @@ namespace RogueliteAutoBattler.UI.Toolkit
             _battleIndicator.Initialize();
             _stepProgressBar.Initialize();
 
+            if (!TryQuery<VisualElement>(root, "info-panel-root", out VisualElement panelRoot)) return;
+            if (!TryQuery<Label>(root, "info-empty-label", out Label emptyLabel)) return;
+            if (!TryQuery<VisualElement>(root, "info-content", out VisualElement contentContainer)) return;
+            if (!TryQuery<Label>(root, "info-name-label", out Label nameLabel)) return;
+            if (!TryQuery<Label>(root, "info-team-pos-label", out Label teamPosLabel)) return;
+            if (!TryQuery<Button>(root, "nav-prev-btn", out Button prevButton)) return;
+            if (!TryQuery<Button>(root, "nav-next-btn", out Button nextButton)) return;
+            if (!TryQuery<Button>(root, "info-tab-stats", out Button tabStats)) return;
+            if (!TryQuery<Button>(root, "info-tab-traits", out Button tabTraits)) return;
+            if (!TryQuery<Button>(root, "info-tab-loot", out Button tabLoot)) return;
+            if (!TryQuery<ScrollView>(root, "info-tab-content-stats", out ScrollView statsScrollView)) return;
+            if (!TryQuery<VisualElement>(root, "info-tab-content-traits", out VisualElement traitsContent)) return;
+            if (!TryQuery<VisualElement>(root, "info-tab-content-loot", out VisualElement lootContent)) return;
+
+            var tabButtons = new[] { tabStats, tabTraits, tabLoot };
+            var tabContents = new VisualElement[] { statsScrollView, traitsContent, lootContent };
+
+            _allyStatsPanel = new AllyStatsPanelController(
+                panelRoot, emptyLabel, contentContainer,
+                nameLabel, teamPosLabel,
+                prevButton, nextButton,
+                tabButtons, tabContents,
+                statsScrollView, this);
+
             _goldBadgeElement.RegisterCallback<GeometryChangedEvent>(OnGoldBadgeGeometryChanged);
+        }
+
+        private void Start()
+        {
+            StartCoroutine(InitializeEndOfFrame());
+        }
+
+        private IEnumerator InitializeEndOfFrame()
+        {
+            yield return new WaitForEndOfFrame();
+            _allyStatsPanel?.Initialize();
         }
 
         private void OnGoldBadgeGeometryChanged(GeometryChangedEvent evt)
@@ -78,12 +111,13 @@ namespace RogueliteAutoBattler.UI.Toolkit
 
         private void OnDestroy()
         {
+            if (_goldBadgeElement != null)
+                _goldBadgeElement.UnregisterCallback<GeometryChangedEvent>(OnGoldBadgeGeometryChanged);
+
+            _allyStatsPanel?.Dispose();
             _goldBadge?.Dispose();
             _battleIndicator?.Dispose();
             _stepProgressBar?.Dispose();
-
-            if (_goldBadgeElement != null)
-                _goldBadgeElement.UnregisterCallback<GeometryChangedEvent>(OnGoldBadgeGeometryChanged);
         }
 
         private void Update()

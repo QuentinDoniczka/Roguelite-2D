@@ -140,5 +140,40 @@ namespace RogueliteAutoBattler.Tests.PlayMode
                 Assert.AreEqual(Color.red, sr.color);
             }
         }
+
+        [UnityTest]
+        public IEnumerator SetOutline_SilhouetteHasScaleMultiplierOf1_08()
+        {
+            yield return null;
+            _outline.SetOutline(true, Color.green);
+            yield return null;
+
+            var container = _character.transform.Find("_OutlineSilhouettes");
+            var silhouetteTransform = container.GetChild(0);
+
+            Assert.AreEqual(1.08f, silhouetteTransform.localScale.x, 0.001f,
+                "Silhouette X scale should be 1.08x the original");
+            Assert.AreEqual(1.08f, silhouetteTransform.localScale.y, 0.001f,
+                "Silhouette Y scale should be 1.08x the original");
+        }
+
+        [UnityTest]
+        public IEnumerator ClearOutline_ThenReEnable_ReusesSilhouetteContainer()
+        {
+            yield return null;
+            _outline.SetOutline(true, Color.green);
+
+            var containerFirst = _character.transform.Find("_OutlineSilhouettes");
+            Assert.IsNotNull(containerFirst);
+
+            _outline.ClearOutline();
+            Assert.IsFalse(containerFirst.gameObject.activeSelf);
+
+            _outline.SetOutline(true, Color.red);
+
+            var containerSecond = _character.transform.Find("_OutlineSilhouettes");
+            Assert.AreSame(containerFirst, containerSecond, "Should reuse the existing container");
+            Assert.IsTrue(containerSecond.gameObject.activeSelf);
+        }
     }
 }
