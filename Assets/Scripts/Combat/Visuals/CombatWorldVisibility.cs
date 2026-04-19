@@ -91,5 +91,15 @@ namespace RogueliteAutoBattler.Combat.Visuals
             _teamContainer = teamContainer;
             _enemiesContainer = enemiesContainer;
         }
+
+        internal void WireNavigationForTest(NavigationManager navigationManager)
+        {
+            if (_cachedNavigationManager != null)
+                _cachedNavigationManager.OnTabChanged -= OnTabChanged;
+
+            _cachedNavigationManager = navigationManager;
+            if (_cachedNavigationManager != null)
+                _cachedNavigationManager.OnTabChanged += OnTabChanged;
+        }
     }
 }
