@@ -2,7 +2,6 @@ using System.Collections;
 using System.Text.RegularExpressions;
 using NUnit.Framework;
 using RogueliteAutoBattler.Core;
-using RogueliteAutoBattler.UI.Core;
 using UnityEngine;
 using UnityEngine.TestTools;
 
@@ -31,15 +30,12 @@ namespace RogueliteAutoBattler.Tests.PlayMode
 
             var combatWorldGo = Track(new GameObject("CombatWorld"));
 
-            var navGo = new GameObject("NavigationManager");
-            navGo.SetActive(false);
-            Track(navGo);
-            navGo.AddComponent<NavigationManager>();
-
             var camGo = Track(new GameObject("MainCamera"));
             var cam = camGo.AddComponent<Camera>();
             cam.tag = "MainCamera";
             yield return null;
+
+            LogAssert.Expect(LogType.Error, new Regex("navigation system"));
 
             GameBootstrap.Initialize();
 
@@ -47,7 +43,6 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             Assert.IsNotNull(GameBootstrap.CombatWorld);
             Assert.AreEqual(combatWorldGo.transform, GameBootstrap.CombatWorld);
             Assert.IsNotNull(GameBootstrap.MainCamera);
-            LogAssert.NoUnexpectedReceived();
         }
 
         [UnityTest]
@@ -62,25 +57,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             yield return null;
 
             LogAssert.Expect(LogType.Error, new Regex("CombatWorld"));
-            LogAssert.Expect(LogType.Error, new Regex("NavigationManager"));
-
-            GameBootstrap.Initialize();
-        }
-
-        [UnityTest]
-        public IEnumerator Initialize_MissingNavigationManager_LogsError()
-        {
-            var canvasGo = Track(new GameObject("UICanvas"));
-            canvasGo.AddComponent<Canvas>();
-
-            Track(new GameObject("CombatWorld"));
-
-            var camGo = Track(new GameObject("MainCamera"));
-            var cam = camGo.AddComponent<Camera>();
-            cam.tag = "MainCamera";
-            yield return null;
-
-            LogAssert.Expect(LogType.Error, new Regex("NavigationManager"));
+            LogAssert.Expect(LogType.Error, new Regex("navigation system"));
 
             GameBootstrap.Initialize();
         }
@@ -111,7 +88,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             cam.tag = "MainCamera";
             yield return null;
 
-            LogAssert.Expect(LogType.Error, new Regex("NavigationManager"));
+            LogAssert.Expect(LogType.Error, new Regex("navigation system"));
 
             GameBootstrap.Initialize();
             Assert.IsNotNull(GameBootstrap.Canvas);
@@ -120,7 +97,6 @@ namespace RogueliteAutoBattler.Tests.PlayMode
 
             Assert.IsNull(GameBootstrap.Canvas);
             Assert.IsNull(GameBootstrap.CombatWorld);
-            Assert.IsNull(GameBootstrap.NavigationManager);
             Assert.IsNull(GameBootstrap.NavigationHost);
             Assert.IsNull(GameBootstrap.MainCamera);
         }

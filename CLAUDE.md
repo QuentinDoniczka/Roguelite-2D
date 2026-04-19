@@ -25,7 +25,7 @@
 Doc detaille : `Assets/doc/premier-jet-roguelite.html`
 
 # Project Structure
-Generated: 2026-04-17
+Generated: 2026-04-19
 
 .github/
   workflows/
@@ -69,7 +69,6 @@ Assets/
     Effects/  (empty)
     UI/  (empty)
   Scenes/
-    GameScene.unity
     NewGameScene.unity
   Scripts/
     RogueliteAutoBattler.Runtime.asmdef
@@ -156,26 +155,16 @@ Assets/
       Local/  (empty)
     UI/
       Core/
-        NavigationManager.cs
-        ScreenStack.cs
-        TabButton.cs
-        UIScreen.cs
+        UIScreen.cs  (deferred to #206 — still inherited by SkillTreeScreen)
       Screens/
         Combat/
-          CombatScreen.cs
-          DamageNumberSettingsPanel.cs
-        Guild/
-          GuildScreen.cs
-        Shop/
-          ShopScreen.cs
-        SkillTree/
+          DamageNumberSettingsPanel.cs  (deferred to #206)
+        SkillTree/  (5 files, deferred to #206)
           SkillTreeDetailPanel.cs
           SkillTreeInputHandler.cs
           SkillTreeNode.cs
           SkillTreeNodeManager.cs
           SkillTreeScreen.cs
-        Village/
-          VillageScreen.cs
       Toolkit/
         AllyStatsPanelController.cs
         BattleIndicatorController.cs
@@ -186,11 +175,6 @@ Assets/
         NavigationManager.cs
         ScreenStack.cs
         StepProgressBarController.cs
-      Widgets/
-        AllyStatsPanel.cs
-        BattleIndicatorBadge.cs
-        GoldHudBadge.cs
-        StepProgressBar.cs
     Village/  (empty)
   Settings/
     DefaultVolumeProfile.asset
@@ -269,8 +253,6 @@ Assets/
       LevelManagerStepTransitionTests.cs
       LevelManagerTotalLevelsTests.cs
       NavigationHostTests.cs
-      NavigationManagerTests.cs
-      ScreenStackTests.cs
       SelectionOutlineTests.cs
       SkillPointWalletTests.cs
       SkillTreeDetailPanelTests.cs
@@ -280,7 +262,6 @@ Assets/
       SkillTreeScreenTests.cs
       StepProgressBarControllerTests.cs
       StepProgressBarTests.cs
-      UIScreenTests.cs
       UnitSelectionManagerTests.cs
       VisualEquipmentTestLoopTests.cs
       WorldConveyorTests.cs
