@@ -1,8 +1,7 @@
 using RogueliteAutoBattler.Combat.Core;
 using RogueliteAutoBattler.Common;
-using RogueliteAutoBattler.UI.Core;
+using RogueliteAutoBattler.UI.Toolkit;
 using UnityEngine;
-using ToolkitHost = RogueliteAutoBattler.UI.Toolkit.NavigationHost;
 
 namespace RogueliteAutoBattler.Core
 {
@@ -12,8 +11,7 @@ namespace RogueliteAutoBattler.Core
 
         public static Canvas Canvas { get; private set; }
         public static Transform CombatWorld { get; private set; }
-        public static NavigationManager NavigationManager { get; private set; }
-        public static ToolkitHost NavigationHost { get; private set; }
+        public static NavigationHost NavigationHost { get; private set; }
         public static Camera MainCamera { get; private set; }
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
@@ -21,8 +19,7 @@ namespace RogueliteAutoBattler.Core
         {
             MainCamera = Camera.main;
             Canvas = Object.FindFirstObjectByType<Canvas>(FindObjectsInactive.Include);
-            NavigationManager = Object.FindFirstObjectByType<NavigationManager>(FindObjectsInactive.Include);
-            NavigationHost = Object.FindFirstObjectByType<ToolkitHost>(FindObjectsInactive.Include);
+            NavigationHost = Object.FindFirstObjectByType<NavigationHost>(FindObjectsInactive.Include);
 
             var combatWorldGo = GameObject.Find(CombatWorldName);
             CombatWorld = combatWorldGo != null ? combatWorldGo.transform : null;
@@ -53,8 +50,8 @@ namespace RogueliteAutoBattler.Core
         {
             if (CombatWorld == null)
                 Debug.LogError("[GameBootstrap] CombatWorld not found in scene.");
-            if (NavigationManager == null && NavigationHost == null)
-                Debug.LogError("[GameBootstrap] No navigation system found in scene (neither NavigationManager nor NavigationHost).");
+            if (NavigationHost == null)
+                Debug.LogError("[GameBootstrap] No navigation system found in scene (NavigationHost missing).");
             if (MainCamera == null)
                 Debug.LogError("[GameBootstrap] Main Camera not found in scene.");
         }
@@ -64,7 +61,6 @@ namespace RogueliteAutoBattler.Core
         {
             Canvas = null;
             CombatWorld = null;
-            NavigationManager = null;
             NavigationHost = null;
             MainCamera = null;
         }

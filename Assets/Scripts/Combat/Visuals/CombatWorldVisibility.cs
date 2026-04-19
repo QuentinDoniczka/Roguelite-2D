@@ -1,9 +1,7 @@
 using System.Collections.Generic;
 using RogueliteAutoBattler.Combat.Core;
-using RogueliteAutoBattler.UI.Core;
+using RogueliteAutoBattler.UI.Toolkit;
 using UnityEngine;
-using ToolkitNavigationHost = RogueliteAutoBattler.UI.Toolkit.NavigationHost;
-using ToolkitNavigationManager = RogueliteAutoBattler.UI.Toolkit.NavigationManager;
 
 namespace RogueliteAutoBattler.Combat.Visuals
 {
@@ -16,7 +14,6 @@ namespace RogueliteAutoBattler.Combat.Visuals
         private int _lastEnemyChildCount;
         private readonly List<Renderer> _rendererBuffer = new List<Renderer>();
         private NavigationManager _cachedNavigationManager;
-        private ToolkitNavigationManager _cachedToolkitNavigationManager;
 
         public bool Visible => _visible;
 
@@ -25,15 +22,11 @@ namespace RogueliteAutoBattler.Combat.Visuals
             _teamContainer = transform.Find(CombatSetupHelper.TeamContainerName);
             _enemiesContainer = transform.Find(CombatSetupHelper.EnemiesContainerName);
 
-            _cachedNavigationManager = NavigationManager.Instance;
-            if (_cachedNavigationManager != null)
-                _cachedNavigationManager.OnTabChanged += OnTabChanged;
-
-            if (ToolkitNavigationHost.Instance != null
-                && ToolkitNavigationHost.Instance.Navigation != null)
+            if (NavigationHost.Instance != null
+                && NavigationHost.Instance.Navigation != null)
             {
-                _cachedToolkitNavigationManager = ToolkitNavigationHost.Instance.Navigation;
-                _cachedToolkitNavigationManager.OnTabChanged += OnTabChanged;
+                _cachedNavigationManager = NavigationHost.Instance.Navigation;
+                _cachedNavigationManager.OnTabChanged += OnTabChanged;
             }
         }
 
@@ -41,9 +34,6 @@ namespace RogueliteAutoBattler.Combat.Visuals
         {
             if (_cachedNavigationManager != null)
                 _cachedNavigationManager.OnTabChanged -= OnTabChanged;
-
-            if (_cachedToolkitNavigationManager != null)
-                _cachedToolkitNavigationManager.OnTabChanged -= OnTabChanged;
         }
 
         private void OnTabChanged(int tabIndex)
@@ -100,6 +90,16 @@ namespace RogueliteAutoBattler.Combat.Visuals
         {
             _teamContainer = teamContainer;
             _enemiesContainer = enemiesContainer;
+        }
+
+        internal void WireNavigationForTest(NavigationManager navigationManager)
+        {
+            if (_cachedNavigationManager != null)
+                _cachedNavigationManager.OnTabChanged -= OnTabChanged;
+
+            _cachedNavigationManager = navigationManager;
+            if (_cachedNavigationManager != null)
+                _cachedNavigationManager.OnTabChanged += OnTabChanged;
         }
     }
 }
