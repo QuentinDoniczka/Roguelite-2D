@@ -167,6 +167,20 @@ Delegue a `test-play-unity` pour lancer le test via Unity CLI batch mode.
 
 Repeter 4a-4c pour chaque sous-tache. A la fin de toutes les sous-taches, lancer TOUS les tests ensemble pour verifier qu'il n'y a pas de regression.
 
+**4e. TOUJOURS — Convertir les verifications manuelles en tests automatises**
+
+Avant de passer a l'etape 5, **TOUJOURS** appliquer ce filtre :
+
+1. **Enumerer** toutes les verifications "ouvre Unity et regarde si..." que tu serais tente d'envoyer a l'utilisateur (scene-load sans erreur, scripts manquants, build settings, navigation runtime, wording d'un log GameBootstrap, presence d'un GameObject, wiring d'un prefab, etc.).
+2. **Pour CHAQUE verification**, la convertir en test automatise :
+   - Scene-load / missing scripts / build settings → **EditMode test** (ouvre le `.unity` via `EditorSceneManager.OpenScene`, parse les references, asserte)
+   - Navigation runtime, GameBootstrap, wiring effectif au runtime → **PlayMode test** (charge la scene en batch, exerce le flux, asserte)
+   - Wording d'un log → **PlayMode test** avec `LogAssert.Expect`
+3. **TOUJOURS — Si le code de prod n'est pas testable** (couplage fort, dependances statiques, fields prives critiques sans seam, MonoBehaviour qui Awake-instancie tout), delegue un **refacto pour testabilite** dans la **MEME PR** : extraire un seam (interface, methode `internal`), exposer un accessor `internal` avec `[InternalsVisibleTo("Tests.PlayMode")]`, scinder une classe, injecter une dependance. **La testabilite n'est pas negociable.** Routing : `refacto-unity` pour le seam, puis `test-play-unity` pour le test.
+4. **Lancer** la nouvelle batterie via `test-play-unity` (CLI batch), valider qu'elle passe, puis seulement passer a l'etape 5.
+
+> **Principe** : aucune "verification manuelle dans Unity" sur du fonctionnel ne doit survivre cette etape. Si tu envisages d'ecrire dans le rapport "verifie X dans la Console" → c'est un test que tu n'as pas encore ecrit. Ecris-le maintenant.
+
 ### 5. Refactorer (fichiers)
 
 **TOUJOURS apres l'implementation.** Delegue a `refacto-unity` sur chaque fichier cree ou modifie par `dev-unity`. L'agent analyse ET corrige directement les problemes locaux (dead code, unused usings, naming, Unity 2D anti-patterns, composants 3D errones, allocations dans Update, `is null` sur UnityEngine.Object, DRY entre scripts, public fields → `[SerializeField] private`, magic numbers → constantes, violations frontiere client/serveur, etc.). **Ne jamais sauter cette etape.**
@@ -214,14 +228,18 @@ Si une section est vide (ex: aucun fichier supprime), ne pas l'afficher.
 
 **Apres le rapport** :
 a) Delegue a `git-unity` avec la tache "commit" pour commiter tous les changements avec un message Conventional Commits qui reference l'Issue (ex: `feat(combat): add auto-battle flow (#12)`).
-b) **STOP — Demande de validation a l'utilisateur.** Affiche :
-   - "Changements commites. Teste dans Unity et confirme que tout fonctionne. Dis 'ok' pour push + PR + merge."
-   - **Liste concrete de ce qu'il faut tester** : basee sur les changements de l'Issue, decrire 3-5 scenarios de test manuels que l'utilisateur doit verifier dans Unity (ex: "Lance Play, verifie que les allies ne se stackent pas sur le meme ennemi"). Etre specifique au contexte de l'Issue, pas generique.
+b) **TOUJOURS — Filtrer la section "A tester dans Unity" avant de l'afficher.** Avant d'envoyer la moindre instruction manuelle a l'utilisateur :
+   - Reprendre la liste des scenarios qu'on s'appretait a lui demander.
+   - **Pour chaque scenario fonctionnel** (scene-load, scripts manquants, build settings, navigation, wiring, log wording, presence de GO/composant, flux de jeu) → ce N'EST PAS un test manuel, c'est un test automatise manquant. Retourner a l'etape 4e, ecrire le test (refacto pour testabilite si besoin), le lancer, et NE PAS l'inclure dans la section utilisateur.
+   - La section "A tester dans Unity" finale ne doit contenir QUE des scenarios genuinement non-automatisables : ressenti visuel, polish d'animation, mix audio, lisibilite UI, feel de gameplay subjectif. Si la liste est vide, ecrire "Rien a tester manuellement — tout est couvert par les tests automatises."
+c) **STOP — Demande de validation a l'utilisateur.** Affiche :
+   - "Changements commites. Tests automatises : <X passes>. Teste dans Unity et confirme que tout fonctionne. Dis 'ok' pour push + PR + merge."
+   - La section "A tester dans Unity" filtree a l'etape b (souvent tres courte ou vide).
    - **Ne PAS push, creer de PR, ni merger avant la validation.**
-c) **Apres validation utilisateur ("ok")** — Enchainer automatiquement :
+d) **Apres validation utilisateur ("ok")** — Enchainer automatiquement :
    1. Delegue a `git-unity` avec la tache "push" pour pusher la **branche feature** (sync auto avec dev avant de push). Le push cible toujours la branche feature courante, JAMAIS `dev` ni `main` directement. Si le sync detecte des conflits, delegue a `dev-unity` pour les resoudre, puis relance le push.
    2. Delegue a `git-unity` avec la tache "create-pr" pour creer la PR (target: `dev` — JAMAIS `main`).
-d) **Merge** — Delegue a `git-unity` avec la tache "merge-pr" :
+e) **Merge** — Delegue a `git-unity` avec la tache "merge-pr" :
    - L'agent verifie que la CI passe sur la PR
    - Si CI verte → squash merge automatique (merge en tant que Quentin Doniczka via `gh`)
    - Si CI rouge → STOP, rapporte les erreurs. On corrige et on relance.
