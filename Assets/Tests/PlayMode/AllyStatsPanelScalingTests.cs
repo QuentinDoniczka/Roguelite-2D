@@ -23,7 +23,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
         private const float StatRowHeaderHeight = 100f;
         private const float StatBreakdownPaddingLeft = 32f;
         private const float BreakdownFontSize = 32f;
-        private const float InfoAreaHeightPercent = 0.42f;
+        private const float InfoAreaHeightPercent = 0.35f;
         private const float FloatTolerance = 1.5f;
         private const float AreaTolerancePixels = 5f;
 
