@@ -1,0 +1,129 @@
+using System.Collections;
+using System.Collections.Generic;
+using System.Text.RegularExpressions;
+using NUnit.Framework;
+using RogueliteAutoBattler.Combat.Core;
+using RogueliteAutoBattler.Data;
+using RogueliteAutoBattler.Tests;
+using UnityEngine;
+using UnityEngine.TestTools;
+
+namespace RogueliteAutoBattler.Tests.PlayMode
+{
+    public class TeamRosterTests : PlayModeTestBase
+    {
+        private const float TestCharacterScale = 1.5f;
+
+        private TeamRoster _roster;
+        private Transform _teamContainer;
+        private Transform _teamHomeAnchor;
+        private GameObject _allyPrefab;
+
+        [SetUp]
+        public void SetUp()
+        {
+            var rosterGo = Track(new GameObject("TeamRoster"));
+            _roster = rosterGo.AddComponent<TeamRoster>();
+
+            var containerGo = Track(new GameObject("TeamContainer"));
+            _teamContainer = containerGo.transform;
+
+            var anchorGo = Track(new GameObject("TeamHomeAnchor"));
+            _teamHomeAnchor = anchorGo.transform;
+
+            _allyPrefab = Track(TestCharacterFactory.CreateCharacterPrefab());
+        }
+
+        private static void ExpectAnimatorWarnings(int allyCount)
+        {
+            for (int i = 0; i < allyCount; i++)
+            {
+                LogAssert.Expect(LogType.Warning, new Regex("No Animator found"));
+            }
+        }
+
+        [UnityTest]
+        public IEnumerator Spawn_CreatesOneMemberPerTeamDatabaseEntry()
+        {
+            const int allyCount = 3;
+            var teamDb = TestCharacterFactory.CreateTeamDatabase(allyCount, _allyPrefab);
+
+            ExpectAnimatorWarnings(allyCount);
+            _roster.Spawn(teamDb, _teamContainer, _teamHomeAnchor, TestCharacterScale);
+
+            yield return null;
+
+            Assert.AreEqual(allyCount, _roster.Members.Count);
+        }
+
+        [UnityTest]
+        public IEnumerator Spawn_AssignsGameObjectAndStatsToEachMember()
+        {
+            const int allyCount = 3;
+            var teamDb = TestCharacterFactory.CreateTeamDatabase(allyCount, _allyPrefab);
+
+            ExpectAnimatorWarnings(allyCount);
+            _roster.Spawn(teamDb, _teamContainer, _teamHomeAnchor, TestCharacterScale);
+
+            yield return null;
+
+            foreach (var member in _roster.Members)
+            {
+                Assert.IsNotNull(member.GameObject, $"Member {member.Index} should have GameObject assigned");
+                Assert.IsNotNull(member.Stats, $"Member {member.Index} should have Stats assigned");
+            }
+        }
+
+        [UnityTest]
+        public IEnumerator Spawn_TwiceIsIdempotent_LogsWarning()
+        {
+            const int allyCount = 3;
+            var teamDb = TestCharacterFactory.CreateTeamDatabase(allyCount, _allyPrefab);
+
+            ExpectAnimatorWarnings(allyCount);
+            _roster.Spawn(teamDb, _teamContainer, _teamHomeAnchor, TestCharacterScale);
+
+            yield return null;
+
+            LogAssert.Expect(LogType.Warning, new Regex("Spawn called twice, ignoring"));
+            _roster.Spawn(teamDb, _teamContainer, _teamHomeAnchor, TestCharacterScale);
+
+            yield return null;
+
+            Assert.AreEqual(allyCount, _roster.Members.Count);
+        }
+
+        [UnityTest]
+        public IEnumerator Spawn_FiresOnMemberSpawnedForEach()
+        {
+            const int allyCount = 3;
+            var teamDb = TestCharacterFactory.CreateTeamDatabase(allyCount, _allyPrefab);
+
+            int callbackCount = 0;
+            _roster.OnMemberSpawned += _ => callbackCount++;
+
+            ExpectAnimatorWarnings(allyCount);
+            _roster.Spawn(teamDb, _teamContainer, _teamHomeAnchor, TestCharacterScale);
+
+            yield return null;
+
+            Assert.AreEqual(allyCount, callbackCount);
+        }
+
+        [Test]
+        public void InitializeForTest_AllowsInjectingSyntheticMembers()
+        {
+            var syntheticMembers = new List<TeamMember>
+            {
+                new TeamMember(0, new AllySpawnData()),
+                new TeamMember(1, new AllySpawnData())
+            };
+
+            _roster.InitializeForTest(syntheticMembers);
+
+            Assert.AreEqual(2, _roster.Members.Count);
+            Assert.AreEqual(0, _roster.Members[0].Index);
+            Assert.AreEqual(1, _roster.Members[1].Index);
+        }
+    }
+}
