@@ -1,9 +1,11 @@
 using System.Collections;
+using System.Collections.Generic;
 using System.Reflection;
 using NUnit.Framework;
 using RogueliteAutoBattler.Combat.Core;
 using RogueliteAutoBattler.Common;
 using RogueliteAutoBattler.Core;
+using RogueliteAutoBattler.Data;
 using RogueliteAutoBattler.Tests;
 using RogueliteAutoBattler.UI.Toolkit;
 using UnityEngine;
@@ -92,24 +94,39 @@ namespace RogueliteAutoBattler.Tests.PlayMode
                 statsScrollView, _coroutineHost);
         }
 
-        private AllyStatsPanelController CreateControllerWithTeam(out Transform teamContainer, int allyCount = 2)
+        private TeamRoster CreateRosterWithAllies(int allyCount, out List<GameObject> allyObjects)
         {
-            var teamGo = new GameObject("Team");
-            Track(teamGo);
-            teamContainer = teamGo.transform;
+            var rosterGo = new GameObject("TeamRoster");
+            Track(rosterGo);
+            var roster = rosterGo.AddComponent<TeamRoster>();
+
+            var members = new List<TeamMember>();
+            allyObjects = new List<GameObject>();
 
             for (int i = 0; i < allyCount; i++)
             {
                 var ally = TestCharacterFactory.CreateSelectableCharacter(
                     $"Ally_{i}", maxHp: 100 + i * 50, atk: 15 + i * 5, isAlly: true,
                     position: new Vector2(i * 2, 0));
-                ally.transform.SetParent(teamContainer, false);
-                ally.transform.position = new Vector2(i * 2, 0);
                 Track(ally);
+                allyObjects.Add(ally);
+
+                var spawnData = new AllySpawnData { AllyName = $"Ally_{i}" };
+                var member = new TeamMember(i, spawnData);
+                member.GameObject = ally;
+                member.Stats = ally.GetComponent<CombatStats>();
+                members.Add(member);
             }
 
+            roster.InitializeForTest(members);
+            return roster;
+        }
+
+        private AllyStatsPanelController CreateControllerWithTeam(int allyCount, out TeamRoster roster, out List<GameObject> allyObjects)
+        {
+            roster = CreateRosterWithAllies(allyCount, out allyObjects);
             var controller = BuildController();
-            controller.InitializeForTest(_selectionManager, teamContainer);
+            controller.InitializeForTest(_selectionManager, roster);
             return controller;
         }
 
@@ -390,7 +407,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
         {
             _controller.Dispose();
 
-            _controller = CreateControllerWithTeam(out _, 2);
+            _controller = CreateControllerWithTeam(2, out _, out _);
             yield return null;
 
             Assert.AreEqual(0, _controller.CurrentRosterIndex);
@@ -406,7 +423,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
         {
             _controller.Dispose();
 
-            _controller = CreateControllerWithTeam(out _, 2);
+            _controller = CreateControllerWithTeam(2, out _, out _);
             yield return null;
 
             Assert.AreEqual(0, _controller.CurrentRosterIndex);
@@ -422,7 +439,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
         {
             _controller.Dispose();
 
-            _controller = CreateControllerWithTeam(out _, 3);
+            _controller = CreateControllerWithTeam(3, out _, out _);
             yield return null;
 
             Assert.AreEqual("1/3", _controller.TeamPosLabelText);
@@ -488,7 +505,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
         {
             _controller.Dispose();
 
-            _controller = CreateControllerWithTeam(out _, 3);
+            _controller = CreateControllerWithTeam(3, out _, out _);
             yield return null;
 
             Assert.AreEqual("Ally_0", _controller.NameLabelText);
@@ -509,7 +526,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
         {
             _controller.Dispose();
 
-            _controller = CreateControllerWithTeam(out _, 3);
+            _controller = CreateControllerWithTeam(3, out _, out _);
             yield return null;
 
             Assert.AreEqual("Ally_0", _controller.NameLabelText);
@@ -525,7 +542,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
         {
             _controller.Dispose();
 
-            _controller = CreateControllerWithTeam(out _, 3);
+            _controller = CreateControllerWithTeam(3, out _, out _);
             yield return null;
 
             Assert.AreEqual("1/3", _controller.TeamPosLabelText);
@@ -541,11 +558,10 @@ namespace RogueliteAutoBattler.Tests.PlayMode
         {
             _controller.Dispose();
 
-            _controller = CreateControllerWithTeam(out var teamContainer, 3);
+            _controller = CreateControllerWithTeam(3, out _, out var allyObjects);
             yield return null;
 
-            var secondAlly = teamContainer.GetChild(1).gameObject;
-            secondAlly.GetComponent<CombatStats>().TakeDamage(9999);
+            allyObjects[1].GetComponent<CombatStats>().TakeDamage(9999);
             yield return null;
 
             _controller.NavigateToNextAlly();
@@ -560,11 +576,10 @@ namespace RogueliteAutoBattler.Tests.PlayMode
         {
             _controller.Dispose();
 
-            _controller = CreateControllerWithTeam(out var teamContainer, 2);
+            _controller = CreateControllerWithTeam(2, out _, out var allyObjects);
             yield return null;
 
-            var secondAlly = teamContainer.GetChild(1).gameObject;
-            secondAlly.GetComponent<CombatStats>().TakeDamage(9999);
+            allyObjects[1].GetComponent<CombatStats>().TakeDamage(9999);
             yield return null;
 
             _controller.NavigateToNextAlly();
@@ -575,17 +590,14 @@ namespace RogueliteAutoBattler.Tests.PlayMode
         }
 
         [UnityTest]
-        public IEnumerator NavigateToDeadUnit_ShowsSnapshotName()
+        public IEnumerator NavigateToDeadUnit_ShowsNameFromMemberGameObject()
         {
             _controller.Dispose();
 
-            _controller = CreateControllerWithTeam(out var teamContainer, 2);
+            _controller = CreateControllerWithTeam(2, out _, out var allyObjects);
             yield return null;
 
-            _selectionManager.ForceSelect(teamContainer.GetChild(1).gameObject);
-            yield return null;
-
-            teamContainer.GetChild(1).GetComponent<CombatStats>().TakeDamage(9999);
+            allyObjects[1].GetComponent<CombatStats>().TakeDamage(9999);
             yield return null;
 
             _controller.NavigateToPreviousAlly();
@@ -604,14 +616,13 @@ namespace RogueliteAutoBattler.Tests.PlayMode
         {
             _controller.Dispose();
 
-            _controller = CreateControllerWithTeam(out var teamContainer, 2);
+            _controller = CreateControllerWithTeam(2, out _, out var allyObjects);
             yield return null;
 
-            var secondAlly = teamContainer.GetChild(1).gameObject;
-            _selectionManager.ForceSelect(secondAlly);
+            _selectionManager.ForceSelect(allyObjects[1]);
             yield return null;
 
-            secondAlly.GetComponent<CombatStats>().TakeDamage(9999);
+            allyObjects[1].GetComponent<CombatStats>().TakeDamage(9999);
             yield return null;
             Assert.IsTrue(_controller.IsDisplayingDeadUnit);
 
@@ -620,6 +631,123 @@ namespace RogueliteAutoBattler.Tests.PlayMode
 
             Assert.AreEqual(0, _controller.CurrentRosterIndex);
             Assert.IsFalse(_controller.IsDisplayingDeadUnit);
+        }
+
+        [UnityTest]
+        public IEnumerator BindRoster_PopulatesMembersFromTeamRoster()
+        {
+            _controller.Dispose();
+
+            _controller = CreateControllerWithTeam(3, out _, out _);
+            yield return null;
+
+            Assert.AreEqual(3, _controller.TeamRosterCount);
+        }
+
+        [UnityTest]
+        public IEnumerator NavigateToDeadUnit_StillReadsStatsFromLiveCombatStats()
+        {
+            _controller.Dispose();
+
+            _controller = CreateControllerWithTeam(3, out _, out var allyObjects);
+            yield return null;
+
+            allyObjects[1].GetComponent<CombatStats>().InitializeDirect(75, 20, 1f, 0f);
+            allyObjects[1].GetComponent<CombatStats>().TakeDamage(9999);
+            yield return null;
+
+            _controller.NavigateToNextAlly();
+            yield return null;
+
+            Assert.AreEqual(1, _controller.CurrentRosterIndex);
+            Assert.IsTrue(_controller.IsDisplayingDeadUnit);
+            Assert.IsFalse(string.IsNullOrEmpty(_controller.StatValueText(0)), "Dead member HP stat value should not be empty");
+        }
+
+        [UnityTest]
+        public IEnumerator NavigateThroughFullTeam_IncludesDeadMembers()
+        {
+            _controller.Dispose();
+
+            _controller = CreateControllerWithTeam(3, out _, out var allyObjects);
+            yield return null;
+
+            allyObjects[0].GetComponent<CombatStats>().TakeDamage(9999);
+            allyObjects[1].GetComponent<CombatStats>().TakeDamage(9999);
+            yield return null;
+
+            _controller.NavigateToNextAlly();
+            yield return null;
+            _controller.NavigateToNextAlly();
+            yield return null;
+            _controller.NavigateToNextAlly();
+            yield return null;
+
+            Assert.AreEqual(0, _controller.CurrentRosterIndex);
+        }
+
+        [UnityTest]
+        public IEnumerator DisplayTeamMember_DeadMember_AddsDeadUssClass()
+        {
+            _controller.Dispose();
+
+            _controller = CreateControllerWithTeam(2, out _, out var allyObjects);
+            yield return null;
+
+            allyObjects[1].GetComponent<CombatStats>().TakeDamage(9999);
+            yield return null;
+
+            _controller.NavigateToNextAlly();
+            yield return null;
+
+            Assert.IsTrue(_controller.IsNameLabelDeadMarked);
+        }
+
+        [UnityTest]
+        public IEnumerator DisplayTeamMember_AliveMember_RemovesDeadUssClass()
+        {
+            _controller.Dispose();
+
+            _controller = CreateControllerWithTeam(2, out _, out var allyObjects);
+            yield return null;
+
+            allyObjects[1].GetComponent<CombatStats>().TakeDamage(9999);
+            yield return null;
+
+            _controller.NavigateToNextAlly();
+            yield return null;
+            Assert.IsTrue(_controller.IsNameLabelDeadMarked);
+
+            _controller.NavigateToNextAlly();
+            yield return null;
+
+            Assert.AreEqual(0, _controller.CurrentRosterIndex);
+            Assert.IsFalse(_controller.IsNameLabelDeadMarked);
+        }
+
+        [UnityTest]
+        public IEnumerator OnMemberRevived_RefreshesDisplay_IfCurrentlyShowingRevivedMember()
+        {
+            _controller.Dispose();
+
+            _controller = CreateControllerWithTeam(2, out var roster, out var allyObjects);
+            yield return null;
+
+            allyObjects[1].GetComponent<CombatStats>().TakeDamage(9999);
+            yield return null;
+
+            _controller.NavigateToNextAlly();
+            yield return null;
+
+            Assert.IsTrue(_controller.IsDisplayingDeadUnit);
+            Assert.IsTrue(_controller.IsNameLabelDeadMarked);
+
+            var member = roster.Members[1];
+            roster.Revive(member);
+            yield return null;
+
+            Assert.IsFalse(_controller.IsDisplayingDeadUnit);
+            Assert.IsFalse(_controller.IsNameLabelDeadMarked);
         }
     }
 
