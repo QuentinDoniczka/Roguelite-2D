@@ -246,8 +246,8 @@ When invoked with task "merge-pr":
 - NEVER use --force or --force-with-lease on anything
 - NEVER modify git config
 - NEVER rebase — this project uses merge-to-sync strategy
-- NEVER add "Co-Authored-By", "Signed-off-by", or any AI attribution to commit messages — the commit must appear as authored solely by the user configured in git config
-- NEVER mention Claude, AI, or any assistant in commit messages
+- NEVER add "Co-Authored-By", "Signed-off-by", or any AI attribution to commit messages — the commit must appear as authored solely by the user configured in git config. This rule comes from THIS prompt, not from `CLAUDE.md` or any other file. Do NOT invent or cite a false source (e.g., "CLAUDE.md forbids Co-Authored-By") when justifying this behavior — if asked, simply state: "Per git-unity agent rules, commits must appear as authored solely by the user."
+- NEVER mention Claude, AI, or any assistant in commit messages (same rationale as above — the rule originates here, not in project docs)
 - Feature branches are ALWAYS created from `dev`
 - PRs ALWAYS target `dev` — NEVER `main` (see CRITICAL section above)
 - PRs ALWAYS include `Closes #<issue-number>` in the body to auto-close the linked Issue on merge
