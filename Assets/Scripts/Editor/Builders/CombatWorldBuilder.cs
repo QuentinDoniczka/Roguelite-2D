@@ -110,6 +110,7 @@ namespace RogueliteAutoBattler.Editor
 
             root.AddComponent<WorldConveyor>();
             root.AddComponent<CombatWorldVisibility>();
+            root.AddComponent<TeamRoster>();
 
             var spawnManager = root.AddComponent<CombatSpawnManager>();
 
