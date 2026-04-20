@@ -6,7 +6,8 @@
         "UnityEditor.TestRunner",
         "RogueliteAutoBattler.Runtime",
         "RogueliteAutoBattler.Editor",
-        "Tests.PlayMode"
+        "Tests.PlayMode",
+        "Unity.InputSystem"
     ],
     "includePlatforms": [
         "Editor"

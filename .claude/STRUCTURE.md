@@ -1,5 +1,5 @@
 # Project Structure
-Generated: 2026-04-17
+Generated: 2026-04-20
 
 .github/
   workflows/
@@ -7,7 +7,7 @@ Generated: 2026-04-17
     protect-main.yml
 
 Assets/
-  Animations/  (23 files: .anim + .controller)
+  Animations/  (24 files: .anim + .controller)
   Audio/  (empty)
   Data/
     Adventurers/  (empty)
@@ -38,12 +38,12 @@ Assets/
     Bangers SDF.asset
     Bangers.ttf
   Materials/  (1 file)
+  MedievalFantasyCharacters/  (empty)
   Prefabs/
-    Characters/  (5 prefabs)
+    Characters/  (5 prefabs: Elk, Horse, Wildboar, Wolf, sampleCharacterHuman)
     Effects/  (empty)
     UI/  (empty)
   Scenes/
-    GameScene.unity
     NewGameScene.unity
   Scripts/
     RogueliteAutoBattler.Runtime.asmdef
@@ -85,6 +85,7 @@ Assets/
         DamageNumberService.cs
         DamageNumberSettingsPersistence.cs
         HealthBar.cs
+        ProceduralGroundSprite.cs
         SelectionOutline.cs
         VisualEquipmentTestLoop.cs
     Common/
@@ -103,14 +104,11 @@ Assets/
       AssemblyInfo.cs
       EditorUIFactory.cs
       Builders/
-        BootstrapSceneBuilder.cs
         CombatHudBuilder.cs
-        CombatInfoBuilder.cs
         CombatWorldBuilder.cs
         NavigationHostBuilder.cs
         NewGameSceneBuilder.cs
         RoundedRectSpriteGenerator.cs
-        SetupNavigationSceneEditor.cs
         SkillTreeBuilder.cs
       Windows/
         GameDesignerWindow.cs
@@ -126,30 +124,21 @@ Assets/
       SkillTreeData.cs
       SkillTreeProgress.cs
       TeamDatabase.cs
+    ScriptableObjects/  (empty)
     Services/
       Local/  (empty)
     UI/
       Core/
-        NavigationManager.cs
-        ScreenStack.cs
-        TabButton.cs
-        UIScreen.cs
+        UIScreen.cs  (deferred to #206 — still inherited by SkillTreeScreen)
       Screens/
         Combat/
-          CombatScreen.cs
-          DamageNumberSettingsPanel.cs
-        Guild/
-          GuildScreen.cs
-        Shop/
-          ShopScreen.cs
-        SkillTree/
+          DamageNumberSettingsPanel.cs  (deferred to #206)
+        SkillTree/  (5 files, deferred to #206)
           SkillTreeDetailPanel.cs
           SkillTreeInputHandler.cs
           SkillTreeNode.cs
           SkillTreeNodeManager.cs
           SkillTreeScreen.cs
-        Village/
-          VillageScreen.cs
       Toolkit/
         AllyStatsPanelController.cs
         BattleIndicatorController.cs
@@ -160,11 +149,6 @@ Assets/
         NavigationManager.cs
         ScreenStack.cs
         StepProgressBarController.cs
-      Widgets/
-        AllyStatsPanel.cs
-        BattleIndicatorBadge.cs
-        GoldHudBadge.cs
-        StepProgressBar.cs
     Village/  (empty)
   Settings/
     DefaultVolumeProfile.asset
@@ -179,7 +163,7 @@ Assets/
     SpriteOutline2D.shader
     SpriteSilhouette2D.shader
   Sprites/
-    Characters/  (155 files)
+    Characters/  (156 files)
     Effects/  (25 files)
     Environment/
       backgroundtest.png
@@ -187,8 +171,8 @@ Assets/
       grid_ground_blue.png
       map.png
       placeholder_white.png
-    Items/  (53 files)
-    UI/  (1 file)
+    Items/  (54 files)
+    UI/  (2 files)
   Tests/
     EditMode/
       Tests.EditMode.asmdef
@@ -198,8 +182,10 @@ Assets/
       CombatStatsBreakdownTests.cs
       CombatStatsDamageEventTests.cs
       CombatStatsTests.cs
+      EditorBuildSettingsSceneTests.cs
       FormationLayoutTests.cs
       GoldFormatterTests.cs
+      ProceduralGroundSpriteTests.cs
       RecalculateFormationTests.cs
       SkillTreeDataTests.cs
       SkillTreeProgressTests.cs
@@ -211,14 +197,11 @@ Assets/
     PlayMode/
       Tests.PlayMode.asmdef
       TestUtils/
-        AllyStatsPanelTestFixture.cs
         PlayModeTestBase.cs
         TestCharacterFactory.cs
       AllyStatsPanelControllerTests.cs
-      AllyStatsPanelTabTests.cs
-      AllyStatsPanelTests.cs
+      AllyStatsPanelScalingTests.cs
       AnimationEventRelayTests.cs
-      BattleIndicatorBadgeTests.cs
       BattleIndicatorControllerTests.cs
       CanvasFactoryTests.cs
       CharacterAppearanceTests.cs
@@ -229,22 +212,23 @@ Assets/
       CombatSetupHelperTests.cs
       CombatSpawnManagerTests.cs
       CombatStatsRegenTests.cs
+      CombatWorldVisibilityNavTests.cs
       DamageNumberServiceTests.cs
       DamageNumberTests.cs
       FormationRecalculationTests.cs
       GameBootstrapTests.cs
       GoldBadgeControllerTests.cs
-      GoldHudBadgeTests.cs
       GoldWalletTests.cs
       HealthBarTrailTests.cs
       LevelManagerDefeatResetTests.cs
       LevelManagerDefeatTests.cs
       LevelManagerEventTests.cs
       LevelManagerStepTransitionTests.cs
+      LevelManagerTerrainFallbackTests.cs
       LevelManagerTotalLevelsTests.cs
       NavigationHostTests.cs
-      NavigationManagerTests.cs
-      ScreenStackTests.cs
+      NewGameSceneSmokeTests.cs
+      ScreenAnchorTests.cs
       SelectionOutlineTests.cs
       SkillPointWalletTests.cs
       SkillTreeDetailPanelTests.cs
@@ -253,15 +237,12 @@ Assets/
       SkillTreeNodeTests.cs
       SkillTreeScreenTests.cs
       StepProgressBarControllerTests.cs
-      StepProgressBarTests.cs
-      UIScreenTests.cs
       UnitSelectionManagerTests.cs
       VisualEquipmentTestLoopTests.cs
       WorldConveyorTests.cs
   TextMesh Pro/  (173 files -- TMP package: fonts, shaders, examples)
   UI/
     Layouts/
-      InfoPanel.uxml
       MainLayout.uxml
     MainPanelSettings.asset
     Styles/
@@ -269,5 +250,6 @@ Assets/
   UI Toolkit/
     UnityThemes/
       UnityDefaultRuntimeTheme.tss
+  _Recovery/  (empty)
 
 ProjectSettings/  (Unity defaults)
