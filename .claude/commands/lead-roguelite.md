@@ -228,13 +228,19 @@ Si une section est vide (ex: aucun fichier supprime), ne pas l'afficher.
 
 **Apres le rapport** :
 a) Delegue a `git-unity` avec la tache "commit" pour commiter tous les changements avec un message Conventional Commits qui reference l'Issue (ex: `feat(combat): add auto-battle flow (#12)`).
-b) **TOUJOURS — Filtrer la section "A tester dans Unity" avant de l'afficher.** Avant d'envoyer la moindre instruction manuelle a l'utilisateur :
+b) **TOUJOURS — Construire la section "A tester dans Unity" comme un safety net visuel.** Avant d'envoyer la checklist a l'utilisateur :
    - Reprendre la liste des scenarios qu'on s'appretait a lui demander.
-   - **Pour chaque scenario fonctionnel** (scene-load, scripts manquants, build settings, navigation, wiring, log wording, presence de GO/composant, flux de jeu) → ce N'EST PAS un test manuel, c'est un test automatise manquant. Retourner a l'etape 4e, ecrire le test (refacto pour testabilite si besoin), le lancer, et NE PAS l'inclure dans la section utilisateur.
-   - La section "A tester dans Unity" finale ne doit contenir QUE des scenarios genuinement non-automatisables : ressenti visuel, polish d'animation, mix audio, lisibilite UI, feel de gameplay subjectif. Si la liste est vide, ecrire "Rien a tester manuellement — tout est couvert par les tests automatises."
+   - **Pour chaque scenario fonctionnel convertible en test** (scene-load, scripts manquants, build settings, navigation runtime, wiring, log wording, presence de GO/composant, valeurs numeriques de `resolvedStyle`, flux de jeu) → ce N'EST PAS un test manuel, c'est un test automatise manquant. Retourner a l'etape 4e, ecrire le test (refacto pour testabilite si besoin), le lancer, et NE PAS l'inclure dans la section utilisateur.
+   - **La section finale DOIT TOUJOURS contenir au moins 5 a 15 checks visuels actionnables**, groupes par zone (header, body, panel global, zones voisines/regressions). Elle sert de safety net humain contre les blind spots des tests automatises (les assertions `resolvedStyle` verifient des valeurs numeriques, pas le ressenti visuel — alignement, debordement, hierarchie, feel mobile/PC, regressions collaterales).
+   - **Interdit d'ecrire "Rien a tester manuellement"** ou equivalent. Meme quand tous les tests automatises passent, il faut toujours fournir des items visuels.
+   - **Format attendu des items** :
+     - "Ouvre la scene X, fais Y, verifie que Z est visuellement coherent"
+     - "Sur resolution 1080x1920 (Simulator mobile) : pas de debordement, pas de texte coupe, alignement correct"
+     - "Zones voisines (HUD Gold, Battle Indicator, ...) : **inchangees** visuellement — aucune regression collaterale"
+     - "Ressenti : <polish d'animation, mix audio, lisibilite UI, feel de gameplay>"
 c) **STOP — Demande de validation a l'utilisateur.** Affiche :
-   - "Changements commites. Tests automatises : <X passes>. Teste dans Unity et confirme que tout fonctionne. Dis 'ok' pour push + PR + merge."
-   - La section "A tester dans Unity" filtree a l'etape b (souvent tres courte ou vide).
+   - "Changements commites. Tests automatises : <X passes>. Voici la checklist visuelle (safety net humain, en complement des tests, pas en remplacement). Teste dans Unity et confirme que tout fonctionne. Dis 'ok' pour push + PR + merge."
+   - La section "A tester dans Unity" construite a l'etape b (5 a 15 checks visuels, jamais vide).
    - **Ne PAS push, creer de PR, ni merger avant la validation.**
 d) **Apres validation utilisateur ("ok")** — Enchainer automatiquement :
    1. Delegue a `git-unity` avec la tache "push" pour pusher la **branche feature** (sync auto avec dev avant de push). Le push cible toujours la branche feature courante, JAMAIS `dev` ni `main` directement. Si le sync detecte des conflits, delegue a `dev-unity` pour les resoudre, puis relance le push.
