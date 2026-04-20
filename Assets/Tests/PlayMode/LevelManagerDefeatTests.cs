@@ -100,7 +100,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             ally1.GetComponent<CombatStats>().TakeDamage(9999);
 
             LogAssert.Expect(LogType.Log, "[CombatStats] Ally2 died!");
-            LogAssert.Expect(LogType.Log, "[LevelManager] Level lost! All allies defeated.");
+            LogAssert.Expect(LogType.Log, "[DefeatHandler] Level lost! All allies defeated.");
             ally2.GetComponent<CombatStats>().TakeDamage(9999);
 
             yield return null;
@@ -149,7 +149,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             ally1.GetComponent<CombatStats>().TakeDamage(9999);
 
             LogAssert.Expect(LogType.Log, "[CombatStats] Ally2 died!");
-            LogAssert.Expect(LogType.Log, "[LevelManager] Level lost! All allies defeated.");
+            LogAssert.Expect(LogType.Log, "[DefeatHandler] Level lost! All allies defeated.");
             ally2.GetComponent<CombatStats>().TakeDamage(9999);
 
             yield return null;
@@ -243,7 +243,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             float enemy2StartX = enemy2.transform.position.x;
 
             LogAssert.Expect(LogType.Log, "[CombatStats] Ally1 died!");
-            LogAssert.Expect(LogType.Log, "[LevelManager] Level lost! All allies defeated.");
+            LogAssert.Expect(LogType.Log, "[DefeatHandler] Level lost! All allies defeated.");
             ally1.GetComponent<CombatStats>().TakeDamage(9999);
 
             for (int i = 0; i < 20; i++)
