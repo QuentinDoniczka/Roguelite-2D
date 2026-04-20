@@ -1,4 +1,3 @@
-using RogueliteAutoBattler.Common;
 using RogueliteAutoBattler.Data;
 using UnityEngine;
 
@@ -68,36 +67,14 @@ namespace RogueliteAutoBattler.Combat.Core
 
         private void SpawnAlly(AllySpawnData data, Transform homeAnchor, Vector2 spawnPos, Vector2 homeOffset)
         {
-            if (data.Prefab == null)
-            {
-#if UNITY_EDITOR
-                Debug.LogWarning($"[{nameof(CombatSpawnManager)}] Ally '{data.AllyName}' has no prefab assigned.");
-#endif
-                return;
-            }
-
-            var ally = Instantiate(data.Prefab, new Vector3(spawnPos.x, spawnPos.y, 0f), Quaternion.identity, _teamContainer);
-            ally.name = data.AllyName;
-            ally.layer = PhysicsLayers.AllyLayer;
-            ally.transform.localScale = new Vector3(-_characterScale, _characterScale, 1f);
-
-            var setupConfig = new CharacterSetupConfig
-            {
-                MaxHp = data.MaxHp,
-                Atk = data.Atk,
-                AttackSpeed = data.AttackSpeed,
-                RegenHpPerSecond = data.RegenHpPerSecond,
-                MoveSpeed = data.MoveSpeed,
-                HomeAnchor = homeAnchor,
-                HomeOffset = homeOffset,
-                ColliderRadius = data.ColliderRadius,
-                Appearance = data.Appearance,
-                CallerName = nameof(CombatSpawnManager),
-                IsAlly = true,
-                CharacterScale = _characterScale
-            };
-            var components = CombatSetupHelper.AssembleCharacter(ally, setupConfig);
-            components.Controller.SetAttackerFacing(true);
+            CombatSetupHelper.InstantiateAndAssembleAlly(
+                data,
+                _teamContainer,
+                homeAnchor,
+                spawnPos,
+                homeOffset,
+                _characterScale,
+                out _);
         }
     }
 }
