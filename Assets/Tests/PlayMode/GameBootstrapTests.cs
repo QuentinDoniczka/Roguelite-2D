@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Text.RegularExpressions;
 using NUnit.Framework;
+using RogueliteAutoBattler.Combat.Core;
 using RogueliteAutoBattler.Core;
 using UnityEngine;
 using UnityEngine.TestTools;
@@ -35,6 +36,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             cam.tag = "MainCamera";
             yield return null;
 
+            LogAssert.Expect(LogType.Error, new Regex("TeamRoster"));
             LogAssert.Expect(LogType.Error, new Regex("navigation system"));
 
             GameBootstrap.Initialize();
@@ -57,6 +59,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             yield return null;
 
             LogAssert.Expect(LogType.Error, new Regex("CombatWorld"));
+            LogAssert.Expect(LogType.Error, new Regex("TeamRoster"));
             LogAssert.Expect(LogType.Error, new Regex("navigation system"));
 
             GameBootstrap.Initialize();
@@ -68,6 +71,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             yield return null;
 
             LogAssert.Expect(LogType.Error, new Regex("CombatWorld"));
+            LogAssert.Expect(LogType.Error, new Regex("TeamRoster"));
             LogAssert.Expect(LogType.Error, new Regex("navigation system"));
             LogAssert.Expect(LogType.Error, new Regex("Main Camera"));
 
@@ -88,6 +92,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             cam.tag = "MainCamera";
             yield return null;
 
+            LogAssert.Expect(LogType.Error, new Regex("TeamRoster"));
             LogAssert.Expect(LogType.Error, new Regex("navigation system"));
 
             GameBootstrap.Initialize();
@@ -99,6 +104,73 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             Assert.IsNull(GameBootstrap.CombatWorld);
             Assert.IsNull(GameBootstrap.NavigationHost);
             Assert.IsNull(GameBootstrap.MainCamera);
+        }
+
+        [UnityTest]
+        public IEnumerator Initialize_SetsTeamRoster_WhenCombatWorldHasComponent()
+        {
+            var canvasGo = Track(new GameObject("UICanvas"));
+            canvasGo.AddComponent<Canvas>();
+
+            var combatWorldGo = Track(new GameObject("CombatWorld"));
+            var expectedRoster = combatWorldGo.AddComponent<TeamRoster>();
+
+            var camGo = Track(new GameObject("MainCamera"));
+            var cam = camGo.AddComponent<Camera>();
+            cam.tag = "MainCamera";
+            yield return null;
+
+            LogAssert.Expect(LogType.Error, new Regex("navigation system"));
+
+            GameBootstrap.Initialize();
+
+            Assert.IsNotNull(GameBootstrap.TeamRoster);
+            Assert.AreSame(expectedRoster, GameBootstrap.TeamRoster);
+        }
+
+        [UnityTest]
+        public IEnumerator Initialize_LogsError_WhenCombatWorldLacksTeamRoster()
+        {
+            var canvasGo = Track(new GameObject("UICanvas"));
+            canvasGo.AddComponent<Canvas>();
+
+            Track(new GameObject("CombatWorld"));
+
+            var camGo = Track(new GameObject("MainCamera"));
+            var cam = camGo.AddComponent<Camera>();
+            cam.tag = "MainCamera";
+            yield return null;
+
+            LogAssert.Expect(LogType.Error, "[GameBootstrap] TeamRoster not found on CombatWorld root.");
+            LogAssert.Expect(LogType.Error, new Regex("navigation system"));
+
+            GameBootstrap.Initialize();
+
+            Assert.IsNull(GameBootstrap.TeamRoster);
+        }
+
+        [UnityTest]
+        public IEnumerator ResetForTest_ClearsTeamRoster()
+        {
+            var canvasGo = Track(new GameObject("UICanvas"));
+            canvasGo.AddComponent<Canvas>();
+
+            var combatWorldGo = Track(new GameObject("CombatWorld"));
+            combatWorldGo.AddComponent<TeamRoster>();
+
+            var camGo = Track(new GameObject("MainCamera"));
+            var cam = camGo.AddComponent<Camera>();
+            cam.tag = "MainCamera";
+            yield return null;
+
+            LogAssert.Expect(LogType.Error, new Regex("navigation system"));
+
+            GameBootstrap.Initialize();
+            Assert.IsNotNull(GameBootstrap.TeamRoster);
+
+            GameBootstrap.ResetForTest();
+
+            Assert.IsNull(GameBootstrap.TeamRoster);
         }
     }
 }
