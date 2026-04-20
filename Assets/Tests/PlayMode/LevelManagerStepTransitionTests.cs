@@ -110,9 +110,10 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             var stage = new StageData("Stage_0", null, new List<LevelData> { level });
             _levelDatabase.Stages = new List<StageData> { stage };
 
+            var teamRoster = _combatWorldGo.AddComponent<TeamRoster>();
             _spawnManager = _combatWorldGo.AddComponent<CombatSpawnManager>();
             _spawnManager.enabled = false;
-            _spawnManager.InitializeForTest(teamDb, _teamContainer, _teamHomeAnchor);
+            _spawnManager.InitializeForTest(teamDb, _teamContainer, _teamHomeAnchor, teamRoster);
 
             _levelManager = _combatWorldGo.AddComponent<LevelManager>();
             _levelManager.enabled = false;

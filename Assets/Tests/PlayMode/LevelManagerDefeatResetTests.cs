@@ -67,9 +67,10 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             var teamDb = TestCharacterFactory.CreateTeamDatabase(allyCount, allyPrefab);
             var levelDb = TestCharacterFactory.CreateLevelDatabase(enemyCount, enemyPrefab);
 
+            var teamRoster = _combatWorldGo.AddComponent<TeamRoster>();
             _spawnManager = _combatWorldGo.AddComponent<CombatSpawnManager>();
             _spawnManager.enabled = false;
-            _spawnManager.InitializeForTest(teamDb, _teamContainer, _teamHomeAnchor);
+            _spawnManager.InitializeForTest(teamDb, _teamContainer, _teamHomeAnchor, teamRoster);
 
             _levelManager = _combatWorldGo.AddComponent<LevelManager>();
             _levelManager.enabled = false;

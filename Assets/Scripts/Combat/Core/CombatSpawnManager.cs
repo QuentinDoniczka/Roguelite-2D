@@ -3,6 +3,7 @@ using UnityEngine;
 
 namespace RogueliteAutoBattler.Combat.Core
 {
+    [RequireComponent(typeof(TeamRoster))]
     public class CombatSpawnManager : MonoBehaviour
     {
         [Header("Team")]
@@ -18,7 +19,15 @@ namespace RogueliteAutoBattler.Combat.Core
         [Header("Scale")]
         [SerializeField] private float _characterScale = DefaultCharacterScale;
 
+        private TeamRoster _teamRoster;
+
         public float CharacterScale => _characterScale;
+
+        private void Awake()
+        {
+            if (_teamRoster == null)
+                _teamRoster = GetComponent<TeamRoster>();
+        }
 
         private void Start()
         {
@@ -27,6 +36,14 @@ namespace RogueliteAutoBattler.Combat.Core
 
         public void SpawnAllies()
         {
+            if (_teamRoster == null)
+            {
+#if UNITY_EDITOR
+                Debug.LogError($"[{nameof(CombatSpawnManager)}] TeamRoster component not found on the same GameObject.", this);
+#endif
+                return;
+            }
+
             if (_teamDatabase == null || _teamDatabase.Allies.Count == 0)
             {
 #if UNITY_EDITOR
@@ -38,43 +55,34 @@ namespace RogueliteAutoBattler.Combat.Core
             Transform unusedEnemiesContainer = null;
             CombatSetupHelper.FindContainersIfNeeded(transform, ref _teamContainer, ref unusedEnemiesContainer, nameof(CombatSpawnManager));
 
-            Transform teamAnchor = _teamHomeAnchor;
-            Vector2 anchorPos = teamAnchor != null ? (Vector2)teamAnchor.position : Vector2.zero;
-
-            var allies = _teamDatabase.Allies;
-            Vector2[] positions = FormationLayout.GetPositions(anchorPos, allies.Count, facingRight: true, characterScale: _characterScale);
-
-            for (int i = 0; i < allies.Count; i++)
-            {
-                Vector2 offset = positions[i] - anchorPos;
-                SpawnAlly(allies[i], teamAnchor, positions[i], offset);
-            }
+            _teamRoster.Spawn(_teamDatabase, _teamContainer, _teamHomeAnchor, _characterScale);
         }
 
         public void RespawnAllies()
         {
-            CombatSetupHelper.DestroyAllChildren(_teamContainer);
-            SpawnAllies();
+            if (_teamRoster == null)
+            {
+#if UNITY_EDITOR
+                Debug.LogError($"[{nameof(CombatSpawnManager)}] TeamRoster component not found on the same GameObject.", this);
+#endif
+                return;
+            }
+
+            _teamRoster.ReviveAll();
         }
 
-        internal void InitializeForTest(TeamDatabase teamDatabase, Transform teamContainer, Transform teamHomeAnchor, float characterScale = DefaultCharacterScale)
+        internal void InitializeForTest(
+            TeamDatabase teamDatabase,
+            Transform teamContainer,
+            Transform teamHomeAnchor,
+            TeamRoster teamRoster,
+            float characterScale = DefaultCharacterScale)
         {
             _teamDatabase = teamDatabase;
             _teamContainer = teamContainer;
             _teamHomeAnchor = teamHomeAnchor;
+            _teamRoster = teamRoster;
             _characterScale = characterScale;
-        }
-
-        private void SpawnAlly(AllySpawnData data, Transform homeAnchor, Vector2 spawnPos, Vector2 homeOffset)
-        {
-            CombatSetupHelper.InstantiateAndAssembleAlly(
-                data,
-                _teamContainer,
-                homeAnchor,
-                spawnPos,
-                homeOffset,
-                _characterScale,
-                out _);
         }
     }
 }
