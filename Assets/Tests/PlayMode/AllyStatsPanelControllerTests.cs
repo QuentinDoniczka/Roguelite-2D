@@ -597,6 +597,9 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             _controller = CreateControllerWithTeam(2, out _, out var allyObjects);
             yield return null;
 
+            _selectionManager.ForceSelect(allyObjects[1]);
+            yield return null;
+
             allyObjects[1].GetComponent<CombatStats>().TakeDamage(9999);
             yield return null;
 
