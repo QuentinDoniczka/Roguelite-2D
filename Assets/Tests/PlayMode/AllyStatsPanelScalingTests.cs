@@ -58,6 +58,12 @@ namespace RogueliteAutoBattler.Tests.PlayMode
                 yield break;
             }
 
+            var infoContent = root.Q<VisualElement>("info-content");
+            Assert.That(infoContent, Is.Not.Null, "info-content element missing");
+            infoContent.style.display = DisplayStyle.Flex;
+            yield return null;
+            yield return null;
+
             VisualElement infoPanelRoot = root.Q<VisualElement>("info-panel-root");
             Assert.IsNotNull(infoPanelRoot, "info-panel-root not found in the visual tree.");
 
