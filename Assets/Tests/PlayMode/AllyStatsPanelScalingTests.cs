@@ -52,7 +52,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             VisualElement root = uiDocument.rootVisualElement;
             if (root == null)
             {
-                Assert.Inconclusive("rootVisualElement is null — UIDocument failed to initialize in the test environment.");
+                Assert.Inconclusive("rootVisualElement is null - UIDocument failed to initialize in the test environment.");
                 yield break;
             }
 
@@ -97,28 +97,28 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             VisualElement statsContent = root.Q<VisualElement>("info-tab-content-stats");
             Assert.IsNotNull(statsContent, "info-tab-content-stats not found.");
 
-            var statRow = new VisualElement { name = "test-stat-row-header" };
-            statRow.AddToClassList("stat-row-header");
-            statsContent.Add(statRow);
+            var testStatRowHeader = new VisualElement { name = "test-stat-row-header" };
+            testStatRowHeader.AddToClassList("stat-row-header");
+            statsContent.Add(testStatRowHeader);
 
-            var breakdownContainer = new VisualElement { name = "test-stat-breakdown" };
-            breakdownContainer.AddToClassList("stat-breakdown");
-            statsContent.Add(breakdownContainer);
+            var testStatBreakdownContainer = new VisualElement { name = "test-stat-breakdown" };
+            testStatBreakdownContainer.AddToClassList("stat-breakdown");
+            statsContent.Add(testStatBreakdownContainer);
 
-            var breakdownText = new Label("breakdown sample") { name = "test-breakdown-text" };
-            breakdownText.AddToClassList("breakdown-text");
-            breakdownContainer.Add(breakdownText);
+            var testBreakdownLabel = new Label("breakdown sample") { name = "test-breakdown-text" };
+            testBreakdownLabel.AddToClassList("breakdown-text");
+            testStatBreakdownContainer.Add(testBreakdownLabel);
 
             yield return null;
             yield return null;
 
-            Assert.That(statRow.resolvedStyle.height, Is.EqualTo(StatRowHeaderHeight).Within(FloatTolerance),
+            Assert.That(testStatRowHeader.resolvedStyle.height, Is.EqualTo(StatRowHeaderHeight).Within(FloatTolerance),
                 $".stat-row-header height must resolve to {StatRowHeaderHeight}px");
 
-            Assert.That(breakdownContainer.resolvedStyle.paddingLeft, Is.EqualTo(StatBreakdownPaddingLeft).Within(FloatTolerance),
+            Assert.That(testStatBreakdownContainer.resolvedStyle.paddingLeft, Is.EqualTo(StatBreakdownPaddingLeft).Within(FloatTolerance),
                 $".stat-breakdown padding-left must resolve to {StatBreakdownPaddingLeft}px");
 
-            Assert.That(breakdownText.resolvedStyle.fontSize, Is.EqualTo(BreakdownFontSize).Within(FloatTolerance),
+            Assert.That(testBreakdownLabel.resolvedStyle.fontSize, Is.EqualTo(BreakdownFontSize).Within(FloatTolerance),
                 $".breakdown-text font-size must resolve to {BreakdownFontSize}px (var --info-breakdown-font-size)");
 
             VisualElement infoArea = root.Q<VisualElement>("info-area");
