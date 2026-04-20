@@ -27,8 +27,6 @@ namespace RogueliteAutoBattler.Tests.PlayMode
         private const float FloatTolerance = 1.5f;
         private const float AreaTolerancePixels = 1f;
 
-        private UIDocument _uiDocument;
-
         [UnityTest]
         public IEnumerator ResolvedStyles_MatchMobileScaledValues()
         {
@@ -43,15 +41,15 @@ namespace RogueliteAutoBattler.Tests.PlayMode
 
             var documentGo = Track(new GameObject("TestUIDocument"));
             documentGo.SetActive(false);
-            _uiDocument = documentGo.AddComponent<UIDocument>();
-            _uiDocument.panelSettings = panelSettings;
-            _uiDocument.visualTreeAsset = layoutAsset;
+            UIDocument uiDocument = documentGo.AddComponent<UIDocument>();
+            uiDocument.panelSettings = panelSettings;
+            uiDocument.visualTreeAsset = layoutAsset;
             documentGo.SetActive(true);
 
             yield return null;
             yield return null;
 
-            VisualElement root = _uiDocument.rootVisualElement;
+            VisualElement root = uiDocument.rootVisualElement;
             if (root == null)
             {
                 Assert.Inconclusive("rootVisualElement is null — UIDocument failed to initialize in the test environment.");
