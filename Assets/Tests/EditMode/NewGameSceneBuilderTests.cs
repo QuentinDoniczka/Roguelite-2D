@@ -1,12 +1,12 @@
 using NUnit.Framework;
 using RogueliteAutoBattler.Core;
+using RogueliteAutoBattler.Economy;
 using RogueliteAutoBattler.UI.Toolkit;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem.UI;
-using UnityEngine.SceneManagement;
 using UnityEngine.UIElements;
 
 namespace RogueliteAutoBattler.Tests.EditMode
@@ -148,6 +148,44 @@ namespace RogueliteAutoBattler.Tests.EditMode
 
             Assert.DoesNotThrow(() => EditorApplication.ExecuteMenuItem(SetupMenuItemPath));
             Assert.IsNotNull(GameObject.Find(GameBootstrap.CombatWorldName), "CombatWorld must still exist after re-running setup.");
+        }
+
+        [Test]
+        public void SetupNewGameScene_CreatesGoldWallet()
+        {
+            EditorApplication.ExecuteMenuItem(SetupMenuItemPath);
+
+            GoldWallet[] goldWallets = Object.FindObjectsByType<GoldWallet>(FindObjectsSortMode.None);
+            Assert.AreEqual(1, goldWallets.Length,
+                "Exactly one GoldWallet must exist in the scene after setup (#215).");
+        }
+
+        [Test]
+        public void SetupNewGameScene_TwiceInSameScene_DoesNotDuplicateGoldWallet()
+        {
+            EditorApplication.ExecuteMenuItem(SetupMenuItemPath);
+            EditorApplication.ExecuteMenuItem(SetupMenuItemPath);
+
+            GoldWallet[] goldWallets = Object.FindObjectsByType<GoldWallet>(FindObjectsSortMode.None);
+            Assert.AreEqual(1, goldWallets.Length,
+                "Running setup twice must not duplicate the GoldWallet (#215 idempotency).");
+        }
+
+        [Test]
+        public void SetupNewGameScene_CombatHudController_HasGoldWalletAssigned()
+        {
+            EditorApplication.ExecuteMenuItem(SetupMenuItemPath);
+
+            CombatHudController combatHud = Object.FindFirstObjectByType<CombatHudController>(FindObjectsInactive.Include);
+            Assert.IsNotNull(combatHud, "CombatHudController must exist in the scene after setup.");
+
+            var serializedHud = new SerializedObject(combatHud);
+            SerializedProperty goldWalletProperty = serializedHud.FindProperty("_goldWallet");
+            Assert.IsNotNull(goldWalletProperty, "CombatHudController must expose a serialized _goldWallet field.");
+            Assert.IsNotNull(goldWalletProperty.objectReferenceValue,
+                "CombatHudController._goldWallet must be wired after setup (#215).");
+            Assert.IsInstanceOf<GoldWallet>(goldWalletProperty.objectReferenceValue,
+                "CombatHudController._goldWallet must reference a GoldWallet component.");
         }
 
         private static UIDocument FindNavigationHostUIDocument()

@@ -8,8 +8,10 @@ namespace RogueliteAutoBattler.UI.Toolkit
 {
     public class GoldBadgeController
     {
+        private const string LogTag = "[GoldBadgeController]";
         private const float PeakScale = 1.15f;
         private const float HalfDuration = 0.075f;
+        private const float RestScale = 1f;
 
         private readonly VisualElement _badgeRoot;
         private readonly Label _goldLabel;
@@ -27,21 +29,14 @@ namespace RogueliteAutoBattler.UI.Toolkit
             _coroutineHost = coroutineHost;
         }
 
-        public void Initialize()
+        public void Initialize(GoldWallet wallet)
         {
-            var wallets = UnityEngine.Object.FindObjectsByType<GoldWallet>(FindObjectsSortMode.None);
-            if (wallets.Length == 0)
+            if (wallet == null)
             {
+                Debug.LogWarning($"{LogTag} Initialize called with null wallet; badge will not update.");
                 return;
             }
 
-            _wallet = wallets[0];
-            _wallet.OnGoldChanged += OnGoldChanged;
-            _goldLabel.text = GoldFormatter.Format(_wallet.Gold);
-        }
-
-        internal void InitializeForTest(GoldWallet wallet)
-        {
             _wallet = wallet;
             _wallet.OnGoldChanged += OnGoldChanged;
             _goldLabel.text = GoldFormatter.Format(_wallet.Gold);
@@ -78,10 +73,9 @@ namespace RogueliteAutoBattler.UI.Toolkit
             while (elapsed < HalfDuration)
             {
                 elapsed += Time.deltaTime;
-                float t = Mathf.Clamp01(elapsed / HalfDuration);
-                float easeOut = 1f - (1f - t) * (1f - t);
-                float scale = Mathf.Lerp(1f, PeakScale, easeOut);
-                _badgeRoot.style.scale = new Scale(new Vector3(scale, scale, 1f));
+                float normalizedTime = Mathf.Clamp01(elapsed / HalfDuration);
+                float easeOut = 1f - (1f - normalizedTime) * (1f - normalizedTime);
+                ApplyUniformScale(Mathf.Lerp(RestScale, PeakScale, easeOut));
                 yield return null;
             }
 
@@ -90,16 +84,20 @@ namespace RogueliteAutoBattler.UI.Toolkit
             while (elapsed < HalfDuration)
             {
                 elapsed += Time.deltaTime;
-                float t = Mathf.Clamp01(elapsed / HalfDuration);
-                float easeIn = t * t;
-                float scale = Mathf.Lerp(PeakScale, 1f, easeIn);
-                _badgeRoot.style.scale = new Scale(new Vector3(scale, scale, 1f));
+                float normalizedTime = Mathf.Clamp01(elapsed / HalfDuration);
+                float easeIn = normalizedTime * normalizedTime;
+                ApplyUniformScale(Mathf.Lerp(PeakScale, RestScale, easeIn));
                 yield return null;
             }
 
-            _badgeRoot.style.scale = new Scale(new Vector3(1f, 1f, 1f));
+            ApplyUniformScale(RestScale);
             _punchCoroutine = null;
             onComplete?.Invoke();
+        }
+
+        private void ApplyUniformScale(float scale)
+        {
+            _badgeRoot.style.scale = new Scale(new Vector3(scale, scale, 1f));
         }
     }
 }

@@ -10,6 +10,7 @@ namespace RogueliteAutoBattler.Editor
 {
     internal static class SkillTreeBuilder
     {
+        private const string LogTag = "[SkillTreeBuilder]";
         internal const string CircleSpritePath = "Assets/Sprites/UI/circle_white.png";
 
         private static readonly Color32 PanelBg         = new Color32(30,  30,  58,  255);
@@ -106,7 +107,7 @@ namespace RogueliteAutoBattler.Editor
             }
             else
             {
-                Debug.LogError("[SkillTreeBuilder] SkillTreeScreen component not found on skillTreePanel.");
+                Debug.LogError($"{LogTag} SkillTreeScreen component not found on skillTreePanel.");
             }
         }
 
@@ -173,8 +174,8 @@ namespace RogueliteAutoBattler.Editor
             detailPanelSO.ApplyModifiedProperties();
 
             SkillTreeProgress progress = EnsureSkillTreeProgressAsset();
-            GoldWallet goldWallet = FindOrCreateGoldWallet();
-            SkillPointWallet skillPointWallet = FindOrCreateSkillPointWallet();
+            GoldWallet goldWallet = WalletsBuilder.FindOrCreateGoldWallet();
+            SkillPointWallet skillPointWallet = WalletsBuilder.FindOrCreateSkillPointWallet();
 
             SkillTreeScreen screen = skillTreePanel.GetComponent<SkillTreeScreen>();
             if (screen != null)
@@ -193,7 +194,7 @@ namespace RogueliteAutoBattler.Editor
             }
             else
             {
-                Debug.LogError("[SkillTreeBuilder] SkillTreeScreen component not found — cannot wire detail panel references.");
+                Debug.LogError($"{LogTag} SkillTreeScreen component not found — cannot wire detail panel references.");
             }
         }
 
@@ -489,43 +490,28 @@ namespace RogueliteAutoBattler.Editor
             return AssetDatabase.LoadAssetAtPath<SkillTreeProgress>(SkillTreeProgress.DefaultAssetPath);
         }
 
-        private static GoldWallet FindOrCreateGoldWallet()
-        {
-            GoldWallet found = Object.FindFirstObjectByType<GoldWallet>(FindObjectsInactive.Include);
-            if (found != null) return found;
-
-            var walletGo = new GameObject("GoldWallet");
-            return walletGo.AddComponent<GoldWallet>();
-        }
-
-        private static SkillPointWallet FindOrCreateSkillPointWallet()
-        {
-            SkillPointWallet found = Object.FindFirstObjectByType<SkillPointWallet>(FindObjectsInactive.Include);
-            if (found != null) return found;
-
-            var walletGo = new GameObject("SkillPointWallet");
-            return walletGo.AddComponent<SkillPointWallet>();
-        }
-
         internal static Sprite EnsureCircleSprite()
         {
             var existing = AssetDatabase.LoadAssetAtPath<Sprite>(CircleSpritePath);
             if (existing != null) return existing;
 
-            const int size = 128;
-            const float center = size * 0.5f;
-            const float radius = center - 1f;
+            const int textureSizePixels = 128;
+            const float textureCenterPixels = textureSizePixels * 0.5f;
+            const float circleRadiusPixels = textureCenterPixels - 1f;
+            const float pixelCenterOffset = 0.5f;
+            const float antiAliasEdgeOffset = 0.5f;
 
-            var tex = new Texture2D(size, size, TextureFormat.RGBA32, false);
-            var pixels = new Color[size * size];
+            var tex = new Texture2D(textureSizePixels, textureSizePixels, TextureFormat.RGBA32, false);
+            var pixels = new Color[textureSizePixels * textureSizePixels];
+            var circleCenter = new Vector2(textureCenterPixels, textureCenterPixels);
 
-            for (int y = 0; y < size; y++)
+            for (int y = 0; y < textureSizePixels; y++)
             {
-                for (int x = 0; x < size; x++)
+                for (int x = 0; x < textureSizePixels; x++)
                 {
-                    float dist = Vector2.Distance(new Vector2(x + 0.5f, y + 0.5f), new Vector2(center, center));
-                    float alpha = Mathf.Clamp01(radius - dist + 0.5f);
-                    pixels[y * size + x] = new Color(1f, 1f, 1f, alpha);
+                    float distanceFromCenter = Vector2.Distance(new Vector2(x + pixelCenterOffset, y + pixelCenterOffset), circleCenter);
+                    float alpha = Mathf.Clamp01(circleRadiusPixels - distanceFromCenter + antiAliasEdgeOffset);
+                    pixels[y * textureSizePixels + x] = new Color(1f, 1f, 1f, alpha);
                 }
             }
 
