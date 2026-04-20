@@ -45,10 +45,10 @@
     --info-bg: rgb(20, 20, 40);
     --info-tab-active-bg: var(--color-tab-active);
     --info-tab-inactive-bg: rgba(50, 50, 80, 0.8);
-    --info-font-size: 16px;
-    --info-name-font-size: 20px;
-    --info-nav-btn-size: 44px;
-    --info-breakdown-font-size: 13px;
+    --info-font-size: 42px;
+    --info-name-font-size: 34px;
+    --info-nav-btn-size: 72px;
+    --info-breakdown-font-size: 24px;
 }
 
 .root {
@@ -266,7 +266,7 @@
 .info-area {
     flex-grow: 0;
     flex-shrink: 0;
-    height: 35%;
+    height: 42%;
     background-color: var(--info-bg);
     flex-direction: column;
     overflow: hidden;
@@ -285,14 +285,14 @@
 .info-header {
     flex-direction: row;
     align-items: center;
-    height: 12%;
+    height: 14%;
     padding-left: 8px;
     padding-right: 8px;
 }
 
 .info-icon {
-    width: 36px;
-    height: 36px;
+    width: 64px;
+    height: 64px;
     border-radius: 50%;
     background-color: rgba(128, 128, 128, 0.6);
 }
@@ -315,7 +315,7 @@
 .info-nav-btn {
     width: var(--info-nav-btn-size);
     height: var(--info-nav-btn-size);
-    font-size: 24px;
+    font-size: 40px;
     -unity-text-align: middle-center;
     background-color: rgba(0, 0, 0, 0);
     color: white;
@@ -326,7 +326,7 @@
 
 .info-tab-bar {
     flex-direction: row;
-    height: 9%;
+    height: 11%;
 }
 
 .info-tab {
@@ -371,7 +371,7 @@
     flex-direction: row;
     justify-content: space-between;
     align-items: center;
-    height: 40px;
+    height: 100px;
     padding-left: 12px;
     padding-right: 12px;
 }
@@ -388,7 +388,7 @@
 }
 
 .stat-breakdown {
-    padding-left: 20px;
+    padding-left: 32px;
     padding-right: 12px;
     padding-bottom: 4px;
 }
