@@ -14,7 +14,7 @@ namespace RogueliteAutoBattler.Editor
         private static void SetupNewGameScene()
         {
             GameObject existingWorld = GameObject.Find(GameBootstrap.CombatWorldName);
-            if (existingWorld != null)
+            if (existingWorld != null && !Application.isBatchMode)
             {
                 if (!EditorUtility.DisplayDialog("CombatWorld Exists", "Replace existing CombatWorld?", "Replace", "Cancel"))
                     return;
