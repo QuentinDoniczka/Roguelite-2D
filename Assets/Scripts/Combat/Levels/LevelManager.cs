@@ -71,6 +71,7 @@ namespace RogueliteAutoBattler.Combat.Levels
         private WorldConveyor _conveyor;
         private GoldWallet _goldWallet;
         private CombatSpawnManager _spawnManager;
+        private TeamRoster _teamRoster;
         private WaitForSeconds _waitDefeatReset;
 
         private EnemySpawner _enemySpawner;
@@ -125,6 +126,7 @@ namespace RogueliteAutoBattler.Combat.Levels
             }
             _conveyor = GetComponent<WorldConveyor>();
             _spawnManager = GetComponent<CombatSpawnManager>();
+            _teamRoster = GetComponent<TeamRoster>();
             _waitDefeatReset = new WaitForSeconds(_defeatResetDelay);
             var wallets = FindObjectsByType<GoldWallet>(FindObjectsSortMode.None);
             if (wallets.Length > 0) _goldWallet = wallets[0];
@@ -154,12 +156,11 @@ namespace RogueliteAutoBattler.Combat.Levels
             _enemySpawner.OnEnemyDied += OnEnemyDied;
 
             _defeatHandler = new DefeatHandler(
-                _teamContainer,
+                _teamRoster,
                 _enemiesContainer,
                 _enemiesHomeAnchor,
                 _waitDefeatReset,
                 _conveyor,
-                _spawnManager,
                 () => CharacterScale,
                 _allyTargetManager);
             _defeatHandler.OnAllAlliesDead += CheckLevelLost;
@@ -217,6 +218,8 @@ namespace RogueliteAutoBattler.Combat.Levels
 #endif
                 return;
             }
+
+            _teamRoster?.ReviveAll();
 
             _currentLevelIndex = levelIndex;
             _enemySpawner.ResetAliveEnemyCount();
@@ -416,7 +419,7 @@ namespace RogueliteAutoBattler.Combat.Levels
         internal int AliveAllyCount => _defeatHandler != null ? _defeatHandler.AliveAllyCount : 0;
         internal bool LevelInProgress => _levelInProgress;
 
-        internal void InitializeForTest(Transform teamContainer, Transform enemiesContainer, Transform teamHomeAnchor = null, Transform enemiesHomeAnchor = null, LevelDatabase levelDatabase = null)
+        internal void InitializeForTest(Transform teamContainer, Transform enemiesContainer, Transform teamHomeAnchor = null, Transform enemiesHomeAnchor = null, LevelDatabase levelDatabase = null, TeamRoster teamRoster = null)
         {
             _teamContainer = teamContainer;
             _enemiesContainer = enemiesContainer;
@@ -425,6 +428,7 @@ namespace RogueliteAutoBattler.Combat.Levels
             if (levelDatabase != null) _levelDatabase = levelDatabase;
             _levelInProgress = true;
             _waitDefeatReset = new WaitForSeconds(_defeatResetDelay);
+            _teamRoster = teamRoster != null ? teamRoster : GetComponent<TeamRoster>();
 
             CreateHelpers();
         }
@@ -436,12 +440,11 @@ namespace RogueliteAutoBattler.Combat.Levels
             if (_defeatHandler != null)
             {
                 _defeatHandler = new DefeatHandler(
-                    _teamContainer,
+                    _teamRoster,
                     _enemiesContainer,
                     _enemiesHomeAnchor,
                     _waitDefeatReset,
                     _conveyor,
-                    _spawnManager,
                     () => CharacterScale,
                     _allyTargetManager);
                 _defeatHandler.OnAllAlliesDead += CheckLevelLost;

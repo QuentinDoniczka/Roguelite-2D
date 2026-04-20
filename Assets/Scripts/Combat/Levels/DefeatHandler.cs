@@ -8,12 +8,11 @@ namespace RogueliteAutoBattler.Combat.Levels
 {
     internal class DefeatHandler
     {
-        private readonly Transform _teamContainer;
+        private readonly TeamRoster _teamRoster;
         private readonly Transform _enemiesContainer;
         private readonly Transform _enemiesHomeAnchor;
         private readonly WaitForSeconds _waitDefeatReset;
         private readonly WorldConveyor _conveyor;
-        private readonly CombatSpawnManager _spawnManager;
         private readonly Func<float> _characterScaleProvider;
         private readonly AllyTargetManager _allyTargetManager;
 
@@ -22,21 +21,19 @@ namespace RogueliteAutoBattler.Combat.Levels
         internal int AliveAllyCount { get; private set; }
 
         internal DefeatHandler(
-            Transform teamContainer,
+            TeamRoster teamRoster,
             Transform enemiesContainer,
             Transform enemiesHomeAnchor,
             WaitForSeconds waitDefeatReset,
             WorldConveyor conveyor,
-            CombatSpawnManager spawnManager,
             Func<float> characterScaleProvider,
             AllyTargetManager allyTargetManager)
         {
-            _teamContainer = teamContainer;
+            _teamRoster = teamRoster;
             _enemiesContainer = enemiesContainer;
             _enemiesHomeAnchor = enemiesHomeAnchor;
             _waitDefeatReset = waitDefeatReset;
             _conveyor = conveyor;
-            _spawnManager = spawnManager;
             _characterScaleProvider = characterScaleProvider;
             _allyTargetManager = allyTargetManager;
         }
@@ -45,17 +42,16 @@ namespace RogueliteAutoBattler.Combat.Levels
         {
             AliveAllyCount = 0;
 
-            if (_teamContainer == null) return;
+            if (_teamRoster == null) return;
 
-            for (int i = 0; i < _teamContainer.childCount; i++)
+            _teamRoster.OnMemberDied -= OnAllyDied;
+            _teamRoster.OnMemberDied += OnAllyDied;
+
+            var members = _teamRoster.Members;
+            for (int i = 0; i < members.Count; i++)
             {
-                var ally = _teamContainer.GetChild(i);
-                if (!ally.TryGetComponent<CombatStats>(out var stats) || stats.IsDead)
-                    continue;
-
-                stats.OnDied -= OnAllyDied;
-                stats.OnDied += OnAllyDied;
-                AliveAllyCount++;
+                if (!members[i].IsDead)
+                    AliveAllyCount++;
             }
         }
 
@@ -85,7 +81,7 @@ namespace RogueliteAutoBattler.Combat.Levels
             resetEnemySpawnerCount(0);
             resetPendingWaveCount(0);
 
-            _spawnManager.RespawnAllies();
+            _teamRoster?.ReviveAll();
 
             yield return null;
 
@@ -93,10 +89,11 @@ namespace RogueliteAutoBattler.Combat.Levels
             startLevel(0);
         }
 
-        private void OnAllyDied()
+        private void OnAllyDied(TeamMember member)
         {
             AliveAllyCount--;
-            OnAllAlliesDead?.Invoke();
+            if (AliveAllyCount <= 0)
+                OnAllAlliesDead?.Invoke();
         }
     }
 }
