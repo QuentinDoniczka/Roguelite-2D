@@ -12,6 +12,8 @@ namespace RogueliteAutoBattler.Combat.Core
         public IReadOnlyList<TeamMember> Members => _members;
 
         public event Action<TeamMember> OnMemberSpawned;
+        public event Action<TeamMember> OnMemberDied;
+        public event Action<TeamMember> OnMemberRevived;
 
         public void Spawn(TeamDatabase database, Transform teamContainer, Transform homeAnchor, float characterScale)
         {
@@ -51,9 +53,48 @@ namespace RogueliteAutoBattler.Combat.Core
                 member.GameObject = spawnedGo;
                 member.Stats = components.Stats;
 
+                SubscribeToMemberDeath(member);
+
                 _members.Add(member);
                 OnMemberSpawned?.Invoke(member);
             }
+        }
+
+        public void ReviveAll()
+        {
+            for (int i = 0; i < _members.Count; i++)
+            {
+                TeamMember member = _members[i];
+                if (member.IsDead)
+                    Revive(member);
+            }
+        }
+
+        public void Revive(TeamMember member)
+        {
+            if (member == null || !_members.Contains(member))
+                return;
+
+            if (member.GameObject == null)
+            {
+#if UNITY_EDITOR
+                Debug.LogError($"[{nameof(TeamRoster)}] Cannot revive member {member.Index}: GameObject was destroyed.");
+#endif
+                return;
+            }
+
+            if (!member.IsDead)
+                return;
+
+            AllySpawnData spawnData = member.SpawnData;
+            member.Stats.InitializeDirect(spawnData.MaxHp, spawnData.Atk, spawnData.AttackSpeed, spawnData.RegenHpPerSecond);
+
+            if (member.GameObject.TryGetComponent<CombatController>(out var controller))
+                controller.ResetFromDeath();
+
+            member.GameObject.SetActive(true);
+
+            OnMemberRevived?.Invoke(member);
         }
 
         internal void InitializeForTest(List<TeamMember> members)
@@ -63,6 +104,18 @@ namespace RogueliteAutoBattler.Combat.Core
                 return;
 
             _members.AddRange(members);
+
+            for (int i = 0; i < _members.Count; i++)
+                SubscribeToMemberDeath(_members[i]);
+        }
+
+        private void SubscribeToMemberDeath(TeamMember member)
+        {
+            if (member == null || member.Stats == null)
+                return;
+
+            TeamMember capturedMember = member;
+            member.Stats.OnDied += () => OnMemberDied?.Invoke(capturedMember);
         }
     }
 }

@@ -125,5 +125,176 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             Assert.AreEqual(0, _roster.Members[0].Index);
             Assert.AreEqual(1, _roster.Members[1].Index);
         }
+
+        private const float FadeOutWaitSeconds = 0.35f;
+
+        [UnityTest]
+        public IEnumerator MemberDies_FiresOnMemberDied()
+        {
+            const int allyCount = 1;
+            var teamDb = TestCharacterFactory.CreateTeamDatabase(allyCount, _allyPrefab);
+
+            ExpectAnimatorWarnings(allyCount);
+            _roster.Spawn(teamDb, _teamContainer, _teamHomeAnchor, TestCharacterScale);
+
+            yield return null;
+
+            TeamMember member = _roster.Members[0];
+            TeamMember receivedMember = null;
+            int callbackCount = 0;
+            _roster.OnMemberDied += m =>
+            {
+                receivedMember = m;
+                callbackCount++;
+            };
+
+            member.Stats.TakeDamage(99999);
+
+            Assert.AreEqual(1, callbackCount);
+            Assert.AreSame(member, receivedMember);
+        }
+
+        [UnityTest]
+        public IEnumerator ReviveAll_ReactivatesAllDeadMembers()
+        {
+            const int allyCount = 3;
+            var teamDb = TestCharacterFactory.CreateTeamDatabase(allyCount, _allyPrefab);
+
+            ExpectAnimatorWarnings(allyCount);
+            _roster.Spawn(teamDb, _teamContainer, _teamHomeAnchor, TestCharacterScale);
+
+            yield return null;
+
+            foreach (var member in _roster.Members)
+                member.Stats.TakeDamage(99999);
+
+            yield return new WaitForSeconds(FadeOutWaitSeconds);
+
+            _roster.ReviveAll();
+
+            foreach (var member in _roster.Members)
+            {
+                Assert.IsTrue(member.GameObject.activeSelf, $"Member {member.Index} GameObject should be active after revive");
+                Assert.IsFalse(member.IsDead, $"Member {member.Index} should no longer be dead after revive");
+            }
+        }
+
+        [UnityTest]
+        public IEnumerator ReviveAll_RestoresFullHp()
+        {
+            const int allyCount = 3;
+            var teamDb = TestCharacterFactory.CreateTeamDatabase(allyCount, _allyPrefab);
+
+            ExpectAnimatorWarnings(allyCount);
+            _roster.Spawn(teamDb, _teamContainer, _teamHomeAnchor, TestCharacterScale);
+
+            yield return null;
+
+            foreach (var member in _roster.Members)
+                member.Stats.TakeDamage(99999);
+
+            yield return new WaitForSeconds(FadeOutWaitSeconds);
+
+            _roster.ReviveAll();
+
+            foreach (var member in _roster.Members)
+            {
+                Assert.AreEqual(member.Stats.MaxHp, member.Stats.CurrentHp,
+                    $"Member {member.Index} should have full HP after revive");
+            }
+        }
+
+        [UnityTest]
+        public IEnumerator ReviveAll_FiresOnMemberRevivedPerDeadMember()
+        {
+            const int allyCount = 3;
+            var teamDb = TestCharacterFactory.CreateTeamDatabase(allyCount, _allyPrefab);
+
+            ExpectAnimatorWarnings(allyCount);
+            _roster.Spawn(teamDb, _teamContainer, _teamHomeAnchor, TestCharacterScale);
+
+            yield return null;
+
+            _roster.Members[0].Stats.TakeDamage(99999);
+            _roster.Members[1].Stats.TakeDamage(99999);
+
+            yield return new WaitForSeconds(FadeOutWaitSeconds);
+
+            int revivedCount = 0;
+            _roster.OnMemberRevived += _ => revivedCount++;
+
+            _roster.ReviveAll();
+
+            Assert.AreEqual(2, revivedCount);
+        }
+
+        [UnityTest]
+        public IEnumerator ReviveAll_DoesNotDuplicateMembers()
+        {
+            const int allyCount = 3;
+            var teamDb = TestCharacterFactory.CreateTeamDatabase(allyCount, _allyPrefab);
+
+            ExpectAnimatorWarnings(allyCount);
+            _roster.Spawn(teamDb, _teamContainer, _teamHomeAnchor, TestCharacterScale);
+
+            yield return null;
+
+            int countBefore = _roster.Members.Count;
+
+            foreach (var member in _roster.Members)
+                member.Stats.TakeDamage(99999);
+
+            yield return new WaitForSeconds(FadeOutWaitSeconds);
+
+            _roster.ReviveAll();
+
+            Assert.AreEqual(countBefore, _roster.Members.Count);
+        }
+
+        [UnityTest]
+        public IEnumerator Revive_OnLiveMember_IsNoOp()
+        {
+            const int allyCount = 2;
+            var teamDb = TestCharacterFactory.CreateTeamDatabase(allyCount, _allyPrefab);
+
+            ExpectAnimatorWarnings(allyCount);
+            _roster.Spawn(teamDb, _teamContainer, _teamHomeAnchor, TestCharacterScale);
+
+            yield return null;
+
+            TeamMember liveMember = _roster.Members[0];
+            int hpBefore = liveMember.Stats.CurrentHp;
+
+            int revivedCount = 0;
+            _roster.OnMemberRevived += _ => revivedCount++;
+
+            _roster.Revive(liveMember);
+
+            Assert.AreEqual(hpBefore, liveMember.Stats.CurrentHp);
+            Assert.AreEqual(0, revivedCount);
+        }
+
+        [UnityTest]
+        public IEnumerator Revive_ReusesSameGameObjectInstance()
+        {
+            const int allyCount = 1;
+            var teamDb = TestCharacterFactory.CreateTeamDatabase(allyCount, _allyPrefab);
+
+            ExpectAnimatorWarnings(allyCount);
+            _roster.Spawn(teamDb, _teamContainer, _teamHomeAnchor, TestCharacterScale);
+
+            yield return null;
+
+            TeamMember member = _roster.Members[0];
+            GameObject originalGo = member.GameObject;
+
+            member.Stats.TakeDamage(99999);
+
+            yield return new WaitForSeconds(FadeOutWaitSeconds);
+
+            _roster.Revive(member);
+
+            Assert.AreSame(originalGo, member.GameObject);
+        }
     }
 }
