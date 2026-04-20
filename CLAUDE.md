@@ -136,6 +136,7 @@ Assets/
         NewGameSceneBuilder.cs
         RoundedRectSpriteGenerator.cs
         SkillTreeBuilder.cs
+        WalletsBuilder.cs
       Windows/
         GameDesignerWindow.cs
         LevelDesignerTab.cs
@@ -220,6 +221,7 @@ Assets/
       ToolkitIScreenTests.cs
       ToolkitNavigationManagerTests.cs
       ToolkitScreenStackTests.cs
+      WalletsBuilderTests.cs
     PlayMode/
       Tests.PlayMode.asmdef
       TestUtils/
@@ -235,6 +237,7 @@ Assets/
       CoinFlyServiceTests.cs
       CoinFlyTests.cs
       CombatControllerTests.cs
+      CombatHudControllerTests.cs
       CombatSetupHelperTests.cs
       CombatSpawnManagerTests.cs
       CombatStatsRegenTests.cs

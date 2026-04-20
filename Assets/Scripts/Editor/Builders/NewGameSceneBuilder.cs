@@ -1,16 +1,26 @@
 using RogueliteAutoBattler.Core;
+using RogueliteAutoBattler.Economy;
 using RogueliteAutoBattler.UI.Toolkit;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem.UI;
+using UnityEngine.SceneManagement;
 
 namespace RogueliteAutoBattler.Editor
 {
     internal static class NewGameSceneBuilder
     {
-        [MenuItem("Roguelite/Setup New Game Scene")]
+        private const string SetupLogTag = "[SetupNewGameScene]";
+        private const string SaveLogTag = "[SaveSceneAfterSetup]";
+        private const string SetupMenuItemPath = "Roguelite/Setup New Game Scene";
+        private const string UndoGroupName = "Setup New Game Scene";
+        private const string EventSystemGameObjectName = "EventSystem";
+        private const string NavigationHostUndoLabel = "NavigationHost";
+        private const string DefaultScenePath = "Assets/Scenes/NewGameScene.unity";
+
+        [MenuItem(SetupMenuItemPath)]
         private static void SetupNewGameScene()
         {
             GameObject existingWorld = GameObject.Find(GameBootstrap.CombatWorldName);
@@ -22,7 +32,7 @@ namespace RogueliteAutoBattler.Editor
 
             Undo.IncrementCurrentGroup();
             int undoGroup = Undo.GetCurrentGroup();
-            Undo.SetCurrentGroupName("Setup New Game Scene");
+            Undo.SetCurrentGroupName(UndoGroupName);
 
             if (existingWorld != null)
                 Undo.DestroyObjectImmediate(existingWorld);
@@ -38,19 +48,31 @@ namespace RogueliteAutoBattler.Editor
             CombatWorldBuilder.ConfigureMainCamera();
             GameObject combatWorld = CombatWorldBuilder.CreateCombatWorld();
 
-            var esGo = new GameObject("EventSystem");
+            var esGo = new GameObject(EventSystemGameObjectName);
             esGo.AddComponent<EventSystem>();
             esGo.AddComponent<InputSystemUIInputModule>();
-            Undo.RegisterCreatedObjectUndo(esGo, "EventSystem");
+            Undo.RegisterCreatedObjectUndo(esGo, EventSystemGameObjectName);
 
             GameObject navHostGo = NavigationHostBuilder.CreateNavigationHost();
-            Undo.RegisterCreatedObjectUndo(navHostGo, "NavigationHost");
-            CombatHudBuilder.SetupToolkitCombatHud(navHostGo);
+            Undo.RegisterCreatedObjectUndo(navHostGo, NavigationHostUndoLabel);
+            GoldWallet goldWallet = WalletsBuilder.FindOrCreateGoldWallet();
+            CombatHudBuilder.SetupToolkitCombatHud(navHostGo, goldWallet);
 
             Undo.CollapseUndoOperations(undoGroup);
             EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
             Selection.activeGameObject = combatWorld;
-            Debug.Log("[SetupNewGameScene] Done. CombatWorld + EventSystem + NavigationHost created.");
+            Debug.Log($"{SetupLogTag} Done. CombatWorld + EventSystem + NavigationHost created.");
+        }
+
+        public static void SaveSceneAfterSetup()
+        {
+            SetupNewGameScene();
+            Scene activeScene = EditorSceneManager.GetActiveScene();
+            string scenePath = activeScene.path;
+            if (string.IsNullOrEmpty(scenePath))
+                scenePath = DefaultScenePath;
+            EditorSceneManager.SaveScene(activeScene, scenePath);
+            Debug.Log($"{SaveLogTag} Scene saved to: {scenePath}");
         }
     }
 }
