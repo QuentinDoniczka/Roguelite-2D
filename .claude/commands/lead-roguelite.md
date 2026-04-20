@@ -158,6 +158,12 @@ Delegue a `test-play-unity` pour ecrire un test Play Mode qui valide le comporte
 
 Delegue a `test-play-unity` pour lancer le test via Unity CLI batch mode.
 
+A ce stade le code de prod est volontairement **non committe** (on commite seulement apres que les tests passent). `test-play-unity` supporte deux modes :
+- **Mode A (worktree)** : utilise si la branche est deja poussee sur origin et sync-able.
+- **Mode B (main workspace)** : utilise si le code est non committe / non pousse — l'agent auto-detecte via `git rev-parse HEAD` vs `origin/<branch>` et `git status --porcelain`, sans modifier l'etat git.
+
+Tu peux passer un hint explicite ("utilise Mode B, le code est non committe sur la branche volontairement") pour eviter un aller-retour inutile. Prerequis Mode B : l'Unity Editor doit etre ferme sur le workspace principal (sinon batch-mode echoue sur le lock Library/). Si l'editor est ouvert, demande a l'utilisateur de le fermer ou bascule en Mode A apres un push.
+
 - **Si le test passe** → la sous-tache est validee, passer a la suivante
 - **Si le test echoue** → debugger et corriger le code, JAMAIS le test. Si l'agent pense que le test est obsolete/faux, il doit expliquer pourquoi et attendre la validation utilisateur avant de modifier le test. Relancer jusqu'a ce que ca passe.
 

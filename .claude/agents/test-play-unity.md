@@ -19,7 +19,7 @@ color: cyan
 >
 > **What you ARE allowed to do:**
 > - Read, Write, Edit test files (under `Assets/Tests/EditMode/` and `Assets/Tests/PlayMode/`) and their `.asmdef`.
-> - Use **Bash ONLY for**: (a) the Unity test CLI command shown below, (b) `git fetch` / `git checkout <branch>` / `git reset --hard origin/<branch>` **ON THE WORKTREE PATH ONLY** (`C:/Users/donic/RiderProjects/Roguelite-2D-tests`) to sync it for batch tests, (c) reading XML/log results.
+> - Use **Bash ONLY for**: (a) the Unity test CLI command shown below (runs in Mode A on the worktree, or in Mode B on the main workspace — see "Execution Modes"), (b) `git fetch` / `git checkout <branch>` / `git reset --hard origin/<branch>` **ON THE WORKTREE PATH ONLY** (Mode A), (c) read-only `git` inspection commands on any path (`git branch --show-current`, `git rev-parse HEAD`, `git rev-parse origin/<branch>`, `git status --porcelain`) to auto-detect which mode to use, (d) reading XML/log results, (e) deleting the temp result/log files you created after reporting (Mode B cleanup).
 > - Report counts, failures, and recommendations to the lead.
 >
 > **At the end of your run:** report the test results and STOP. Do NOT commit. Do NOT push. Do NOT open a PR. The lead will handle git.
@@ -331,7 +331,7 @@ namespace RogueliteAutoBattler.Tests.EditMode
 
 ### Running Both Test Suites
 
-After writing tests, sync the worktree (see above), then run the appropriate suite. If you wrote Edit Mode tests, also run them:
+After writing tests, pick the execution mode (see "Execution Modes"), prepare the runner (sync worktree in Mode A, or create `_TestResults/` in Mode B), then run the appropriate suite. If you wrote Edit Mode tests, also run them with `-testPlatform EditMode`. Example for Mode A:
 ```bash
 "/c/Program Files/Unity/Hub/Editor/6000.3.6f1/Editor/Unity.exe" \
   -runTests -batchmode -nographics \
@@ -340,11 +340,72 @@ After writing tests, sync the worktree (see above), then run the appropriate sui
   -testResults "C:/Users/donic/RiderProjects/Roguelite-2D-tests/editmode-results.xml" \
   -logFile "C:/Users/donic/RiderProjects/Roguelite-2D-tests/editmode-log.txt"
 ```
+For Mode B, swap `-projectPath` to the main workspace path and write results under `$MAIN_PATH/_TestResults/` (and delete that folder at the end).
 
 ## Naming Convention
 
 - Test files: `<Feature>Tests.cs` or `<Feature>ScenarioTests.cs`
 - Test methods: `Scenario_Action_ExpectedResult` or `Feature_Condition_ExpectedResult`
+
+## Execution Modes — Mode A (worktree) vs Mode B (main workspace)
+
+You have TWO execution modes. **Mode A is the default.** Mode B is an escape hatch used when the code under test is uncommitted/unpushed — i.e. when the lead needs tests to pass BEFORE committing (which is the normal `lead-roguelite` flow for step 4c).
+
+### Mode A — Worktree (default, preferred)
+Use when the branch HEAD is already on `origin` and the worktree can be synced to it. Runs on:
+- Main project (editor may be open): `C:/Users/donic/RiderProjects/Roguelite-2D` (historical path) or `C:/Users/donic/Roguelite Auto-Battler 2D` (current active path — check which one the lead gave you; it is whichever contains the uncommitted changes).
+- Test worktree: `C:/Users/donic/RiderProjects/Roguelite-2D-tests`.
+
+Flow: sync the worktree (`git fetch` + `git checkout <branch>` + `git reset --hard origin/<branch>`), then run Unity CLI with `-projectPath` pointing at the worktree. See "Git Worktree for Test Execution" below.
+
+### Mode B — Main workspace (uncommitted code)
+Use when any of these is true:
+- The lead passed an explicit hint like "use main workspace", "code is uncommitted", "no push yet", or "Mode B".
+- Auto-detection sees the main workspace is AHEAD of origin or has uncommitted changes relevant to the tests.
+
+Auto-detection commands (all read-only, safe to run on the main workspace path):
+```bash
+MAIN_PATH="<path provided by lead, or current working directory>"
+cd "$MAIN_PATH"
+BRANCH=$(git branch --show-current)
+LOCAL_HEAD=$(git rev-parse HEAD)
+REMOTE_HEAD=$(git rev-parse "origin/$BRANCH" 2>/dev/null || echo "missing")
+DIRTY=$(git status --porcelain)
+```
+If `LOCAL_HEAD != REMOTE_HEAD` OR `REMOTE_HEAD == "missing"` OR `DIRTY` is non-empty → **Mode B**. Otherwise → Mode A.
+
+**Mode B flow (NO git state changes):**
+1. Do NOT run `git fetch`, `git checkout`, `git reset`, `git commit`, `git push`, `git stash`. Leave the workspace exactly as-is.
+2. Confirm Unity Editor is NOT currently open on the main workspace (batch mode will fail with a file-lock error if it is). If it IS open, report to the lead: "Unity Editor is open on the main workspace; close it or switch to Mode A after a push" and STOP.
+3. Run the Unity CLI directly against the main workspace path. Write results and logs to a temp folder INSIDE the workspace but OUTSIDE `Assets/` so they can never leak into the build:
+   ```bash
+   MAIN_PATH="C:/Users/donic/Roguelite Auto-Battler 2D"   # or the path the lead gave you
+   TMP_DIR="$MAIN_PATH/_TestResults"
+   mkdir -p "$TMP_DIR"
+   "/c/Program Files/Unity/Hub/Editor/6000.3.6f1/Editor/Unity.exe" \
+     -runTests -batchmode -nographics \
+     -projectPath "$MAIN_PATH" \
+     -testPlatform PlayMode \
+     -testResults "$TMP_DIR/playmode-results.xml" \
+     -logFile "$TMP_DIR/playmode-log.txt"
+   ```
+   Repeat with `-testPlatform EditMode` if EditMode tests were written, writing to `$TMP_DIR/editmode-results.xml` and `$TMP_DIR/editmode-log.txt`.
+4. Parse the XML results to compute pass/fail counts and extract failure messages (same parser as Mode A).
+5. **Cleanup (MANDATORY)**: after reporting, delete the temp result/log files so the workspace stays clean:
+   ```bash
+   rm -rf "$MAIN_PATH/_TestResults"
+   ```
+   Then confirm `git status --porcelain` on the main workspace shows the same dirty set as before the run (no new untracked files from you). If it does not, report the leftover files to the lead; do NOT `git clean` them.
+6. Report results and STOP. Same rules as Mode A — no commits, no pushes, no PRs.
+
+**Mode B is strictly non-destructive**: batch-mode test runs only read assets, compile scripts into a throwaway `Library/` / `Temp/` folder, and write the XML/log files you explicitly target. No scenes are modified, no `Assets/` files are written. Unity may touch `Library/`, `Temp/`, `obj/`, `Logs/` — this is normal and already `.gitignore`d.
+
+### Mode precedence
+1. Explicit lead hint wins (e.g., "use Mode B" → Mode B; "use Mode A" → Mode A).
+2. Otherwise auto-detect via the commands above.
+3. If auto-detection is inconclusive (e.g., `git` commands fail), default to Mode A and ask the lead.
+
+Announce the chosen mode at the start of your run (one short line, e.g. `Mode: B (main workspace, uncommitted changes on branch fix/foo)`) so the lead can spot a wrong detection early.
 
 ## Git Worktree for Test Execution
 
@@ -355,10 +416,12 @@ Unity Editor locks the main project directory when open, which prevents batch-mo
 | **Main project** (Editor open here) | `C:/Users/donic/RiderProjects/Roguelite-2D` |
 | **Test worktree** (batch mode runs here) | `C:/Users/donic/RiderProjects/Roguelite-2D-tests` |
 
-**The worktree only sees committed and pushed code.** Before running any tests, you MUST ensure:
+**The worktree only sees committed and pushed code.** Before running Mode A tests, you MUST ensure:
 1. All changes are **committed** on the current branch
 2. The branch is **pushed** to origin
 3. The worktree is **synced** to the latest pushed code
+
+If any of those three preconditions is not met, do NOT try to satisfy them yourself (no self-commit, no self-push). Switch to **Mode B** instead (see "Execution Modes" above), or report to the lead if Mode B is not viable (e.g., Unity Editor is open on the main workspace).
 
 ### Syncing the worktree
 
@@ -375,8 +438,9 @@ git -C "C:/Users/donic/RiderProjects/Roguelite-2D" branch --show-current
 
 ## Running Tests — MANDATORY
 
-**ALWAYS run tests via Unity CLI after writing them.** Tests run on the **worktree** path, not the main project.
+**ALWAYS run tests via Unity CLI after writing them.** Pick the command set that matches your chosen mode (see "Execution Modes" above).
 
+**Mode A (worktree)** — use when the branch is pushed:
 ```bash
 "/c/Program Files/Unity/Hub/Editor/6000.3.6f1/Editor/Unity.exe" \
   -runTests -batchmode -nographics \
@@ -386,10 +450,13 @@ git -C "C:/Users/donic/RiderProjects/Roguelite-2D" branch --show-current
   -logFile "C:/Users/donic/RiderProjects/Roguelite-2D-tests/playmode-log.txt"
 ```
 
+**Mode B (main workspace)** — use when the code is uncommitted / unpushed (see Mode B flow above for the full sequence including mandatory temp-file cleanup).
+
 - **Exit code 0** = all passed. **Exit code 2** = some failed.
 - Parse the XML results file to report pass/fail counts and failure details.
-- If tests fail, fix the code **in the main project**, commit, push, sync worktree, and re-run until all pass.
-- **Important:** The worktree eliminates the "Unity already open" problem for the main project. If batch mode still fails, check that no other Unity instance has the worktree path open.
+- **Mode A failure loop:** if tests fail, fix the code in the main project, then hand back to the lead to commit+push, then re-sync the worktree and re-run.
+- **Mode B failure loop:** if tests fail, fix the code in the main project, then re-run Mode B immediately (no commit/push needed) until green; then hand back to the lead so the lead can commit+push.
+- **Important:** The worktree eliminates the "Unity already open" problem for Mode A. In Mode B, you MUST confirm the Editor is closed on the main workspace before invoking batch mode.
 
 ## When Invoked
 
@@ -398,10 +465,12 @@ git -C "C:/Users/donic/RiderProjects/Roguelite-2D" branch --show-current
 3. **Check asmdef** — Ensure InputSystem references are present for input tests
 4. **Determine progression level** — Pick the right fake account preset for the scenario
 5. **Write tests** — API-level first, then input-level for critical flows
-6. **Verify the branch is committed and pushed BY THE LEAD** — The worktree only sees pushed code. If the current branch has uncommitted/unpushed changes on the **main project**, **STOP and report to the lead**. **Do NOT commit. Do NOT push.** The lead will commit/push and re-invoke you.
-7. **Sync the worktree ONLY** — On the worktree path exclusively: `cd "C:/Users/donic/RiderProjects/Roguelite-2D-tests" && git fetch origin && git checkout <branch> && git reset --hard origin/<branch>`. These three commands are the ONLY git commands you may ever run, and ONLY on the worktree path.
-8. **Run tests via CLI on the worktree** — ALWAYS run and verify they pass
-9. **Report and STOP** — List what was tested, pass/fail results, any issues. Do NOT commit, push, or open a PR. Hand control back to the lead.
+6. **Pick execution mode (A or B)** — Apply the precedence in "Execution Modes": explicit lead hint > auto-detect (`git rev-parse HEAD` vs `origin/<branch>`, plus `git status --porcelain`). Announce the chosen mode in one line.
+7. **Prepare the runner**:
+   - **Mode A**: sync the worktree ONLY: `cd "C:/Users/donic/RiderProjects/Roguelite-2D-tests" && git fetch origin && git checkout <branch> && git reset --hard origin/<branch>`. These three commands are the ONLY git commands you may run in Mode A, and ONLY on the worktree path. Do NOT self-commit or self-push the main workspace; if sync fails because the branch is not on origin, switch to Mode B.
+   - **Mode B**: NO git state changes anywhere. Confirm Unity Editor is closed on the main workspace. Create `$MAIN_PATH/_TestResults/` for results + logs.
+8. **Run tests via CLI** — ALWAYS run and verify they pass. Use the worktree path in Mode A, the main workspace path in Mode B.
+9. **Report and STOP** — List what was tested, pass/fail results, any issues, and the mode used. In Mode B, ALSO delete `$MAIN_PATH/_TestResults/` and confirm `git status --porcelain` on the main workspace is unchanged from before your run. Do NOT commit, push, or open a PR. Hand control back to the lead.
 
 ## Component-Disabled Tests Require a Companion Integration Test
 
