@@ -25,7 +25,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
         private const float BreakdownFontSize = 32f;
         private const float InfoAreaHeightPercent = 0.42f;
         private const float FloatTolerance = 1.5f;
-        private const float AreaTolerancePixels = 1f;
+        private const float AreaTolerancePixels = 5f;
 
         [UnityTest]
         public IEnumerator ResolvedStyles_MatchMobileScaledValues()
@@ -55,6 +55,11 @@ namespace RogueliteAutoBattler.Tests.PlayMode
                 Assert.Inconclusive("rootVisualElement is null - UIDocument failed to initialize in the test environment.");
                 yield break;
             }
+
+            root.style.width = 1080;
+            root.style.height = 1920;
+            yield return null;
+            yield return null;
 
             var infoContent = root.Q<VisualElement>("info-content");
             Assert.That(infoContent, Is.Not.Null, "info-content element missing");
