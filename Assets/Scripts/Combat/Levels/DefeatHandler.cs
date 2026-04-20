@@ -58,7 +58,7 @@ namespace RogueliteAutoBattler.Combat.Levels
         internal void HandleLevelLost()
         {
 #if UNITY_EDITOR
-            Debug.Log($"[{nameof(LevelManager)}] Level lost! All allies defeated.");
+            Debug.Log($"[{nameof(DefeatHandler)}] Level lost! All allies defeated.");
 #endif
             _allyTargetManager.ClearEnemyTargets();
             AttackSlotRegistry.Clear();

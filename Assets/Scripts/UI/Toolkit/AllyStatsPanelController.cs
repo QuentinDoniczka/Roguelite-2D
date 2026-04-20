@@ -297,19 +297,9 @@ namespace RogueliteAutoBattler.UI.Toolkit
 
         private void OnMemberRevived(TeamMember member)
         {
-            if (_members == null) return;
+            if (_members == null || member == null) return;
 
-            int index = -1;
-            for (int i = 0; i < _members.Count; i++)
-            {
-                if (_members[i] == member)
-                {
-                    index = i;
-                    break;
-                }
-            }
-
-            if (index == _currentRosterIndex)
+            if (member.Index == _currentRosterIndex)
                 DisplayTeamMember(_currentRosterIndex);
         }
 
@@ -317,24 +307,19 @@ namespace RogueliteAutoBattler.UI.Toolkit
         {
             if (_trackedStats == null) return;
 
-            var displayOrder = CombatStats.DisplayOrder;
-            for (int i = 0; i < _statRows.Length && i < displayOrder.Count; i++)
-            {
-                var breakdown = _trackedStats.GetBreakdown(displayOrder[i]);
-                _statRows[i].NameLabel.text = breakdown.StatName;
-                _statRows[i].ValueLabel.text = breakdown.FinalValue;
-            }
+            WriteStatsToRows(_trackedStats);
 
             if (_expandedRowIndex >= 0)
                 PopulateBreakdownText(_expandedRowIndex);
         }
 
-        private void DisplayStats(CombatStats stats)
+        private void WriteStatsToRows(CombatStats stats)
         {
             if (stats == null) return;
 
             var displayOrder = CombatStats.DisplayOrder;
-            for (int i = 0; i < _statRows.Length && i < displayOrder.Count; i++)
+            int count = _statRows.Length < displayOrder.Count ? _statRows.Length : displayOrder.Count;
+            for (int i = 0; i < count; i++)
             {
                 var breakdown = stats.GetBreakdown(displayOrder[i]);
                 _statRows[i].NameLabel.text = breakdown.StatName;
@@ -539,7 +524,7 @@ namespace RogueliteAutoBattler.UI.Toolkit
             {
                 _isDisplayingDeadUnit = true;
                 UntrackStats();
-                DisplayStats(member.Stats);
+                WriteStatsToRows(member.Stats);
                 Show();
                 UpdateNameLabel(member.GameObject != null ? member.GameObject.name : "", isDead: true);
                 if (_selectionManager != null)

@@ -8,6 +8,7 @@ namespace RogueliteAutoBattler.Combat.Core
     public class TeamRoster : MonoBehaviour
     {
         private readonly List<TeamMember> _members = new List<TeamMember>();
+        private readonly Dictionary<CombatStats, Action> _deathHandlers = new Dictionary<CombatStats, Action>();
 
         public IReadOnlyList<TeamMember> Members => _members;
 
@@ -72,7 +73,7 @@ namespace RogueliteAutoBattler.Combat.Core
 
         public void Revive(TeamMember member)
         {
-            if (member == null || !_members.Contains(member))
+            if (member == null || member.Index < 0 || member.Index >= _members.Count || _members[member.Index] != member)
                 return;
 
             if (member.GameObject == null)
@@ -114,8 +115,23 @@ namespace RogueliteAutoBattler.Combat.Core
             if (member == null || member.Stats == null)
                 return;
 
+            if (_deathHandlers.ContainsKey(member.Stats))
+                return;
+
             TeamMember capturedMember = member;
-            member.Stats.OnDied += () => OnMemberDied?.Invoke(capturedMember);
+            Action handler = () => OnMemberDied?.Invoke(capturedMember);
+            _deathHandlers[member.Stats] = handler;
+            member.Stats.OnDied += handler;
+        }
+
+        private void OnDestroy()
+        {
+            foreach (var pair in _deathHandlers)
+            {
+                if (pair.Key != null)
+                    pair.Key.OnDied -= pair.Value;
+            }
+            _deathHandlers.Clear();
         }
     }
 }

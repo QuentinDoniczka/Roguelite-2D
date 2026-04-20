@@ -12,6 +12,8 @@ namespace RogueliteAutoBattler.Combat.Levels
     [RequireComponent(typeof(WorldConveyor))]
     public class LevelManager : MonoBehaviour
     {
+        private const float SpawnSpeedThreshold = 0.3f;
+
         [Header("Database")]
         [SerializeField] private LevelDatabase _levelDatabase;
 
@@ -60,8 +62,6 @@ namespace RogueliteAutoBattler.Combat.Levels
             if (stepIndex < 0 || stepIndex >= level.Steps.Count) return StepType.Normal;
             return level.Steps[stepIndex].StepType;
         }
-
-        private const float SpawnSpeedThreshold = 0.3f;
 
         [Header("Defeat Reset")]
         [SerializeField] private float _defeatResetDelay = 1.5f;

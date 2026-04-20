@@ -25,8 +25,7 @@ namespace RogueliteAutoBattler.Combat.Core
 
         private void Awake()
         {
-            if (_teamRoster == null)
-                _teamRoster = GetComponent<TeamRoster>();
+            _teamRoster = GetComponent<TeamRoster>();
         }
 
         private void Start()
