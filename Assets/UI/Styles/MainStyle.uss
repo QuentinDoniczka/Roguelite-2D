@@ -47,8 +47,8 @@
     --info-tab-inactive-bg: rgba(50, 50, 80, 0.8);
     --info-font-size: 42px;
     --info-name-font-size: 34px;
-    --info-nav-btn-size: 72px;
-    --info-breakdown-font-size: 24px;
+    --info-nav-btn-size: 96px;
+    --info-breakdown-font-size: 32px;
 }
 
 .root {
@@ -315,13 +315,14 @@
 .info-nav-btn {
     width: var(--info-nav-btn-size);
     height: var(--info-nav-btn-size);
-    font-size: 40px;
+    font-size: 60px;
     -unity-text-align: middle-center;
-    background-color: rgba(0, 0, 0, 0);
+    background-color: rgba(255, 255, 255, 0.08);
     color: white;
     border-width: 0;
     margin: 0;
     padding: 0;
+    border-radius: 12px;
 }
 
 .info-tab-bar {
@@ -399,6 +400,6 @@
 
 .breakdown-text {
     font-size: var(--info-breakdown-font-size);
-    color: rgba(200, 200, 220, 0.8);
+    color: rgb(140, 210, 255);
     white-space: normal;
 }
