@@ -26,9 +26,6 @@ namespace RogueliteAutoBattler.Tests.PlayMode
         [UnityTest]
         public IEnumerator Initialize_FindsAllSceneRefs()
         {
-            var canvasGo = Track(new GameObject("UICanvas"));
-            canvasGo.AddComponent<Canvas>();
-
             var combatWorldGo = Track(new GameObject("CombatWorld"));
 
             var camGo = Track(new GameObject("MainCamera"));
@@ -49,9 +46,6 @@ namespace RogueliteAutoBattler.Tests.PlayMode
         [UnityTest]
         public IEnumerator Initialize_MissingCombatWorld_LogsError()
         {
-            var canvasGo = Track(new GameObject("UICanvas"));
-            canvasGo.AddComponent<Canvas>();
-
             var camGo = Track(new GameObject("MainCamera"));
             var cam = camGo.AddComponent<Camera>();
             cam.tag = "MainCamera";
@@ -83,8 +77,6 @@ namespace RogueliteAutoBattler.Tests.PlayMode
         [UnityTest]
         public IEnumerator ResetForTest_ClearsAllRefs()
         {
-            var canvasGo = Track(new GameObject("UICanvas"));
-            canvasGo.AddComponent<Canvas>();
             Track(new GameObject("CombatWorld"));
 
             var camGo = Track(new GameObject("MainCamera"));
@@ -108,9 +100,6 @@ namespace RogueliteAutoBattler.Tests.PlayMode
         [UnityTest]
         public IEnumerator Initialize_SetsTeamRoster_WhenCombatWorldHasComponent()
         {
-            var canvasGo = Track(new GameObject("UICanvas"));
-            canvasGo.AddComponent<Canvas>();
-
             var combatWorldGo = Track(new GameObject("CombatWorld"));
             var expectedRoster = combatWorldGo.AddComponent<TeamRoster>();
 
@@ -130,9 +119,6 @@ namespace RogueliteAutoBattler.Tests.PlayMode
         [UnityTest]
         public IEnumerator Initialize_LogsError_WhenCombatWorldLacksTeamRoster()
         {
-            var canvasGo = Track(new GameObject("UICanvas"));
-            canvasGo.AddComponent<Canvas>();
-
             Track(new GameObject("CombatWorld"));
 
             var camGo = Track(new GameObject("MainCamera"));
@@ -151,9 +137,6 @@ namespace RogueliteAutoBattler.Tests.PlayMode
         [UnityTest]
         public IEnumerator ResetForTest_ClearsTeamRoster()
         {
-            var canvasGo = Track(new GameObject("UICanvas"));
-            canvasGo.AddComponent<Canvas>();
-
             var combatWorldGo = Track(new GameObject("CombatWorld"));
             combatWorldGo.AddComponent<TeamRoster>();
 
