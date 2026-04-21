@@ -76,7 +76,8 @@ namespace RogueliteAutoBattler.Combat.Core
             if (member == null || member.Index < 0 || member.Index >= _members.Count || _members[member.Index] != member)
                 return;
 
-            if (member.GameObject == null)
+            GameObject memberGameObject = member.GameObject;
+            if (memberGameObject == null)
             {
 #if UNITY_EDITOR
                 Debug.LogError($"[{nameof(TeamRoster)}] Cannot revive member {member.Index}: GameObject was destroyed.");
@@ -90,19 +91,24 @@ namespace RogueliteAutoBattler.Combat.Core
             AllySpawnData spawnData = member.SpawnData;
             member.Stats.InitializeDirect(spawnData.MaxHp, spawnData.Atk, spawnData.AttackSpeed, spawnData.RegenHpPerSecond);
 
-            if (member.GameObject.TryGetComponent<CombatController>(out var controller))
+            if (memberGameObject.TryGetComponent<CombatController>(out var controller))
                 controller.ResetFromDeath();
 
-            if (member.GameObject.TryGetComponent<CharacterMover>(out var mover))
-            {
-                member.GameObject.transform.position = mover.GetHomePosition();
-                mover.Target = null;
-                mover.Stop();
-            }
+            SnapMoverBackToFormationHome(memberGameObject);
 
-            member.GameObject.SetActive(true);
+            memberGameObject.SetActive(true);
 
             OnMemberRevived?.Invoke(member);
+        }
+
+        private static void SnapMoverBackToFormationHome(GameObject memberGameObject)
+        {
+            if (!memberGameObject.TryGetComponent<CharacterMover>(out var mover))
+                return;
+
+            memberGameObject.transform.position = mover.GetHomePosition();
+            mover.Target = null;
+            mover.Stop();
         }
 
         internal void InitializeForTest(List<TeamMember> members)

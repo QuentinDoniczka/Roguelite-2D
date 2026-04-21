@@ -13,6 +13,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
     public class TeamRosterTests : PlayModeTestBase
     {
         private const float TestCharacterScale = 1.5f;
+        private const float ReviveRepositionEpsilon = 0.01f;
 
         private TeamRoster _roster;
         private Transform _teamContainer;
@@ -301,7 +302,6 @@ namespace RogueliteAutoBattler.Tests.PlayMode
         public IEnumerator Revive_SnapsMemberBackToFormationAnchorInsteadOfDeathPosition()
         {
             const int allyCount = 3;
-            const float RepositionEpsilon = 0.01f;
             Vector2 deathPosition = new Vector2(25f, -12f);
 
             var teamDb = TestCharacterFactory.CreateTeamDatabase(allyCount, _allyPrefab);
@@ -339,7 +339,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
 
             Assert.Less(
                 distanceFromAnchor,
-                RepositionEpsilon,
+                ReviveRepositionEpsilon,
                 $"After revive, member must be snapped back to its formation anchor. " +
                 $"Expected ~{initialFormationPosition}, got {positionAfterRevive} " +
                 $"(distance from anchor={distanceFromAnchor}).");
@@ -355,7 +355,6 @@ namespace RogueliteAutoBattler.Tests.PlayMode
         public IEnumerator ReviveAll_SnapsEveryDeadMemberBackToItsOwnFormationSlot()
         {
             const int allyCount = 3;
-            const float RepositionEpsilon = 0.01f;
 
             var teamDb = TestCharacterFactory.CreateTeamDatabase(allyCount, _allyPrefab);
 
@@ -386,7 +385,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
                 float distance = Vector3.Distance(actual, originalFormationPositions[i]);
                 Assert.Less(
                     distance,
-                    RepositionEpsilon,
+                    ReviveRepositionEpsilon,
                     $"Member {i} not snapped back to formation. " +
                     $"Expected {originalFormationPositions[i]}, got {actual} (distance={distance}).");
             }
