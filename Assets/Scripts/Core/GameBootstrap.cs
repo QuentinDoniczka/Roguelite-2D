@@ -9,7 +9,6 @@ namespace RogueliteAutoBattler.Core
     {
         internal const string CombatWorldName = "CombatWorld";
 
-        public static Canvas Canvas { get; private set; }
         public static Transform CombatWorld { get; private set; }
         public static TeamRoster TeamRoster { get; private set; }
         public static NavigationHost NavigationHost { get; private set; }
@@ -19,7 +18,6 @@ namespace RogueliteAutoBattler.Core
         internal static void Initialize()
         {
             MainCamera = Camera.main;
-            Canvas = Object.FindFirstObjectByType<Canvas>(FindObjectsInactive.Include);
             NavigationHost = Object.FindFirstObjectByType<NavigationHost>(FindObjectsInactive.Include);
 
             var combatWorldGo = GameObject.Find(CombatWorldName);
@@ -63,7 +61,6 @@ namespace RogueliteAutoBattler.Core
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         private static void ResetOnDomainReload()
         {
-            Canvas = null;
             CombatWorld = null;
             TeamRoster = null;
             NavigationHost = null;

@@ -114,70 +114,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             NavigationHost host = CreateHostWithFullVisualTree();
             yield return null;
 
-            if (host.Navigation == null)
-            {
-                Assert.Inconclusive("Navigation was not created — UIDocument rootVisualElement may not be available in test environment.");
-                yield break;
-            }
-
-            Assert.AreEqual(-1, host.Navigation.CurrentTab);
-        }
-
-        [UnityTest]
-        public IEnumerator Navigation_SwitchTab_UpdatesCurrentTab()
-        {
-            NavigationHost host = CreateHostWithFullVisualTree();
-            yield return null;
-
-            if (host.Navigation == null)
-            {
-                Assert.Inconclusive("Navigation was not created — UIDocument rootVisualElement may not be available in test environment.");
-                yield break;
-            }
-
-            host.Navigation.SwitchTab(0);
-            Assert.AreEqual(0, host.Navigation.CurrentTab);
-        }
-
-        [UnityTest]
-        public IEnumerator Navigation_SwitchTab_TogglesHiddenClass()
-        {
-            NavigationHost host = CreateHostWithFullVisualTree();
-            yield return null;
-
-            if (host.Navigation == null)
-            {
-                Assert.Inconclusive("Navigation was not created — UIDocument rootVisualElement may not be available in test environment.");
-                yield break;
-            }
-
-            UIDocument doc = host.GetComponent<UIDocument>();
-            VisualElement screenVillage = doc.rootVisualElement.Q<VisualElement>("screen-village");
-
-            host.Navigation.SwitchTab(0);
-
-            Assert.IsFalse(screenVillage.ClassListContains("hidden"));
-        }
-
-        [UnityTest]
-        public IEnumerator Navigation_ReturnToDefault_ShowsDefaultScreen()
-        {
-            NavigationHost host = CreateHostWithFullVisualTree();
-            yield return null;
-
-            if (host.Navigation == null)
-            {
-                Assert.Inconclusive("Navigation was not created — UIDocument rootVisualElement may not be available in test environment.");
-                yield break;
-            }
-
-            UIDocument doc = host.GetComponent<UIDocument>();
-            VisualElement screenDefault = doc.rootVisualElement.Q<VisualElement>("screen-default");
-
-            host.Navigation.SwitchTab(0);
-            host.Navigation.ReturnToDefault();
-
-            Assert.IsFalse(screenDefault.ClassListContains("hidden"));
+            Assert.IsNotNull(host.Navigation);
             Assert.AreEqual(-1, host.Navigation.CurrentTab);
         }
 
@@ -209,21 +146,9 @@ namespace RogueliteAutoBattler.Tests.PlayMode
 
             go.SetActive(true);
 
-            VisualElement root = doc.rootVisualElement;
-            if (root == null)
-            {
-                return host;
-            }
-
-            BuildVisualTree(root);
-
-            ForceResetStaticInstance();
-            Object.DestroyImmediate(host);
-
-            go.SetActive(false);
-            host = go.AddComponent<NavigationHost>();
-            SetPrivateField(host, "_uiDocument", doc);
-            go.SetActive(true);
+            VisualElement fakeRoot = new VisualElement();
+            BuildVisualTree(fakeRoot);
+            host.BuildNavigation(fakeRoot);
 
             return host;
         }

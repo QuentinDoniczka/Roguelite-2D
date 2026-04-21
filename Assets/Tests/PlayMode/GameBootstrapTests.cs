@@ -41,7 +41,6 @@ namespace RogueliteAutoBattler.Tests.PlayMode
 
             GameBootstrap.Initialize();
 
-            Assert.IsNotNull(GameBootstrap.Canvas);
             Assert.IsNotNull(GameBootstrap.CombatWorld);
             Assert.AreEqual(combatWorldGo.transform, GameBootstrap.CombatWorld);
             Assert.IsNotNull(GameBootstrap.MainCamera);
@@ -66,7 +65,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
         }
 
         [UnityTest]
-        public IEnumerator Initialize_NoCanvas_StillValidatesRefs()
+        public IEnumerator Initialize_NoSceneRefs_ValidatesAllMissingRefs()
         {
             yield return null;
 
@@ -77,7 +76,8 @@ namespace RogueliteAutoBattler.Tests.PlayMode
 
             GameBootstrap.Initialize();
 
-            Assert.IsNull(GameBootstrap.Canvas);
+            Assert.IsNull(GameBootstrap.CombatWorld);
+            Assert.IsNull(GameBootstrap.MainCamera);
         }
 
         [UnityTest]
@@ -96,11 +96,10 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             LogAssert.Expect(LogType.Error, new Regex("navigation system"));
 
             GameBootstrap.Initialize();
-            Assert.IsNotNull(GameBootstrap.Canvas);
+            Assert.IsNotNull(GameBootstrap.CombatWorld);
 
             GameBootstrap.ResetForTest();
 
-            Assert.IsNull(GameBootstrap.Canvas);
             Assert.IsNull(GameBootstrap.CombatWorld);
             Assert.IsNull(GameBootstrap.NavigationHost);
             Assert.IsNull(GameBootstrap.MainCamera);
