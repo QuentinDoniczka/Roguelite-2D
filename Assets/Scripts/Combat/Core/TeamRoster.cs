@@ -93,6 +93,13 @@ namespace RogueliteAutoBattler.Combat.Core
             if (member.GameObject.TryGetComponent<CombatController>(out var controller))
                 controller.ResetFromDeath();
 
+            if (member.GameObject.TryGetComponent<CharacterMover>(out var mover))
+            {
+                member.GameObject.transform.position = mover.GetHomePosition();
+                mover.Target = null;
+                mover.Stop();
+            }
+
             member.GameObject.SetActive(true);
 
             OnMemberRevived?.Invoke(member);

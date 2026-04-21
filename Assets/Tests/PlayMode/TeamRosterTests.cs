@@ -296,5 +296,100 @@ namespace RogueliteAutoBattler.Tests.PlayMode
 
             Assert.AreSame(originalGo, member.GameObject);
         }
+
+        [UnityTest]
+        public IEnumerator Revive_SnapsMemberBackToFormationAnchorInsteadOfDeathPosition()
+        {
+            const int allyCount = 3;
+            const float RepositionEpsilon = 0.01f;
+            Vector2 deathPosition = new Vector2(25f, -12f);
+
+            var teamDb = TestCharacterFactory.CreateTeamDatabase(allyCount, _allyPrefab);
+
+            ExpectAnimatorWarnings(allyCount);
+            _roster.Spawn(teamDb, _teamContainer, _teamHomeAnchor, TestCharacterScale);
+
+            yield return null;
+
+            TeamMember member = _roster.Members[1];
+            Vector3 initialFormationPosition = member.GameObject.transform.position;
+
+            Assert.IsTrue(
+                Vector2.Distance(initialFormationPosition, deathPosition) > 1f,
+                "Sanity check: initial formation slot must be far from simulated death position.");
+
+            member.Stats.TakeDamage(99999);
+
+            yield return new WaitForSeconds(FadeOutWaitSeconds);
+
+            member.GameObject.transform.position = deathPosition;
+
+            Assert.AreEqual(
+                (Vector3)deathPosition,
+                member.GameObject.transform.position,
+                "Precondition: member GameObject must be positioned away from its formation slot before revive.");
+
+            _roster.Revive(member);
+
+            yield return null;
+
+            Vector3 positionAfterRevive = member.GameObject.transform.position;
+            float distanceFromAnchor = Vector3.Distance(positionAfterRevive, initialFormationPosition);
+            float distanceFromDeathPosition = Vector3.Distance(positionAfterRevive, deathPosition);
+
+            Assert.Less(
+                distanceFromAnchor,
+                RepositionEpsilon,
+                $"After revive, member must be snapped back to its formation anchor. " +
+                $"Expected ~{initialFormationPosition}, got {positionAfterRevive} " +
+                $"(distance from anchor={distanceFromAnchor}).");
+
+            Assert.Greater(
+                distanceFromDeathPosition,
+                1f,
+                $"After revive, member must NOT remain at the death position {deathPosition}. " +
+                $"Actual position {positionAfterRevive} (distance from death pos={distanceFromDeathPosition}).");
+        }
+
+        [UnityTest]
+        public IEnumerator ReviveAll_SnapsEveryDeadMemberBackToItsOwnFormationSlot()
+        {
+            const int allyCount = 3;
+            const float RepositionEpsilon = 0.01f;
+
+            var teamDb = TestCharacterFactory.CreateTeamDatabase(allyCount, _allyPrefab);
+
+            ExpectAnimatorWarnings(allyCount);
+            _roster.Spawn(teamDb, _teamContainer, _teamHomeAnchor, TestCharacterScale);
+
+            yield return null;
+
+            Vector3[] originalFormationPositions = new Vector3[allyCount];
+            for (int i = 0; i < allyCount; i++)
+                originalFormationPositions[i] = _roster.Members[i].GameObject.transform.position;
+
+            foreach (var member in _roster.Members)
+                member.Stats.TakeDamage(99999);
+
+            yield return new WaitForSeconds(FadeOutWaitSeconds);
+
+            for (int i = 0; i < allyCount; i++)
+                _roster.Members[i].GameObject.transform.position = new Vector3(50f + i * 3f, -20f, 0f);
+
+            _roster.ReviveAll();
+
+            yield return null;
+
+            for (int i = 0; i < allyCount; i++)
+            {
+                Vector3 actual = _roster.Members[i].GameObject.transform.position;
+                float distance = Vector3.Distance(actual, originalFormationPositions[i]);
+                Assert.Less(
+                    distance,
+                    RepositionEpsilon,
+                    $"Member {i} not snapped back to formation. " +
+                    $"Expected {originalFormationPositions[i]}, got {actual} (distance={distance}).");
+            }
+        }
     }
 }
