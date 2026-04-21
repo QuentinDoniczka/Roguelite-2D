@@ -729,6 +729,31 @@ namespace RogueliteAutoBattler.Tests.PlayMode
         }
 
         [UnityTest]
+        public IEnumerator MemberDiesWhileDisplayed_PanelRefreshesWithDeadState()
+        {
+            _controller.Dispose();
+
+            _controller = CreateControllerWithTeam(3, out _, out var allyObjects);
+            yield return null;
+
+            _selectionManager.ForceSelect(allyObjects[1]);
+            yield return null;
+
+            Assert.AreEqual(1, _controller.CurrentRosterIndex);
+            Assert.IsFalse(_controller.IsNameLabelDeadMarked,
+                "Dead USS class should not be applied before death.");
+
+            allyObjects[1].GetComponent<CombatStats>().TakeDamage(99999);
+            yield return null;
+
+            Assert.AreEqual(1, _controller.CurrentRosterIndex,
+                "Roster index should not change when the displayed member dies.");
+            Assert.IsTrue(_controller.IsDisplayingDeadUnit);
+            Assert.IsTrue(_controller.IsNameLabelDeadMarked,
+                "Dead USS class should be auto-applied after death without cycling Prev/Next.");
+        }
+
+        [UnityTest]
         public IEnumerator OnMemberRevived_RefreshesDisplay_IfCurrentlyShowingRevivedMember()
         {
             _controller.Dispose();
