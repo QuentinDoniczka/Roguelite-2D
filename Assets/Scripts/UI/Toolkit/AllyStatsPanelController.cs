@@ -194,13 +194,19 @@ namespace RogueliteAutoBattler.UI.Toolkit
         public void BindRoster(TeamRoster roster)
         {
             if (_teamRosterRef != null)
+            {
                 _teamRosterRef.OnMemberRevived -= OnMemberRevived;
+                _teamRosterRef.OnMemberDied -= OnMemberDiedRefreshPanel;
+            }
 
             _teamRosterRef = roster;
             _members = roster?.Members;
 
             if (roster != null)
+            {
                 roster.OnMemberRevived += OnMemberRevived;
+                roster.OnMemberDied += OnMemberDiedRefreshPanel;
+            }
         }
 
         public void Dispose()
@@ -211,7 +217,10 @@ namespace RogueliteAutoBattler.UI.Toolkit
                 _selectionManager.OnUnitSelected -= HandleUnitSelected;
 
             if (_teamRosterRef != null)
+            {
                 _teamRosterRef.OnMemberRevived -= OnMemberRevived;
+                _teamRosterRef.OnMemberDied -= OnMemberDiedRefreshPanel;
+            }
 
             _prevButton.clicked -= NavigateToPreviousAlly;
             _nextButton.clicked -= NavigateToNextAlly;
@@ -296,6 +305,14 @@ namespace RogueliteAutoBattler.UI.Toolkit
         }
 
         private void OnMemberRevived(TeamMember member)
+        {
+            if (_members == null || member == null) return;
+
+            if (member.Index == _currentRosterIndex)
+                DisplayTeamMember(_currentRosterIndex);
+        }
+
+        private void OnMemberDiedRefreshPanel(TeamMember member)
         {
             if (_members == null || member == null) return;
 
