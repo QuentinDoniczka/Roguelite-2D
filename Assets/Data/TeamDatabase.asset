@@ -15,7 +15,7 @@ MonoBehaviour:
   allies:
   - allyName: Warrior
     prefab: {fileID: 1000000000000000001, guid: ade0afb480cc21d43ab799f99637abc6, type: 3}
-    maxHp: 50
+    maxHp: 200
     atk: 20
     attackSpeed: 3
     moveSpeed: 1
@@ -28,7 +28,7 @@ MonoBehaviour:
       shieldSprite: {fileID: 0}
   - allyName: Warrior
     prefab: {fileID: 1000000000000000001, guid: ade0afb480cc21d43ab799f99637abc6, type: 3}
-    maxHp: 1
+    maxHp: 25
     atk: 20
     attackSpeed: 3
     moveSpeed: 1
