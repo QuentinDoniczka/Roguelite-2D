@@ -20,9 +20,8 @@ namespace RogueliteAutoBattler.Combat.Core
         {
             if (_members.Count > 0)
             {
-#if UNITY_EDITOR
-                Debug.LogWarning($"[{nameof(TeamRoster)}] Spawn called twice, ignoring");
-#endif
+                if (Debug.isDebugBuild)
+                    Debug.LogWarning($"[{nameof(TeamRoster)}] Spawn called twice, ignoring");
                 return;
             }
 
@@ -79,9 +78,8 @@ namespace RogueliteAutoBattler.Combat.Core
             GameObject memberGameObject = member.GameObject;
             if (memberGameObject == null)
             {
-#if UNITY_EDITOR
-                Debug.LogError($"[{nameof(TeamRoster)}] Cannot revive member {member.Index}: GameObject was destroyed.");
-#endif
+                if (Debug.isDebugBuild)
+                    Debug.LogError($"[{nameof(TeamRoster)}] Cannot revive member {member.Index}: GameObject was destroyed.");
                 return;
             }
 
@@ -145,6 +143,7 @@ namespace RogueliteAutoBattler.Combat.Core
                     pair.Key.OnDied -= pair.Value;
             }
             _deathHandlers.Clear();
+            _members.Clear();
         }
     }
 }

@@ -55,6 +55,12 @@ namespace RogueliteAutoBattler.Combat.Levels
             }
         }
 
+        internal void UnwireAllyDeathTracking()
+        {
+            if (_teamRoster == null) return;
+            _teamRoster.OnMemberDied -= OnAllyDied;
+        }
+
         internal void HandleLevelLost()
         {
 #if UNITY_EDITOR
@@ -81,12 +87,10 @@ namespace RogueliteAutoBattler.Combat.Levels
             resetEnemySpawnerCount(0);
             resetPendingWaveCount(0);
 
-            _teamRoster?.ReviveAll();
-
             yield return null;
 
-            wireAllyDeathTracking();
             startLevel(0);
+            wireAllyDeathTracking();
         }
 
         private void OnAllyDied(TeamMember member)

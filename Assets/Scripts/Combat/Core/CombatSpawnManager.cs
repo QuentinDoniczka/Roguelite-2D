@@ -16,6 +16,7 @@ namespace RogueliteAutoBattler.Combat.Core
         [SerializeField] private Transform _teamHomeAnchor;
 
         private const float DefaultCharacterScale = 1.5f;
+
         [Header("Scale")]
         [SerializeField] private float _characterScale = DefaultCharacterScale;
 

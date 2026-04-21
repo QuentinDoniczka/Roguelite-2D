@@ -439,6 +439,9 @@ namespace RogueliteAutoBattler.Combat.Levels
 
             if (_defeatHandler != null)
             {
+                _defeatHandler.OnAllAlliesDead -= CheckLevelLost;
+                _defeatHandler.UnwireAllyDeathTracking();
+
                 _defeatHandler = new DefeatHandler(
                     _teamRoster,
                     _enemiesContainer,

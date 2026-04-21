@@ -14,10 +14,10 @@ namespace RogueliteAutoBattler.UI.Toolkit
     {
         private const float StaggerDelay = 0.05f;
         private const float FadeDuration = 0.15f;
+        private const string BreakdownSectionDividerLine = "\u2500\u2500\u2500\u2500\u2500\u2500";
 
         private static class UssClasses
         {
-            internal const string BreakdownSeparator = "\u2500\u2500\u2500\u2500\u2500\u2500";
             internal const string TabActive = "info-tab--active";
             internal const string TabContentHidden = "info-tab-content--hidden";
             internal const string BreakdownHidden = "stat-breakdown--hidden";
@@ -464,7 +464,7 @@ namespace RogueliteAutoBattler.UI.Toolkit
                 }
             }
 
-            _stringBuilder.AppendLine(UssClasses.BreakdownSeparator);
+            _stringBuilder.AppendLine(BreakdownSectionDividerLine);
             _stringBuilder.Append("Total: ").Append(breakdown.FinalValue);
 
             _statRows[rowIndex].BreakdownText.text = _stringBuilder.ToString();
