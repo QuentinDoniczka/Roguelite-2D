@@ -24,8 +24,9 @@ Gameplay : recruter aventuriers → equiper → combat auto (gauche→droite) + 
 | `dev-ux-toolkit` | **Agent principal pour tout ce qui est visuel/scene/UI.** Scene hierarchy, world-space setup, camera config, prefab wiring. **Screen-space UI genere en UI Toolkit (UXML/USS/C#)** pour efficacite de generation de code. Utilise AVANT `dev-unity` si la tache est visuelle. |
 | `dev-unity` | Implementer le code **runtime** Unity 2D (classes, fonctions, SO, MonoBehaviours, DTOs, services API, game logic). **Ne PAS utiliser pour du setup scene, UI layout, ou Editor scripts** — utiliser `dev-ux-toolkit` a la place. |
 | `refacto-unity` | Refactorer, optimiser, nettoyer, appliquer les patterns — verification 2D et client/serveur |
-| `review-commit-unity` | Auditer UNIQUEMENT les fichiers modifies/crees dans le dernier commit ou les changements non commites. Verifie aussi la frontiere client/serveur. Leger et scope. Read-only. |
-| `review-unity` | Audit COMPLET du projet entier. Utilise uniquement sur demande explicite (hors chaine principale). Read-only. |
+| `review-structure-unity` | Audit STRUCTUREL sur le diff (placement fichier, namespace vs dossier, asmdef, 2D/3D sur disque, frontiere client/serveur on-disk, cross-refs prefab/SO). Scope : uniquement fichiers modifies/crees. Read-only. Lance en PARALLELE avec `review-solid-unity` (etape 6). |
+| `review-solid-unity` | Audit SOLID + anti-patterns Unity 2D + logique client/serveur + naming/dead-code/testabilite/comments sur le diff. Scope : uniquement fichiers modifies/crees. Read-only. Lance en PARALLELE avec `review-structure-unity` (etape 6). |
+| `review-unity` | Audit STRUCTUREL COMPLET du projet entier (pas scope au diff). Utilise uniquement sur demande explicite (hors chaine principale). Read-only. |
 | `brainstorm-unity` | **TOUJOURS invoque en premier.** Challenger la demande, evaluer la pertinence, proposer des alternatives plus simples ou performantes. Prend en compte le client/serveur et le 2D. |
 | `test-play-unity` | Lancer les tests Play Mode existants apres implementation. Utilise des fake accounts a differents niveaux de progression. Aussi utilise pour ecrire de nouveaux tests (apres refacto). |
 | `agent-improver` | **Amelioration continue des agents.** Analyse les echecs du workflow (etapes manuelles, erreurs, corrections utilisateur) et modifie les prompts des agents concernes pour que le probleme ne se reproduise plus. |
@@ -193,19 +194,26 @@ Avant de passer a l'etape 5, **TOUJOURS** appliquer ce filtre :
 
 ### 6. Audit commit
 
-**TOUJOURS apres le refacto fichiers.** Deux sous-etapes :
-a) Delegue a `review-commit-unity` (PAS `review-unity`). L'agent n'audite QUE les fichiers crees/modifies dans cette feature. Il verifie :
-   - Unity 2D anti-patterns sur les fichiers touches (composants 3D, allocations Update, `is null`, reinvention)
-   - Frontiere client/serveur (logique critique non validee, donnees serveur exposees)
-   - DRY entre les fichiers touches et le reste du projet
-   - SOLID sur les classes modifiees
-   - Naming et conventions
-   - Cross-reference (composants ↔ prefabs, ScriptableObjects ↔ assets, events ↔ subscribers, DTOs ↔ contrats API)
-   L'agent produit un rapport classe par severite (CRITICAL, HIGH, MEDIUM, LOW).
-b) **Si le rapport contient des issues (CRITICAL, HIGH, MEDIUM ou LOW)** → delegue a `refacto-unity` avec le rapport complet en contexte. L'agent corrige **TOUTES** les issues, quelle que soit la severite. On vise du clean code : magic numbers, naming, unused usings, null guards, conventions — tout doit etre propre.
-c) **Si aucune issue** → passer directement a la suite.
-**Ne jamais sauter cette etape.**
-> **Note** : `review-unity` (audit complet du projet entier) reste disponible mais n'est utilise que sur demande explicite de l'utilisateur, en dehors de cette chaine.
+**TOUJOURS apres le refacto fichiers.** Trois sous-etapes :
+
+a) **Lancer en PARALLELE** — dans un meme tool-use block (deux appels Agent simultanes), invoquer :
+   - `review-structure-unity` — audit structurel (placement, namespace vs dossier, asmdef, disque 2D/3D, client/serveur on-disk, cross-refs prefab/SO)
+   - `review-solid-unity` — audit SOLID + anti-patterns Unity 2D + logique client/serveur + naming/magic numbers/dead code/testabilite/comments
+
+   Les deux agents sont read-only, scopes au diff (`git diff HEAD` + `git diff --cached` + fichiers modifies `.cs` / `.asset` / `.prefab` / `.unity` / `.asmdef` / `.meta`). Chacun produit un rapport classe par severite (CRITICAL/HIGH/MEDIUM/LOW) avec son tag (`[structure]` ou `[solid]`). Leurs scopes sont disjoints par contrat — les deux peuvent chevaucher uniquement en zone grise (intentionnel, la dedup gere).
+
+b) **Agreger les deux rapports** :
+   - Dedup par cle `(fichier, ligne, famille-de-regle)`. En cas de chevauchement exact, garder le finding le plus specifique ; a egalite, garder `[structure]`.
+   - Merger les sections par severite (CRITICAL puis HIGH puis MEDIUM puis LOW).
+   - Conserver le tag de source (`[structure]` ou `[solid]`) sur chaque entree du rapport final.
+
+c) **Si le rapport agrege contient AU MOINS UNE issue (toutes severites confondues)** → delegue a `refacto-unity` avec le rapport complet en contexte. L'agent corrige TOUTES les issues, toutes severites confondues. On vise du clean code : magic numbers, naming, unused usings, null guards, conventions, placement, namespace — tout doit etre propre.
+
+d) **Si aucune issue** → passer directement a l'etape 7.
+
+**Ne jamais sauter cette etape. Invocation parallele obligatoire** — sequentielle interdite (les deux scopes sont disjoints, donc les resultats sont independants ; la parallelisation divise par deux le temps mur).
+
+> **Note** : `review-unity` (audit STRUCTUREL complet du projet entier) reste disponible mais n'est utilise que sur demande explicite de l'utilisateur, en dehors de cette chaine.
 
 ### 7. Mettre a jour la structure
 
@@ -286,7 +294,7 @@ Ces agents ne sont **jamais** lances automatiquement dans le workflow. L'utilisa
 
 | Agent | Quand l'invoquer |
 |-------|-----------------|
-| `review-unity` | Sur demande explicite pour un audit complet du projet entier |
+| `review-unity` | Audit STRUCTUREL complet du projet entier (pas scope au diff). Sur demande explicite uniquement. |
 
 ## Regles
 
