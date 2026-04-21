@@ -1,4 +1,5 @@
 using NUnit.Framework;
+using RogueliteAutoBattler.Combat.Core;
 using RogueliteAutoBattler.Core;
 using RogueliteAutoBattler.Economy;
 using RogueliteAutoBattler.UI.Toolkit;
@@ -148,6 +149,18 @@ namespace RogueliteAutoBattler.Tests.EditMode
 
             Assert.DoesNotThrow(() => EditorApplication.ExecuteMenuItem(SetupMenuItemPath));
             Assert.IsNotNull(GameObject.Find(GameBootstrap.CombatWorldName), "CombatWorld must still exist after re-running setup.");
+        }
+
+        [Test]
+        public void SetupNewGameScene_CombatWorldHasTeamRoster()
+        {
+            EditorApplication.ExecuteMenuItem(SetupMenuItemPath);
+
+            GameObject combatWorld = GameObject.Find(GameBootstrap.CombatWorldName);
+            Assert.IsNotNull(combatWorld, $"'{GameBootstrap.CombatWorldName}' must exist before checking for TeamRoster.");
+            Assert.IsNotNull(
+                combatWorld.GetComponent<TeamRoster>(),
+                $"CombatWorld root must carry a TeamRoster component so runtime code can discover it via GetComponent<TeamRoster>().");
         }
 
         [Test]

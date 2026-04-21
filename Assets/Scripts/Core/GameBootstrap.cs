@@ -11,6 +11,7 @@ namespace RogueliteAutoBattler.Core
 
         public static Canvas Canvas { get; private set; }
         public static Transform CombatWorld { get; private set; }
+        public static TeamRoster TeamRoster { get; private set; }
         public static NavigationHost NavigationHost { get; private set; }
         public static Camera MainCamera { get; private set; }
 
@@ -23,6 +24,7 @@ namespace RogueliteAutoBattler.Core
 
             var combatWorldGo = GameObject.Find(CombatWorldName);
             CombatWorld = combatWorldGo != null ? combatWorldGo.transform : null;
+            TeamRoster = combatWorldGo != null ? combatWorldGo.GetComponent<TeamRoster>() : null;
 
             ConfigurePhysicsLayers();
 
@@ -50,6 +52,8 @@ namespace RogueliteAutoBattler.Core
         {
             if (CombatWorld == null)
                 Debug.LogError("[GameBootstrap] CombatWorld not found in scene.");
+            if (TeamRoster == null)
+                Debug.LogError("[GameBootstrap] TeamRoster not found on CombatWorld root.");
             if (NavigationHost == null)
                 Debug.LogError("[GameBootstrap] No navigation system found in scene (NavigationHost missing).");
             if (MainCamera == null)
@@ -61,6 +65,7 @@ namespace RogueliteAutoBattler.Core
         {
             Canvas = null;
             CombatWorld = null;
+            TeamRoster = null;
             NavigationHost = null;
             MainCamera = null;
         }

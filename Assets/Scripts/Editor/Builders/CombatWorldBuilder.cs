@@ -18,10 +18,9 @@ namespace RogueliteAutoBattler.Editor
         private const float CameraZPosition = -10f;
         private const float GroundWidth = 200f;
 
-        // Editor-only initial Ground placement (runtime GroundFitter recomputes on Play).
-        private const float EditorGroundX = 95.96f;
-        private const float EditorGroundY = 2.16f;
-        private const float EditorGroundHeight = 6.48f;
+        private const float EditorInitialGroundXOverriddenByGroundFitterAtRuntime = 95.96f;
+        private const float EditorInitialGroundYOverriddenByGroundFitterAtRuntime = 2.16f;
+        private const float EditorInitialGroundHeightOverriddenByGroundFitterAtRuntime = 6.48f;
 
         private const float HomeAnchorWorldOffsetY = 0f;
 
@@ -80,8 +79,11 @@ namespace RogueliteAutoBattler.Editor
             groundRenderer.sprite = CreateOrLoadGridSprite();
             groundRenderer.drawMode = SpriteDrawMode.Tiled;
 
-            groundGo.transform.localPosition = new Vector3(EditorGroundX, EditorGroundY, 0f);
-            groundRenderer.size = new Vector2(GroundWidth, EditorGroundHeight);
+            groundGo.transform.localPosition = new Vector3(
+                EditorInitialGroundXOverriddenByGroundFitterAtRuntime,
+                EditorInitialGroundYOverriddenByGroundFitterAtRuntime,
+                0f);
+            groundRenderer.size = new Vector2(GroundWidth, EditorInitialGroundHeightOverriddenByGroundFitterAtRuntime);
             groundRenderer.sortingLayerName = SortingLayers.Background;
             groundRenderer.sortingOrder = -10;
             groundRenderer.color = Color.white;
@@ -110,6 +112,7 @@ namespace RogueliteAutoBattler.Editor
 
             root.AddComponent<WorldConveyor>();
             root.AddComponent<CombatWorldVisibility>();
+            root.AddComponent<TeamRoster>();
 
             var spawnManager = root.AddComponent<CombatSpawnManager>();
 

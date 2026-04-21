@@ -67,9 +67,10 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             var teamDb = TestCharacterFactory.CreateTeamDatabase(allyCount, allyPrefab);
             var levelDb = TestCharacterFactory.CreateLevelDatabase(enemyCount, enemyPrefab);
 
+            var teamRoster = _combatWorldGo.AddComponent<TeamRoster>();
             _spawnManager = _combatWorldGo.AddComponent<CombatSpawnManager>();
             _spawnManager.enabled = false;
-            _spawnManager.InitializeForTest(teamDb, _teamContainer, _teamHomeAnchor);
+            _spawnManager.InitializeForTest(teamDb, _teamContainer, _teamHomeAnchor, teamRoster);
 
             _levelManager = _combatWorldGo.AddComponent<LevelManager>();
             _levelManager.enabled = false;
@@ -198,6 +199,39 @@ namespace RogueliteAutoBattler.Tests.PlayMode
 
             Assert.IsTrue(_levelManager.LevelInProgress,
                 "LevelInProgress should be true after defeat reset completes.");
+        }
+
+        [UnityTest]
+        public IEnumerator DefeatReset_ReusesSameGameObjectInstances()
+        {
+            CreateFullCombatSetup(allyCount: 2, enemyCount: 1);
+
+            yield return null;
+
+            SpawnInitialAlliesAndWire();
+
+            yield return null;
+
+            var originalAllies = new GameObject[_teamContainer.childCount];
+            for (int i = 0; i < _teamContainer.childCount; i++)
+                originalAllies[i] = _teamContainer.GetChild(i).gameObject;
+
+            KillAllAllies();
+
+            yield return new WaitForSeconds(_levelManager.DefeatResetDelay + 1f);
+
+            Assert.AreEqual(originalAllies.Length, _teamContainer.childCount,
+                "Team container child count should match original count after defeat reset (no re-instantiation).");
+
+            for (int i = 0; i < originalAllies.Length; i++)
+            {
+                Assert.IsNotNull(originalAllies[i],
+                    $"Original ally GameObject at index {i} should not be destroyed.");
+                Assert.IsTrue(originalAllies[i].activeSelf,
+                    $"Original ally GameObject at index {i} should be active after revive.");
+                Assert.AreSame(originalAllies[i], _teamContainer.GetChild(i).gameObject,
+                    $"Team container child {i} should be the same GameObject instance (reused, not reinstantiated).");
+            }
         }
 
         [UnityTest]

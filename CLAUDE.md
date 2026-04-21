@@ -25,7 +25,7 @@
 Doc detaille : `Assets/doc/premier-jet-roguelite.html`
 
 # Project Structure
-Generated: 2026-04-20
+Generated: 2026-04-21
 
 .github/
   workflows/
@@ -90,6 +90,8 @@ Assets/
         StatModifierEntry.cs
         StatType.cs
         TargetFinder.cs
+        TeamMember.cs
+        TeamRoster.cs
         UnitSelectionManager.cs
       Environment/
         GroundFitter.cs
@@ -212,12 +214,14 @@ Assets/
       EditorBuildSettingsSceneTests.cs
       FormationLayoutTests.cs
       GoldFormatterTests.cs
+      NewGameSceneBuilderTests.cs
       ProceduralGroundSpriteTests.cs
       RecalculateFormationTests.cs
       SkillTreeDataTests.cs
       SkillTreeProgressTests.cs
       StatBreakdownDataTests.cs
       TargetFinderTests.cs
+      TeamMemberTests.cs
       ToolkitIScreenTests.cs
       ToolkitNavigationManagerTests.cs
       ToolkitScreenStackTests.cs
@@ -244,6 +248,7 @@ Assets/
       CombatWorldVisibilityNavTests.cs
       DamageNumberServiceTests.cs
       DamageNumberTests.cs
+      DefeatHandlerRosterTests.cs
       FormationRecalculationTests.cs
       GameBootstrapTests.cs
       GoldBadgeControllerTests.cs
@@ -252,6 +257,7 @@ Assets/
       LevelManagerDefeatResetTests.cs
       LevelManagerDefeatTests.cs
       LevelManagerEventTests.cs
+      LevelManagerReviveOnLevelTests.cs
       LevelManagerStepTransitionTests.cs
       LevelManagerTerrainFallbackTests.cs
       LevelManagerTotalLevelsTests.cs
@@ -266,6 +272,7 @@ Assets/
       SkillTreeNodeTests.cs
       SkillTreeScreenTests.cs
       StepProgressBarControllerTests.cs
+      TeamRosterTests.cs
       UnitSelectionManagerTests.cs
       VisualEquipmentTestLoopTests.cs
       WorldConveyorTests.cs

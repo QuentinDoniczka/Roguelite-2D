@@ -45,6 +45,13 @@ namespace RogueliteAutoBattler.Combat.Core
 
         public Vector2 HomeOffset => _homeOffset;
 
+        public Vector3 GetHomePosition()
+        {
+            if (_homeAnchor == null)
+                return transform.position;
+            return _homeAnchor.position + (Vector3)_homeOffset;
+        }
+
         private void Awake()
         {
             _animator = GetComponentInChildren<Animator>();

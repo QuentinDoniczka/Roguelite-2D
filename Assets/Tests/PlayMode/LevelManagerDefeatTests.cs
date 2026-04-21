@@ -1,8 +1,10 @@
 using System.Collections;
+using System.Collections.Generic;
 using NUnit.Framework;
 using RogueliteAutoBattler.Combat.Core;
 using RogueliteAutoBattler.Combat.Environment;
 using RogueliteAutoBattler.Combat.Levels;
+using RogueliteAutoBattler.Data;
 using RogueliteAutoBattler.Tests;
 using UnityEngine;
 using UnityEngine.TestTools;
@@ -13,6 +15,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
     {
         private GameObject _levelManagerGo;
         private LevelManager _levelManager;
+        private TeamRoster _teamRoster;
         private GameObject _teamContainer;
         private GameObject _enemiesContainer;
 
@@ -20,12 +23,24 @@ namespace RogueliteAutoBattler.Tests.PlayMode
         {
             _levelManagerGo = new GameObject("TestLevelManager");
             _levelManagerGo.AddComponent<WorldConveyor>();
+            _teamRoster = _levelManagerGo.AddComponent<TeamRoster>();
             _levelManager = _levelManagerGo.AddComponent<LevelManager>();
             _levelManager.enabled = false;
             Track(_levelManagerGo);
 
             _teamContainer = Track(new GameObject("Team"));
             _enemiesContainer = Track(new GameObject("Enemies"));
+        }
+
+        private TeamMember RegisterMemberFromGameObject(GameObject allyGo, int index)
+        {
+            var spawnData = new AllySpawnData { AllyName = allyGo.name };
+            var member = new TeamMember(index, spawnData)
+            {
+                GameObject = allyGo,
+                Stats = allyGo.GetComponent<CombatStats>()
+            };
+            return member;
         }
 
         [UnityTest]
@@ -42,7 +57,15 @@ namespace RogueliteAutoBattler.Tests.PlayMode
 
             yield return null;
 
-            _levelManager.InitializeForTest(_teamContainer.transform, _enemiesContainer.transform);
+            var members = new List<TeamMember>
+            {
+                RegisterMemberFromGameObject(ally1, 0),
+                RegisterMemberFromGameObject(ally2, 1),
+                RegisterMemberFromGameObject(ally3, 2)
+            };
+            _teamRoster.InitializeForTest(members);
+
+            _levelManager.InitializeForTest(_teamContainer.transform, _enemiesContainer.transform, teamRoster: _teamRoster);
             _levelManager.WireAllyDeathTrackingForTest();
 
             Assert.AreEqual(3, _levelManager.AliveAllyCount,
@@ -61,7 +84,14 @@ namespace RogueliteAutoBattler.Tests.PlayMode
 
             yield return null;
 
-            _levelManager.InitializeForTest(_teamContainer.transform, _enemiesContainer.transform);
+            var members = new List<TeamMember>
+            {
+                RegisterMemberFromGameObject(ally1, 0),
+                RegisterMemberFromGameObject(ally2, 1)
+            };
+            _teamRoster.InitializeForTest(members);
+
+            _levelManager.InitializeForTest(_teamContainer.transform, _enemiesContainer.transform, teamRoster: _teamRoster);
             _levelManager.WireAllyDeathTrackingForTest();
 
             Assert.IsTrue(_levelManager.LevelInProgress, "Sanity: LevelInProgress should be true initially.");
@@ -70,7 +100,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             ally1.GetComponent<CombatStats>().TakeDamage(9999);
 
             LogAssert.Expect(LogType.Log, "[CombatStats] Ally2 died!");
-            LogAssert.Expect(LogType.Log, "[LevelManager] Level lost! All allies defeated.");
+            LogAssert.Expect(LogType.Log, "[DefeatHandler] Level lost! All allies defeated.");
             ally2.GetComponent<CombatStats>().TakeDamage(9999);
 
             yield return null;
@@ -105,14 +135,21 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             enemyCtrl1.Target = ally1.transform;
             enemyCtrl2.Target = ally2.transform;
 
-            _levelManager.InitializeForTest(_teamContainer.transform, _enemiesContainer.transform);
+            var members = new List<TeamMember>
+            {
+                RegisterMemberFromGameObject(ally1, 0),
+                RegisterMemberFromGameObject(ally2, 1)
+            };
+            _teamRoster.InitializeForTest(members);
+
+            _levelManager.InitializeForTest(_teamContainer.transform, _enemiesContainer.transform, teamRoster: _teamRoster);
             _levelManager.WireAllyDeathTrackingForTest();
 
             LogAssert.Expect(LogType.Log, "[CombatStats] Ally1 died!");
             ally1.GetComponent<CombatStats>().TakeDamage(9999);
 
             LogAssert.Expect(LogType.Log, "[CombatStats] Ally2 died!");
-            LogAssert.Expect(LogType.Log, "[LevelManager] Level lost! All allies defeated.");
+            LogAssert.Expect(LogType.Log, "[DefeatHandler] Level lost! All allies defeated.");
             ally2.GetComponent<CombatStats>().TakeDamage(9999);
 
             yield return null;
@@ -140,7 +177,15 @@ namespace RogueliteAutoBattler.Tests.PlayMode
 
             yield return null;
 
-            _levelManager.InitializeForTest(_teamContainer.transform, _enemiesContainer.transform);
+            var members = new List<TeamMember>
+            {
+                RegisterMemberFromGameObject(ally1, 0),
+                RegisterMemberFromGameObject(ally2, 1),
+                RegisterMemberFromGameObject(ally3, 2)
+            };
+            _teamRoster.InitializeForTest(members);
+
+            _levelManager.InitializeForTest(_teamContainer.transform, _enemiesContainer.transform, teamRoster: _teamRoster);
             _levelManager.WireAllyDeathTrackingForTest();
 
             LogAssert.Expect(LogType.Log, "[CombatStats] Ally1 died!");
@@ -185,14 +230,20 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             enemyCtrl1.Target = ally1.transform;
             enemyCtrl2.Target = ally1.transform;
 
-            _levelManager.InitializeForTest(_teamContainer.transform, _enemiesContainer.transform);
+            var members = new List<TeamMember>
+            {
+                RegisterMemberFromGameObject(ally1, 0)
+            };
+            _teamRoster.InitializeForTest(members);
+
+            _levelManager.InitializeForTest(_teamContainer.transform, _enemiesContainer.transform, teamRoster: _teamRoster);
             _levelManager.WireAllyDeathTrackingForTest();
 
             float enemy1StartX = enemy1.transform.position.x;
             float enemy2StartX = enemy2.transform.position.x;
 
             LogAssert.Expect(LogType.Log, "[CombatStats] Ally1 died!");
-            LogAssert.Expect(LogType.Log, "[LevelManager] Level lost! All allies defeated.");
+            LogAssert.Expect(LogType.Log, "[DefeatHandler] Level lost! All allies defeated.");
             ally1.GetComponent<CombatStats>().TakeDamage(9999);
 
             for (int i = 0; i < 20; i++)

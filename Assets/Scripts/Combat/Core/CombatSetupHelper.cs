@@ -40,6 +40,52 @@ namespace RogueliteAutoBattler.Combat.Core
 
         private const float SelectionRadiusMultiplier = 1.2f;
 
+        public static GameObject InstantiateAndAssembleAlly(
+            AllySpawnData data,
+            Transform container,
+            Transform homeAnchor,
+            Vector2 spawnPos,
+            Vector2 homeOffset,
+            float characterScale,
+            out CharacterComponents components)
+        {
+            components = default;
+
+            if (data.Prefab == null)
+            {
+#if UNITY_EDITOR
+                Debug.LogWarning($"[{nameof(CombatSetupHelper)}] Ally '{data.AllyName}' has no prefab assigned.");
+#endif
+                return null;
+            }
+
+            var ally = Object.Instantiate(data.Prefab, new Vector3(spawnPos.x, spawnPos.y, 0f), Quaternion.identity, container);
+            ally.name = data.AllyName;
+            ally.layer = PhysicsLayers.AllyLayer;
+            ally.transform.localScale = new Vector3(-characterScale, characterScale, 1f);
+
+            var setupConfig = new CharacterSetupConfig
+            {
+                MaxHp = data.MaxHp,
+                Atk = data.Atk,
+                AttackSpeed = data.AttackSpeed,
+                RegenHpPerSecond = data.RegenHpPerSecond,
+                MoveSpeed = data.MoveSpeed,
+                HomeAnchor = homeAnchor,
+                HomeOffset = homeOffset,
+                ColliderRadius = data.ColliderRadius,
+                Appearance = data.Appearance,
+                CallerName = nameof(CombatSetupHelper),
+                IsAlly = true,
+                CharacterScale = characterScale
+            };
+
+            components = AssembleCharacter(ally, setupConfig);
+            components.Controller.SetAttackerFacing(true);
+
+            return ally;
+        }
+
         public static CharacterComponents AssembleCharacter(GameObject character, CharacterSetupConfig config)
         {
             float characterScale = config.CharacterScale > 0f ? config.CharacterScale : 1f;

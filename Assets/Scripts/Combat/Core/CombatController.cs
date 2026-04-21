@@ -30,8 +30,11 @@ namespace RogueliteAutoBattler.Combat.Core
         private float _nextAttackTime;
         private bool _waitingForHit;
         private bool _attackerFacesRight;
+        private Coroutine _fadeRoutine;
 
         public CombatState State => _state;
+
+        public bool IsDead => _state == CombatState.Dead || (_stats != null && _stats.IsDead);
 
         public System.Func<Transform> FindNewTarget { get; set; }
 
@@ -144,7 +147,7 @@ namespace RogueliteAutoBattler.Combat.Core
 
                 case CombatState.Dead:
                     EnterInactiveState();
-                    StartCoroutine(FadeOutAndDestroy());
+                    _fadeRoutine = StartCoroutine(FadeOutAndDeactivate());
                     break;
 
                 case CombatState.None:
@@ -194,7 +197,7 @@ namespace RogueliteAutoBattler.Combat.Core
                 _targetStats.OnDied -= HandleTargetDied;
         }
 
-        private IEnumerator FadeOutAndDestroy()
+        private IEnumerator FadeOutAndDeactivate()
         {
             var renderers = GetComponentsInChildren<SpriteRenderer>();
             var startAlphas = new float[renderers.Length];
@@ -217,7 +220,37 @@ namespace RogueliteAutoBattler.Combat.Core
                 yield return null;
             }
 
-            Destroy(gameObject);
+            _fadeRoutine = null;
+            gameObject.SetActive(false);
+        }
+
+        public void ResetFromDeath()
+        {
+            if (_fadeRoutine != null)
+            {
+                StopCoroutine(_fadeRoutine);
+                _fadeRoutine = null;
+            }
+
+            var renderers = GetComponentsInChildren<SpriteRenderer>(includeInactive: true);
+            foreach (var renderer in renderers)
+            {
+                var color = renderer.color;
+                renderer.color = new Color(color.r, color.g, color.b, 1f);
+            }
+
+            _state = CombatState.None;
+            _waitingForHit = false;
+            _nextAttackTime = 0f;
+
+            if (_mover != null)
+                _mover.enabled = true;
+
+            if (_hasAnimator)
+            {
+                _animator.speed = 1f;
+                _animator.Play(AnimHashes.Idle);
+            }
         }
 
         public void Disengage()
