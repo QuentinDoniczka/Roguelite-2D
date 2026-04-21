@@ -26,9 +26,6 @@ namespace RogueliteAutoBattler.Tests.PlayMode
         [UnityTest]
         public IEnumerator Initialize_FindsAllSceneRefs()
         {
-            var canvasGo = Track(new GameObject("UICanvas"));
-            canvasGo.AddComponent<Canvas>();
-
             var combatWorldGo = Track(new GameObject("CombatWorld"));
 
             var camGo = Track(new GameObject("MainCamera"));
@@ -41,7 +38,6 @@ namespace RogueliteAutoBattler.Tests.PlayMode
 
             GameBootstrap.Initialize();
 
-            Assert.IsNotNull(GameBootstrap.Canvas);
             Assert.IsNotNull(GameBootstrap.CombatWorld);
             Assert.AreEqual(combatWorldGo.transform, GameBootstrap.CombatWorld);
             Assert.IsNotNull(GameBootstrap.MainCamera);
@@ -50,9 +46,6 @@ namespace RogueliteAutoBattler.Tests.PlayMode
         [UnityTest]
         public IEnumerator Initialize_MissingCombatWorld_LogsError()
         {
-            var canvasGo = Track(new GameObject("UICanvas"));
-            canvasGo.AddComponent<Canvas>();
-
             var camGo = Track(new GameObject("MainCamera"));
             var cam = camGo.AddComponent<Camera>();
             cam.tag = "MainCamera";
@@ -66,7 +59,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
         }
 
         [UnityTest]
-        public IEnumerator Initialize_NoCanvas_StillValidatesRefs()
+        public IEnumerator Initialize_NoSceneRefs_ValidatesAllMissingRefs()
         {
             yield return null;
 
@@ -77,14 +70,13 @@ namespace RogueliteAutoBattler.Tests.PlayMode
 
             GameBootstrap.Initialize();
 
-            Assert.IsNull(GameBootstrap.Canvas);
+            Assert.IsNull(GameBootstrap.CombatWorld);
+            Assert.IsNull(GameBootstrap.MainCamera);
         }
 
         [UnityTest]
         public IEnumerator ResetForTest_ClearsAllRefs()
         {
-            var canvasGo = Track(new GameObject("UICanvas"));
-            canvasGo.AddComponent<Canvas>();
             Track(new GameObject("CombatWorld"));
 
             var camGo = Track(new GameObject("MainCamera"));
@@ -96,11 +88,10 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             LogAssert.Expect(LogType.Error, new Regex("navigation system"));
 
             GameBootstrap.Initialize();
-            Assert.IsNotNull(GameBootstrap.Canvas);
+            Assert.IsNotNull(GameBootstrap.CombatWorld);
 
             GameBootstrap.ResetForTest();
 
-            Assert.IsNull(GameBootstrap.Canvas);
             Assert.IsNull(GameBootstrap.CombatWorld);
             Assert.IsNull(GameBootstrap.NavigationHost);
             Assert.IsNull(GameBootstrap.MainCamera);
@@ -109,9 +100,6 @@ namespace RogueliteAutoBattler.Tests.PlayMode
         [UnityTest]
         public IEnumerator Initialize_SetsTeamRoster_WhenCombatWorldHasComponent()
         {
-            var canvasGo = Track(new GameObject("UICanvas"));
-            canvasGo.AddComponent<Canvas>();
-
             var combatWorldGo = Track(new GameObject("CombatWorld"));
             var expectedRoster = combatWorldGo.AddComponent<TeamRoster>();
 
@@ -131,9 +119,6 @@ namespace RogueliteAutoBattler.Tests.PlayMode
         [UnityTest]
         public IEnumerator Initialize_LogsError_WhenCombatWorldLacksTeamRoster()
         {
-            var canvasGo = Track(new GameObject("UICanvas"));
-            canvasGo.AddComponent<Canvas>();
-
             Track(new GameObject("CombatWorld"));
 
             var camGo = Track(new GameObject("MainCamera"));
@@ -152,9 +137,6 @@ namespace RogueliteAutoBattler.Tests.PlayMode
         [UnityTest]
         public IEnumerator ResetForTest_ClearsTeamRoster()
         {
-            var canvasGo = Track(new GameObject("UICanvas"));
-            canvasGo.AddComponent<Canvas>();
-
             var combatWorldGo = Track(new GameObject("CombatWorld"));
             combatWorldGo.AddComponent<TeamRoster>();
 

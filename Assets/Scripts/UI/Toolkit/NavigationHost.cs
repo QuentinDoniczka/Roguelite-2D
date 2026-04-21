@@ -1,4 +1,3 @@
-using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UIElements;
@@ -51,7 +50,11 @@ namespace RogueliteAutoBattler.UI.Toolkit
                 return;
             }
 
-            VisualElement root = _uiDocument.rootVisualElement;
+            BuildNavigation(_uiDocument.rootVisualElement);
+        }
+
+        internal void BuildNavigation(VisualElement root)
+        {
             if (root == null)
             {
                 Debug.LogWarning("[NavigationHost] UIDocument rootVisualElement is null.");

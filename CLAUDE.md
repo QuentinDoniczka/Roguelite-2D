@@ -34,7 +34,7 @@ Generated: 2026-04-21
 
 Assets/
   Animations/  (24 files: .anim + .controller)
-  Audio/  (empty)
+  Audio/  (1 file)
   Data/
     Adventurers/  (empty)
     Buildings/  (empty)
@@ -121,7 +121,6 @@ Assets/
       SortingLayers.cs
       StaticPool.cs
     Core/
-      CanvasFactory.cs
       GameBootstrap.cs
     Economy/
       GoldFormatter.cs
@@ -160,8 +159,6 @@ Assets/
       Core/
         UIScreen.cs  (deferred to #206 — still inherited by SkillTreeScreen)
       Screens/
-        Combat/
-          DamageNumberSettingsPanel.cs  (deferred to #206)
         SkillTree/  (5 files, deferred to #206)
           SkillTreeDetailPanel.cs
           SkillTreeInputHandler.cs
@@ -194,12 +191,7 @@ Assets/
   Sprites/
     Characters/  (156 files)
     Effects/  (25 files)
-    Environment/
-      backgroundtest.png
-      grid_ground.png
-      grid_ground_blue.png
-      map.png
-      placeholder_white.png
+    Environment/  (6 files)
     Items/  (54 files)
     UI/  (2 files)
   Tests/
