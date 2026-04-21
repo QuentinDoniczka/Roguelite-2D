@@ -1,6 +1,6 @@
 ---
 name: review-unity
-description: Use this agent to audit Unity 2D project structure and file placement — detects misplaced scripts, wrong folder conventions, namespace mismatches, 3D/2D confusion, client/server boundary issues, and structural incoherence. Give it a path to review.
+description: Use this agent for a FULL-PROJECT structure audit (entire Assets/ tree or a given subfolder) — not for per-commit reviews. Detects misplaced scripts, wrong folder conventions, namespace mismatches, 3D/2D confusion, client/server boundary issues, structural incoherence, orphaned assets. For diff-scoped structure audits on a single feature, use review-structure-unity instead. Invoked manually on explicit user request, outside the main lead-roguelite chain.
 tools: [Read, Glob, Grep]
 model: opus
 color: yellow
