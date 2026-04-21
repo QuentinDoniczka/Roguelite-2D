@@ -159,11 +159,12 @@ Delegue a `test-play-unity` pour ecrire un test Play Mode qui valide le comporte
 
 Delegue a `test-play-unity` pour lancer le test via Unity CLI batch mode.
 
-A ce stade le code de prod est volontairement **non committe** (on commite seulement apres que les tests passent). `test-play-unity` supporte deux modes :
-- **Mode A (worktree)** : utilise si la branche est deja poussee sur origin et sync-able.
-- **Mode B (main workspace)** : utilise si le code est non committe / non pousse — l'agent auto-detecte via `git rev-parse HEAD` vs `origin/<branch>` et `git status --porcelain`, sans modifier l'etat git.
+`test-play-unity` supporte deux modes, mais **Mode A est le default absolu** :
 
-Tu peux passer un hint explicite ("utilise Mode B, le code est non committe sur la branche volontairement") pour eviter un aller-retour inutile. Prerequis Mode B : l'Unity Editor doit etre ferme sur le workspace principal (sinon batch-mode echoue sur le lock Library/). Si l'editor est ouvert, demande a l'utilisateur de le fermer ou bascule en Mode A apres un push.
+- **Mode A (worktree, DEFAULT)** : l'agent inspecte l'etat git, **auto-push** la branche si elle est clean mais non pushee, puis sync le worktree et lance les tests. Si le working tree est **dirty**, l'agent STOP et te demande de commiter (il ne commite JAMAIS a ta place).
+- **Mode B (main workspace, fallback rare)** : utilise seulement si tu passes un hint explicite comme "utilise Mode B, le code est non committe volontairement". Prerequis : Unity Editor ferme sur le workspace principal. **Ne demande JAMAIS a l'utilisateur de fermer Unity** — c'est une friction inacceptable. Si l'Editor est ouvert et que tu as demande Mode B, l'agent va echouer et te dire de re-invoquer en Mode A.
+
+**Implication pour ton workflow 4c** : avant de deleguer a `test-play-unity`, commite les changements de la sous-tache sur la branche courante (sans push — l'agent pushera tout seul). Si tu ne veux pas commiter encore, passe le hint Mode B ET verifie que Unity Editor est ferme. Dans 99% des cas, commiter puis Mode A est la bonne voie.
 
 - **Si le test passe** → la sous-tache est validee, passer a la suivante
 - **Si le test echoue** → debugger et corriger le code, JAMAIS le test. Si l'agent pense que le test est obsolete/faux, il doit expliquer pourquoi et attendre la validation utilisateur avant de modifier le test. Relancer jusqu'a ce que ca passe.
