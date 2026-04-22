@@ -34,11 +34,14 @@ namespace RogueliteAutoBattler.UI.Toolkit.SkillTree
 
         protected override void RegisterCallbacksOnTarget()
         {
+            target.focusable = true;
             target.RegisterCallback<PointerDownEvent>(OnPointerDown);
             target.RegisterCallback<PointerMoveEvent>(OnPointerMove);
             target.RegisterCallback<PointerUpEvent>(OnPointerUp);
             target.RegisterCallback<PointerCancelEvent>(OnPointerCancel);
             target.RegisterCallback<WheelEvent>(OnWheel);
+            target.RegisterCallback<KeyDownEvent>(OnKeyDown);
+            target.RegisterCallback<PointerEnterEvent>(OnPointerEnter);
         }
 
         protected override void UnregisterCallbacksFromTarget()
@@ -48,6 +51,8 @@ namespace RogueliteAutoBattler.UI.Toolkit.SkillTree
             target.UnregisterCallback<PointerUpEvent>(OnPointerUp);
             target.UnregisterCallback<PointerCancelEvent>(OnPointerCancel);
             target.UnregisterCallback<WheelEvent>(OnWheel);
+            target.UnregisterCallback<KeyDownEvent>(OnKeyDown);
+            target.UnregisterCallback<PointerEnterEvent>(OnPointerEnter);
         }
 
         private void OnPointerDown(PointerDownEvent evt)
@@ -124,6 +129,39 @@ namespace RogueliteAutoBattler.UI.Toolkit.SkillTree
             float zoomDelta = -evt.delta.y * WheelZoomStep;
             SetContentScale(Mathf.Clamp(CurrentZoom + zoomDelta, MinimumZoom, MaximumZoom));
             evt.StopPropagation();
+        }
+
+        private void OnPointerEnter(PointerEnterEvent evt)
+        {
+            target.Focus();
+        }
+
+        private void OnKeyDown(KeyDownEvent evt)
+        {
+            bool isZoomIn = evt.keyCode == KeyCode.Plus
+                || evt.keyCode == KeyCode.Equals
+                || evt.keyCode == KeyCode.KeypadPlus
+                || evt.character == '+';
+
+            bool isZoomOut = evt.keyCode == KeyCode.Minus
+                || evt.keyCode == KeyCode.KeypadMinus
+                || evt.character == '-';
+
+            if (isZoomIn)
+            {
+                ApplyKeyboardZoom(WheelZoomStep);
+                evt.StopPropagation();
+            }
+            else if (isZoomOut)
+            {
+                ApplyKeyboardZoom(-WheelZoomStep);
+                evt.StopPropagation();
+            }
+        }
+
+        private void ApplyKeyboardZoom(float zoomDelta)
+        {
+            SetContentScale(Mathf.Clamp(CurrentZoom + zoomDelta, MinimumZoom, MaximumZoom));
         }
 
         private void ResetPanTrackingToSingleRemainingPointer()

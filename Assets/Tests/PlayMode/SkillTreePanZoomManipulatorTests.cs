@@ -165,6 +165,34 @@ namespace RogueliteAutoBattler.Tests.PlayMode
                 "A movement well above ClickVersusDragThresholdPixels must be flagged as a drag after pointer-up.");
         }
 
+        [UnityTest]
+        public IEnumerator KeyboardZoomIn_IncreasesZoom()
+        {
+            yield return SetUpHierarchy();
+            if (_viewport == null) yield break;
+
+            float zoomBefore = _manipulator.CurrentZoom;
+            SendKeyDownEvent(KeyCode.Equals);
+            yield return null;
+
+            Assert.AreEqual(zoomBefore + WheelZoomStep, _manipulator.CurrentZoom, ZoomToleranceUnits,
+                "Pressing Equals key must increase CurrentZoom by exactly WheelZoomStep.");
+        }
+
+        [UnityTest]
+        public IEnumerator KeyboardZoomOut_DecreasesZoom()
+        {
+            yield return SetUpHierarchy();
+            if (_viewport == null) yield break;
+
+            float zoomBefore = _manipulator.CurrentZoom;
+            SendKeyDownEvent(KeyCode.Minus);
+            yield return null;
+
+            Assert.AreEqual(zoomBefore - WheelZoomStep, _manipulator.CurrentZoom, ZoomToleranceUnits,
+                "Pressing Minus key must decrease CurrentZoom by exactly WheelZoomStep.");
+        }
+
         private IEnumerator SetUpHierarchy()
         {
             yield return null;
@@ -237,6 +265,15 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             SetEventProperty(evt, "localPosition", position3);
             SetEventProperty(evt, "pointerId", pointerId);
             evt.target = _viewport;
+        }
+
+        private void SendKeyDownEvent(KeyCode keyCode)
+        {
+            using (var evt = KeyDownEvent.GetPooled('\0', keyCode, EventModifiers.None))
+            {
+                evt.target = _viewport;
+                _viewport.SendEvent(evt);
+            }
         }
 
         private static void SetEventProperty(EventBase evt, string propertyName, object value)
