@@ -414,3 +414,38 @@
     color: rgb(140, 210, 255);
     white-space: normal;
 }
+
+.skill-tree-viewport {
+    flex-grow: 1;
+    overflow: hidden;
+    position: relative;
+}
+
+.skill-tree-content {
+    position: absolute;
+    left: 0;
+    top: 0;
+}
+
+.skill-tree-edge-layer {
+    position: absolute;
+    left: 0;
+    top: 0;
+}
+
+.skill-tree-nodes-layer {
+    position: absolute;
+    left: 0;
+    top: 0;
+}
+
+.skill-tree-detail-panel {
+    position: absolute;
+    right: 16px;
+    top: 16px;
+    width: 320px;
+}
+
+.skill-tree-detail-panel.hidden {
+    display: none;
+}
