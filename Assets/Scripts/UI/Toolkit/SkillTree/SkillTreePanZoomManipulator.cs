@@ -10,6 +10,8 @@ namespace RogueliteAutoBattler.UI.Toolkit.SkillTree
         private const float MaximumZoom = 2.5f;
         private const float WheelZoomStep = 0.1f;
         private const float ClickVersusDragThresholdPixels = 8f;
+        private const float TwoDimensionalZ = 0f;
+        private const float TwoDimensionalScaleZ = 1f;
 
         private readonly VisualElement _contentTarget;
         private readonly Dictionary<int, Vector2> _activePointerPositionsByPointerId = new();
@@ -82,7 +84,7 @@ namespace RogueliteAutoBattler.UI.Toolkit.SkillTree
                     _clickVsDragExceededThisGesture = true;
 
                 Vector2 panDelta = (Vector2)evt.position - _initialPanPointerPosition;
-                _contentTarget.transform.position = _initialPanContentPosition + new Vector3(panDelta.x, panDelta.y, 0f);
+                _contentTarget.transform.position = _initialPanContentPosition + new Vector3(panDelta.x, panDelta.y, TwoDimensionalZ);
             }
             else if (_activePointerPositionsByPointerId.Count == 2)
             {
@@ -158,7 +160,7 @@ namespace RogueliteAutoBattler.UI.Toolkit.SkillTree
         private void SetContentScale(float newScale)
         {
             CurrentZoom = newScale;
-            _contentTarget.transform.scale = new Vector3(newScale, newScale, 1f);
+            _contentTarget.transform.scale = new Vector3(newScale, newScale, TwoDimensionalScaleZ);
         }
     }
 }

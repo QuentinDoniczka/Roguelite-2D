@@ -8,12 +8,13 @@ namespace RogueliteAutoBattler.UI.Toolkit.SkillTree
     {
         private const string LayerClassName = "skill-tree-edge-layer";
         private const float DefaultEdgeThickness = 3f;
+        private const float DefaultUnitToPixelScale = 1f;
 
         private static readonly Color EdgeColorInactive = new Color(0.3f, 0.3f, 0.3f, 0.6f);
         private static readonly Color EdgeColorActive = new Color(0.6f, 0.85f, 0.3f, 1f);
 
         private readonly List<EdgeSpec> _edges = new();
-        private float _unitToPixelScale = 1f;
+        private float _unitToPixelScale = DefaultUnitToPixelScale;
         private float _edgeThickness = DefaultEdgeThickness;
 
         public SkillTreeEdgeLayer()
@@ -28,18 +29,17 @@ namespace RogueliteAutoBattler.UI.Toolkit.SkillTree
         public void SetEdges(
             IReadOnlyList<(int fromId, int toId)> edges,
             IReadOnlyList<Vector2> nodePositionsByIndex,
-            IReadOnlyList<int> nodeIds,
+            IReadOnlyDictionary<int, int> idToIndexMap,
             IReadOnlyList<SkillTreeNodeVisualState> nodeStatesByIndex,
             float unitToPixelScale,
             float edgeThickness = DefaultEdgeThickness)
         {
             _edges.Clear();
-            var idToIndex = BuildIdToIndexMap(nodeIds);
             for (var i = 0; i < edges.Count; i++)
             {
                 var (fromId, toId) = edges[i];
-                if (!idToIndex.TryGetValue(fromId, out var fromIndex)) continue;
-                if (!idToIndex.TryGetValue(toId, out var toIndex)) continue;
+                if (!idToIndexMap.TryGetValue(fromId, out var fromIndex)) continue;
+                if (!idToIndexMap.TryGetValue(toId, out var toIndex)) continue;
                 _edges.Add(new EdgeSpec
                 {
                     From = nodePositionsByIndex[fromIndex],
@@ -50,14 +50,6 @@ namespace RogueliteAutoBattler.UI.Toolkit.SkillTree
             _unitToPixelScale = unitToPixelScale;
             _edgeThickness = edgeThickness;
             MarkDirtyRepaint();
-        }
-
-        private static Dictionary<int, int> BuildIdToIndexMap(IReadOnlyList<int> nodeIds)
-        {
-            var map = new Dictionary<int, int>(nodeIds.Count);
-            for (var i = 0; i < nodeIds.Count; i++)
-                map[nodeIds[i]] = i;
-            return map;
         }
 
         private static bool IsEdgeActive(SkillTreeNodeVisualState a, SkillTreeNodeVisualState b)

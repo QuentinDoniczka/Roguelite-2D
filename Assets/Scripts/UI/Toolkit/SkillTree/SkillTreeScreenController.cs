@@ -32,9 +32,12 @@ namespace RogueliteAutoBattler.UI.Toolkit.SkillTree
         [SerializeField] private SkillPointWallet _skillPointWallet;
 
         private readonly List<SkillTreeNodeElement> _nodeElements = new();
+        private readonly List<Vector2> _positionsCache = new();
+        private readonly List<SkillTreeNodeVisualState> _statesCache = new();
         private SkillTreeEdgeLayer _edgeLayer;
         private SkillTreeDetailPanelController _detailController;
         private SkillTreePanZoomManipulator _panZoomManipulator;
+        private SkillTreeStateEvaluator _stateEvaluator;
         private int _selectedNodeIndex = NoSelectedNodeIndex;
 
         public IReadOnlyList<SkillTreeNodeElement> NodeElements => _nodeElements;
@@ -88,6 +91,8 @@ namespace RogueliteAutoBattler.UI.Toolkit.SkillTree
                 return;
             }
 
+            _stateEvaluator = new SkillTreeStateEvaluator(_data, _progress);
+
             SpawnNodes(nodesLayer);
             ReplaceEdgeLayerElement(content, edgeLayerElement);
             RefreshAllNodeStates();
@@ -129,68 +134,22 @@ namespace RogueliteAutoBattler.UI.Toolkit.SkillTree
         {
             for (var i = 0; i < _nodeElements.Count; i++)
             {
-                _nodeElements[i].SetState(ComputeNodeState(i));
+                _nodeElements[i].SetState(_stateEvaluator.GetState(i));
             }
-        }
-
-        private SkillTreeNodeVisualState ComputeNodeState(int nodeIndex)
-        {
-            var currentLevel = _progress.GetLevel(nodeIndex);
-            var node = _data.Nodes[nodeIndex];
-            if (SkillTreeData.IsMaxLevel(node, currentLevel))
-            {
-                return SkillTreeNodeVisualState.Max;
-            }
-            if (currentLevel > 0)
-            {
-                return SkillTreeNodeVisualState.Purchased;
-            }
-            return HasUnlockedPrerequisite(nodeIndex)
-                ? SkillTreeNodeVisualState.Available
-                : SkillTreeNodeVisualState.Locked;
-        }
-
-        private bool HasUnlockedPrerequisite(int nodeIndex)
-        {
-            var node = _data.Nodes[nodeIndex];
-            for (var i = 0; i < node.connectedNodeIds.Count; i++)
-            {
-                var connectedId = node.connectedNodeIds[i];
-                var connectedIndex = FindIndexById(connectedId);
-                if (connectedIndex >= 0 && _progress.GetLevel(connectedIndex) > 0)
-                {
-                    return true;
-                }
-            }
-            return node.connectedNodeIds.Count == 0;
-        }
-
-        private int FindIndexById(int nodeId)
-        {
-            for (var i = 0; i < _data.Nodes.Count; i++)
-            {
-                if (_data.Nodes[i].id == nodeId)
-                {
-                    return i;
-                }
-            }
-            return -1;
         }
 
         private void RefreshEdgeLayer()
         {
             if (_edgeLayer == null) return;
             var edges = _data.GetEdges();
-            var positions = new List<Vector2>(_data.Nodes.Count);
-            var ids = new List<int>(_data.Nodes.Count);
-            var states = new List<SkillTreeNodeVisualState>(_data.Nodes.Count);
+            _positionsCache.Clear();
+            _statesCache.Clear();
             for (var i = 0; i < _data.Nodes.Count; i++)
             {
-                positions.Add(_data.Nodes[i].position);
-                ids.Add(_data.Nodes[i].id);
-                states.Add(ComputeNodeState(i));
+                _positionsCache.Add(_data.Nodes[i].position);
+                _statesCache.Add(_stateEvaluator.GetState(i));
             }
-            _edgeLayer.SetEdges(edges, positions, ids, states, UnitToPixelScale);
+            _edgeLayer.SetEdges(edges, _positionsCache, _stateEvaluator.IdToIndexMap, _statesCache, UnitToPixelScale);
         }
 
         private void HandleNodeClicked(int nodeIndex)

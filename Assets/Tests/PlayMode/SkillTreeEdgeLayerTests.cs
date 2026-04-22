@@ -19,7 +19,13 @@ namespace RogueliteAutoBattler.Tests.PlayMode
         private static IReadOnlyList<(int fromId, int toId)> BuildEdgeList(params (int fromId, int toId)[] edges)
             => edges;
 
-        private static IReadOnlyList<int> BuildNodeIdList(params int[] ids) => ids;
+        private static IReadOnlyDictionary<int, int> BuildIdToIndexMap(params int[] ids)
+        {
+            var map = new Dictionary<int, int>(ids.Length);
+            for (var i = 0; i < ids.Length; i++)
+                map[ids[i]] = i;
+            return map;
+        }
 
         private static IReadOnlyList<Vector2> BuildNodePositionsByIndex(int count)
         {
@@ -65,7 +71,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
         public void SetEdges_PopulatesEdgeCount()
         {
             var edgeLayer = new SkillTreeEdgeLayer();
-            var nodeIds = BuildNodeIdList(1, 2, 3, 4);
+            var nodeIds = BuildIdToIndexMap(1, 2, 3, 4);
             var nodePositionsByIndex = BuildNodePositionsByIndex(4);
             var nodeStatesByIndex = BuildDefaultStates(4);
             var edges = BuildEdgeList((1, 2), (2, 3), (3, 4));
@@ -80,7 +86,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
         public void SetEdges_Clears_PreviousEdges()
         {
             var edgeLayer = new SkillTreeEdgeLayer();
-            var nodeIds = BuildNodeIdList(1, 2, 3, 4);
+            var nodeIds = BuildIdToIndexMap(1, 2, 3, 4);
             var nodePositionsByIndex = BuildNodePositionsByIndex(4);
             var nodeStatesByIndex = BuildDefaultStates(4);
 
@@ -95,7 +101,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
         public void SetEdges_Empty_ClearsEdges()
         {
             var edgeLayer = new SkillTreeEdgeLayer();
-            var nodeIds = BuildNodeIdList(1, 2, 3, 4);
+            var nodeIds = BuildIdToIndexMap(1, 2, 3, 4);
             var nodePositionsByIndex = BuildNodePositionsByIndex(4);
             var nodeStatesByIndex = BuildDefaultStates(4);
 
@@ -110,7 +116,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
         public void SetEdges_ResolvesIdsToIndices()
         {
             var edgeLayer = new SkillTreeEdgeLayer();
-            var nodeIdsWithNonSequentialValues = BuildNodeIdList(5, 7, 9);
+            var nodeIdsWithNonSequentialValues = BuildIdToIndexMap(5, 7, 9);
             var nodePositionsByIndex = BuildNodePositionsByIndex(3);
             var nodeStatesByIndex = BuildDefaultStates(3);
             var edgesReferencingIdsNotIndices = BuildEdgeList((5, 7), (7, 9));
@@ -131,7 +137,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
         public void SetEdges_WithUnknownId_SilentlySkips_AndEdgeCountIsZero()
         {
             var edgeLayer = new SkillTreeEdgeLayer();
-            var nodeIds = BuildNodeIdList(1, 2, 3);
+            var nodeIds = BuildIdToIndexMap(1, 2, 3);
             var nodePositionsByIndex = BuildNodePositionsByIndex(3);
             var nodeStatesByIndex = BuildDefaultStates(3);
             var edgesWithUnknownIds = BuildEdgeList((1, 999), (888, 2));
@@ -181,7 +187,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             edgeLayer.style.height = 1920;
             root.Add(edgeLayer);
 
-            var nodeIds = BuildNodeIdList(1, 2, 3);
+            var nodeIds = BuildIdToIndexMap(1, 2, 3);
             var nodePositionsByIndex = BuildNodePositionsByIndex(3);
             var nodeStatesByIndex = new[]
             {
