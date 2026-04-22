@@ -111,8 +111,7 @@ namespace RogueliteAutoBattler.UI.Toolkit.SkillTree
             {
                 var nodeElement = new SkillTreeNodeElement(i);
                 nodeElement.SetDataPosition(_data.Nodes[i].position, UnitToPixelScale);
-                var capturedIndex = i;
-                nodeElement.Clicked += index => HandleNodeClicked(capturedIndex);
+                nodeElement.Clicked += HandleNodeClicked;
                 nodesLayer.Add(nodeElement);
                 _nodeElements.Add(nodeElement);
             }
@@ -217,7 +216,7 @@ namespace RogueliteAutoBattler.UI.Toolkit.SkillTree
             }
         }
 
-        private void OnNodeUpgraded(int nodeIndex)
+        private void OnNodeUpgraded(int _)
         {
             RefreshAllNodeStates();
             RefreshEdgeLayer();

@@ -104,7 +104,7 @@ namespace RogueliteAutoBattler.UI.Toolkit.SkillTree
         private static string FormatCostLabel(int cost, SkillTreeData.CostType costType)
             => costType == SkillTreeData.CostType.Gold ? $"{cost} Gold" : $"{cost} SP";
 
-        private void OnUpgradeClicked(ClickEvent evt)
+        private void OnUpgradeClicked(ClickEvent _)
         {
             if (!_isShowing || _currentNodeIndex < 0)
             {
@@ -134,7 +134,7 @@ namespace RogueliteAutoBattler.UI.Toolkit.SkillTree
             Refresh();
         }
 
-        private void OnCloseClicked(ClickEvent evt)
+        private void OnCloseClicked(ClickEvent _)
         {
             Closed?.Invoke();
             Hide();

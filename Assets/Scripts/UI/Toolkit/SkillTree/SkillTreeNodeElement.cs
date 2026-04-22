@@ -73,6 +73,6 @@ namespace RogueliteAutoBattler.UI.Toolkit.SkillTree
             style.top = new StyleLength(new Length(dataPosition.y * unitToPixelScale - NodeHalfSize, LengthUnit.Pixel));
         }
 
-        private void OnClick(ClickEvent evt) => Clicked?.Invoke(NodeIndex);
+        private void OnClick(ClickEvent _) => Clicked?.Invoke(NodeIndex);
     }
 }
