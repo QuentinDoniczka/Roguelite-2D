@@ -25,7 +25,7 @@
 Doc detaille : `Assets/doc/premier-jet-roguelite.html`
 
 # Project Structure
-Generated: 2026-04-21
+Generated: 2026-04-22
 
 .github/
   workflows/
@@ -33,7 +33,7 @@ Generated: 2026-04-21
     protect-main.yml
 
 Assets/
-  Animations/  (24 files: .anim + .controller)
+  Animations/  (23 files)
   Audio/  (1 file)
   Data/
     Adventurers/  (empty)
@@ -46,7 +46,7 @@ Assets/
     SkillTreeProgress.asset
     TeamDatabase.asset
   doc/
-    MedievalFantasyCharacters/  (14 files)
+    MedievalFantasyCharacters/  (28 files)
     architecture-ui.md
     combat.jpeg
     exemple_HUD.jpg
@@ -63,7 +63,7 @@ Assets/
   Fonts/
     Bangers SDF.asset
     Bangers.ttf
-  Materials/  (1 file)
+  Materials/  (2 files)
   MedievalFantasyCharacters/  (empty)
   Prefabs/
     Characters/  (5 prefabs: Elk, Horse, Wildboar, Wolf, sampleCharacterHuman)
@@ -136,7 +136,7 @@ Assets/
         NavigationHostBuilder.cs
         NewGameSceneBuilder.cs
         RoundedRectSpriteGenerator.cs
-        SkillTreeBuilder.cs
+        SkillTreeScreenBuilder.cs
         WalletsBuilder.cs
       Windows/
         GameDesignerWindow.cs
@@ -156,15 +156,6 @@ Assets/
     Services/
       Local/  (empty)
     UI/
-      Core/
-        UIScreen.cs  (deferred to #206 — still inherited by SkillTreeScreen)
-      Screens/
-        SkillTree/  (5 files, deferred to #206)
-          SkillTreeDetailPanel.cs
-          SkillTreeInputHandler.cs
-          SkillTreeNode.cs
-          SkillTreeNodeManager.cs
-          SkillTreeScreen.cs
       Toolkit/
         AllyStatsPanelController.cs
         BattleIndicatorController.cs
@@ -175,6 +166,13 @@ Assets/
         NavigationManager.cs
         ScreenStack.cs
         StepProgressBarController.cs
+        SkillTree/
+          SkillTreeDetailPanelController.cs
+          SkillTreeEdgeLayer.cs
+          SkillTreeNodeElement.cs
+          SkillTreePanZoomManipulator.cs
+          SkillTreeScreenController.cs
+          SkillTreeStateEvaluator.cs
     Village/  (empty)
   Settings/
     DefaultVolumeProfile.asset
@@ -183,17 +181,17 @@ Assets/
     Renderer2D.asset
     Scenes/
       URP2DSceneTemplate.unity
-    UniversalRenderPipelineGlobalSettings.asset
     UniversalRP.asset
+    UniversalRenderPipelineGlobalSettings.asset
   Shaders/
     SpriteOutline2D.shader
     SpriteSilhouette2D.shader
   Sprites/
-    Characters/  (156 files)
-    Effects/  (25 files)
-    Environment/  (6 files)
-    Items/  (54 files)
-    UI/  (2 files)
+    Characters/  (345 files)
+    Effects/  (55 files)
+    Environment/  (11 files)
+    Items/  (116 files)
+    UI/  (3 files)
   Tests/
     EditMode/
       Tests.EditMode.asmdef
@@ -211,6 +209,7 @@ Assets/
       RecalculateFormationTests.cs
       SkillTreeDataTests.cs
       SkillTreeProgressTests.cs
+      SkillTreeScreenBuilderTests.cs
       StatBreakdownDataTests.cs
       TargetFinderTests.cs
       TeamMemberTests.cs
@@ -227,7 +226,6 @@ Assets/
       AllyStatsPanelScalingTests.cs
       AnimationEventRelayTests.cs
       BattleIndicatorControllerTests.cs
-      CanvasFactoryTests.cs
       CharacterAppearanceTests.cs
       CharacterMoverTests.cs
       CoinFlyServiceTests.cs
@@ -258,17 +256,19 @@ Assets/
       ScreenAnchorTests.cs
       SelectionOutlineTests.cs
       SkillPointWalletTests.cs
-      SkillTreeDetailPanelTests.cs
-      SkillTreeInputHandlerTests.cs
-      SkillTreeNodeManagerTests.cs
-      SkillTreeNodeTests.cs
-      SkillTreeScreenTests.cs
+      SkillTreeDetailPanelControllerTests.cs
+      SkillTreeEdgeLayerTests.cs
+      SkillTreeLayoutTests.cs
+      SkillTreeNodeElementTests.cs
+      SkillTreeNodeStateStylesTests.cs
+      SkillTreePanZoomManipulatorTests.cs
+      SkillTreeScreenControllerTests.cs
       StepProgressBarControllerTests.cs
       TeamRosterTests.cs
       UnitSelectionManagerTests.cs
       VisualEquipmentTestLoopTests.cs
       WorldConveyorTests.cs
-  TextMesh Pro/  (173 files -- TMP package: fonts, shaders, examples)
+  TextMesh Pro/  (366 files -- TMP package: fonts, shaders, examples)
   UI/
     Layouts/
       MainLayout.uxml
