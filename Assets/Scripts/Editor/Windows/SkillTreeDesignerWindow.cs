@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using RogueliteAutoBattler.Data;
-using RogueliteAutoBattler.UI.Screens.SkillTree;
 using UnityEditor;
 using UnityEngine;
 
@@ -317,13 +316,6 @@ namespace RogueliteAutoBattler.Editor
 
             EditorGUILayout.Space(8);
 
-            if (GUILayout.Button("Apply to Scene", GUILayout.Height(30)))
-            {
-                ApplyToScene();
-            }
-
-            EditorGUILayout.Space(8);
-
             EditorGUILayout.HelpBox($"{_data.Nodes.Count} nodes generated.", MessageType.Info);
         }
 
@@ -387,30 +379,6 @@ namespace RogueliteAutoBattler.Editor
             }
             if (node.maxLevel == 0)
                 EditorGUILayout.LabelField("  ...", "(unlimited)");
-        }
-
-        private void ApplyToScene()
-        {
-            var managers = FindObjectsByType<SkillTreeNodeManager>(FindObjectsSortMode.None);
-            if (managers.Length == 0)
-            {
-                Debug.LogWarning("[SkillTreeDesigner] No SkillTreeNodeManager found in the scene. Run the scene builder first.");
-                return;
-            }
-
-            var manager = managers[0];
-            manager.ClearNodes();
-
-            var managerSO = new SerializedObject(manager);
-            EditorUIFactory.SetObj(managerSO, "_data", _data);
-            EditorUIFactory.SetColor(managerSO, "_edgeColor", _data.EdgeColor);
-            EditorUIFactory.SetFloat(managerSO, "_edgeThickness", _data.EdgeThickness);
-            managerSO.ApplyModifiedProperties();
-
-            manager.Initialize();
-            EditorUtility.SetDirty(manager);
-
-            Debug.Log($"[SkillTreeDesigner] Applied {_data.Nodes.Count} nodes to scene SkillTreeNodeManager.");
         }
 
         internal static int HitTestNode(Vector2 mousePos, Vector2 origin, IReadOnlyList<SkillTreeData.SkillNodeEntry> nodes, float unitSize, float nodeSize, float zoom)
