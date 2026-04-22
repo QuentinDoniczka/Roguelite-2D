@@ -1,8 +1,10 @@
+#if UNITY_EDITOR
 using System.Collections;
 using NUnit.Framework;
 using RogueliteAutoBattler.Data;
 using RogueliteAutoBattler.Economy;
 using RogueliteAutoBattler.UI.Toolkit.SkillTree;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.TestTools;
 using UnityEngine.UIElements;
@@ -12,6 +14,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
     public class SkillTreeDetailPanelControllerTests : PlayModeTestBase
     {
         private const string HiddenClassName = "hidden";
+        private const string PanelSettingsPath = "Assets/UI/MainPanelSettings.asset";
 
         private SkillTreeDetailPanelController _controller;
         private SkillTreeData _data;
@@ -19,6 +22,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
         private GoldWallet _goldWallet;
         private SkillPointWallet _skillPointWallet;
 
+        private UIDocument _uiDocument;
         private VisualElement _panelRoot;
         private Label _nameLabel;
         private Label _levelLabel;
@@ -30,6 +34,15 @@ namespace RogueliteAutoBattler.Tests.PlayMode
         [SetUp]
         public void SetUp()
         {
+            PanelSettings panelSettings = AssetDatabase.LoadAssetAtPath<PanelSettings>(PanelSettingsPath);
+            Assert.IsNotNull(panelSettings, $"MainPanelSettings not found at {PanelSettingsPath}");
+
+            var documentGo = Track(new GameObject("TestUIDocument"));
+            documentGo.SetActive(false);
+            _uiDocument = documentGo.AddComponent<UIDocument>();
+            _uiDocument.panelSettings = panelSettings;
+            documentGo.SetActive(true);
+
             _panelRoot = new VisualElement();
             _panelRoot.AddToClassList(HiddenClassName);
             _nameLabel = new Label();
@@ -45,6 +58,8 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             _panelRoot.Add(_bonusLabel);
             _panelRoot.Add(_upgradeButton);
             _panelRoot.Add(_closeButton);
+
+            _uiDocument.rootVisualElement.Add(_panelRoot);
 
             _data = ScriptableObject.CreateInstance<SkillTreeData>();
             _data.RingNodeCount = 4;
@@ -304,3 +319,4 @@ namespace RogueliteAutoBattler.Tests.PlayMode
         }
     }
 }
+#endif
