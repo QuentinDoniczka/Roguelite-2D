@@ -56,8 +56,8 @@ namespace RogueliteAutoBattler.UI.Toolkit.SkillTree
             _goldWallet = goldWallet ?? throw new ArgumentNullException(nameof(goldWallet));
             _skillPointWallet = skillPointWallet ?? throw new ArgumentNullException(nameof(skillPointWallet));
 
-            _upgradeButton.clicked += OnUpgradeClicked;
-            _closeButton.clicked += OnCloseClicked;
+            _upgradeButton.RegisterCallback<ClickEvent>(OnUpgradeClicked);
+            _closeButton.RegisterCallback<ClickEvent>(OnCloseClicked);
         }
 
         public void Show(int nodeIndex)
@@ -104,7 +104,7 @@ namespace RogueliteAutoBattler.UI.Toolkit.SkillTree
         private static string FormatCostLabel(int cost, SkillTreeData.CostType costType)
             => costType == SkillTreeData.CostType.Gold ? $"{cost} Gold" : $"{cost} SP";
 
-        private void OnUpgradeClicked()
+        private void OnUpgradeClicked(ClickEvent evt)
         {
             if (!_isShowing || _currentNodeIndex < 0)
             {
@@ -134,7 +134,7 @@ namespace RogueliteAutoBattler.UI.Toolkit.SkillTree
             Refresh();
         }
 
-        private void OnCloseClicked()
+        private void OnCloseClicked(ClickEvent evt)
         {
             Closed?.Invoke();
             Hide();
@@ -156,8 +156,8 @@ namespace RogueliteAutoBattler.UI.Toolkit.SkillTree
 
         public void Dispose()
         {
-            _upgradeButton.clicked -= OnUpgradeClicked;
-            _closeButton.clicked -= OnCloseClicked;
+            _upgradeButton.UnregisterCallback<ClickEvent>(OnUpgradeClicked);
+            _closeButton.UnregisterCallback<ClickEvent>(OnCloseClicked);
             UnsubscribeFromWalletEvents();
         }
     }
