@@ -7,6 +7,7 @@
     --color-tab-text-active: #ffffff;
     --color-text: #e0e0e0;
     --color-gold: rgb(255, 215, 0);
+    --color-skill-point: rgb(120, 210, 255);
     --spacing-xs: 2px;
     --spacing-sm: 4px;
     --spacing-md: 8px;
@@ -149,6 +150,12 @@
     flex-direction: column;
 }
 
+.wallets-overlay {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+}
+
 .gold-badge {
     position: absolute;
     right: 8px;
@@ -172,6 +179,34 @@
     font-size: var(--hud-gold-font-size);
     color: var(--color-gold);
     margin-left: 10px;
+    -unity-font-style: bold;
+    min-width: var(--hud-gold-label-min-width);
+    -unity-text-align: middle-right;
+}
+
+.skill-point-badge {
+    position: absolute;
+    left: 8px;
+    top: 8px;
+    flex-direction: row;
+    align-items: center;
+    background-color: var(--hud-badge-bg);
+    border-radius: var(--hud-badge-radius);
+    padding: 10px 20px;
+    min-width: var(--hud-gold-badge-min-width);
+}
+
+.skill-point-icon {
+    width: var(--hud-gold-icon-size);
+    height: var(--hud-gold-icon-size);
+    background-color: var(--color-skill-point);
+    rotate: 45deg;
+}
+
+.skill-point-label {
+    font-size: var(--hud-gold-font-size);
+    color: var(--color-skill-point);
+    margin-left: 18px;
     -unity-font-style: bold;
     min-width: var(--hud-gold-label-min-width);
     -unity-text-align: middle-right;

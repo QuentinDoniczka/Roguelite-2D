@@ -4,10 +4,6 @@
         <ui:VisualElement name="game-area" class="game-area" picking-mode="Ignore">
             <ui:VisualElement name="screen-default" class="screen-container screen-default" picking-mode="Ignore">
                 <ui:VisualElement name="hud-overlay" picking-mode="Ignore" class="hud-overlay">
-                    <ui:VisualElement name="gold-badge" class="gold-badge">
-                        <ui:VisualElement name="gold-icon" class="gold-icon" />
-                        <ui:Label name="gold-label" text="0" class="gold-label" />
-                    </ui:VisualElement>
                     <ui:Label name="battle-compact-label" text="1-1" class="battle-compact-label" />
                     <ui:VisualElement name="step-progress-container" class="step-progress-container" />
                     <ui:VisualElement name="announcement-overlay" picking-mode="Ignore" class="announcement-overlay">
@@ -57,6 +53,16 @@
             <ui:VisualElement name="screen-shop" class="screen-container hidden">
                 <ui:VisualElement class="screen-placeholder screen-shop-bg">
                     <ui:Label text="SHOP" class="screen-placeholder-label" />
+                </ui:VisualElement>
+            </ui:VisualElement>
+            <ui:VisualElement name="wallets-overlay" picking-mode="Ignore" class="wallets-overlay">
+                <ui:VisualElement name="skill-point-badge" picking-mode="Ignore" class="skill-point-badge">
+                    <ui:VisualElement name="skill-point-icon" picking-mode="Ignore" class="skill-point-icon" />
+                    <ui:Label name="skill-point-label" picking-mode="Ignore" text="0" class="skill-point-label" />
+                </ui:VisualElement>
+                <ui:VisualElement name="gold-badge" picking-mode="Ignore" class="gold-badge">
+                    <ui:VisualElement name="gold-icon" picking-mode="Ignore" class="gold-icon" />
+                    <ui:Label name="gold-label" picking-mode="Ignore" text="0" class="gold-label" />
                 </ui:VisualElement>
             </ui:VisualElement>
         </ui:VisualElement>

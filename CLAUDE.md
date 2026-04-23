@@ -166,6 +166,7 @@ Assets/
         NavigationHost.cs
         NavigationManager.cs
         ScreenStack.cs
+        SkillPointBadgeController.cs
         StepProgressBarController.cs
         SkillTree/
           SkillTreeDetailPanelController.cs
