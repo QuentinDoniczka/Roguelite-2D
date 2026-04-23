@@ -411,6 +411,84 @@ namespace RogueliteAutoBattler.Tests.PlayMode
         }
 
         [UnityTest]
+        public IEnumerator Awake_CentersContentOnFirstGeometryEvent()
+        {
+            const float ViewportWidthPixels = 400f;
+            const float ViewportHeightPixels = 300f;
+            const float ExpectedCenterX = ViewportWidthPixels * 0.5f;
+            const float ExpectedCenterY = ViewportHeightPixels * 0.5f;
+            const float CenterPositionTolerancePixels = 0.01f;
+
+            SkillTreeData data = CreateFourNodeChainSkillTreeData();
+            SkillTreeProgress progress = ScriptableObject.CreateInstance<SkillTreeProgress>();
+            GoldWallet goldWallet = CreateGoldWalletWithBalance(AffordableGoldAmount);
+            SkillPointWallet skillPointWallet = CreateSkillPointWallet();
+
+            SkillTreeScreenController controller = BuildController(data, progress, goldWallet, skillPointWallet, out _);
+            yield return null;
+
+            VisualElement viewport = controller.Viewport;
+            Assert.IsNotNull(viewport, "Controller must expose its viewport after Build for centering assertions.");
+            viewport.style.width = ViewportWidthPixels;
+            viewport.style.height = ViewportHeightPixels;
+
+            yield return null;
+            yield return null;
+
+            Assert.IsTrue(controller.HasCenteredContent,
+                "Controller must mark content as centered after the first GeometryChangedEvent fires with a positive viewport size.");
+
+            Vector3 expectedCenter = new Vector3(ExpectedCenterX, ExpectedCenterY, 0f);
+            float distanceFromExpected = Vector3.Distance(controller.ContentTargetPosition, expectedCenter);
+            Assert.Less(distanceFromExpected, CenterPositionTolerancePixels,
+                $"Content target position must be centered at the viewport midpoint ({ExpectedCenterX}, {ExpectedCenterY}); got {controller.ContentTargetPosition}.");
+        }
+
+        [UnityTest]
+        public IEnumerator Center_IsIdempotent_AfterMultipleGeometryEvents()
+        {
+            const float InitialViewportWidthPixels = 400f;
+            const float InitialViewportHeightPixels = 300f;
+            const float ResizedViewportWidthPixels = 800f;
+            const float ResizedViewportHeightPixels = 600f;
+            const float InitialCenterX = InitialViewportWidthPixels * 0.5f;
+            const float InitialCenterY = InitialViewportHeightPixels * 0.5f;
+            const float CenterPositionTolerancePixels = 0.01f;
+
+            SkillTreeData data = CreateFourNodeChainSkillTreeData();
+            SkillTreeProgress progress = ScriptableObject.CreateInstance<SkillTreeProgress>();
+            GoldWallet goldWallet = CreateGoldWalletWithBalance(AffordableGoldAmount);
+            SkillPointWallet skillPointWallet = CreateSkillPointWallet();
+
+            SkillTreeScreenController controller = BuildController(data, progress, goldWallet, skillPointWallet, out _);
+            yield return null;
+
+            VisualElement viewport = controller.Viewport;
+            Assert.IsNotNull(viewport, "Controller must expose its viewport after Build for centering assertions.");
+            viewport.style.width = InitialViewportWidthPixels;
+            viewport.style.height = InitialViewportHeightPixels;
+
+            yield return null;
+            yield return null;
+
+            Assert.IsTrue(controller.HasCenteredContent,
+                "Precondition: content must be centered after the first GeometryChangedEvent.");
+            Vector3 initialCenter = controller.ContentTargetPosition;
+
+            viewport.style.width = ResizedViewportWidthPixels;
+            viewport.style.height = ResizedViewportHeightPixels;
+
+            yield return null;
+            yield return null;
+
+            Assert.IsTrue(controller.HasCenteredContent,
+                "Centered flag must remain true after subsequent GeometryChangedEvents.");
+            float distanceFromInitial = Vector3.Distance(controller.ContentTargetPosition, initialCenter);
+            Assert.Less(distanceFromInitial, CenterPositionTolerancePixels,
+                $"Centering must run only once: position must remain at the initial center ({InitialCenterX}, {InitialCenterY}) and not move when the viewport is resized.");
+        }
+
+        [UnityTest]
         public IEnumerator Awake_WithMissingData_LogsError_AndDoesNotThrow()
         {
             GoldWallet goldWallet = CreateGoldWalletWithBalance(AffordableGoldAmount);

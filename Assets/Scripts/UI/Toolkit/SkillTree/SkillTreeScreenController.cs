@@ -38,10 +38,17 @@ namespace RogueliteAutoBattler.UI.Toolkit.SkillTree
         private SkillTreeDetailPanelController _detailController;
         private SkillTreePanZoomManipulator _panZoomManipulator;
         private SkillTreeStateEvaluator _stateEvaluator;
+        private VisualElement _viewport;
+        private VisualElement _content;
+        private bool _hasCenteredContentOnViewport;
         private int _selectedNodeIndex = NoSelectedNodeIndex;
 
         public IReadOnlyList<SkillTreeNodeElement> NodeElements => _nodeElements;
         public int SelectedNodeIndex => _selectedNodeIndex;
+
+        internal Vector3 ContentTargetPosition => _content != null ? _content.transform.position : Vector3.zero;
+        internal bool HasCenteredContent => _hasCenteredContentOnViewport;
+        internal VisualElement Viewport => _viewport;
 
         private void Awake()
         {
@@ -104,8 +111,21 @@ namespace RogueliteAutoBattler.UI.Toolkit.SkillTree
             _detailController.NodeUpgraded += OnNodeUpgraded;
             _detailController.Closed += OnDetailClosed;
 
+            _viewport = viewport;
+            _content = content;
+
             _panZoomManipulator = new SkillTreePanZoomManipulator(viewport, content);
             viewport.AddManipulator(_panZoomManipulator);
+
+            viewport.RegisterCallback<GeometryChangedEvent>(HandleViewportGeometryChangedToCenterContent);
+        }
+
+        private void HandleViewportGeometryChangedToCenterContent(GeometryChangedEvent evt)
+        {
+            if (_hasCenteredContentOnViewport) return;
+            if (_viewport.contentRect.width <= 0f || _viewport.contentRect.height <= 0f) return;
+            _content.transform.position = new Vector3(_viewport.contentRect.width * 0.5f, _viewport.contentRect.height * 0.5f, 0f);
+            _hasCenteredContentOnViewport = true;
         }
 
         private void SpawnNodes(VisualElement nodesLayer)
@@ -192,6 +212,10 @@ namespace RogueliteAutoBattler.UI.Toolkit.SkillTree
 
         private void OnDestroy()
         {
+            if (_viewport != null)
+            {
+                _viewport.UnregisterCallback<GeometryChangedEvent>(HandleViewportGeometryChangedToCenterContent);
+            }
             if (_detailController != null)
             {
                 _detailController.NodeUpgraded -= OnNodeUpgraded;
