@@ -18,6 +18,7 @@ namespace RogueliteAutoBattler.UI.Toolkit
 
         private const string DefaultScreenName = "screen-default";
         private const string HiddenClass = "hidden";
+        private const string InfoAreaElementName = "info-area";
 
         [Header("UI Document")]
         [SerializeField] private UIDocument _uiDocument;
@@ -27,6 +28,10 @@ namespace RogueliteAutoBattler.UI.Toolkit
 
         public static NavigationHost Instance { get; private set; }
         public NavigationManager Navigation { get; private set; }
+
+        private VisualElement _infoArea;
+
+        internal VisualElement InfoAreaElement => _infoArea;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         private static void ResetOnDomainReload()
@@ -79,7 +84,27 @@ namespace RogueliteAutoBattler.UI.Toolkit
 
             RegisterTabScreens(root);
 
+            _infoArea = root.Q<VisualElement>(InfoAreaElementName);
+            Navigation.OnTabChanged += HandleTabChangedHideInfoArea;
+
             root.RegisterCallback<GeometryChangedEvent>(ValidateFontOnFirstLayout);
+        }
+
+        private void HandleTabChangedHideInfoArea(int tabIndex)
+        {
+            if (_infoArea == null)
+            {
+                return;
+            }
+
+            if (tabIndex < 0)
+            {
+                _infoArea.RemoveFromClassList(HiddenClass);
+            }
+            else
+            {
+                _infoArea.AddToClassList(HiddenClass);
+            }
         }
 
         private void ValidateFontOnFirstLayout(GeometryChangedEvent evt)
@@ -154,6 +179,11 @@ namespace RogueliteAutoBattler.UI.Toolkit
             if (Instance == this)
             {
                 Instance = null;
+            }
+
+            if (Navigation != null)
+            {
+                Navigation.OnTabChanged -= HandleTabChangedHideInfoArea;
             }
 
             Navigation?.Dispose();
