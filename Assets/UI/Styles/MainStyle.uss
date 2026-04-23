@@ -448,10 +448,11 @@
 
 .skill-tree-detail-panel {
     position: absolute;
-    bottom: 16px;
-    left: 16px;
-    right: 16px;
+    bottom: 0;
+    left: 0;
+    right: 0;
     top: auto;
+    height: 35%;
 }
 
 .skill-tree-detail-panel.hidden {
@@ -529,62 +530,77 @@
 /* ============ Skill Tree Detail Panel Polish ============ */
 
 .skill-tree-detail-panel {
-    background-color: rgb(25, 25, 30);
-    border-left-width: 2px;
-    border-right-width: 2px;
+    background-color: var(--info-bg);
+    border-left-width: 0;
+    border-right-width: 0;
     border-top-width: 2px;
-    border-bottom-width: 2px;
-    border-left-color: rgb(80, 80, 90);
-    border-right-color: rgb(80, 80, 90);
+    border-bottom-width: 0;
     border-top-color: rgb(80, 80, 90);
-    border-bottom-color: rgb(80, 80, 90);
-    padding: 12px;
+    padding: 16px 24px;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.skill-tree-detail-name-column {
     flex-direction: column;
+    align-items: flex-start;
+    flex-shrink: 0;
+}
+
+.skill-tree-detail-stats-column {
+    flex-direction: column;
+    flex-grow: 1;
+    align-items: flex-start;
+    padding-left: 24px;
+}
+
+.skill-tree-detail-action-column {
+    flex-direction: column;
+    align-items: flex-end;
+    flex-shrink: 0;
 }
 
 .skill-tree-detail-name {
-    font-size: 18px;
+    font-size: var(--info-name-font-size);
     -unity-font-style: bold;
-    color: rgb(240, 240, 240);
-    margin-bottom: 8px;
+    color: rgb(255, 255, 255);
 }
 
 .skill-tree-detail-level {
-    font-size: 14px;
+    font-size: var(--info-font-size);
     color: rgb(200, 200, 200);
     margin-bottom: 4px;
 }
 
 .skill-tree-detail-cost {
-    font-size: 14px;
+    font-size: var(--info-font-size);
     color: rgb(200, 200, 200);
     margin-bottom: 4px;
 }
 
 .skill-tree-detail-bonus {
-    font-size: 14px;
+    font-size: var(--info-font-size);
     color: rgb(200, 200, 200);
     margin-bottom: 4px;
 }
 
 .skill-tree-detail-bonus-current {
-    font-size: 14px;
+    font-size: var(--info-font-size);
     color: rgb(200, 200, 200);
     margin-bottom: 4px;
 }
 
 .skill-tree-detail-bonus-next {
-    font-size: 14px;
+    font-size: var(--info-font-size);
     color: rgb(200, 200, 200);
     margin-bottom: 4px;
 }
 
 .skill-tree-detail-upgrade-btn {
-    margin-top: 8px;
-    padding-top: 8px;
-    padding-bottom: 8px;
-    padding-left: 16px;
-    padding-right: 16px;
+    min-width: 200px;
+    height: 64px;
+    font-size: var(--info-font-size);
     background-color: rgb(60, 120, 60);
     color: rgb(255, 255, 255);
     border-left-width: 0;
@@ -604,10 +620,11 @@
 
 .skill-tree-detail-close-btn {
     position: absolute;
-    right: 8px;
-    top: 8px;
-    width: 24px;
-    height: 24px;
+    right: 12px;
+    top: 12px;
+    width: 48px;
+    height: 48px;
+    font-size: var(--info-font-size);
     padding: 0;
     background-color: rgba(0, 0, 0, 0);
     color: rgb(180, 180, 180);

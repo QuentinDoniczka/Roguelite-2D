@@ -123,6 +123,7 @@ namespace RogueliteAutoBattler.UI.Toolkit.SkillTree
             viewport.AddManipulator(_panZoomManipulator);
 
             viewport.RegisterCallback<GeometryChangedEvent>(HandleViewportGeometryChangedToCenterContent);
+            viewport.RegisterCallback<ClickEvent>(HandleViewportClickToDeselect);
         }
 
         private void HandleViewportGeometryChangedToCenterContent(GeometryChangedEvent evt)
@@ -177,6 +178,16 @@ namespace RogueliteAutoBattler.UI.Toolkit.SkillTree
             _edgeLayer.SetEdges(edges, _positionsCache, _stateEvaluator.IdToIndexMap, _statesCache, UnitToPixelScale);
         }
 
+        private void HandleViewportClickToDeselect(ClickEvent evt)
+        {
+            if (_panZoomManipulator != null && _panZoomManipulator.ExceededClickVersusDragThreshold) return;
+            var clickedElement = evt.target as VisualElement;
+            if (clickedElement?.GetFirstAncestorOfType<SkillTreeNodeElement>() != null) return;
+            if (_selectedNodeIndex == NoSelectedNodeIndex) return;
+            SetSelectedNode(NoSelectedNodeIndex);
+            _detailController?.Hide();
+        }
+
         private void HandleNodeClicked(int nodeIndex)
         {
             if (_panZoomManipulator != null && _panZoomManipulator.ExceededClickVersusDragThreshold)
@@ -220,6 +231,7 @@ namespace RogueliteAutoBattler.UI.Toolkit.SkillTree
             if (_viewport != null)
             {
                 _viewport.UnregisterCallback<GeometryChangedEvent>(HandleViewportGeometryChangedToCenterContent);
+                _viewport.UnregisterCallback<ClickEvent>(HandleViewportClickToDeselect);
             }
             if (_detailController != null)
             {

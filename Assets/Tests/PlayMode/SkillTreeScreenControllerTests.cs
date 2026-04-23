@@ -514,6 +514,105 @@ namespace RogueliteAutoBattler.Tests.PlayMode
         }
 
         [UnityTest]
+        public IEnumerator EmptyViewportClick_AfterNodeSelection_DeselectsNodeAndHidesDetail()
+        {
+            SkillTreeData data = CreateFourNodeChainSkillTreeData();
+            SkillTreeProgress progress = ScriptableObject.CreateInstance<SkillTreeProgress>();
+            GoldWallet goldWallet = CreateGoldWalletWithBalance(AffordableGoldAmount);
+            SkillPointWallet skillPointWallet = CreateSkillPointWallet();
+
+            SkillTreeScreenController controller = BuildController(data, progress, goldWallet, skillPointWallet, out UIDocument uiDocument);
+            yield return null;
+
+            SkillTreeNodeElement firstNode = controller.NodeElements[0];
+            using (ClickEvent nodeClickEvent = ClickEvent.GetPooled())
+            {
+                nodeClickEvent.target = firstNode;
+                firstNode.SendEvent(nodeClickEvent);
+            }
+
+            yield return null;
+
+            Assert.AreEqual(0, controller.SelectedNodeIndex,
+                "Precondition: node click must set SelectedNodeIndex to 0.");
+
+            VisualElement viewport = uiDocument.rootVisualElement.Q<VisualElement>(ViewportElementName);
+            Assert.IsNotNull(viewport, $"{ViewportElementName} must be present in MainLayout.uxml.");
+
+            using (ClickEvent viewportClickEvent = ClickEvent.GetPooled())
+            {
+                viewportClickEvent.target = viewport;
+                viewport.SendEvent(viewportClickEvent);
+            }
+
+            yield return null;
+
+            Assert.AreEqual(NoSelectedNodeIndex, controller.SelectedNodeIndex,
+                "Clicking the viewport (not a node) must deselect and reset SelectedNodeIndex to -1.");
+
+            VisualElement detailPanel = uiDocument.rootVisualElement.Q<VisualElement>(DetailPanelElementName);
+            Assert.IsNotNull(detailPanel, $"{DetailPanelElementName} must be present in MainLayout.uxml.");
+            Assert.IsTrue(detailPanel.ClassListContains(HiddenClassName),
+                "Detail panel must be hidden after an empty viewport click deselects the node.");
+        }
+
+        [UnityTest]
+        public IEnumerator ViewportClick_AfterDrag_DoesNotDeselect()
+        {
+            SkillTreeData data = CreateFourNodeChainSkillTreeData();
+            SkillTreeProgress progress = ScriptableObject.CreateInstance<SkillTreeProgress>();
+            GoldWallet goldWallet = CreateGoldWalletWithBalance(AffordableGoldAmount);
+            SkillPointWallet skillPointWallet = CreateSkillPointWallet();
+
+            SkillTreeScreenController controller = BuildController(data, progress, goldWallet, skillPointWallet, out UIDocument uiDocument);
+            yield return null;
+
+            SkillTreeNodeElement firstNode = controller.NodeElements[0];
+            using (ClickEvent nodeClickEvent = ClickEvent.GetPooled())
+            {
+                nodeClickEvent.target = firstNode;
+                firstNode.SendEvent(nodeClickEvent);
+            }
+
+            yield return null;
+
+            Assert.AreEqual(0, controller.SelectedNodeIndex,
+                "Precondition: node click must set SelectedNodeIndex to 0.");
+
+            VisualElement viewport = uiDocument.rootVisualElement.Q<VisualElement>(ViewportElementName);
+            Assert.IsNotNull(viewport, $"{ViewportElementName} must be present in MainLayout.uxml.");
+
+            FieldInfo manipulatorField = typeof(SkillTreeScreenController).GetField(
+                PanZoomManipulatorFieldName, BindingFlags.NonPublic | BindingFlags.Instance);
+            Assert.IsNotNull(manipulatorField,
+                $"{nameof(SkillTreeScreenController)} must expose private field {PanZoomManipulatorFieldName}.");
+            SkillTreePanZoomManipulator manipulator = manipulatorField.GetValue(controller) as SkillTreePanZoomManipulator;
+            Assert.IsNotNull(manipulator, "Pan-zoom manipulator must be instantiated after Build.");
+
+            FieldInfo clickVsDragField = typeof(SkillTreePanZoomManipulator).GetField(
+                "_clickVsDragExceededThisGesture", BindingFlags.NonPublic | BindingFlags.Instance);
+            Assert.IsNotNull(clickVsDragField,
+                "SkillTreePanZoomManipulator must expose private field _clickVsDragExceededThisGesture.");
+            clickVsDragField.SetValue(manipulator, true);
+
+            using (ClickEvent viewportClickEvent = ClickEvent.GetPooled())
+            {
+                viewportClickEvent.target = viewport;
+                viewport.SendEvent(viewportClickEvent);
+            }
+
+            yield return null;
+
+            Assert.AreEqual(0, controller.SelectedNodeIndex,
+                "A viewport click that follows a drag exceeding the threshold must not deselect the current node.");
+
+            VisualElement detailPanel = uiDocument.rootVisualElement.Q<VisualElement>(DetailPanelElementName);
+            Assert.IsNotNull(detailPanel, $"{DetailPanelElementName} must be present in MainLayout.uxml.");
+            Assert.IsFalse(detailPanel.ClassListContains(HiddenClassName),
+                "Detail panel must remain visible when the viewport click was preceded by a drag gesture.");
+        }
+
+        [UnityTest]
         public IEnumerator Awake_WithMissingData_LogsError_AndDoesNotThrow()
         {
             GoldWallet goldWallet = CreateGoldWalletWithBalance(AffordableGoldAmount);
