@@ -5,8 +5,6 @@ namespace RogueliteAutoBattler.UI.Toolkit.SkillTree
 {
     public sealed class SkillTreeStateEvaluator
     {
-        private const int NotFoundIndex = -1;
-
         private readonly SkillTreeData _data;
         private readonly SkillTreeProgress _progress;
         private readonly Dictionary<int, int> _idToIndexMap;
@@ -47,18 +45,12 @@ namespace RogueliteAutoBattler.UI.Toolkit.SkillTree
             for (var i = 0; i < node.connectedNodeIds.Count; i++)
             {
                 var connectedId = node.connectedNodeIds[i];
-                var connectedIndex = FindIndexById(connectedId);
-                if (connectedIndex >= 0 && _progress.GetLevel(connectedIndex) > 0)
+                if (_idToIndexMap.TryGetValue(connectedId, out var connectedIndex) && _progress.GetLevel(connectedIndex) > 0)
                 {
                     return true;
                 }
             }
             return node.connectedNodeIds.Count == 0;
-        }
-
-        private int FindIndexById(int nodeId)
-        {
-            return _idToIndexMap.TryGetValue(nodeId, out var index) ? index : NotFoundIndex;
         }
     }
 }
