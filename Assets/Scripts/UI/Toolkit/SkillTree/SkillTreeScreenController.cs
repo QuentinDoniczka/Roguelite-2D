@@ -123,8 +123,8 @@ namespace RogueliteAutoBattler.UI.Toolkit.SkillTree
         private void HandleViewportGeometryChangedToCenterContent(GeometryChangedEvent evt)
         {
             if (_hasCenteredContentOnViewport) return;
-            if (_viewport.contentRect.width <= 0f || _viewport.contentRect.height <= 0f) return;
-            _content.transform.position = new Vector3(_viewport.contentRect.width * 0.5f, _viewport.contentRect.height * 0.5f, 0f);
+            if (evt.newRect.width <= 0f || evt.newRect.height <= 0f) return;
+            _content.transform.position = new Vector3(evt.newRect.width * 0.5f, evt.newRect.height * 0.5f, 0f);
             _hasCenteredContentOnViewport = true;
         }
 

@@ -433,6 +433,14 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             viewport.style.height = ViewportHeightPixels;
 
             yield return null;
+
+            using (GeometryChangedEvent firstGeometryEvent = GeometryChangedEvent.GetPooled(
+                Rect.zero, new Rect(0f, 0f, ViewportWidthPixels, ViewportHeightPixels)))
+            {
+                firstGeometryEvent.target = viewport;
+                viewport.SendEvent(firstGeometryEvent);
+            }
+
             yield return null;
 
             Assert.IsTrue(controller.HasCenteredContent,
@@ -469,6 +477,14 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             viewport.style.height = InitialViewportHeightPixels;
 
             yield return null;
+
+            using (GeometryChangedEvent firstGeometryEvent = GeometryChangedEvent.GetPooled(
+                Rect.zero, new Rect(0f, 0f, InitialViewportWidthPixels, InitialViewportHeightPixels)))
+            {
+                firstGeometryEvent.target = viewport;
+                viewport.SendEvent(firstGeometryEvent);
+            }
+
             yield return null;
 
             Assert.IsTrue(controller.HasCenteredContent,
@@ -479,6 +495,15 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             viewport.style.height = ResizedViewportHeightPixels;
 
             yield return null;
+
+            using (GeometryChangedEvent secondGeometryEvent = GeometryChangedEvent.GetPooled(
+                new Rect(0f, 0f, InitialViewportWidthPixels, InitialViewportHeightPixels),
+                new Rect(0f, 0f, ResizedViewportWidthPixels, ResizedViewportHeightPixels)))
+            {
+                secondGeometryEvent.target = viewport;
+                viewport.SendEvent(secondGeometryEvent);
+            }
+
             yield return null;
 
             Assert.IsTrue(controller.HasCenteredContent,
