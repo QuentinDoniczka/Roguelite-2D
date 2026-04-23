@@ -110,10 +110,17 @@ namespace RogueliteAutoBattler.Combat.Levels
             {
                 components.Stats.OnDied += () =>
                 {
-                    var wallet = _goldWalletProvider();
-                    if (wallet != null) wallet.Add(goldAmount);
-                    if (enemyTransform == null) return;
-                    CoinFlyService.Show(enemyTransform.position);
+                    if (CoinFlyService.Suppressed || enemyTransform == null)
+                    {
+                        var walletImmediate = _goldWalletProvider();
+                        if (walletImmediate != null) walletImmediate.Add(goldAmount);
+                        return;
+                    }
+                    CoinFlyService.Show(enemyTransform.position, () =>
+                    {
+                        var wallet = _goldWalletProvider();
+                        if (wallet != null) wallet.Add(goldAmount);
+                    });
                 };
             }
 
