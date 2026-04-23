@@ -197,8 +197,10 @@
 }
 
 .skill-point-icon {
-    width: var(--hud-gold-icon-size);
-    height: var(--hud-gold-icon-size);
+    width: 36px;
+    height: 36px;
+    margin-left: 4px;
+    margin-right: 4px;
     background-color: var(--color-skill-point);
     rotate: 45deg;
 }
@@ -206,7 +208,7 @@
 .skill-point-label {
     font-size: var(--hud-gold-font-size);
     color: var(--color-skill-point);
-    margin-left: 18px;
+    margin-left: 14px;
     -unity-font-style: bold;
     min-width: var(--hud-gold-label-min-width);
     -unity-text-align: middle-right;
