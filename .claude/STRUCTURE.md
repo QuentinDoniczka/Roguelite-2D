@@ -1,5 +1,5 @@
 # Project Structure
-Generated: 2026-04-22
+Generated: 2026-04-23
 
 .github/
   workflows/
@@ -181,6 +181,7 @@ Assets/
       NewGameSceneBuilderTests.cs
       ProceduralGroundSpriteTests.cs
       RecalculateFormationTests.cs
+      SkillTreeDataAssetSpacingTests.cs
       SkillTreeDataTests.cs
       SkillTreeProgressTests.cs
       SkillTreeScreenBuilderTests.cs
@@ -225,6 +226,7 @@ Assets/
       LevelManagerStepTransitionTests.cs
       LevelManagerTerrainFallbackTests.cs
       LevelManagerTotalLevelsTests.cs
+      NavigationHostInfoAreaToggleTests.cs
       NavigationHostTests.cs
       NewGameSceneSmokeTests.cs
       ScreenAnchorTests.cs
