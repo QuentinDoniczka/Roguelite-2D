@@ -9,7 +9,7 @@ namespace RogueliteAutoBattler.UI.Toolkit.SkillTree
         private const float MinimumZoom = 0.4f;
         private const float MaximumZoom = 2.5f;
         private const float WheelZoomStep = 0.1f;
-        private const float ClickVersusDragThresholdPixels = 8f;
+        private const float ClickVersusDragThresholdPixels = 12f;
         private const float TwoDimensionalZ = 0f;
         private const float TwoDimensionalScaleZ = 1f;
 
@@ -70,9 +70,8 @@ namespace RogueliteAutoBattler.UI.Toolkit.SkillTree
             {
                 _initialPinchDistance = ComputeActivePinchDistance();
                 _initialPinchScale = CurrentZoom;
+                CaptureAllActivePointersIfNotAlreadyCaptured();
             }
-
-            target.CapturePointer(evt.pointerId);
         }
 
         private void OnPointerMove(PointerMoveEvent evt)
@@ -86,7 +85,10 @@ namespace RogueliteAutoBattler.UI.Toolkit.SkillTree
             {
                 Vector2 totalDelta = (Vector2)evt.position - _pointerDownPosition;
                 if (!_clickVsDragExceededThisGesture && totalDelta.magnitude >= ClickVersusDragThresholdPixels)
+                {
                     _clickVsDragExceededThisGesture = true;
+                    CaptureAllActivePointersIfNotAlreadyCaptured();
+                }
 
                 Vector2 panDelta = (Vector2)evt.position - _initialPanPointerPosition;
                 _contentTarget.transform.position = _initialPanContentPosition + new Vector3(panDelta.x, panDelta.y, TwoDimensionalZ);
@@ -96,6 +98,15 @@ namespace RogueliteAutoBattler.UI.Toolkit.SkillTree
                 float currentDistance = ComputeActivePinchDistance();
                 float newZoom = _initialPinchScale * (currentDistance / _initialPinchDistance);
                 SetContentScale(Mathf.Clamp(newZoom, MinimumZoom, MaximumZoom));
+            }
+        }
+
+        private void CaptureAllActivePointersIfNotAlreadyCaptured()
+        {
+            foreach (KeyValuePair<int, Vector2> entry in _activePointerPositionsByPointerId)
+            {
+                if (!target.HasPointerCapture(entry.Key))
+                    target.CapturePointer(entry.Key);
             }
         }
 

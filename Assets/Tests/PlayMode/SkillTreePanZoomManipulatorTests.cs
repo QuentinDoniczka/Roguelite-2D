@@ -17,7 +17,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
         private const float MinimumZoom = 0.4f;
         private const float MaximumZoom = 2.5f;
         private const float WheelZoomStep = 0.1f;
-        private const float ClickVersusDragThresholdPixels = 8f;
+        private const float ClickVersusDragThresholdPixels = 12f;
         private const float PanTolerancePixels = 0.5f;
         private const float ZoomToleranceUnits = 0.001f;
 
@@ -163,6 +163,96 @@ namespace RogueliteAutoBattler.Tests.PlayMode
 
             Assert.IsTrue(_manipulator.ExceededClickVersusDragThreshold,
                 "A movement well above ClickVersusDragThresholdPixels must be flagged as a drag after pointer-up.");
+        }
+
+        [UnityTest]
+        public IEnumerator PointerDown_DoesNotCaptureAnyPointer()
+        {
+            yield return SetUpHierarchy();
+            if (_viewport == null) yield break;
+
+            const int pointerId = 0;
+            SendPointerDownEvent(new Vector2(0f, 0f), pointerId);
+            yield return null;
+
+            Assert.IsFalse(_viewport.HasPointerCapture(pointerId),
+                "PointerDown alone must not capture the pointer; capture must be lazy.");
+        }
+
+        [UnityTest]
+        public IEnumerator Drag_AboveThreshold_CapturesPointer()
+        {
+            yield return SetUpHierarchy();
+            if (_viewport == null) yield break;
+
+            const int pointerId = 0;
+            SendPointerDownEvent(new Vector2(0f, 0f), pointerId);
+            yield return null;
+            SendPointerMoveEvent(new Vector2(50f, 0f), pointerId);
+            yield return null;
+
+            Assert.IsTrue(_viewport.HasPointerCapture(pointerId),
+                "Pointer must be captured once the click-vs-drag threshold is exceeded.");
+        }
+
+        [UnityTest]
+        public IEnumerator Click_BelowThreshold_NeverCapturesPointer()
+        {
+            yield return SetUpHierarchy();
+            if (_viewport == null) yield break;
+
+            const int pointerId = 0;
+            SendPointerDownEvent(new Vector2(0f, 0f), pointerId);
+            yield return null;
+            Assert.IsFalse(_viewport.HasPointerCapture(pointerId),
+                "Capture must not be acquired on PointerDown.");
+
+            SendPointerMoveEvent(new Vector2(5f, 0f), pointerId);
+            yield return null;
+            Assert.IsFalse(_viewport.HasPointerCapture(pointerId),
+                "Capture must not be acquired on a tiny move below threshold.");
+
+            SendPointerUpEvent(new Vector2(5f, 0f), pointerId);
+            yield return null;
+            Assert.IsFalse(_viewport.HasPointerCapture(pointerId),
+                "Capture must not have been acquired at any point during a click gesture.");
+        }
+
+        [UnityTest]
+        public IEnumerator Move_ExactlyAtThreshold_TriggersDrag()
+        {
+            yield return SetUpHierarchy();
+            if (_viewport == null) yield break;
+
+            const int pointerId = 0;
+            SendPointerDownEvent(new Vector2(0f, 0f), pointerId);
+            yield return null;
+            SendPointerMoveEvent(new Vector2(ClickVersusDragThresholdPixels, 0f), pointerId);
+            yield return null;
+            SendPointerUpEvent(new Vector2(ClickVersusDragThresholdPixels, 0f), pointerId);
+            yield return null;
+
+            Assert.IsTrue(_manipulator.ExceededClickVersusDragThreshold,
+                "A move exactly at the threshold distance must be classified as a drag.");
+        }
+
+        [UnityTest]
+        public IEnumerator Move_JustBelowThreshold_StaysClick()
+        {
+            yield return SetUpHierarchy();
+            if (_viewport == null) yield break;
+
+            const int pointerId = 0;
+            const float justBelowThreshold = ClickVersusDragThresholdPixels - 1f;
+            SendPointerDownEvent(new Vector2(0f, 0f), pointerId);
+            yield return null;
+            SendPointerMoveEvent(new Vector2(justBelowThreshold, 0f), pointerId);
+            yield return null;
+            SendPointerUpEvent(new Vector2(justBelowThreshold, 0f), pointerId);
+            yield return null;
+
+            Assert.IsFalse(_manipulator.ExceededClickVersusDragThreshold,
+                "A move just below the threshold distance must remain a click.");
         }
 
         [UnityTest]

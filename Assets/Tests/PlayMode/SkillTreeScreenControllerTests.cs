@@ -326,6 +326,82 @@ namespace RogueliteAutoBattler.Tests.PlayMode
         }
 
         [UnityTest]
+        public IEnumerator NodeClick_WithPanZoomManipulator_SelectsNodeViaSyntheticClickEvent()
+        {
+            SkillTreeData data = CreateFourNodeChainSkillTreeData();
+            SkillTreeProgress progress = ScriptableObject.CreateInstance<SkillTreeProgress>();
+            GoldWallet goldWallet = CreateGoldWalletWithBalance(AffordableGoldAmount);
+            SkillPointWallet skillPointWallet = CreateSkillPointWallet();
+
+            SkillTreeScreenController controller = BuildController(data, progress, goldWallet, skillPointWallet, out UIDocument uiDocument);
+            yield return null;
+            yield return null;
+
+            SkillTreeNodeElement firstNode = controller.NodeElements[0];
+
+            const int pointerId = 0;
+            Vector2 clickPosition = firstNode.worldBound.center;
+
+            using (PointerDownEvent downEvent = PointerDownEvent.GetPooled())
+            {
+                PopulatePointerEventOnTarget(downEvent, clickPosition, pointerId, firstNode);
+                firstNode.SendEvent(downEvent);
+            }
+
+            using (PointerUpEvent upEvent = PointerUpEvent.GetPooled())
+            {
+                PopulatePointerEventOnTarget(upEvent, clickPosition, pointerId, firstNode);
+                firstNode.SendEvent(upEvent);
+            }
+
+            yield return null;
+
+            Assert.AreEqual(0, controller.SelectedNodeIndex,
+                "A real Down+Up sequence on a node must produce a synthesized ClickEvent that selects the node, even with the pan-zoom manipulator attached to the viewport.");
+
+            VisualElement detailPanel = uiDocument.rootVisualElement.Q<VisualElement>(DetailPanelElementName);
+            Assert.IsNotNull(detailPanel, $"{DetailPanelElementName} must be present in MainLayout.uxml.");
+            Assert.IsFalse(detailPanel.ClassListContains(HiddenClassName),
+                "Detail panel must become visible after a Down+Up node click routed through the manipulator-equipped viewport.");
+        }
+
+        private static void PopulatePointerEventOnTarget(EventBase evt, Vector2 position, int pointerId, VisualElement eventTarget)
+        {
+            Vector3 position3 = new Vector3(position.x, position.y, 0f);
+            SetEventProperty(evt, "position", position3);
+            SetEventProperty(evt, "localPosition", position3);
+            SetEventProperty(evt, "pointerId", pointerId);
+            evt.target = eventTarget;
+        }
+
+        private static void SetEventProperty(EventBase evt, string propertyName, object value)
+        {
+            System.Type type = evt.GetType();
+            while (type != null)
+            {
+                PropertyInfo property = type.GetProperty(
+                    propertyName,
+                    BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly);
+                if (property != null && property.CanWrite)
+                {
+                    property.SetValue(evt, value);
+                    return;
+                }
+
+                FieldInfo field = type.GetField(
+                    propertyName,
+                    BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly);
+                if (field != null)
+                {
+                    field.SetValue(evt, value);
+                    return;
+                }
+
+                type = type.BaseType;
+            }
+        }
+
+        [UnityTest]
         public IEnumerator Awake_WithMissingData_LogsError_AndDoesNotThrow()
         {
             GoldWallet goldWallet = CreateGoldWalletWithBalance(AffordableGoldAmount);
