@@ -18,7 +18,7 @@ namespace RogueliteAutoBattler.Editor
         private const float CoinFlyReferenceResolutionY = 1920f;
         private const float CoinFlyMatchWidthOrHeight = 0.5f;
 
-        internal static void SetupToolkitCombatHud(GameObject navigationHostGo, GoldWallet goldWallet)
+        internal static void SetupToolkitCombatHud(GameObject navigationHostGo, GoldWallet goldWallet, SkillPointWallet skillPointWallet)
         {
             UIDocument uiDocument = navigationHostGo.GetComponent<UIDocument>();
 
@@ -26,6 +26,7 @@ namespace RogueliteAutoBattler.Editor
             var combatHudSo = new SerializedObject(combatHud);
             EditorUIFactory.SetObj(combatHudSo, "_uiDocument", uiDocument);
             EditorUIFactory.SetObj(combatHudSo, "_goldWallet", goldWallet);
+            EditorUIFactory.SetObj(combatHudSo, "_skillPointWallet", skillPointWallet);
             combatHudSo.ApplyModifiedProperties();
 
             var coinFlyOverlayGo = new GameObject(CoinFlyOverlayGameObjectName);

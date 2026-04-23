@@ -11,6 +11,8 @@ namespace RogueliteAutoBattler.UI.Toolkit
         private const string LogTag = "[CombatHudController]";
         private const string GoldBadgeElementName = "gold-badge";
         private const string GoldLabelElementName = "gold-label";
+        private const string SkillPointBadgeElementName = "skill-point-badge";
+        private const string SkillPointLabelElementName = "skill-point-label";
         private const string BattleCompactLabelElementName = "battle-compact-label";
         private const string AnnouncementOverlayElementName = "announcement-overlay";
         private const string AnnouncementLabelElementName = "announcement-label";
@@ -31,8 +33,10 @@ namespace RogueliteAutoBattler.UI.Toolkit
 
         [SerializeField] private UIDocument _uiDocument;
         [SerializeField] private GoldWallet _goldWallet;
+        [SerializeField] private SkillPointWallet _skillPointWallet;
 
         private GoldBadgeController _goldBadge;
+        private SkillPointBadgeController _skillPointBadge;
         private BattleIndicatorController _battleIndicator;
         private StepProgressBarController _stepProgressBar;
         private VisualElement _goldBadgeElement;
@@ -55,6 +59,8 @@ namespace RogueliteAutoBattler.UI.Toolkit
 
             if (!TryQuery<VisualElement>(root, GoldBadgeElementName, out VisualElement goldBadgeElement)) return;
             if (!TryQuery<Label>(root, GoldLabelElementName, out Label goldLabel)) return;
+            if (!TryQuery<VisualElement>(root, SkillPointBadgeElementName, out VisualElement skillPointBadgeElement)) return;
+            if (!TryQuery<Label>(root, SkillPointLabelElementName, out Label skillPointLabel)) return;
             if (!TryQuery<Label>(root, BattleCompactLabelElementName, out Label battleCompactLabel)) return;
             if (!TryQuery<VisualElement>(root, AnnouncementOverlayElementName, out VisualElement announcementOverlay)) return;
             if (!TryQuery<Label>(root, AnnouncementLabelElementName, out Label announcementLabel)) return;
@@ -63,10 +69,12 @@ namespace RogueliteAutoBattler.UI.Toolkit
             _goldBadgeElement = goldBadgeElement;
 
             _goldBadge = new GoldBadgeController(goldBadgeElement, goldLabel, this);
+            _skillPointBadge = new SkillPointBadgeController(skillPointBadgeElement, skillPointLabel, this);
             _battleIndicator = new BattleIndicatorController(battleCompactLabel, announcementOverlay, announcementLabel, this);
             _stepProgressBar = new StepProgressBarController(stepProgressContainer);
 
             _goldBadge.Initialize(_goldWallet);
+            _skillPointBadge.Initialize(_skillPointWallet);
             _battleIndicator.Initialize();
             _stepProgressBar.Initialize();
 
@@ -139,6 +147,7 @@ namespace RogueliteAutoBattler.UI.Toolkit
 
             _allyStatsPanel?.Dispose();
             _goldBadge?.Dispose();
+            _skillPointBadge?.Dispose();
             _battleIndicator?.Dispose();
             _stepProgressBar?.Dispose();
         }

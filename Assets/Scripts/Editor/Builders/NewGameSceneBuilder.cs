@@ -57,7 +57,7 @@ namespace RogueliteAutoBattler.Editor
             Undo.RegisterCreatedObjectUndo(navHostGo, NavigationHostUndoLabel);
             GoldWallet goldWallet = WalletsBuilder.FindOrCreateGoldWallet();
             SkillPointWallet skillPointWallet = WalletsBuilder.FindOrCreateSkillPointWallet();
-            CombatHudBuilder.SetupToolkitCombatHud(navHostGo, goldWallet);
+            CombatHudBuilder.SetupToolkitCombatHud(navHostGo, goldWallet, skillPointWallet);
             SkillTreeScreenBuilder.SetupSkillTreeScreen(navHostGo, goldWallet, skillPointWallet);
 
             Undo.CollapseUndoOperations(undoGroup);
