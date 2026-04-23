@@ -15,6 +15,8 @@ namespace RogueliteAutoBattler.UI.Toolkit.SkillTree
         private readonly Label _levelLabel;
         private readonly Label _costLabel;
         private readonly Label _bonusLabel;
+        private readonly Label _bonusCurrentLabel;
+        private readonly Label _bonusNextLabel;
         private readonly Button _upgradeButton;
         private readonly Button _closeButton;
         private readonly SkillTreeData _data;
@@ -37,6 +39,8 @@ namespace RogueliteAutoBattler.UI.Toolkit.SkillTree
             Label levelLabel,
             Label costLabel,
             Label bonusLabel,
+            Label bonusCurrentLabel,
+            Label bonusNextLabel,
             Button upgradeButton,
             Button closeButton,
             SkillTreeData data,
@@ -49,6 +53,8 @@ namespace RogueliteAutoBattler.UI.Toolkit.SkillTree
             _levelLabel = levelLabel ?? throw new ArgumentNullException(nameof(levelLabel));
             _costLabel = costLabel ?? throw new ArgumentNullException(nameof(costLabel));
             _bonusLabel = bonusLabel ?? throw new ArgumentNullException(nameof(bonusLabel));
+            _bonusCurrentLabel = bonusCurrentLabel ?? throw new ArgumentNullException(nameof(bonusCurrentLabel));
+            _bonusNextLabel = bonusNextLabel ?? throw new ArgumentNullException(nameof(bonusNextLabel));
             _upgradeButton = upgradeButton ?? throw new ArgumentNullException(nameof(upgradeButton));
             _closeButton = closeButton ?? throw new ArgumentNullException(nameof(closeButton));
             _data = data ?? throw new ArgumentNullException(nameof(data));
@@ -89,10 +95,13 @@ namespace RogueliteAutoBattler.UI.Toolkit.SkillTree
             var nextCost = SkillTreeData.ComputeNodeCost(node, currentLevel);
             var isMax = SkillTreeData.IsMaxLevel(node, currentLevel);
 
+            var maxLevelDisplay = node.maxLevel > 0 ? node.maxLevel.ToString() : "∞";
             _nameLabel.text = SkillTreeData.GetStatDisplayName(node.statModifierType);
-            _levelLabel.text = $"Level {currentLevel}/{node.maxLevel}";
+            _levelLabel.text = $"Lvl {currentLevel} / {maxLevelDisplay}";
             _costLabel.text = isMax ? "MAX" : FormatCostLabel(nextCost, node.costType);
-            _bonusLabel.text = SkillTreeData.FormatBonus(node.statModifierValuePerLevel, node.statModifierMode);
+            _bonusLabel.text = $"Per level: {SkillTreeData.FormatBonus(node.statModifierValuePerLevel, node.statModifierMode)}";
+            _bonusCurrentLabel.text = $"Current: {SkillTreeData.FormatBonus(node.statModifierValuePerLevel * currentLevel, node.statModifierMode)}";
+            _bonusNextLabel.text = isMax ? "Next: —" : $"Next: {SkillTreeData.FormatBonus(node.statModifierValuePerLevel * (currentLevel + 1), node.statModifierMode)}";
             _upgradeButton.SetEnabled(!isMax && CanAfford(node.costType, nextCost));
         }
 

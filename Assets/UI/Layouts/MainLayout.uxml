@@ -32,6 +32,8 @@
                     <ui:Label name="skilltree-detail-level" class="skill-tree-detail-level" />
                     <ui:Label name="skilltree-detail-cost" class="skill-tree-detail-cost" />
                     <ui:Label name="skilltree-detail-bonus" class="skill-tree-detail-bonus" />
+                    <ui:Label name="skilltree-detail-bonus-current" class="skill-tree-detail-bonus-current" />
+                    <ui:Label name="skilltree-detail-bonus-next" class="skill-tree-detail-bonus-next" />
                     <ui:Button name="skilltree-detail-upgrade-btn" class="skill-tree-detail-upgrade-btn" text="UPGRADE" />
                     <ui:Button name="skilltree-detail-close-btn" class="skill-tree-detail-close-btn" text="X" />
                 </ui:VisualElement>

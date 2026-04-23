@@ -19,6 +19,8 @@ namespace RogueliteAutoBattler.UI.Toolkit.SkillTree
         private const string DetailLevelName = "skilltree-detail-level";
         private const string DetailCostName = "skilltree-detail-cost";
         private const string DetailBonusName = "skilltree-detail-bonus";
+        private const string DetailBonusCurrentName = "skilltree-detail-bonus-current";
+        private const string DetailBonusNextName = "skilltree-detail-bonus-next";
         private const string DetailUpgradeButtonName = "skilltree-detail-upgrade-btn";
         private const string DetailCloseButtonName = "skilltree-detail-close-btn";
 
@@ -87,12 +89,15 @@ namespace RogueliteAutoBattler.UI.Toolkit.SkillTree
             var levelLabel = root.Q<Label>(DetailLevelName);
             var costLabel = root.Q<Label>(DetailCostName);
             var bonusLabel = root.Q<Label>(DetailBonusName);
+            var bonusCurrentLabel = root.Q<Label>(DetailBonusCurrentName);
+            var bonusNextLabel = root.Q<Label>(DetailBonusNextName);
             var upgradeButton = root.Q<Button>(DetailUpgradeButtonName);
             var closeButton = root.Q<Button>(DetailCloseButtonName);
 
             if (viewport == null || content == null || nodesLayer == null || edgeLayerElement == null
                 || panelRoot == null || nameLabel == null || levelLabel == null || costLabel == null
-                || bonusLabel == null || upgradeButton == null || closeButton == null)
+                || bonusLabel == null || bonusCurrentLabel == null || bonusNextLabel == null
+                || upgradeButton == null || closeButton == null)
             {
                 Debug.LogError($"{nameof(SkillTreeScreenController)} could not resolve all skill-tree elements in UXML.");
                 return;
@@ -106,7 +111,7 @@ namespace RogueliteAutoBattler.UI.Toolkit.SkillTree
             RefreshEdgeLayer();
 
             _detailController = new SkillTreeDetailPanelController(
-                panelRoot, nameLabel, levelLabel, costLabel, bonusLabel,
+                panelRoot, nameLabel, levelLabel, costLabel, bonusLabel, bonusCurrentLabel, bonusNextLabel,
                 upgradeButton, closeButton, _data, _progress, _goldWallet, _skillPointWallet);
             _detailController.NodeUpgraded += OnNodeUpgraded;
             _detailController.Closed += OnDetailClosed;

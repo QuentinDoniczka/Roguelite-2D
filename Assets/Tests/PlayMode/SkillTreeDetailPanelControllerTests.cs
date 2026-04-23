@@ -28,6 +28,8 @@ namespace RogueliteAutoBattler.Tests.PlayMode
         private Label _levelLabel;
         private Label _costLabel;
         private Label _bonusLabel;
+        private Label _bonusCurrentLabel;
+        private Label _bonusNextLabel;
         private Button _upgradeButton;
         private Button _closeButton;
 
@@ -49,6 +51,8 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             _levelLabel = new Label();
             _costLabel = new Label();
             _bonusLabel = new Label();
+            _bonusCurrentLabel = new Label();
+            _bonusNextLabel = new Label();
             _upgradeButton = new Button();
             _closeButton = new Button();
 
@@ -56,6 +60,8 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             _panelRoot.Add(_levelLabel);
             _panelRoot.Add(_costLabel);
             _panelRoot.Add(_bonusLabel);
+            _panelRoot.Add(_bonusCurrentLabel);
+            _panelRoot.Add(_bonusNextLabel);
             _panelRoot.Add(_upgradeButton);
             _panelRoot.Add(_closeButton);
 
@@ -86,6 +92,8 @@ namespace RogueliteAutoBattler.Tests.PlayMode
                 _levelLabel,
                 _costLabel,
                 _bonusLabel,
+                _bonusCurrentLabel,
+                _bonusNextLabel,
                 _upgradeButton,
                 _closeButton,
                 _data,
@@ -181,10 +189,38 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             Assert.IsFalse(string.IsNullOrEmpty(_bonusLabel.text));
 
             Assert.AreEqual("Attack", _nameLabel.text);
+            StringAssert.Contains("Lvl", _levelLabel.text);
             StringAssert.Contains("0", _levelLabel.text);
             StringAssert.Contains("5", _levelLabel.text);
             StringAssert.Contains("Gold", _costLabel.text);
             StringAssert.Contains("+3", _bonusLabel.text);
+            StringAssert.Contains("Current", _bonusCurrentLabel.text);
+            StringAssert.Contains("Next", _bonusNextLabel.text);
+        }
+
+        [UnityTest]
+        public IEnumerator Refresh_NodeWithMaxLevelZero_LevelLabelShowsInfinity()
+        {
+            yield return null;
+            var node = _data.Nodes[0];
+            node.maxLevel = 0;
+            _data.SetNode(0, node);
+
+            _controller.Show(0);
+
+            StringAssert.Contains("∞", _levelLabel.text);
+        }
+
+        [UnityTest]
+        public IEnumerator Refresh_NodeAtMaxLevel_NextBonusShowsDash()
+        {
+            yield return null;
+            _goldWallet.Add(999999);
+            _progress.SetLevel(0, 5);
+
+            _controller.Show(0);
+
+            StringAssert.Contains("—", _bonusNextLabel.text);
         }
 
         [UnityTest]

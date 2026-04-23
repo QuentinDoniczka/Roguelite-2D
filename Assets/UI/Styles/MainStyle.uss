@@ -448,9 +448,10 @@
 
 .skill-tree-detail-panel {
     position: absolute;
+    bottom: 16px;
+    left: 16px;
     right: 16px;
-    top: 16px;
-    width: 320px;
+    top: auto;
 }
 
 .skill-tree-detail-panel.hidden {
@@ -561,6 +562,18 @@
 }
 
 .skill-tree-detail-bonus {
+    font-size: 14px;
+    color: rgb(200, 200, 200);
+    margin-bottom: 4px;
+}
+
+.skill-tree-detail-bonus-current {
+    font-size: 14px;
+    color: rgb(200, 200, 200);
+    margin-bottom: 4px;
+}
+
+.skill-tree-detail-bonus-next {
     font-size: 14px;
     color: rgb(200, 200, 200);
     margin-bottom: 4px;
