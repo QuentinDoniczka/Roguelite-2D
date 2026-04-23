@@ -21,8 +21,27 @@
                 </ui:VisualElement>
             </ui:VisualElement>
             <ui:VisualElement name="screen-skilltree" class="screen-container hidden">
-                <ui:VisualElement class="screen-placeholder screen-skilltree-bg">
-                    <ui:Label text="ARBRE DE COMPETENCES" class="screen-placeholder-label" />
+                <ui:VisualElement name="skilltree-viewport" class="skill-tree-viewport">
+                    <ui:VisualElement name="skilltree-content" class="skill-tree-content">
+                        <ui:VisualElement name="skilltree-edge-layer" class="skill-tree-edge-layer" picking-mode="Ignore" />
+                        <ui:VisualElement name="skilltree-nodes-layer" class="skill-tree-nodes-layer" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:VisualElement name="skilltree-detail-panel" class="skill-tree-detail-panel hidden">
+                    <ui:VisualElement class="skill-tree-detail-name-column">
+                        <ui:Label name="skilltree-detail-name" class="skill-tree-detail-name" />
+                    </ui:VisualElement>
+                    <ui:VisualElement class="skill-tree-detail-stats-column">
+                        <ui:Label name="skilltree-detail-level" class="skill-tree-detail-level" />
+                        <ui:Label name="skilltree-detail-bonus" class="skill-tree-detail-bonus" />
+                        <ui:Label name="skilltree-detail-bonus-current" class="skill-tree-detail-bonus-current" />
+                        <ui:Label name="skilltree-detail-bonus-next" class="skill-tree-detail-bonus-next" />
+                    </ui:VisualElement>
+                    <ui:VisualElement class="skill-tree-detail-action-column">
+                        <ui:Label name="skilltree-detail-cost" class="skill-tree-detail-cost" />
+                        <ui:Button name="skilltree-detail-upgrade-btn" class="skill-tree-detail-upgrade-btn" text="UPGRADE" />
+                    </ui:VisualElement>
+                    <ui:Button name="skilltree-detail-close-btn" class="skill-tree-detail-close-btn" text="X" />
                 </ui:VisualElement>
             </ui:VisualElement>
             <ui:VisualElement name="screen-autre" class="screen-container hidden">

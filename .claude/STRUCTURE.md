@@ -1,5 +1,5 @@
 # Project Structure
-Generated: 2026-04-21
+Generated: 2026-04-23
 
 .github/
   workflows/
@@ -7,7 +7,7 @@ Generated: 2026-04-21
     protect-main.yml
 
 Assets/
-  Animations/  (24 files: .anim + .controller)
+  Animations/  (23 files)
   Audio/  (1 file)
   Data/
     Adventurers/  (empty)
@@ -37,7 +37,8 @@ Assets/
   Fonts/
     Bangers SDF.asset
     Bangers.ttf
-  Materials/  (1 file)
+  Materials/
+    SpriteOutline2D.mat
   MedievalFantasyCharacters/  (empty)
   Prefabs/
     Characters/  (5 prefabs: Elk, Horse, Wildboar, Wolf, sampleCharacterHuman)
@@ -110,7 +111,7 @@ Assets/
         NavigationHostBuilder.cs
         NewGameSceneBuilder.cs
         RoundedRectSpriteGenerator.cs
-        SkillTreeBuilder.cs
+        SkillTreeScreenBuilder.cs
         WalletsBuilder.cs
       Windows/
         GameDesignerWindow.cs
@@ -130,15 +131,6 @@ Assets/
     Services/
       Local/  (empty)
     UI/
-      Core/
-        UIScreen.cs  (deferred to #206 — still inherited by SkillTreeScreen)
-      Screens/
-        SkillTree/  (5 files, deferred to #206)
-          SkillTreeDetailPanel.cs
-          SkillTreeInputHandler.cs
-          SkillTreeNode.cs
-          SkillTreeNodeManager.cs
-          SkillTreeScreen.cs
       Toolkit/
         AllyStatsPanelController.cs
         BattleIndicatorController.cs
@@ -149,6 +141,13 @@ Assets/
         NavigationManager.cs
         ScreenStack.cs
         StepProgressBarController.cs
+        SkillTree/
+          SkillTreeDetailPanelController.cs
+          SkillTreeEdgeLayer.cs
+          SkillTreeNodeElement.cs
+          SkillTreePanZoomManipulator.cs
+          SkillTreeScreenController.cs
+          SkillTreeStateEvaluator.cs
     Village/  (empty)
   Settings/
     DefaultVolumeProfile.asset
@@ -165,9 +164,9 @@ Assets/
   Sprites/
     Characters/  (156 files)
     Effects/  (25 files)
-    Environment/  (6 files)
+    Environment/  (5 files)
     Items/  (54 files)
-    UI/  (2 files)
+    UI/  (1 file)
   Tests/
     EditMode/
       Tests.EditMode.asmdef
@@ -183,8 +182,10 @@ Assets/
       NewGameSceneBuilderTests.cs
       ProceduralGroundSpriteTests.cs
       RecalculateFormationTests.cs
+      SkillTreeDataAssetSpacingTests.cs
       SkillTreeDataTests.cs
       SkillTreeProgressTests.cs
+      SkillTreeScreenBuilderTests.cs
       StatBreakdownDataTests.cs
       TargetFinderTests.cs
       TeamMemberTests.cs
@@ -226,16 +227,19 @@ Assets/
       LevelManagerStepTransitionTests.cs
       LevelManagerTerrainFallbackTests.cs
       LevelManagerTotalLevelsTests.cs
+      NavigationHostInfoAreaToggleTests.cs
       NavigationHostTests.cs
       NewGameSceneSmokeTests.cs
       ScreenAnchorTests.cs
       SelectionOutlineTests.cs
       SkillPointWalletTests.cs
-      SkillTreeDetailPanelTests.cs
-      SkillTreeInputHandlerTests.cs
-      SkillTreeNodeManagerTests.cs
-      SkillTreeNodeTests.cs
-      SkillTreeScreenTests.cs
+      SkillTreeDetailPanelControllerTests.cs
+      SkillTreeEdgeLayerTests.cs
+      SkillTreeLayoutTests.cs
+      SkillTreeNodeElementTests.cs
+      SkillTreeNodeStateStylesTests.cs
+      SkillTreePanZoomManipulatorTests.cs
+      SkillTreeScreenControllerTests.cs
       StepProgressBarControllerTests.cs
       TeamRosterTests.cs
       UnitSelectionManagerTests.cs
