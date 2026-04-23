@@ -182,7 +182,9 @@ namespace RogueliteAutoBattler.UI.Toolkit.SkillTree
         {
             if (_panZoomManipulator != null && _panZoomManipulator.ExceededClickVersusDragThreshold) return;
             var clickedElement = evt.target as VisualElement;
-            if (clickedElement?.GetFirstAncestorOfType<SkillTreeNodeElement>() != null) return;
+            if (clickedElement == null) return;
+            if (clickedElement is SkillTreeNodeElement) return;
+            if (clickedElement.GetFirstAncestorOfType<SkillTreeNodeElement>() != null) return;
             if (_selectedNodeIndex == NoSelectedNodeIndex) return;
             SetSelectedNode(NoSelectedNodeIndex);
             _detailController?.Hide();
