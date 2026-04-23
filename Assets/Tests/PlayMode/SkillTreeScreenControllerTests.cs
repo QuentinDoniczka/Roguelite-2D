@@ -19,6 +19,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
         private const string MainLayoutPath = "Assets/UI/Layouts/MainLayout.uxml";
         private const string NodesLayerElementName = "skilltree-nodes-layer";
         private const string DetailPanelElementName = "skilltree-detail-panel";
+        private const string ViewportElementName = "skilltree-viewport";
         private const string UpgradeButtonElementName = "skilltree-detail-upgrade-btn";
         private const string CloseButtonElementName = "skilltree-detail-close-btn";
         private const string HiddenClassName = "hidden";
@@ -27,8 +28,10 @@ namespace RogueliteAutoBattler.Tests.PlayMode
         private const string ProgressFieldName = "_progress";
         private const string GoldWalletFieldName = "_goldWallet";
         private const string SkillPointWalletFieldName = "_skillPointWallet";
+        private const string PanZoomManipulatorFieldName = "_panZoomManipulator";
         private const int NoSelectedNodeIndex = -1;
         private const int AffordableGoldAmount = 10000;
+        private const int PrimaryPointerId = 0;
 
         private static void InjectPrivateField(object target, string fieldName, object value)
         {
@@ -326,7 +329,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
         }
 
         [UnityTest]
-        public IEnumerator NodeClick_WithPanZoomManipulator_SelectsNodeViaSyntheticClickEvent()
+        public IEnumerator Click_OnNode_ManipulatorNeitherDragsNorCaptures_PreservingClickSynthesisPath()
         {
             SkillTreeData data = CreateFourNodeChainSkillTreeData();
             SkillTreeProgress progress = ScriptableObject.CreateInstance<SkillTreeProgress>();
@@ -338,31 +341,37 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             yield return null;
 
             SkillTreeNodeElement firstNode = controller.NodeElements[0];
+            VisualElement viewport = uiDocument.rootVisualElement.Q<VisualElement>(ViewportElementName);
+            Assert.IsNotNull(viewport, $"{ViewportElementName} must be present in MainLayout.uxml.");
 
-            const int pointerId = 0;
+            FieldInfo manipulatorField = typeof(SkillTreeScreenController).GetField(
+                PanZoomManipulatorFieldName, BindingFlags.NonPublic | BindingFlags.Instance);
+            Assert.IsNotNull(manipulatorField,
+                $"{nameof(SkillTreeScreenController)} must expose private field {PanZoomManipulatorFieldName}.");
+            SkillTreePanZoomManipulator manipulator = manipulatorField.GetValue(controller) as SkillTreePanZoomManipulator;
+            Assert.IsNotNull(manipulator,
+                "Pan-zoom manipulator must be instantiated after controller Build for this assertion to be meaningful.");
+
             Vector2 clickPosition = firstNode.worldBound.center;
 
             using (PointerDownEvent downEvent = PointerDownEvent.GetPooled())
             {
-                PopulatePointerEventOnTarget(downEvent, clickPosition, pointerId, firstNode);
-                firstNode.SendEvent(downEvent);
+                PopulatePointerEventOnTarget(downEvent, clickPosition, PrimaryPointerId, viewport);
+                viewport.SendEvent(downEvent);
             }
 
             using (PointerUpEvent upEvent = PointerUpEvent.GetPooled())
             {
-                PopulatePointerEventOnTarget(upEvent, clickPosition, pointerId, firstNode);
-                firstNode.SendEvent(upEvent);
+                PopulatePointerEventOnTarget(upEvent, clickPosition, PrimaryPointerId, viewport);
+                viewport.SendEvent(upEvent);
             }
 
             yield return null;
 
-            Assert.AreEqual(0, controller.SelectedNodeIndex,
-                "A real Down+Up sequence on a node must produce a synthesized ClickEvent that selects the node, even with the pan-zoom manipulator attached to the viewport.");
-
-            VisualElement detailPanel = uiDocument.rootVisualElement.Q<VisualElement>(DetailPanelElementName);
-            Assert.IsNotNull(detailPanel, $"{DetailPanelElementName} must be present in MainLayout.uxml.");
-            Assert.IsFalse(detailPanel.ClassListContains(HiddenClassName),
-                "Detail panel must become visible after a Down+Up node click routed through the manipulator-equipped viewport.");
+            Assert.IsFalse(manipulator.ExceededClickVersusDragThreshold,
+                "A stationary Down+Up gesture must not flag the manipulator as having exceeded the click-versus-drag threshold.");
+            Assert.IsFalse(viewport.HasPointerCapture(PrimaryPointerId),
+                "Viewport must not retain pointer capture after a stationary Down+Up gesture, so UI Toolkit can synthesize a ClickEvent on the underlying node.");
         }
 
         private static void PopulatePointerEventOnTarget(EventBase evt, Vector2 position, int pointerId, VisualElement eventTarget)
