@@ -46,7 +46,7 @@ Assets/
     SkillTreeProgress.asset
     TeamDatabase.asset
   doc/
-    MedievalFantasyCharacters/  (28 files)
+    MedievalFantasyCharacters/  (14 files)
     architecture-ui.md
     combat.jpeg
     exemple_HUD.jpg
@@ -63,7 +63,8 @@ Assets/
   Fonts/
     Bangers SDF.asset
     Bangers.ttf
-  Materials/  (2 files)
+  Materials/
+    SpriteOutline2D.mat
   MedievalFantasyCharacters/  (empty)
   Prefabs/
     Characters/  (5 prefabs: Elk, Horse, Wildboar, Wolf, sampleCharacterHuman)
@@ -187,11 +188,11 @@ Assets/
     SpriteOutline2D.shader
     SpriteSilhouette2D.shader
   Sprites/
-    Characters/  (345 files)
-    Effects/  (55 files)
-    Environment/  (11 files)
-    Items/  (116 files)
-    UI/  (3 files)
+    Characters/  (156 files)
+    Effects/  (25 files)
+    Environment/  (5 files)
+    Items/  (54 files)
+    UI/  (1 file)
   Tests/
     EditMode/
       Tests.EditMode.asmdef
@@ -270,7 +271,7 @@ Assets/
       UnitSelectionManagerTests.cs
       VisualEquipmentTestLoopTests.cs
       WorldConveyorTests.cs
-  TextMesh Pro/  (366 files -- TMP package: fonts, shaders, examples)
+  TextMesh Pro/  (173 files -- TMP package: fonts, shaders, examples)
   UI/
     Layouts/
       MainLayout.uxml

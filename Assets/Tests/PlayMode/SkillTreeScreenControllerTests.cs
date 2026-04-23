@@ -210,7 +210,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
         }
 
         [UnityTest]
-        public IEnumerator Awake_NonRootNode_WithoutUnlockedPrereqs_IsLocked()
+        public IEnumerator Awake_AllUnpurchasedNodes_AreAvailable()
         {
             SkillTreeData data = CreateFourNodeChainSkillTreeData();
             SkillTreeProgress progress = ScriptableObject.CreateInstance<SkillTreeProgress>();
@@ -220,8 +220,11 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             SkillTreeScreenController controller = BuildController(data, progress, goldWallet, skillPointWallet, out _);
             yield return null;
 
-            Assert.AreEqual(SkillTreeNodeVisualState.Locked, controller.NodeElements[1].CurrentState,
-                "Non-root node whose prerequisites are still at level 0 must start in Locked state.");
+            for (var i = 0; i < controller.NodeElements.Count; i++)
+            {
+                Assert.AreEqual(SkillTreeNodeVisualState.Available, controller.NodeElements[i].CurrentState,
+                    $"Node {i} must start in Available state because tier-1 nodes have no prerequisites.");
+            }
         }
 
         [UnityTest]

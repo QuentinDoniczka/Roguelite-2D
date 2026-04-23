@@ -34,23 +34,7 @@ namespace RogueliteAutoBattler.UI.Toolkit.SkillTree
             {
                 return SkillTreeNodeVisualState.Purchased;
             }
-            return HasUnlockedPrerequisite(nodeIndex)
-                ? SkillTreeNodeVisualState.Available
-                : SkillTreeNodeVisualState.Locked;
-        }
-
-        private bool HasUnlockedPrerequisite(int nodeIndex)
-        {
-            var node = _data.Nodes[nodeIndex];
-            for (var i = 0; i < node.connectedNodeIds.Count; i++)
-            {
-                var connectedId = node.connectedNodeIds[i];
-                if (_idToIndexMap.TryGetValue(connectedId, out var connectedIndex) && _progress.GetLevel(connectedIndex) > 0)
-                {
-                    return true;
-                }
-            }
-            return node.connectedNodeIds.Count == 0;
+            return SkillTreeNodeVisualState.Available;
         }
     }
 }
