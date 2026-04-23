@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9568085fa8c1a7f43962fb27b9ab0163, type: 3}
   m_Name: SkillTreeData
   m_EditorClassIdentifier: RogueliteAutoBattler.Runtime::RogueliteAutoBattler.Data.SkillTreeData
-  ringRadius: 2
+  ringRadius: 8
   ringNodeCount: 6
   unitSize: 200
   nodeSize: 80
@@ -28,7 +28,7 @@ MonoBehaviour:
   edgeThickness: 4
   nodes:
   - id: 0
-    position: {x: 2, y: 0}
+    position: {x: 8, y: 0}
     connectedNodeIds: 01000000
     costType: 0
     maxLevel: 0
@@ -40,7 +40,7 @@ MonoBehaviour:
     statModifierMode: 1
     statModifierValuePerLevel: 0
   - id: 1
-    position: {x: 0.99999994, y: 1.7320509}
+    position: {x: 4, y: 6.9282036}
     connectedNodeIds: 02000000
     costType: 0
     maxLevel: 0
@@ -52,7 +52,7 @@ MonoBehaviour:
     statModifierMode: 1
     statModifierValuePerLevel: 5
   - id: 2
-    position: {x: -1.0000001, y: 1.7320508}
+    position: {x: -4, y: 6.9282036}
     connectedNodeIds: 03000000
     costType: 0
     maxLevel: 0
@@ -64,7 +64,7 @@ MonoBehaviour:
     statModifierMode: 1
     statModifierValuePerLevel: 0
   - id: 3
-    position: {x: -2, y: -0.00000017484555}
+    position: {x: -8, y: 0}
     connectedNodeIds: 04000000
     costType: 0
     maxLevel: 0
@@ -76,7 +76,7 @@ MonoBehaviour:
     statModifierMode: 1
     statModifierValuePerLevel: 0
   - id: 4
-    position: {x: -0.9999998, y: -1.7320509}
+    position: {x: -4, y: -6.9282036}
     connectedNodeIds: 05000000
     costType: 0
     maxLevel: 0
@@ -88,7 +88,7 @@ MonoBehaviour:
     statModifierMode: 1
     statModifierValuePerLevel: 5
   - id: 5
-    position: {x: 0.9999998, y: -1.7320509}
+    position: {x: 4, y: -6.9282036}
     connectedNodeIds: 00000000
     costType: 0
     maxLevel: 0
