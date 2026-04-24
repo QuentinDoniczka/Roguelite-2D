@@ -29,6 +29,7 @@ Gameplay : recruter aventuriers → equiper → combat auto (gauche→droite) + 
 | `review-unity` | Audit STRUCTUREL COMPLET du projet entier (pas scope au diff). Utilise uniquement sur demande explicite (hors chaine principale). Read-only. |
 | `brainstorm-unity` | **TOUJOURS invoque en premier.** Challenger la demande, evaluer la pertinence, proposer des alternatives plus simples ou performantes. Prend en compte le client/serveur et le 2D. |
 | `test-play-unity` | Lancer les tests Play Mode existants apres implementation. Utilise des fake accounts a differents niveaux de progression. Aussi utilise pour ecrire de nouveaux tests (apres refacto). |
+| `debug-unity` | **Investigateur read-only des bugs.** Pour TOUT bug, test failure, ou comportement inattendu, AVANT que `dev-unity` ou `refacto-unity` ne touche au code. Applique une methodo root-cause-first en 4 phases (investigate → pattern → hypothesis → fix plan). Retourne un diagnostic + plan de fix au lead, ne modifie rien. |
 | `agent-improver` | **Amelioration continue des agents.** Analyse les echecs du workflow (etapes manuelles, erreurs, corrections utilisateur) et modifie les prompts des agents concernes pour que le probleme ne se reproduise plus. |
 
 ## Invocation
@@ -167,7 +168,7 @@ Delegue a `test-play-unity` pour lancer le test via Unity CLI batch mode.
 **Implication pour ton workflow 4c** : avant de deleguer a `test-play-unity`, commite les changements de la sous-tache sur la branche courante (sans push — l'agent pushera tout seul). Si tu ne veux pas commiter encore, passe le hint Mode B ET verifie que Unity Editor est ferme. Dans 99% des cas, commiter puis Mode A est la bonne voie.
 
 - **Si le test passe** → la sous-tache est validee, passer a la suivante
-- **Si le test echoue** → debugger et corriger le code, JAMAIS le test. Si l'agent pense que le test est obsolete/faux, il doit expliquer pourquoi et attendre la validation utilisateur avant de modifier le test. Relancer jusqu'a ce que ca passe.
+- **Si le test echoue** → **TOUJOURS deleguer a `debug-unity` AVANT de retoucher au code**. L'agent investigue (4 phases : root cause → pattern → hypothesis → fix plan), retourne un diagnostic + plan de fix. SEULEMENT ENSUITE, dispatcher au bon implementer (`dev-unity` ou `refacto-unity`) avec le fix plan en contexte. JAMAIS modifier le test. Si `debug-unity` pense que le test est obsolete/faux, il l'indique dans son rapport et le lead demande validation utilisateur avant de modifier le test. Relancer le test jusqu'a ce que ca passe. Si 3 fix plans successifs echouent → STOP, escalade architecturale (cf rapport `debug-unity`).
 
 > **Principe** : on ne passe JAMAIS a la sous-tache suivante tant que les tests de la sous-tache courante ne passent pas. Cela evite d'accumuler des bugs invisibles.
 
