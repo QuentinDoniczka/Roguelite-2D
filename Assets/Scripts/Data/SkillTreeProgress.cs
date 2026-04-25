@@ -6,8 +6,6 @@ namespace RogueliteAutoBattler.Data
     [CreateAssetMenu(fileName = "SkillTreeProgress", menuName = "Roguelite/Skill Tree Progress")]
     public class SkillTreeProgress : ScriptableObject
     {
-        public const string DefaultAssetPath = "Assets/Data/SkillTreeProgress.asset";
-
         [SerializeField] private List<int> levels = new List<int>();
 
         public int GetLevel(int nodeIndex)

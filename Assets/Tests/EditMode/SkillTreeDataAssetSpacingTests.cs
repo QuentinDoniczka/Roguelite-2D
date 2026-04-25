@@ -1,5 +1,6 @@
 using NUnit.Framework;
 using RogueliteAutoBattler.Data;
+using RogueliteAutoBattler.Editor;
 using UnityEditor;
 using UnityEngine;
 
@@ -15,9 +16,9 @@ namespace RogueliteAutoBattler.Tests.EditMode
         [SetUp]
         public void SetUp()
         {
-            _liveSkillTreeAsset = AssetDatabase.LoadAssetAtPath<SkillTreeData>(SkillTreeData.DefaultAssetPath);
+            _liveSkillTreeAsset = AssetDatabase.LoadAssetAtPath<SkillTreeData>(EditorPaths.SkillTreeDataAsset);
             Assert.IsNotNull(_liveSkillTreeAsset,
-                $"Live SkillTreeData asset not found at {SkillTreeData.DefaultAssetPath}");
+                $"Live SkillTreeData asset not found at {EditorPaths.SkillTreeDataAsset}");
         }
 
         [Test]

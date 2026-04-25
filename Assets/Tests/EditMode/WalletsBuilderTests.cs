@@ -1,6 +1,6 @@
 using NUnit.Framework;
 using RogueliteAutoBattler.Economy;
-using RogueliteAutoBattler.Editor;
+using RogueliteAutoBattler.Editor.Builders;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 

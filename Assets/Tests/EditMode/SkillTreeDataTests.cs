@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using NUnit.Framework;
 using RogueliteAutoBattler.Data;
-using RogueliteAutoBattler.Editor;
+using RogueliteAutoBattler.Editor.Windows;
 using UnityEngine;
 
 namespace RogueliteAutoBattler.Tests.EditMode

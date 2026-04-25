@@ -2,7 +2,6 @@ using System.Collections;
 using System.Text.RegularExpressions;
 using NUnit.Framework;
 using RogueliteAutoBattler.Combat.Environment;
-using RogueliteAutoBattler.Tests;
 using UnityEngine;
 using UnityEngine.TestTools;
 

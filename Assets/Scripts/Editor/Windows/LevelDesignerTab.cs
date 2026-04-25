@@ -4,7 +4,7 @@ using RogueliteAutoBattler.Data;
 using UnityEditor;
 using UnityEngine;
 
-namespace RogueliteAutoBattler.Editor
+namespace RogueliteAutoBattler.Editor.Windows
 {
     internal sealed class LevelDesignerTab
     {

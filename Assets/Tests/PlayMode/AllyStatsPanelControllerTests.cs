@@ -6,7 +6,6 @@ using RogueliteAutoBattler.Combat.Core;
 using RogueliteAutoBattler.Common;
 using RogueliteAutoBattler.Core;
 using RogueliteAutoBattler.Data;
-using RogueliteAutoBattler.Tests;
 using RogueliteAutoBattler.UI.Toolkit;
 using UnityEngine;
 using UnityEngine.TestTools;

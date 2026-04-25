@@ -5,7 +5,7 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-namespace RogueliteAutoBattler.Editor
+namespace RogueliteAutoBattler.Editor.Builders
 {
     internal static class SkillTreeScreenBuilder
     {
@@ -21,7 +21,7 @@ namespace RogueliteAutoBattler.Editor
             UIDocument uiDocument = navigationHostGo.GetComponent<UIDocument>();
 
             SkillTreeData data =
-                AssetDatabase.LoadAssetAtPath<SkillTreeData>(SkillTreeData.DefaultAssetPath);
+                AssetDatabase.LoadAssetAtPath<SkillTreeData>(EditorPaths.SkillTreeDataAsset);
             SkillTreeProgress progress = EnsureSkillTreeProgressAsset();
 
             SkillTreeScreenController controller =
@@ -39,14 +39,14 @@ namespace RogueliteAutoBattler.Editor
         private static SkillTreeProgress EnsureSkillTreeProgressAsset()
         {
             SkillTreeProgress existing =
-                AssetDatabase.LoadAssetAtPath<SkillTreeProgress>(SkillTreeProgress.DefaultAssetPath);
+                AssetDatabase.LoadAssetAtPath<SkillTreeProgress>(EditorPaths.SkillTreeProgressAsset);
             if (existing != null) return existing;
 
-            EditorUIFactory.EnsureDirectoryExists(SkillTreeProgress.DefaultAssetPath);
+            EditorUIFactory.EnsureDirectoryExists(EditorPaths.SkillTreeProgressAsset);
             SkillTreeProgress asset = ScriptableObject.CreateInstance<SkillTreeProgress>();
-            AssetDatabase.CreateAsset(asset, SkillTreeProgress.DefaultAssetPath);
+            AssetDatabase.CreateAsset(asset, EditorPaths.SkillTreeProgressAsset);
             AssetDatabase.SaveAssets();
-            return AssetDatabase.LoadAssetAtPath<SkillTreeProgress>(SkillTreeProgress.DefaultAssetPath);
+            return AssetDatabase.LoadAssetAtPath<SkillTreeProgress>(EditorPaths.SkillTreeProgressAsset);
         }
     }
 }

@@ -1,7 +1,7 @@
 using RogueliteAutoBattler.Economy;
 using UnityEngine;
 
-namespace RogueliteAutoBattler.Editor
+namespace RogueliteAutoBattler.Editor.Builders
 {
     internal static class WalletsBuilder
     {

@@ -4,7 +4,7 @@ using UnityEngine.InputSystem;
 using UnityEngine.UIElements;
 using ToolkitNavigationHost = RogueliteAutoBattler.UI.Toolkit.NavigationHost;
 
-namespace RogueliteAutoBattler.Editor
+namespace RogueliteAutoBattler.Editor.Builders
 {
     internal static class NavigationHostBuilder
     {
