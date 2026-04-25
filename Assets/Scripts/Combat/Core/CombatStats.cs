@@ -21,7 +21,7 @@ namespace RogueliteAutoBattler.Combat.Core
 
         private static readonly StatType[] DisplayOrderArray =
         {
-            StatType.Hp, StatType.Atk, StatType.Def,
+            StatType.Hp, StatType.Atk, StatType.Def, StatType.Mana, StatType.Power,
             StatType.AttackSpeed, StatType.RegenHp, StatType.CritRate
         };
 
@@ -39,6 +39,10 @@ namespace RogueliteAutoBattler.Combat.Core
                     return MakeBaseBreakdown("ATK", $"{_atk}");
                 case StatType.Def:
                     return MakeBaseBreakdown("DEF", "0");
+                case StatType.Mana:
+                    return MakeBaseBreakdown("MANA", "0");
+                case StatType.Power:
+                    return MakeBaseBreakdown("POWER", "0");
                 case StatType.AttackSpeed:
                     return MakeBaseBreakdown("SPD", _attackSpeed.ToString("F1", CultureInfo.InvariantCulture));
                 case StatType.RegenHp:
