@@ -6,6 +6,7 @@ namespace RogueliteAutoBattler.Combat.Core
 {
     public class CombatStats : MonoBehaviour
     {
+        private readonly List<Modifier> _modifiers = new List<Modifier>();
         private int _currentHp;
         private int _maxHp;
         private int _atk;
