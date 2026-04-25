@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -7,6 +8,14 @@ namespace RogueliteAutoBattler.Data
     public class SkillTreeProgress : ScriptableObject
     {
         [SerializeField] private List<int> levels = new List<int>();
+
+        /// <summary>
+        /// Raised when a node level changes via <see cref="SetLevel"/> or <see cref="ResetAll"/>.
+        /// Per-node change: (nodeIndex, newLevel).
+        /// Bulk reset: a single sentinel invocation with nodeIndex == -1 and newLevel == 0.
+        /// Never raised on load (OnEnable). Consumers must perform an initial resolve themselves.
+        /// </summary>
+        public event Action<int, int> OnLevelChanged;
 
         public int GetLevel(int nodeIndex)
         {
@@ -18,13 +27,16 @@ namespace RogueliteAutoBattler.Data
         {
             while (levels.Count <= nodeIndex)
                 levels.Add(0);
+            if (levels[nodeIndex] == level) return;
             levels[nodeIndex] = level;
+            OnLevelChanged?.Invoke(nodeIndex, level);
         }
 
         public void ResetAll()
         {
             for (int i = 0; i < levels.Count; i++)
                 levels[i] = 0;
+            OnLevelChanged?.Invoke(-1, 0);
         }
     }
 }
