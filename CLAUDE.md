@@ -87,6 +87,8 @@ Assets/
         CombatSpawnManager.cs
         CombatStats.cs
         FormationLayout.cs
+        Modifier.cs
+        ModifierSources.cs
         ModifierTier.cs
         StatBreakdownData.cs
         StatModifierEntry.cs
@@ -206,10 +208,13 @@ Assets/
       CombatStatsBreakdownAllStatsTests.cs
       CombatStatsBreakdownTests.cs
       CombatStatsDamageEventTests.cs
+      CombatStatsModifierPipelineTests.cs
       CombatStatsTests.cs
       EditorBuildSettingsSceneTests.cs
       FormationLayoutTests.cs
       GoldFormatterTests.cs
+      ModifierSourcesTests.cs
+      ModifierStructTests.cs
       ModifierTierTests.cs
       NewGameSceneBuilderTests.cs
       ProceduralGroundSpriteTests.cs
@@ -220,6 +225,7 @@ Assets/
       SkillTreeProgressTests.cs
       SkillTreeScreenBuilderTests.cs
       StatBreakdownDataTests.cs
+      StatModifierEntryTests.cs
       StatTypeIndicesTests.cs
       StatTypeValidatorTests.cs
       TargetFinderTests.cs
