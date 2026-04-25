@@ -5,7 +5,6 @@ using RogueliteAutoBattler.Combat.Core;
 using RogueliteAutoBattler.Combat.Environment;
 using RogueliteAutoBattler.Combat.Levels;
 using RogueliteAutoBattler.Data;
-using RogueliteAutoBattler.Tests;
 using UnityEngine;
 using UnityEngine.TestTools;
 

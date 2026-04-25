@@ -8,8 +8,6 @@ namespace RogueliteAutoBattler.Data
     [CreateAssetMenu(fileName = "SkillTreeData", menuName = "Roguelite/Skill Tree Data")]
     public class SkillTreeData : ScriptableObject
     {
-        public const string DefaultAssetPath = "Assets/Data/SkillTreeData.asset";
-
         public const int DefaultRingNodeCount = 6;
         public const float DefaultRingRadius = 5f;
         public const float DefaultUnitSize = 200f;

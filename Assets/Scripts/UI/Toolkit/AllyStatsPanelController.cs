@@ -12,8 +12,8 @@ namespace RogueliteAutoBattler.UI.Toolkit
 {
     public class AllyStatsPanelController
     {
-        private const float StaggerDelay = 0.05f;
-        private const float FadeDuration = 0.15f;
+        private const float StaggerDelay = 0.025f;
+        private const float FadeDuration = 0.075f;
         private const string BreakdownSectionDividerLine = "\u2500\u2500\u2500\u2500\u2500\u2500";
 
         private static class UssClasses

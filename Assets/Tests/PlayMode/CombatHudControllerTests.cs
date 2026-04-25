@@ -1,4 +1,3 @@
-#if UNITY_EDITOR
 using System.Collections;
 using NUnit.Framework;
 using RogueliteAutoBattler.Economy;
@@ -65,4 +64,3 @@ namespace RogueliteAutoBattler.Tests.PlayMode
         }
     }
 }
-#endif

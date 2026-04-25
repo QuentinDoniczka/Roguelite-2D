@@ -1,6 +1,7 @@
 #if UNITY_EDITOR
 using NUnit.Framework;
 using RogueliteAutoBattler.Data;
+using RogueliteAutoBattler.Editor;
 using RogueliteAutoBattler.UI.Toolkit;
 using RogueliteAutoBattler.UI.Toolkit.SkillTree;
 using UnityEditor;
@@ -68,8 +69,8 @@ namespace RogueliteAutoBattler.Tests.EditMode
                 "SkillTreeScreenController._data must be wired after setup.");
 
             string assetPath = AssetDatabase.GetAssetPath(dataProperty.objectReferenceValue);
-            Assert.AreEqual(SkillTreeData.DefaultAssetPath, assetPath,
-                $"SkillTreeScreenController._data must reference the default asset at '{SkillTreeData.DefaultAssetPath}'.");
+            Assert.AreEqual(EditorPaths.SkillTreeDataAsset, assetPath,
+                $"SkillTreeScreenController._data must reference the default asset at '{EditorPaths.SkillTreeDataAsset}'.");
         }
 
         [Test]
@@ -86,8 +87,8 @@ namespace RogueliteAutoBattler.Tests.EditMode
                 "SkillTreeScreenController._progress must be wired after setup.");
 
             string assetPath = AssetDatabase.GetAssetPath(progressProperty.objectReferenceValue);
-            Assert.AreEqual(SkillTreeProgress.DefaultAssetPath, assetPath,
-                $"SkillTreeScreenController._progress must reference the default asset at '{SkillTreeProgress.DefaultAssetPath}'.");
+            Assert.AreEqual(EditorPaths.SkillTreeProgressAsset, assetPath,
+                $"SkillTreeScreenController._progress must reference the default asset at '{EditorPaths.SkillTreeProgressAsset}'.");
         }
 
         [Test]

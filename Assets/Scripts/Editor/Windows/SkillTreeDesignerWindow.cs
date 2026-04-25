@@ -3,7 +3,7 @@ using RogueliteAutoBattler.Data;
 using UnityEditor;
 using UnityEngine;
 
-namespace RogueliteAutoBattler.Editor
+namespace RogueliteAutoBattler.Editor.Windows
 {
     internal sealed class SkillTreeDesignerWindow : EditorWindow
     {
@@ -69,12 +69,12 @@ namespace RogueliteAutoBattler.Editor
 
         private void OnEnable()
         {
-            _data = AssetDatabase.LoadAssetAtPath<SkillTreeData>(SkillTreeData.DefaultAssetPath);
+            _data = AssetDatabase.LoadAssetAtPath<SkillTreeData>(EditorPaths.SkillTreeDataAsset);
             if (_data == null)
             {
-                EditorUIFactory.EnsureDirectoryExists(SkillTreeData.DefaultAssetPath);
+                EditorUIFactory.EnsureDirectoryExists(EditorPaths.SkillTreeDataAsset);
                 _data = CreateInstance<SkillTreeData>();
-                AssetDatabase.CreateAsset(_data, SkillTreeData.DefaultAssetPath);
+                AssetDatabase.CreateAsset(_data, EditorPaths.SkillTreeDataAsset);
                 AssetDatabase.SaveAssets();
             }
             _serializedData = new SerializedObject(_data);

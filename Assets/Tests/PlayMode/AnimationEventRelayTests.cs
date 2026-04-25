@@ -1,7 +1,6 @@
 using System.Collections;
 using NUnit.Framework;
 using RogueliteAutoBattler.Combat.Core;
-using RogueliteAutoBattler.Tests;
 using UnityEngine;
 using UnityEngine.TestTools;
 

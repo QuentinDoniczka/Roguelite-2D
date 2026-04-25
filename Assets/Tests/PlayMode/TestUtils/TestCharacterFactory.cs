@@ -7,7 +7,7 @@ using RogueliteAutoBattler.Common;
 using RogueliteAutoBattler.Data;
 using UnityEngine;
 
-namespace RogueliteAutoBattler.Tests
+namespace RogueliteAutoBattler.Tests.PlayMode
 {
     public static class TestCharacterFactory
     {

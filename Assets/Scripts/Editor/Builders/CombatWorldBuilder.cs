@@ -7,10 +7,11 @@ using RogueliteAutoBattler.Combat.Visuals;
 using RogueliteAutoBattler.Common;
 using RogueliteAutoBattler.Core;
 using RogueliteAutoBattler.Data;
+using RogueliteAutoBattler.Editor.Windows;
 using UnityEditor;
 using UnityEngine;
 
-namespace RogueliteAutoBattler.Editor
+namespace RogueliteAutoBattler.Editor.Builders
 {
     internal static class CombatWorldBuilder
     {
@@ -175,12 +176,12 @@ namespace RogueliteAutoBattler.Editor
 
             AddVisualEquipmentTestLoop(root);
 
-            var damageNumberConfig = AssetDatabase.LoadAssetAtPath<DamageNumberConfig>(SettingsWindow.ConfigPath);
+            var damageNumberConfig = AssetDatabase.LoadAssetAtPath<DamageNumberConfig>(EditorPaths.DamageNumberConfigAsset);
             if (damageNumberConfig == null)
             {
                 damageNumberConfig = ScriptableObject.CreateInstance<DamageNumberConfig>();
-                EditorUIFactory.EnsureDirectoryExists(SettingsWindow.ConfigPath);
-                AssetDatabase.CreateAsset(damageNumberConfig, SettingsWindow.ConfigPath);
+                EditorUIFactory.EnsureDirectoryExists(EditorPaths.DamageNumberConfigAsset);
+                AssetDatabase.CreateAsset(damageNumberConfig, EditorPaths.DamageNumberConfigAsset);
                 AssetDatabase.SaveAssets();
             }
 
