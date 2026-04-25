@@ -40,36 +40,88 @@ namespace RogueliteAutoBattler.Combat.Core
             switch (statType)
             {
                 case StatType.Hp:
-                    return MakeBaseBreakdown("HP", $"{_currentHp} / {_maxHp}", $"{_maxHp}");
+                    return MakeBreakdown(statType, "HP", $"{_currentHp} / {_maxHp}", $"{_maxHp}");
                 case StatType.Atk:
-                    return MakeBaseBreakdown("ATK", $"{_atk}");
+                    return MakeBreakdown(statType, "ATK", $"{_atk}");
                 case StatType.Def:
-                    return MakeBaseBreakdown("DEF", "0");
+                    return MakeBreakdown(statType, "DEF", "0");
                 case StatType.Mana:
-                    return MakeBaseBreakdown("MANA", "0");
+                    return MakeBreakdown(statType, "MANA", "0");
                 case StatType.Power:
-                    return MakeBaseBreakdown("POWER", "0");
+                    return MakeBreakdown(statType, "POWER", "0");
                 case StatType.AttackSpeed:
-                    return MakeBaseBreakdown("SPD", _attackSpeed.ToString("F1", CultureInfo.InvariantCulture));
+                    return MakeBreakdown(statType, "SPD", _attackSpeed.ToString("F1", CultureInfo.InvariantCulture));
                 case StatType.RegenHp:
-                    return MakeBaseBreakdown("REGEN", _regenHpPerSecond.ToString("F1", CultureInfo.InvariantCulture) + "/s");
+                    return MakeBreakdown(statType, "REGEN", _regenHpPerSecond.ToString("F1", CultureInfo.InvariantCulture) + "/s");
                 case StatType.CritRate:
-                    return MakeBaseBreakdown("CRIT", "0%");
+                    return MakeBreakdown(statType, "CRIT", "0%");
                 default:
                     return new StatBreakdownData("", "", System.Array.Empty<StatModifierEntry>());
             }
         }
 
-        private StatBreakdownData MakeBaseBreakdown(string statName, string formattedValue)
+        private StatBreakdownData MakeBreakdown(StatType statType, string statName, string formattedValue)
         {
-            _singleModifierBuffer[0] = new StatModifierEntry("Base", formattedValue, true);
-            return new StatBreakdownData(statName, formattedValue, _singleModifierBuffer);
+            return MakeBreakdown(statType, statName, formattedValue, formattedValue);
         }
 
-        private StatBreakdownData MakeBaseBreakdown(string statName, string finalValue, string baseValue)
+        private StatBreakdownData MakeBreakdown(StatType statType, string statName, string finalValue, string baseValue)
         {
-            _singleModifierBuffer[0] = new StatModifierEntry("Base", baseValue, true);
-            return new StatBreakdownData(statName, finalValue, _singleModifierBuffer);
+            int modifierCount = CountModifiersForStat(statType);
+            if (modifierCount == 0)
+            {
+                _singleModifierBuffer[0] = new StatModifierEntry("Base", baseValue, true, ModifierTier.Base);
+                return new StatBreakdownData(statName, finalValue, _singleModifierBuffer);
+            }
+
+            var entries = new StatModifierEntry[1 + modifierCount];
+            entries[0] = new StatModifierEntry("Base", baseValue, true, ModifierTier.Base);
+            int writeIndex = 1;
+            for (int i = 0; i < _modifiers.Count; i++)
+            {
+                var m = _modifiers[i];
+                if (m.Stat != statType) continue;
+                entries[writeIndex++] = new StatModifierEntry(
+                    m.Source,
+                    FormatModifierValue(m.Tier, m.Value),
+                    m.Value >= 0f,
+                    m.Tier);
+            }
+            return new StatBreakdownData(statName, finalValue, entries);
+        }
+
+        private int CountModifiersForStat(StatType statType)
+        {
+            int count = 0;
+            for (int i = 0; i < _modifiers.Count; i++)
+            {
+                if (_modifiers[i].Stat == statType) count++;
+            }
+            return count;
+        }
+
+        private static string FormatModifierValue(ModifierTier tier, float value)
+        {
+            string sign = value >= 0f ? "+" : "-";
+            float magnitude = value >= 0f ? value : -value;
+            switch (tier)
+            {
+                case ModifierTier.Percent:
+                    float percent = magnitude * 100f;
+                    bool percentIsWhole = percent == (int)percent;
+                    string percentStr = percentIsWhole
+                        ? ((int)percent).ToString(CultureInfo.InvariantCulture)
+                        : percent.ToString("0.##", CultureInfo.InvariantCulture);
+                    return sign + percentStr + "%";
+                case ModifierTier.Base:
+                case ModifierTier.Flat:
+                default:
+                    bool isWhole = magnitude == (int)magnitude;
+                    string numberStr = isWhole
+                        ? ((int)magnitude).ToString(CultureInfo.InvariantCulture)
+                        : magnitude.ToString("0.##", CultureInfo.InvariantCulture);
+                    return sign + numberStr;
+            }
         }
 
         public void InitializeDirect(int maxHp, int atk, float attackSpeed, float regenHpPerSecond = 0f)
