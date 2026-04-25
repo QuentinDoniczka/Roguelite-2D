@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using RogueliteAutoBattler.Combat.Core;
 using UnityEngine;
 
 namespace RogueliteAutoBattler.Data
@@ -26,16 +27,6 @@ namespace RogueliteAutoBattler.Data
             SkillPoint
         }
 
-        public enum StatModifierType
-        {
-            HP,
-            RegenHP,
-            Attack,
-            Defense,
-            Mana,
-            Power
-        }
-
         public enum StatModifierMode
         {
             Flat,
@@ -54,7 +45,7 @@ namespace RogueliteAutoBattler.Data
             public float costMultiplierOdd;
             public float costMultiplierEven;
             public int costAdditivePerLevel;
-            public StatModifierType statModifierType;
+            public StatType statModifierType;
             public StatModifierMode statModifierMode;
             public float statModifierValuePerLevel;
         }
@@ -134,7 +125,7 @@ namespace RogueliteAutoBattler.Data
                     costMultiplierOdd = defaultMultOdd,
                     costMultiplierEven = defaultMultEven,
                     costAdditivePerLevel = defaultAdditive,
-                    statModifierType = StatModifierType.HP,
+                    statModifierType = StatType.Hp,
                     statModifierValuePerLevel = 0f
                 });
             }
@@ -171,16 +162,18 @@ namespace RogueliteAutoBattler.Data
             return node.maxLevel > 0 && currentLevel >= node.maxLevel;
         }
 
-        public static string GetStatDisplayName(StatModifierType type)
+        public static string GetStatDisplayName(StatType type)
         {
             return type switch
             {
-                StatModifierType.HP => "HP",
-                StatModifierType.RegenHP => "Regen HP",
-                StatModifierType.Attack => "Attack",
-                StatModifierType.Defense => "Defense",
-                StatModifierType.Mana => "Mana",
-                StatModifierType.Power => "Power",
+                StatType.Hp => "HP",
+                StatType.RegenHp => "Regen HP",
+                StatType.Atk => "Attack",
+                StatType.Def => "Defense",
+                StatType.Mana => "Mana",
+                StatType.Power => "Power",
+                StatType.AttackSpeed => "Attack Speed",
+                StatType.CritRate => "Crit Rate",
                 _ => type.ToString()
             };
         }

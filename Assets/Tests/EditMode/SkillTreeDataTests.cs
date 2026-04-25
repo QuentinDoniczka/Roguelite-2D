@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using NUnit.Framework;
+using RogueliteAutoBattler.Combat.Core;
 using RogueliteAutoBattler.Data;
 using RogueliteAutoBattler.Editor.Windows;
 using UnityEngine;
@@ -244,7 +245,7 @@ namespace RogueliteAutoBattler.Tests.EditMode
                     $"Node {i} costType should default to Gold");
                 Assert.AreEqual(0, node.maxLevel,
                     $"Node {i} maxLevel should default to 0 (unlimited)");
-                Assert.AreEqual(SkillTreeData.StatModifierType.HP, node.statModifierType,
+                Assert.AreEqual(StatType.Hp, node.statModifierType,
                     $"Node {i} statModifierType should default to HP");
                 Assert.AreEqual(0f, node.statModifierValuePerLevel,
                     $"Node {i} statModifierValuePerLevel should default to 0");
@@ -411,9 +412,9 @@ namespace RogueliteAutoBattler.Tests.EditMode
         [Test]
         public void GetStatDisplayName_ReturnsReadableNames()
         {
-            Assert.AreEqual("HP", SkillTreeData.GetStatDisplayName(SkillTreeData.StatModifierType.HP));
-            Assert.AreEqual("Attack", SkillTreeData.GetStatDisplayName(SkillTreeData.StatModifierType.Attack));
-            Assert.AreEqual("Regen HP", SkillTreeData.GetStatDisplayName(SkillTreeData.StatModifierType.RegenHP));
+            Assert.AreEqual("HP", SkillTreeData.GetStatDisplayName(StatType.Hp));
+            Assert.AreEqual("Attack", SkillTreeData.GetStatDisplayName(StatType.Atk));
+            Assert.AreEqual("Regen HP", SkillTreeData.GetStatDisplayName(StatType.RegenHp));
         }
 
         [Test]

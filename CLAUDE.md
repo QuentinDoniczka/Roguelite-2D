@@ -25,7 +25,7 @@
 Doc detaille : `Assets/doc/premier-jet-roguelite.html`
 
 # Project Structure
-Generated: 2026-04-23
+Generated: 2026-04-25
 
 .github/
   workflows/
@@ -87,6 +87,7 @@ Assets/
         CombatSpawnManager.cs
         CombatStats.cs
         FormationLayout.cs
+        ModifierTier.cs
         StatBreakdownData.cs
         StatModifierEntry.cs
         StatType.cs
@@ -139,6 +140,8 @@ Assets/
         RoundedRectSpriteGenerator.cs
         SkillTreeScreenBuilder.cs
         WalletsBuilder.cs
+      Tools/
+        StatTypeValidator.cs
       Windows/
         GameDesignerWindow.cs
         LevelDesignerTab.cs
@@ -200,20 +203,25 @@ Assets/
       TestUtils/
         StubScreen.cs
       AttackSlotRegistryTests.cs
+      CombatStatsBreakdownAllStatsTests.cs
       CombatStatsBreakdownTests.cs
       CombatStatsDamageEventTests.cs
       CombatStatsTests.cs
       EditorBuildSettingsSceneTests.cs
       FormationLayoutTests.cs
       GoldFormatterTests.cs
+      ModifierTierTests.cs
       NewGameSceneBuilderTests.cs
       ProceduralGroundSpriteTests.cs
       RecalculateFormationTests.cs
+      SkillTreeAssetIntegrityTests.cs
       SkillTreeDataAssetSpacingTests.cs
       SkillTreeDataTests.cs
       SkillTreeProgressTests.cs
       SkillTreeScreenBuilderTests.cs
       StatBreakdownDataTests.cs
+      StatTypeIndicesTests.cs
+      StatTypeValidatorTests.cs
       TargetFinderTests.cs
       TeamMemberTests.cs
       ToolkitIScreenTests.cs

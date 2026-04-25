@@ -1,6 +1,7 @@
 #if UNITY_EDITOR
 using System.Collections;
 using NUnit.Framework;
+using RogueliteAutoBattler.Combat.Core;
 using RogueliteAutoBattler.Data;
 using RogueliteAutoBattler.Economy;
 using RogueliteAutoBattler.UI.Toolkit.SkillTree;
@@ -75,10 +76,10 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             _data.CostMultiplierEven = 1.5f;
             _data.GenerateNodes();
 
-            ConfigureGoldNode(nodeIndex: 0, maxLevel: 5, statType: SkillTreeData.StatModifierType.Attack, statValue: 3f);
-            ConfigureSkillPointNode(nodeIndex: 1, maxLevel: 5, statType: SkillTreeData.StatModifierType.HP, statValue: 10f);
-            ConfigureGoldNode(nodeIndex: 2, maxLevel: 5, statType: SkillTreeData.StatModifierType.Defense, statValue: 2f);
-            ConfigureGoldNode(nodeIndex: 3, maxLevel: 3, statType: SkillTreeData.StatModifierType.Mana, statValue: 5f);
+            ConfigureGoldNode(nodeIndex: 0, maxLevel: 5, statType: StatType.Atk, statValue: 3f);
+            ConfigureSkillPointNode(nodeIndex: 1, maxLevel: 5, statType: StatType.Hp, statValue: 10f);
+            ConfigureGoldNode(nodeIndex: 2, maxLevel: 5, statType: StatType.Def, statValue: 2f);
+            ConfigureGoldNode(nodeIndex: 3, maxLevel: 3, statType: StatType.Mana, statValue: 5f);
 
             _progress = ScriptableObject.CreateInstance<SkillTreeProgress>();
 
@@ -111,7 +112,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             base.TearDown();
         }
 
-        private void ConfigureGoldNode(int nodeIndex, int maxLevel, SkillTreeData.StatModifierType statType, float statValue)
+        private void ConfigureGoldNode(int nodeIndex, int maxLevel, StatType statType, float statValue)
         {
             var node = _data.Nodes[nodeIndex];
             node.costType = SkillTreeData.CostType.Gold;
@@ -122,7 +123,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             _data.SetNode(nodeIndex, node);
         }
 
-        private void ConfigureSkillPointNode(int nodeIndex, int maxLevel, SkillTreeData.StatModifierType statType, float statValue)
+        private void ConfigureSkillPointNode(int nodeIndex, int maxLevel, StatType statType, float statValue)
         {
             var node = _data.Nodes[nodeIndex];
             node.costType = SkillTreeData.CostType.SkillPoint;

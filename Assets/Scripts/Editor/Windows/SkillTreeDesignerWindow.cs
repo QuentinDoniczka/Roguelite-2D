@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using RogueliteAutoBattler.Combat.Core;
 using RogueliteAutoBattler.Data;
 using UnityEditor;
 using UnityEngine;
@@ -347,7 +348,7 @@ namespace RogueliteAutoBattler.Editor.Windows
 
             EditorGUILayout.Space(8);
             EditorGUILayout.LabelField("Stat Modifier", EditorStyles.boldLabel);
-            var newStatModType = (SkillTreeData.StatModifierType)EditorGUILayout.EnumPopup("Stat", node.statModifierType);
+            var newStatModType = (StatType)EditorGUILayout.EnumPopup("Stat", node.statModifierType);
             var newStatModMode = (SkillTreeData.StatModifierMode)EditorGUILayout.EnumPopup("Mode", node.statModifierMode);
             float newStatModValue = EditorGUILayout.FloatField("Value / Level", node.statModifierValuePerLevel);
 

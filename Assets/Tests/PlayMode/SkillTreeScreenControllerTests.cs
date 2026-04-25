@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
 using NUnit.Framework;
+using RogueliteAutoBattler.Combat.Core;
 using RogueliteAutoBattler.Data;
 using RogueliteAutoBattler.Economy;
 using RogueliteAutoBattler.UI.Toolkit.SkillTree;
@@ -56,7 +57,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
                     costMultiplierOdd = 1f,
                     costMultiplierEven = 1f,
                     costAdditivePerLevel = 0,
-                    statModifierType = SkillTreeData.StatModifierType.HP,
+                    statModifierType = StatType.Hp,
                     statModifierMode = SkillTreeData.StatModifierMode.Flat,
                     statModifierValuePerLevel = 5f
                 },
@@ -71,7 +72,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
                     costMultiplierOdd = 1f,
                     costMultiplierEven = 1f,
                     costAdditivePerLevel = 0,
-                    statModifierType = SkillTreeData.StatModifierType.Attack,
+                    statModifierType = StatType.Atk,
                     statModifierMode = SkillTreeData.StatModifierMode.Flat,
                     statModifierValuePerLevel = 1f
                 },
@@ -86,7 +87,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
                     costMultiplierOdd = 1f,
                     costMultiplierEven = 1f,
                     costAdditivePerLevel = 0,
-                    statModifierType = SkillTreeData.StatModifierType.Defense,
+                    statModifierType = StatType.Def,
                     statModifierMode = SkillTreeData.StatModifierMode.Flat,
                     statModifierValuePerLevel = 1f
                 },
@@ -101,7 +102,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
                     costMultiplierOdd = 1f,
                     costMultiplierEven = 1f,
                     costAdditivePerLevel = 0,
-                    statModifierType = SkillTreeData.StatModifierType.Mana,
+                    statModifierType = StatType.Mana,
                     statModifierMode = SkillTreeData.StatModifierMode.Flat,
                     statModifierValuePerLevel = 1f
                 }
