@@ -19,7 +19,7 @@ namespace RogueliteAutoBattler.Combat.Core
             { StatType.Def, "DEF" },
             { StatType.Mana, "MANA" },
             { StatType.Power, "POWER" },
-            { StatType.AttackSpeed, "SPD" },
+            { StatType.AttackSpeed, "AS" },
             { StatType.RegenHp, "REGEN" },
             { StatType.CritRate, "CRIT" }
         };

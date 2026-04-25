@@ -51,7 +51,7 @@ namespace RogueliteAutoBattler.Tests.EditMode
         public void GetBreakdown_AttackSpeed_ReturnsFormattedValue()
         {
             var b = _stats.GetBreakdown(StatType.AttackSpeed);
-            Assert.AreEqual("SPD", b.StatName);
+            Assert.AreEqual("AS", b.StatName);
             Assert.AreEqual("1.2", b.FinalValue);
         }
 
