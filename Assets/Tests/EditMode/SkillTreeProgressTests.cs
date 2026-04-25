@@ -18,7 +18,7 @@ namespace RogueliteAutoBattler.Tests.EditMode
         [TearDown]
         public void TearDown()
         {
-            Object.DestroyImmediate(_progress);
+            UnityEngine.Object.DestroyImmediate(_progress);
         }
 
         [Test]
@@ -153,7 +153,7 @@ namespace RogueliteAutoBattler.Tests.EditMode
             }
             finally
             {
-                Object.DestroyImmediate(freshProgress);
+                UnityEngine.Object.DestroyImmediate(freshProgress);
             }
         }
     }
