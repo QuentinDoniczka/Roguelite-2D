@@ -31,7 +31,7 @@ namespace RogueliteAutoBattler.Tests.EditMode
         public void StatType_NamesMatchExpectedSequence()
         {
             string[] expected = { "Hp", "RegenHp", "Atk", "Def", "Mana", "Power", "AttackSpeed", "CritRate" };
-            for (int i = 0; i < 8; i++)
+            for (int i = 0; i < expected.Length; i++)
             {
                 Assert.AreEqual(expected[i], Enum.GetName(typeof(StatType), i));
             }
@@ -46,7 +46,7 @@ namespace RogueliteAutoBattler.Tests.EditMode
             {
                 unique.Add((int)v);
             }
-            Assert.AreEqual(8, unique.Count);
+            Assert.AreEqual(Enum.GetValues(typeof(StatType)).Length, unique.Count);
         }
     }
 }

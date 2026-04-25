@@ -35,15 +35,6 @@ namespace RogueliteAutoBattler.Editor.Tools
         {
             var issues = new List<string>();
 
-            if ((int)StatType.Hp != 0) issues.Add($"StatType.Hp expected index 0, got {(int)StatType.Hp}");
-            if ((int)StatType.RegenHp != 1) issues.Add($"StatType.RegenHp expected index 1, got {(int)StatType.RegenHp}");
-            if ((int)StatType.Atk != 2) issues.Add($"StatType.Atk expected index 2, got {(int)StatType.Atk}");
-            if ((int)StatType.Def != 3) issues.Add($"StatType.Def expected index 3, got {(int)StatType.Def}");
-            if ((int)StatType.Mana != 4) issues.Add($"StatType.Mana expected index 4, got {(int)StatType.Mana}");
-            if ((int)StatType.Power != 5) issues.Add($"StatType.Power expected index 5, got {(int)StatType.Power}");
-            if ((int)StatType.AttackSpeed != 6) issues.Add($"StatType.AttackSpeed expected index 6, got {(int)StatType.AttackSpeed}");
-            if ((int)StatType.CritRate != 7) issues.Add($"StatType.CritRate expected index 7, got {(int)StatType.CritRate}");
-
             int scannedAssets = 0;
             int scannedNodes = 0;
 

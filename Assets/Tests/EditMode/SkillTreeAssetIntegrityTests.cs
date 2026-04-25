@@ -12,6 +12,16 @@ namespace RogueliteAutoBattler.Tests.EditMode
     {
         private const string AssetPath = "Assets/Data/SkillTreeData.asset";
 
+        private static readonly (int nodeIndex, StatType expected, int legacyYamlIndex)[] MigrationMap =
+        {
+            (0, StatType.Atk,     2),
+            (1, StatType.Def,     3),
+            (2, StatType.Mana,    4),
+            (3, StatType.Power,   5),
+            (4, StatType.Hp,      0),
+            (5, StatType.RegenHp, 1),
+        };
+
         private SkillTreeData _asset;
 
         [SetUp]
@@ -56,21 +66,12 @@ namespace RogueliteAutoBattler.Tests.EditMode
             Assert.IsNotNull(_asset, $"Failed to load SkillTreeData at {AssetPath}");
 
             var nodes = _asset.Nodes;
-            Assert.GreaterOrEqual(nodes.Count, 6,
-                "SkillTreeData.asset should contain at least 6 nodes (ring layout)");
+            Assert.GreaterOrEqual(nodes.Count, MigrationMap.Length,
+                "SkillTreeData.asset should contain at least one node per MigrationMap entry (ring layout)");
 
-            Assert.AreEqual(StatType.Atk, nodes[0].statModifierType,
-                "Node 0 (YAML index 2) must map to Atk after zero-migration");
-            Assert.AreEqual(StatType.Def, nodes[1].statModifierType,
-                "Node 1 (YAML index 3) must map to Def");
-            Assert.AreEqual(StatType.Mana, nodes[2].statModifierType,
-                "Node 2 (YAML index 4) must map to Mana");
-            Assert.AreEqual(StatType.Power, nodes[3].statModifierType,
-                "Node 3 (YAML index 5) must map to Power");
-            Assert.AreEqual(StatType.Hp, nodes[4].statModifierType,
-                "Node 4 (YAML index 0) must map to Hp");
-            Assert.AreEqual(StatType.RegenHp, nodes[5].statModifierType,
-                "Node 5 (YAML index 1) must map to RegenHp");
+            foreach (var (nodeIndex, expected, legacyYamlIndex) in MigrationMap)
+                Assert.AreEqual(expected, nodes[nodeIndex].statModifierType,
+                    $"Node {nodeIndex} (YAML index {legacyYamlIndex}) must map to {expected}");
         }
     }
 }

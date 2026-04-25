@@ -54,7 +54,7 @@ namespace RogueliteAutoBattler.Tests.EditMode
             var enumValues = Enum.GetValues(typeof(StatType)).Cast<StatType>().ToHashSet();
             var displayOrderSet = CombatStats.DisplayOrder.ToHashSet();
 
-            Assert.AreEqual(8, displayOrderSet.Count, "DisplayOrder must have 8 unique entries");
+            Assert.AreEqual(Enum.GetValues(typeof(StatType)).Length, displayOrderSet.Count, "DisplayOrder must have one unique entry per StatType value");
             Assert.IsTrue(displayOrderSet.SetEquals(enumValues), "DisplayOrder must contain every StatType value exactly once");
         }
 
