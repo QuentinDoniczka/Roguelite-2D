@@ -8,8 +8,24 @@ namespace RogueliteAutoBattler.Combat.Core
     {
         private const int StatCount = 8;
         private const int AllStatsDirtyMask = (1 << StatCount) - 1;
+        private const string BaseEntryLabel = "Base";
+        private const float PercentToDisplayMultiplier = 100f;
+        private const string FractionalNumberFormat = "0.##";
+
+        private static readonly Dictionary<StatType, string> StatLabels = new Dictionary<StatType, string>
+        {
+            { StatType.Hp, "HP" },
+            { StatType.Atk, "ATK" },
+            { StatType.Def, "DEF" },
+            { StatType.Mana, "MANA" },
+            { StatType.Power, "POWER" },
+            { StatType.AttackSpeed, "SPD" },
+            { StatType.RegenHp, "REGEN" },
+            { StatType.CritRate, "CRIT" }
+        };
 
         private readonly List<Modifier> _modifiers = new List<Modifier>();
+        private readonly List<StatModifierEntry> _breakdownBuffer = new List<StatModifierEntry>();
         private readonly float[] _baseValues = new float[StatCount];
         private readonly float[] _cached = new float[StatCount];
         private int _dirtyMask;
@@ -36,24 +52,27 @@ namespace RogueliteAutoBattler.Combat.Core
 
         public StatBreakdownData GetBreakdown(StatType statType)
         {
+            if (!StatLabels.TryGetValue(statType, out string label))
+                return new StatBreakdownData("", "", System.Array.Empty<StatModifierEntry>());
+
             switch (statType)
             {
                 case StatType.Hp:
-                    return MakeBreakdown(statType, "HP", $"{_currentHp} / {_maxHp}", $"{_maxHp}");
+                    return MakeBreakdown(statType, label, $"{_currentHp} / {_maxHp}", $"{_maxHp}");
                 case StatType.Atk:
-                    return MakeBreakdown(statType, "ATK", $"{_atk}");
+                    return MakeBreakdown(statType, label, $"{_atk}");
                 case StatType.Def:
-                    return MakeBreakdown(statType, "DEF", "0");
+                    return MakeBreakdown(statType, label, "0");
                 case StatType.Mana:
-                    return MakeBreakdown(statType, "MANA", "0");
+                    return MakeBreakdown(statType, label, "0");
                 case StatType.Power:
-                    return MakeBreakdown(statType, "POWER", "0");
+                    return MakeBreakdown(statType, label, "0");
                 case StatType.AttackSpeed:
-                    return MakeBreakdown(statType, "SPD", _attackSpeed.ToString("F1", CultureInfo.InvariantCulture));
+                    return MakeBreakdown(statType, label, _attackSpeed.ToString("F1", CultureInfo.InvariantCulture));
                 case StatType.RegenHp:
-                    return MakeBreakdown(statType, "REGEN", _regenHpPerSecond.ToString("F1", CultureInfo.InvariantCulture) + "/s");
+                    return MakeBreakdown(statType, label, _regenHpPerSecond.ToString("F1", CultureInfo.InvariantCulture) + "/s");
                 case StatType.CritRate:
-                    return MakeBreakdown(statType, "CRIT", "0%");
+                    return MakeBreakdown(statType, label, "0%");
                 default:
                     return new StatBreakdownData("", "", System.Array.Empty<StatModifierEntry>());
             }
@@ -66,35 +85,21 @@ namespace RogueliteAutoBattler.Combat.Core
 
         private StatBreakdownData MakeBreakdown(StatType statType, string statName, string finalValue, string baseValue)
         {
-            int modifierCount = CountModifiersForStat(statType);
-            var entries = new StatModifierEntry[1 + modifierCount];
-            entries[0] = new StatModifierEntry("Base", baseValue, true, ModifierTier.Base);
+            _breakdownBuffer.Clear();
+            _breakdownBuffer.Add(new StatModifierEntry(BaseEntryLabel, baseValue, true, ModifierTier.Base));
 
-            if (modifierCount == 0)
-                return new StatBreakdownData(statName, finalValue, entries);
-
-            int writeIndex = 1;
             for (int i = 0; i < _modifiers.Count; i++)
             {
                 var modifier = _modifiers[i];
                 if (modifier.Stat != statType) continue;
-                entries[writeIndex++] = new StatModifierEntry(
+                _breakdownBuffer.Add(new StatModifierEntry(
                     modifier.Source,
                     FormatModifierValue(modifier.Tier, modifier.Value),
                     modifier.Value >= 0f,
-                    modifier.Tier);
+                    modifier.Tier));
             }
-            return new StatBreakdownData(statName, finalValue, entries);
-        }
 
-        private int CountModifiersForStat(StatType statType)
-        {
-            int count = 0;
-            for (int i = 0; i < _modifiers.Count; i++)
-            {
-                if (_modifiers[i].Stat == statType) count++;
-            }
-            return count;
+            return new StatBreakdownData(statName, finalValue, _breakdownBuffer.ToArray());
         }
 
         private static string FormatModifierValue(ModifierTier tier, float value)
@@ -104,19 +109,19 @@ namespace RogueliteAutoBattler.Combat.Core
             switch (tier)
             {
                 case ModifierTier.Percent:
-                    float percent = magnitude * 100f;
-                    bool percentIsWhole = percent == (int)percent;
+                    float percent = magnitude * PercentToDisplayMultiplier;
+                    bool percentIsWhole = Mathf.Approximately(percent, Mathf.Round(percent));
                     string percentStr = percentIsWhole
                         ? ((int)percent).ToString(CultureInfo.InvariantCulture)
-                        : percent.ToString("0.##", CultureInfo.InvariantCulture);
+                        : percent.ToString(FractionalNumberFormat, CultureInfo.InvariantCulture);
                     return sign + percentStr + "%";
                 case ModifierTier.Base:
                 case ModifierTier.Flat:
                 default:
-                    bool isWhole = magnitude == (int)magnitude;
+                    bool isWhole = Mathf.Approximately(magnitude, Mathf.Round(magnitude));
                     string numberStr = isWhole
                         ? ((int)magnitude).ToString(CultureInfo.InvariantCulture)
-                        : magnitude.ToString("0.##", CultureInfo.InvariantCulture);
+                        : magnitude.ToString(FractionalNumberFormat, CultureInfo.InvariantCulture);
                     return sign + numberStr;
             }
         }
@@ -136,7 +141,6 @@ namespace RogueliteAutoBattler.Combat.Core
             _baseValues[(int)StatType.RegenHp] = regenHpPerSecond;
 
             _dirtyMask = AllStatsDirtyMask;
-            _currentHp = maxHp;
 
             for (int i = 0; i < StatCount; i++)
             {
