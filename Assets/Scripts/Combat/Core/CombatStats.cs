@@ -7,6 +7,7 @@ namespace RogueliteAutoBattler.Combat.Core
     public class CombatStats : MonoBehaviour
     {
         private const int StatCount = 8;
+        private const int AllStatsDirtyMask = (1 << StatCount) - 1;
 
         private readonly List<Modifier> _modifiers = new List<Modifier>();
         private readonly float[] _baseValues = new float[StatCount];
@@ -32,8 +33,6 @@ namespace RogueliteAutoBattler.Combat.Core
         };
 
         public static IReadOnlyList<StatType> DisplayOrder => DisplayOrderArray;
-
-        private readonly StatModifierEntry[] _singleModifierBuffer = new StatModifierEntry[1];
 
         public StatBreakdownData GetBreakdown(StatType statType)
         {
@@ -68,24 +67,22 @@ namespace RogueliteAutoBattler.Combat.Core
         private StatBreakdownData MakeBreakdown(StatType statType, string statName, string finalValue, string baseValue)
         {
             int modifierCount = CountModifiersForStat(statType);
-            if (modifierCount == 0)
-            {
-                _singleModifierBuffer[0] = new StatModifierEntry("Base", baseValue, true, ModifierTier.Base);
-                return new StatBreakdownData(statName, finalValue, _singleModifierBuffer);
-            }
-
             var entries = new StatModifierEntry[1 + modifierCount];
             entries[0] = new StatModifierEntry("Base", baseValue, true, ModifierTier.Base);
+
+            if (modifierCount == 0)
+                return new StatBreakdownData(statName, finalValue, entries);
+
             int writeIndex = 1;
             for (int i = 0; i < _modifiers.Count; i++)
             {
-                var m = _modifiers[i];
-                if (m.Stat != statType) continue;
+                var modifier = _modifiers[i];
+                if (modifier.Stat != statType) continue;
                 entries[writeIndex++] = new StatModifierEntry(
-                    m.Source,
-                    FormatModifierValue(m.Tier, m.Value),
-                    m.Value >= 0f,
-                    m.Tier);
+                    modifier.Source,
+                    FormatModifierValue(modifier.Tier, modifier.Value),
+                    modifier.Value >= 0f,
+                    modifier.Tier);
             }
             return new StatBreakdownData(statName, finalValue, entries);
         }
@@ -138,7 +135,7 @@ namespace RogueliteAutoBattler.Combat.Core
             _baseValues[(int)StatType.AttackSpeed] = attackSpeed;
             _baseValues[(int)StatType.RegenHp] = regenHpPerSecond;
 
-            _dirtyMask = 0xFF;
+            _dirtyMask = AllStatsDirtyMask;
             _currentHp = maxHp;
 
             for (int i = 0; i < StatCount; i++)
@@ -196,18 +193,18 @@ namespace RogueliteAutoBattler.Combat.Core
             float sumFlat = 0f;
             for (int i = 0; i < _modifiers.Count; i++)
             {
-                var m = _modifiers[i];
-                if (m.Stat != stat) continue;
-                switch (m.Tier)
+                var modifier = _modifiers[i];
+                if (modifier.Stat != stat) continue;
+                switch (modifier.Tier)
                 {
                     case ModifierTier.Base:
-                        sumBase += m.Value;
+                        sumBase += modifier.Value;
                         break;
                     case ModifierTier.Percent:
-                        sumPercent += m.Value;
+                        sumPercent += modifier.Value;
                         break;
                     case ModifierTier.Flat:
-                        sumFlat += m.Value;
+                        sumFlat += modifier.Value;
                         break;
                 }
             }
