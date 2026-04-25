@@ -62,22 +62,14 @@ namespace RogueliteAutoBattler.Tests.EditMode
         [Test]
         public void SetLevel_FiresEvent_WithNodeIndexAndNewLevel()
         {
-            int invocationCount = 0;
-            int capturedNodeIndex = int.MinValue;
-            int capturedLevel = int.MinValue;
-            Action<int, int> handler = (nodeIndex, level) =>
-            {
-                invocationCount++;
-                capturedNodeIndex = nodeIndex;
-                capturedLevel = level;
-            };
-            _progress.OnLevelChanged += handler;
+            var recorder = new EventRecorder();
+            _progress.OnLevelChanged += recorder.Handler;
 
             _progress.SetLevel(2, 4);
 
-            Assert.AreEqual(1, invocationCount);
-            Assert.AreEqual(2, capturedNodeIndex);
-            Assert.AreEqual(4, capturedLevel);
+            Assert.AreEqual(1, recorder.Count);
+            Assert.AreEqual(2, recorder.LastNodeIndex);
+            Assert.AreEqual(4, recorder.LastNewLevel);
         }
 
         [Test]
@@ -100,43 +92,27 @@ namespace RogueliteAutoBattler.Tests.EditMode
             _progress.SetLevel(0, 5);
             _progress.SetLevel(2, 3);
 
-            int invocationCount = 0;
-            int capturedNodeIndex = int.MinValue;
-            int capturedLevel = int.MinValue;
-            Action<int, int> handler = (nodeIndex, level) =>
-            {
-                invocationCount++;
-                capturedNodeIndex = nodeIndex;
-                capturedLevel = level;
-            };
-            _progress.OnLevelChanged += handler;
+            var recorder = new EventRecorder();
+            _progress.OnLevelChanged += recorder.Handler;
 
             _progress.ResetAll();
 
-            Assert.AreEqual(1, invocationCount);
-            Assert.AreEqual(-1, capturedNodeIndex);
-            Assert.AreEqual(0, capturedLevel);
+            Assert.AreEqual(1, recorder.Count);
+            Assert.AreEqual(-1, recorder.LastNodeIndex);
+            Assert.AreEqual(0, recorder.LastNewLevel);
         }
 
         [Test]
         public void ResetAll_WhenAlreadyEmpty_StillFires()
         {
-            int invocationCount = 0;
-            int capturedNodeIndex = int.MinValue;
-            int capturedLevel = int.MinValue;
-            Action<int, int> handler = (nodeIndex, level) =>
-            {
-                invocationCount++;
-                capturedNodeIndex = nodeIndex;
-                capturedLevel = level;
-            };
-            _progress.OnLevelChanged += handler;
+            var recorder = new EventRecorder();
+            _progress.OnLevelChanged += recorder.Handler;
 
             _progress.ResetAll();
 
-            Assert.AreEqual(1, invocationCount);
-            Assert.AreEqual(-1, capturedNodeIndex);
-            Assert.AreEqual(0, capturedLevel);
+            Assert.AreEqual(1, recorder.Count);
+            Assert.AreEqual(-1, recorder.LastNodeIndex);
+            Assert.AreEqual(0, recorder.LastNewLevel);
         }
 
         [Test]
@@ -155,6 +131,20 @@ namespace RogueliteAutoBattler.Tests.EditMode
             {
                 UnityEngine.Object.DestroyImmediate(freshProgress);
             }
+        }
+
+        private sealed class EventRecorder
+        {
+            public int Count;
+            public int LastNodeIndex = int.MinValue;
+            public int LastNewLevel = int.MinValue;
+
+            public Action<int, int> Handler => (nodeIndex, level) =>
+            {
+                Count++;
+                LastNodeIndex = nodeIndex;
+                LastNewLevel = level;
+            };
         }
     }
 }
