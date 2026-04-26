@@ -1,9 +1,13 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Text.RegularExpressions;
 using NUnit.Framework;
 using RogueliteAutoBattler.Combat.Core;
+using RogueliteAutoBattler.Core;
 using RogueliteAutoBattler.Data;
+using RogueliteAutoBattler.Economy;
 using UnityEngine;
 using UnityEngine.TestTools;
 
@@ -228,6 +232,86 @@ namespace RogueliteAutoBattler.Tests.PlayMode
                 "CurrentHp should equal base MaxHp after full heal.");
             Assert.IsFalse(HasTechTreeModifier(member.Stats, StatType.Hp, 0),
                 "Breakdown should NOT contain any techtree:node0 modifier after ResetAll.");
+        }
+
+        [UnityTest]
+        public IEnumerator Integration_GameBootstrapWiresService_LevelUpAffectsSpawnedMembers()
+        {
+            const int newLevel = 4;
+            const int allyCount = 1;
+            int expectedMaxHp = BaseMaxHp + HpPerLevel * newLevel;
+
+            GameBootstrap.ResetForTest();
+
+            var combatWorldGo = Track(new GameObject(GameBootstrap.CombatWorldName));
+            var bootstrappedRoster = combatWorldGo.AddComponent<TeamRoster>();
+            _teamContainer = combatWorldGo.transform;
+            _teamHomeAnchor = combatWorldGo.transform;
+
+            var camGo = Track(new GameObject("MainCamera"));
+            var cam = camGo.AddComponent<Camera>();
+            cam.tag = "MainCamera";
+
+            var walletGo = Track(new GameObject("GoldWallet"));
+            var wallet = walletGo.AddComponent<GoldWallet>();
+
+            string tempDirectory = Path.Combine(Path.GetTempPath(), "roguelite-tests", Guid.NewGuid().ToString());
+            string tempFilePath = Path.Combine(tempDirectory, "progression.json");
+
+            GameBootstrap.SkillTreeDataAssetForTest = _data;
+            GameBootstrap.SkillTreeProgressAssetForTest = _progress;
+            GameBootstrap.GoldWalletForTest = wallet;
+            GameBootstrap.ProgressionFilePathForTest = tempFilePath;
+
+            yield return null;
+
+            LogAssert.Expect(LogType.Error, new Regex("navigation system"));
+
+            TeamDatabase teamDb = null;
+            try
+            {
+                GameBootstrap.Initialize();
+
+                Assert.IsNotNull(GameBootstrap.ProgressionLoader,
+                    "ProgressionLoader should be created by GameBootstrap.");
+                Assert.IsNotNull(GameBootstrap.AllyStatBonusService,
+                    "AllyStatBonusService should be created by GameBootstrap.");
+                Assert.AreSame(bootstrappedRoster, GameBootstrap.TeamRoster,
+                    "GameBootstrap should resolve the TeamRoster on the CombatWorld GameObject.");
+
+                teamDb = TestCharacterFactory.CreateTeamDatabase(allyCount, _allyPrefab);
+                ExpectAnimatorWarnings(allyCount);
+                GameBootstrap.TeamRoster.Spawn(teamDb, _teamContainer, _teamHomeAnchor, TestCharacterScale);
+
+                yield return null;
+
+                TeamMember member = GameBootstrap.TeamRoster.Members[0];
+                Assert.AreEqual(BaseMaxHp, member.Stats.MaxHp,
+                    "Precondition: MaxHp should be base when node level is 0 at spawn time.");
+                Assert.AreEqual(BaseMaxHp, member.Stats.CurrentHp,
+                    "Precondition: CurrentHp should equal base MaxHp at spawn time.");
+                Assert.IsFalse(HasTechTreeModifier(member.Stats, StatType.Hp, 0),
+                    "Precondition: no techtree modifier should be applied at level 0.");
+
+                _progress.SetLevel(0, newLevel);
+
+                yield return null;
+
+                Assert.AreEqual(expectedMaxHp, member.Stats.MaxHp,
+                    "After SetLevel, MaxHp should include techtree bonus through the wired service.");
+                Assert.AreEqual(expectedMaxHp, member.Stats.CurrentHp,
+                    "After SetLevel, CurrentHp should equal MaxHp via HealToFull.");
+                Assert.IsTrue(HasTechTreeModifier(member.Stats, StatType.Hp, 0),
+                    "Breakdown should contain a techtree:node0 modifier after live level up.");
+            }
+            finally
+            {
+                GameBootstrap.ResetForTest();
+                if (teamDb != null)
+                    Object.DestroyImmediate(teamDb);
+                if (Directory.Exists(tempDirectory))
+                    Directory.Delete(tempDirectory, true);
+            }
         }
     }
 }
