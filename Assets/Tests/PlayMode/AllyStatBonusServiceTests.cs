@@ -164,5 +164,70 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             Assert.IsTrue(HasTechTreeModifier(member.Stats, StatType.Hp, 0),
                 "Breakdown should contain a techtree:node0 modifier on Hp after revive.");
         }
+
+        [UnityTest]
+        public IEnumerator OnLevelChanged_LiveMember_RecomputesAndFullHeals()
+        {
+            const int newLevel = 3;
+            const int allyCount = 1;
+            int expectedMaxHp = BaseMaxHp + HpPerLevel * newLevel;
+
+            _service = new AllyStatBonusService(_roster, _data, _progress);
+
+            var teamDb = TestCharacterFactory.CreateTeamDatabase(allyCount, _allyPrefab);
+            ExpectAnimatorWarnings(allyCount);
+            _roster.Spawn(teamDb, _teamContainer, _teamHomeAnchor, TestCharacterScale);
+
+            yield return null;
+
+            TeamMember member = _roster.Members[0];
+            Assert.AreEqual(BaseMaxHp, member.Stats.MaxHp, "Precondition: MaxHp should be base before level up.");
+
+            member.Stats.TakeDamage(50);
+            Assert.AreEqual(BaseMaxHp - 50, member.Stats.CurrentHp, "Precondition: CurrentHp should be reduced by 50.");
+
+            _progress.SetLevel(0, newLevel);
+
+            yield return null;
+
+            Assert.AreEqual(expectedMaxHp, member.Stats.MaxHp,
+                "MaxHp should include techtree bonus after OnLevelChanged.");
+            Assert.AreEqual(expectedMaxHp, member.Stats.CurrentHp,
+                "CurrentHp should equal new MaxHp after full heal.");
+            Assert.IsTrue(HasTechTreeModifier(member.Stats, StatType.Hp, 0),
+                "Breakdown should contain a techtree:node0 modifier on Hp.");
+        }
+
+        [UnityTest]
+        public IEnumerator OnLevelChanged_ResetAllSentinel_ClearsAllTechtreeModifiers()
+        {
+            const int initialLevel = 3;
+            const int allyCount = 1;
+            int boostedMaxHp = BaseMaxHp + HpPerLevel * initialLevel;
+
+            _progress.SetLevel(0, initialLevel);
+            _service = new AllyStatBonusService(_roster, _data, _progress);
+
+            var teamDb = TestCharacterFactory.CreateTeamDatabase(allyCount, _allyPrefab);
+            ExpectAnimatorWarnings(allyCount);
+            _roster.Spawn(teamDb, _teamContainer, _teamHomeAnchor, TestCharacterScale);
+
+            yield return null;
+
+            TeamMember member = _roster.Members[0];
+            Assert.AreEqual(boostedMaxHp, member.Stats.MaxHp, "Precondition: MaxHp should include techtree bonus.");
+            Assert.AreEqual(boostedMaxHp, member.Stats.CurrentHp, "Precondition: CurrentHp should equal boosted MaxHp.");
+
+            _progress.ResetAll();
+
+            yield return null;
+
+            Assert.AreEqual(BaseMaxHp, member.Stats.MaxHp,
+                "MaxHp should drop back to base after ResetAll.");
+            Assert.AreEqual(BaseMaxHp, member.Stats.CurrentHp,
+                "CurrentHp should equal base MaxHp after full heal.");
+            Assert.IsFalse(HasTechTreeModifier(member.Stats, StatType.Hp, 0),
+                "Breakdown should NOT contain any techtree:node0 modifier after ResetAll.");
+        }
     }
 }

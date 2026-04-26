@@ -18,6 +18,7 @@ namespace RogueliteAutoBattler.Combat.Core
 
             _roster.OnMemberSpawned += HandleMemberSpawned;
             _roster.OnMemberRevived += HandleMemberRevived;
+            _progress.OnLevelChanged += HandleLevelChanged;
 
             var existing = _roster.Members;
             for (int i = 0; i < existing.Count; i++)
@@ -41,6 +42,39 @@ namespace RogueliteAutoBattler.Combat.Core
             ApplyAllToMember(member);
             if (member?.Stats != null && !member.Stats.IsDead)
                 member.Stats.HealToFull();
+        }
+
+        private void HandleLevelChanged(int nodeIndex, int newLevel)
+        {
+            var members = _roster.Members;
+            if (nodeIndex < 0)
+            {
+                for (int i = 0; i < members.Count; i++)
+                {
+                    var member = members[i];
+                    if (member?.Stats == null) continue;
+                    RemoveAllFromMember(member);
+                    ApplyAllToMember(member);
+                    if (!member.Stats.IsDead) member.Stats.HealToFull();
+                }
+                return;
+            }
+
+            var nodes = _data.Nodes;
+            if (nodeIndex >= nodes.Count) return;
+            var node = nodes[nodeIndex];
+            string source = ModifierSources.TechTreeNode(node.id);
+            var resolved = ResolveNodeModifier(node, newLevel);
+
+            for (int i = 0; i < members.Count; i++)
+            {
+                var member = members[i];
+                if (member?.Stats == null) continue;
+                member.Stats.RemoveModifiersFromSource(source);
+                if (resolved.HasValue)
+                    member.Stats.AddModifier(resolved.Value.stat, resolved.Value.tier, source, resolved.Value.value);
+                if (!member.Stats.IsDead) member.Stats.HealToFull();
+            }
         }
 
         internal static (StatType stat, ModifierTier tier, float value)? ResolveNodeModifier(
@@ -85,6 +119,7 @@ namespace RogueliteAutoBattler.Combat.Core
             _disposed = true;
             _roster.OnMemberSpawned -= HandleMemberSpawned;
             _roster.OnMemberRevived -= HandleMemberRevived;
+            _progress.OnLevelChanged -= HandleLevelChanged;
         }
     }
 }
