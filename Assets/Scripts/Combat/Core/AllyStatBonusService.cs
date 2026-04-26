@@ -15,6 +15,32 @@ namespace RogueliteAutoBattler.Combat.Core
             _roster = roster ?? throw new ArgumentNullException(nameof(roster));
             _data = data ?? throw new ArgumentNullException(nameof(data));
             _progress = progress ?? throw new ArgumentNullException(nameof(progress));
+
+            _roster.OnMemberSpawned += HandleMemberSpawned;
+            _roster.OnMemberRevived += HandleMemberRevived;
+
+            var existing = _roster.Members;
+            for (int i = 0; i < existing.Count; i++)
+            {
+                var member = existing[i];
+                ApplyAllToMember(member);
+                if (member?.Stats != null && !member.Stats.IsDead)
+                    member.Stats.HealToFull();
+            }
+        }
+
+        private void HandleMemberSpawned(TeamMember member)
+        {
+            ApplyAllToMember(member);
+            if (member?.Stats != null && !member.Stats.IsDead)
+                member.Stats.HealToFull();
+        }
+
+        private void HandleMemberRevived(TeamMember member)
+        {
+            ApplyAllToMember(member);
+            if (member?.Stats != null && !member.Stats.IsDead)
+                member.Stats.HealToFull();
         }
 
         internal static (StatType stat, ModifierTier tier, float value)? ResolveNodeModifier(
@@ -57,6 +83,8 @@ namespace RogueliteAutoBattler.Combat.Core
         {
             if (_disposed) return;
             _disposed = true;
+            _roster.OnMemberSpawned -= HandleMemberSpawned;
+            _roster.OnMemberRevived -= HandleMemberRevived;
         }
     }
 }
