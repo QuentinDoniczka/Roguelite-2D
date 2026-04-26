@@ -25,7 +25,7 @@
 Doc detaille : `Assets/doc/premier-jet-roguelite.html`
 
 # Project Structure
-Generated: 2026-04-25
+Generated: 2026-04-26
 
 .github/
   workflows/
@@ -78,6 +78,7 @@ Assets/
     Adventurers/  (empty)
     Combat/
       Core/
+        AllyStatBonusService.cs
         AnimHashes.cs
         AnimationEventRelay.cs
         AttackSlotRegistry.cs
@@ -143,6 +144,7 @@ Assets/
         SkillTreeScreenBuilder.cs
         WalletsBuilder.cs
       Tools/
+        ResetPlayerProgressMenu.cs
         StatTypeValidator.cs
       Windows/
         GameDesignerWindow.cs
@@ -160,7 +162,9 @@ Assets/
       TeamDatabase.cs
     ScriptableObjects/  (empty)
     Services/
-      Local/  (empty)
+      IPlayerProgressionLoader.cs
+      Local/
+        LocalPlayerProgressionLoader.cs
     UI/
       Toolkit/
         AllyStatsPanelController.cs
@@ -204,6 +208,7 @@ Assets/
       Tests.EditMode.asmdef
       TestUtils/
         StubScreen.cs
+      AllyStatBonusServiceResolverTests.cs
       AttackSlotRegistryTests.cs
       CombatStatsBreakdownAllStatsTests.cs
       CombatStatsBreakdownTests.cs
@@ -213,12 +218,14 @@ Assets/
       EditorBuildSettingsSceneTests.cs
       FormationLayoutTests.cs
       GoldFormatterTests.cs
+      LocalPlayerProgressionLoaderTests.cs
       ModifierSourcesTests.cs
       ModifierStructTests.cs
       ModifierTierTests.cs
       NewGameSceneBuilderTests.cs
       ProceduralGroundSpriteTests.cs
       RecalculateFormationTests.cs
+      ResetPlayerProgressMenuTests.cs
       SkillTreeAssetIntegrityTests.cs
       SkillTreeDataAssetSpacingTests.cs
       SkillTreeDataTests.cs
@@ -239,6 +246,7 @@ Assets/
       TestUtils/
         PlayModeTestBase.cs
         TestCharacterFactory.cs
+      AllyStatBonusServiceTests.cs
       AllyStatsPanelControllerTests.cs
       AllyStatsPanelScalingTests.cs
       AnimationEventRelayTests.cs
@@ -251,6 +259,7 @@ Assets/
       CombatHudControllerTests.cs
       CombatSetupHelperTests.cs
       CombatSpawnManagerTests.cs
+      CombatStatsHealToFullTests.cs
       CombatStatsRegenTests.cs
       CombatWorldVisibilityNavTests.cs
       DamageNumberServiceTests.cs
