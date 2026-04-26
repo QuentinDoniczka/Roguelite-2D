@@ -22,7 +22,8 @@
     --nav-tab-font-size: 28px;
     --nav-tab-radius: 8px;
     --nav-tab-margin: 4px;
-    --nav-icon-size: 70%;
+    --nav-icon-size: 64%;
+    --nav-icon-size-active: 52%;
 
     --hud-gold-font-size: 36px;
     --hud-gold-icon-size: 56px;
@@ -106,8 +107,8 @@
 }
 
 .tab-active {
-    background-color: var(--color-tab-active);
-    color: var(--color-tab-text-active);
+    background-color: var(--color-tab-normal);
+    color: var(--color-tab-text);
 }
 
 .tab-icon {
@@ -125,7 +126,11 @@
 .tab-icon--guilde    { background-image: url("project://database/Assets/UI/Icons/Nav/guilde.png"); }
 .tab-icon--shop      { background-image: url("project://database/Assets/UI/Icons/Nav/shop.png"); }
 
-.tab-active .tab-icon    { scale: 1.1; }
+.tab-active .tab-icon    {
+    background-image: url("project://database/Assets/UI/Icons/Nav/remove.png");
+    width: var(--nav-icon-size-active);
+    height: var(--nav-icon-size-active);
+}
 .tab-inactive .tab-icon  { -unity-background-image-tint-color: rgba(255, 255, 255, 0.7); }
 
 .screen-default {

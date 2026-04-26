@@ -82,7 +82,7 @@
                         <ui:Button name="info-tab-traits" text="Traits" class="info-tab" />
                         <ui:Button name="info-tab-loot" text="Loot" class="info-tab" />
                     </ui:VisualElement>
-                    <ui:ScrollView name="info-tab-content-stats" class="info-tab-content" />
+                    <ui:ScrollView name="info-tab-content-stats" class="info-tab-content" vertical-scroller-visibility="Hidden" horizontal-scroller-visibility="Hidden" />
                     <ui:VisualElement name="info-tab-content-traits" class="info-tab-content info-tab-content--hidden">
                         <ui:Label text="Coming soon..." class="info-empty-label" />
                     </ui:VisualElement>
