@@ -25,7 +25,7 @@
 Doc detaille : `Assets/doc/premier-jet-roguelite.html`
 
 # Project Structure
-Generated: 2026-04-26
+Generated: 2026-04-27
 
 .github/
   workflows/
@@ -144,6 +144,7 @@ Assets/
         SkillTreeScreenBuilder.cs
         WalletsBuilder.cs
       Tools/
+        NavIconsImporter.cs
         ResetPlayerProgressMenu.cs
         StatTypeValidator.cs
       Windows/
@@ -210,6 +211,7 @@ Assets/
         StubScreen.cs
       AllyStatBonusServiceResolverTests.cs
       AttackSlotRegistryTests.cs
+      NavBarIconsTests.cs
       CombatStatsBreakdownAllStatsTests.cs
       CombatStatsBreakdownTests.cs
       CombatStatsDamageEventTests.cs
@@ -297,6 +299,8 @@ Assets/
       WorldConveyorTests.cs
   TextMesh Pro/  (173 files -- TMP package: fonts, shaders, examples)
   UI/
+    Icons/
+      Nav/  (6 sprites: village, skilltree, map, guilde, shop, remove)
     Layouts/
       MainLayout.uxml
     MainPanelSettings.asset
