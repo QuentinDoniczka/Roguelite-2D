@@ -112,7 +112,7 @@ namespace RogueliteAutoBattler.Combat.Core
                     float percent = magnitude * PercentToDisplayMultiplier;
                     bool percentIsWhole = Mathf.Approximately(percent, Mathf.Round(percent));
                     string percentStr = percentIsWhole
-                        ? ((int)percent).ToString(CultureInfo.InvariantCulture)
+                        ? Mathf.RoundToInt(percent).ToString(CultureInfo.InvariantCulture)
                         : percent.ToString(FractionalNumberFormat, CultureInfo.InvariantCulture);
                     return sign + percentStr + "%";
                 case ModifierTier.Base:
@@ -120,7 +120,7 @@ namespace RogueliteAutoBattler.Combat.Core
                 default:
                     bool isWhole = Mathf.Approximately(magnitude, Mathf.Round(magnitude));
                     string numberStr = isWhole
-                        ? ((int)magnitude).ToString(CultureInfo.InvariantCulture)
+                        ? Mathf.RoundToInt(magnitude).ToString(CultureInfo.InvariantCulture)
                         : magnitude.ToString(FractionalNumberFormat, CultureInfo.InvariantCulture);
                     return sign + numberStr;
             }

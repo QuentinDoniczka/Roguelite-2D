@@ -110,5 +110,19 @@ namespace RogueliteAutoBattler.Tests.EditMode
 
             Assert.That(_stats.Atk, Is.EqualTo(116));
         }
+
+        [Test]
+        public void Breakdown_PercentTwoLevelsOfFivePercent_FormatsAsTenNotNine()
+        {
+            float perLevelDecimal = 5f * 0.01f;
+            float twoLevels = perLevelDecimal * 2f;
+            _stats.AddModifier(StatType.Hp, ModifierTier.Percent, "techtree:node0", twoLevels);
+
+            var breakdown = _stats.GetBreakdown(StatType.Hp);
+
+            Assert.AreEqual(2, breakdown.Modifiers.Length);
+            Assert.AreEqual("+10%", breakdown.Modifiers[1].Value,
+                "Float imprecision (5*0.01*2*100 = 9.99999976) must round, not truncate.");
+        }
     }
 }
