@@ -11,8 +11,8 @@ namespace RogueliteAutoBattler.Data
     {
         public const int DefaultRingNodeCount = 6;
         public const float DefaultRingRadius = 5f;
-        public const float DefaultUnitSize = 200f;
-        public const float DefaultNodeSize = 80f;
+        public const float DefaultUnitSize = 40f;
+        public const float DefaultNodeSize = 48f;
         public const float DefaultEdgeThickness = 4f;
         public const int DefaultMaxLevel = 5;
 

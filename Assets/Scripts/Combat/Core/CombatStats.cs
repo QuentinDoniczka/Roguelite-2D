@@ -58,9 +58,9 @@ namespace RogueliteAutoBattler.Combat.Core
             switch (statType)
             {
                 case StatType.Hp:
-                    return MakeBreakdown(statType, label, $"{_currentHp} / {_maxHp}", $"{_maxHp}");
+                    return MakeBreakdown(statType, label, $"{_currentHp} / {_maxHp}", $"{(int)_baseValues[(int)StatType.Hp]}");
                 case StatType.Atk:
-                    return MakeBreakdown(statType, label, $"{_atk}");
+                    return MakeBreakdown(statType, label, $"{_atk}", $"{(int)_baseValues[(int)StatType.Atk]}");
                 case StatType.Def:
                     return MakeBreakdown(statType, label, "0");
                 case StatType.Mana:
@@ -68,9 +68,9 @@ namespace RogueliteAutoBattler.Combat.Core
                 case StatType.Power:
                     return MakeBreakdown(statType, label, "0");
                 case StatType.AttackSpeed:
-                    return MakeBreakdown(statType, label, _attackSpeed.ToString("F1", CultureInfo.InvariantCulture));
+                    return MakeBreakdown(statType, label, _attackSpeed.ToString("F1", CultureInfo.InvariantCulture), _baseValues[(int)StatType.AttackSpeed].ToString("F1", CultureInfo.InvariantCulture));
                 case StatType.RegenHp:
-                    return MakeBreakdown(statType, label, _regenHpPerSecond.ToString("F1", CultureInfo.InvariantCulture) + "/s");
+                    return MakeBreakdown(statType, label, _regenHpPerSecond.ToString("F1", CultureInfo.InvariantCulture) + "/s", _baseValues[(int)StatType.RegenHp].ToString("F1", CultureInfo.InvariantCulture) + "/s");
                 case StatType.CritRate:
                     return MakeBreakdown(statType, label, "0%");
                 default:
