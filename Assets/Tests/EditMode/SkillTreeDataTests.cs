@@ -280,7 +280,8 @@ namespace RogueliteAutoBattler.Tests.EditMode
             Vector2 origin = Vector2.zero;
             float zoom = 1f;
 
-            Vector2 clickOnNode0 = new Vector2(1000f, 0f);
+            float node0PixelX = _skillTreeData.RingRadius * SkillTreeData.DefaultUnitSize;
+            Vector2 clickOnNode0 = new Vector2(node0PixelX, 0f);
             int result = SkillTreeDesignerWindow.HitTestNode(clickOnNode0, origin, _skillTreeData.Nodes, SkillTreeData.DefaultUnitSize, SkillTreeData.DefaultNodeSize, zoom);
             Assert.AreEqual(0, result);
         }
