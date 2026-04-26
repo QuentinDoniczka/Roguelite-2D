@@ -235,6 +235,63 @@ namespace RogueliteAutoBattler.Tests.PlayMode
         }
 
         [UnityTest]
+        public IEnumerator OnLevelChanged_PercentNode_ApplyHumanPercentCorrectly()
+        {
+            const int baseAtk = 100;
+            const float percentPerLevel = 5f;
+            const int level = 1;
+            const int expectedAtk = 105;
+            const int allyCount = 1;
+
+            _data.InitializeForTest(new List<SkillTreeData.SkillNodeEntry>
+            {
+                new SkillTreeData.SkillNodeEntry
+                {
+                    id = 0,
+                    maxLevel = 5,
+                    statModifierType = StatType.Atk,
+                    statModifierMode = SkillTreeData.StatModifierMode.Percent,
+                    statModifierValuePerLevel = percentPerLevel,
+                    connectedNodeIds = new List<int>()
+                }
+            });
+
+            _service = new AllyStatBonusService(_roster, _data, _progress);
+
+            var teamDb = ScriptableObject.CreateInstance<TeamDatabase>();
+            teamDb.Allies = new List<AllySpawnData>
+            {
+                new AllySpawnData
+                {
+                    AllyName = "Ally_Atk",
+                    Prefab = _allyPrefab,
+                    MaxHp = BaseMaxHp,
+                    Atk = baseAtk,
+                    AttackSpeed = 1f,
+                    MoveSpeed = 2f,
+                    ColliderRadius = 0.3f
+                }
+            };
+
+            ExpectAnimatorWarnings(allyCount);
+            _roster.Spawn(teamDb, _teamContainer, _teamHomeAnchor, TestCharacterScale);
+
+            yield return null;
+
+            TeamMember member = _roster.Members[0];
+            Assert.AreEqual(baseAtk, member.Stats.Atk, "Precondition: Atk should equal base before level up.");
+
+            _progress.SetLevel(0, level);
+
+            yield return null;
+
+            Assert.AreEqual(expectedAtk, member.Stats.Atk,
+                "Atk should equal base * (1 + 0.05) after +5% techtree node at level 1.");
+            Assert.IsTrue(HasTechTreeModifier(member.Stats, StatType.Atk, 0),
+                "Breakdown should contain a techtree:node0 modifier on Atk.");
+        }
+
+        [UnityTest]
         public IEnumerator Integration_GameBootstrapWiresService_LevelUpAffectsSpawnedMembers()
         {
             const int newLevel = 4;

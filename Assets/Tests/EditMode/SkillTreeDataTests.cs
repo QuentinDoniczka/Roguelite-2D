@@ -241,14 +241,18 @@ namespace RogueliteAutoBattler.Tests.EditMode
             for (int i = 0; i < _skillTreeData.Nodes.Count; i++)
             {
                 var node = _skillTreeData.Nodes[i];
+                var (expectedStat, expectedMode, expectedValue) = SkillTreeData.DefaultNodeStatRotation[i % SkillTreeData.DefaultNodeStatRotation.Length];
+
                 Assert.AreEqual(SkillTreeData.CostType.Gold, node.costType,
                     $"Node {i} costType should default to Gold");
-                Assert.AreEqual(0, node.maxLevel,
-                    $"Node {i} maxLevel should default to 0 (unlimited)");
-                Assert.AreEqual(StatType.Hp, node.statModifierType,
-                    $"Node {i} statModifierType should default to HP");
-                Assert.AreEqual(0f, node.statModifierValuePerLevel,
-                    $"Node {i} statModifierValuePerLevel should default to 0");
+                Assert.AreEqual(SkillTreeData.DefaultMaxLevel, node.maxLevel,
+                    $"Node {i} maxLevel should default to {SkillTreeData.DefaultMaxLevel}");
+                Assert.AreEqual(expectedStat, node.statModifierType,
+                    $"Node {i} statModifierType should follow rotation");
+                Assert.AreEqual(expectedMode, node.statModifierMode,
+                    $"Node {i} statModifierMode should follow rotation");
+                Assert.AreEqual(expectedValue, node.statModifierValuePerLevel,
+                    $"Node {i} statModifierValuePerLevel should follow rotation");
             }
         }
 
@@ -262,7 +266,7 @@ namespace RogueliteAutoBattler.Tests.EditMode
             {
                 var node = _skillTreeData.Nodes[i];
                 Assert.AreEqual(SkillTreeData.CostType.Gold, node.costType);
-                Assert.AreEqual(0, node.maxLevel);
+                Assert.AreEqual(SkillTreeData.DefaultMaxLevel, node.maxLevel);
             }
         }
 

@@ -57,13 +57,30 @@ namespace RogueliteAutoBattler.Tests.EditMode
                 id = 3,
                 statModifierType = StatType.Atk,
                 statModifierMode = SkillTreeData.StatModifierMode.Percent,
-                statModifierValuePerLevel = 0.10f
+                statModifierValuePerLevel = 5f
             };
             var result = AllyStatBonusService.ResolveNodeModifier(node, 2);
             Assert.IsTrue(result.HasValue);
             Assert.AreEqual(StatType.Atk, result.Value.stat);
             Assert.AreEqual(ModifierTier.Percent, result.Value.tier);
-            Assert.AreEqual(0.20f, result.Value.value, 0.0001f);
+            Assert.AreEqual(0.10f, result.Value.value, 0.0001f);
+        }
+
+        [Test]
+        public void ResolveNodeModifier_PercentMode_TreatsStoredValueAsHumanPercent()
+        {
+            var node = new SkillTreeData.SkillNodeEntry
+            {
+                id = 4,
+                statModifierType = StatType.Atk,
+                statModifierMode = SkillTreeData.StatModifierMode.Percent,
+                statModifierValuePerLevel = 5f
+            };
+            var result = AllyStatBonusService.ResolveNodeModifier(node, 1);
+            Assert.IsTrue(result.HasValue);
+            Assert.AreEqual(StatType.Atk, result.Value.stat);
+            Assert.AreEqual(ModifierTier.Percent, result.Value.tier);
+            Assert.AreEqual(0.05f, result.Value.value, 0.0001f);
         }
     }
 }

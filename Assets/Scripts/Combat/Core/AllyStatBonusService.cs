@@ -5,6 +5,8 @@ namespace RogueliteAutoBattler.Combat.Core
 {
     public sealed class AllyStatBonusService : IDisposable
     {
+        private const float PercentInputToDecimal = 0.01f;
+
         private readonly TeamRoster _roster;
         private readonly SkillTreeData _data;
         private readonly SkillTreeProgress _progress;
@@ -69,10 +71,14 @@ namespace RogueliteAutoBattler.Combat.Core
         {
             if (level <= 0) return null;
             if (node.statModifierValuePerLevel == 0f) return null;
-            float value = node.statModifierValuePerLevel * level;
-            ModifierTier tier = node.statModifierMode == SkillTreeData.StatModifierMode.Percent
-                ? ModifierTier.Percent
-                : ModifierTier.Flat;
+
+            bool isPercentMode = node.statModifierMode == SkillTreeData.StatModifierMode.Percent;
+            float perLevelInPipelineUnits = isPercentMode
+                ? node.statModifierValuePerLevel * PercentInputToDecimal
+                : node.statModifierValuePerLevel;
+            float value = perLevelInPipelineUnits * level;
+
+            ModifierTier tier = isPercentMode ? ModifierTier.Percent : ModifierTier.Flat;
             return (node.statModifierType, tier, value);
         }
 

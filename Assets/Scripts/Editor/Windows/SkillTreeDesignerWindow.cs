@@ -350,7 +350,12 @@ namespace RogueliteAutoBattler.Editor.Windows
             EditorGUILayout.LabelField("Stat Modifier", EditorStyles.boldLabel);
             var newStatModType = (StatType)EditorGUILayout.EnumPopup("Stat", node.statModifierType);
             var newStatModMode = (SkillTreeData.StatModifierMode)EditorGUILayout.EnumPopup("Mode", node.statModifierMode);
-            float newStatModValue = EditorGUILayout.FloatField("Value / Level", node.statModifierValuePerLevel);
+            string statModValueLabel = newStatModMode == SkillTreeData.StatModifierMode.Percent
+                ? "% / Level"
+                : "Value / Level";
+            float newStatModValue = EditorGUILayout.FloatField(statModValueLabel, node.statModifierValuePerLevel);
+            if (newStatModMode == SkillTreeData.StatModifierMode.Percent)
+                EditorGUILayout.HelpBox("Stored as percent (5 = +5%)", MessageType.Info);
 
             if (EditorGUI.EndChangeCheck())
             {
