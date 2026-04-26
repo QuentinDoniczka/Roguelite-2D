@@ -124,5 +124,39 @@ namespace RogueliteAutoBattler.Tests.EditMode
             Assert.AreEqual("+10%", breakdown.Modifiers[1].Value,
                 "Float imprecision (5*0.01*2*100 = 9.99999976) must round, not truncate.");
         }
+
+        [Test]
+        public void Breakdown_ManaWithPercentMod_IncludesModifierLineEvenWhenBaseIsZero()
+        {
+            _stats.AddModifier(StatType.Mana, ModifierTier.Percent, "techtree:node0", 0.05f);
+
+            var breakdown = _stats.GetBreakdown(StatType.Mana);
+
+            Assert.AreEqual(2, breakdown.Modifiers.Length, "Should include base entry + techtree modifier");
+            Assert.AreEqual("+5%", breakdown.Modifiers[1].Value,
+                "Modifier line for Mana (Percent +5%) must be visible even when base Mana is 0.");
+        }
+
+        [Test]
+        public void Breakdown_PowerWithPercentMod_IncludesModifierLineEvenWhenBaseIsZero()
+        {
+            _stats.AddModifier(StatType.Power, ModifierTier.Percent, "techtree:node0", 0.05f);
+
+            var breakdown = _stats.GetBreakdown(StatType.Power);
+
+            Assert.AreEqual(2, breakdown.Modifiers.Length);
+            Assert.AreEqual("+5%", breakdown.Modifiers[1].Value);
+        }
+
+        [Test]
+        public void Breakdown_AtkWithPercentMod_ShowsModifierLine()
+        {
+            _stats.AddModifier(StatType.Atk, ModifierTier.Percent, "techtree:node0", 0.05f);
+
+            var breakdown = _stats.GetBreakdown(StatType.Atk);
+
+            Assert.AreEqual(2, breakdown.Modifiers.Length);
+            Assert.AreEqual("+5%", breakdown.Modifiers[1].Value);
+        }
     }
 }
