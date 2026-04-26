@@ -455,14 +455,24 @@
 .stat-breakdown-base-row {
     flex-direction: row;
     justify-content: space-between;
-    -unity-font-style: bold;
+}
+
+.stat-breakdown-base-row > Label {
+    font-size: var(--info-breakdown-font-size);
+    color: rgb(140, 210, 255);
+    white-space: normal;
 }
 
 .stat-breakdown-modifier-row {
     flex-direction: row;
     justify-content: space-between;
     padding-left: 16px;
-    opacity: 0.85;
+}
+
+.stat-breakdown-modifier-row > Label {
+    font-size: var(--info-breakdown-font-size);
+    color: rgb(140, 210, 255);
+    white-space: normal;
 }
 
 .stat-breakdown-total-row {
@@ -472,7 +482,12 @@
     border-top-color: rgba(255, 255, 255, 0.3);
     margin-top: 4px;
     padding-top: 2px;
-    -unity-font-style: bold;
+}
+
+.stat-breakdown-total-row > Label {
+    font-size: var(--info-breakdown-font-size);
+    color: rgb(140, 210, 255);
+    white-space: normal;
 }
 
 #screen-skilltree {
