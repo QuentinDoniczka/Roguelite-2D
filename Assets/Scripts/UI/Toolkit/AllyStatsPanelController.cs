@@ -14,7 +14,6 @@ namespace RogueliteAutoBattler.UI.Toolkit
     {
         private const float StaggerDelay = 0.025f;
         private const float FadeDuration = 0.075f;
-        private const string BreakdownSectionDividerLine = "\u2500\u2500\u2500\u2500\u2500\u2500";
 
         private static class UssClasses
         {
@@ -60,7 +59,9 @@ namespace RogueliteAutoBattler.UI.Toolkit
             internal Label NameLabel;
             internal Label ValueLabel;
             internal VisualElement BreakdownContainer;
-            internal Label BreakdownText;
+            internal VisualElement BreakdownBaseRow;
+            internal VisualElement BreakdownModifiersList;
+            internal VisualElement BreakdownTotalRow;
         }
 
         public AllyStatsPanelController(
@@ -136,9 +137,21 @@ namespace RogueliteAutoBattler.UI.Toolkit
                 breakdownContainer.AddToClassList("stat-breakdown");
                 breakdownContainer.AddToClassList(UssClasses.BreakdownHidden);
 
-                var breakdownText = new Label();
-                breakdownText.AddToClassList("breakdown-text");
-                breakdownContainer.Add(breakdownText);
+                var baseRow = new VisualElement { name = "breakdown-base-row" };
+                baseRow.AddToClassList("stat-breakdown-base-row");
+                baseRow.Add(new Label());
+                baseRow.Add(new Label());
+                breakdownContainer.Add(baseRow);
+
+                var modifiersList = new VisualElement { name = "breakdown-modifiers-list" };
+                breakdownContainer.Add(modifiersList);
+
+                var totalRow = new VisualElement { name = "breakdown-total-row" };
+                totalRow.AddToClassList("stat-breakdown-total-row");
+                totalRow.Add(new Label { text = "Total" });
+                totalRow.Add(new Label());
+                breakdownContainer.Add(totalRow);
+
                 statRow.Add(breakdownContainer);
 
                 _statsScrollView.Add(statRow);
@@ -149,7 +162,9 @@ namespace RogueliteAutoBattler.UI.Toolkit
                     NameLabel = statName,
                     ValueLabel = statValue,
                     BreakdownContainer = breakdownContainer,
-                    BreakdownText = breakdownText
+                    BreakdownBaseRow = baseRow,
+                    BreakdownModifiersList = modifiersList,
+                    BreakdownTotalRow = totalRow
                 };
             }
         }
@@ -470,21 +485,40 @@ namespace RogueliteAutoBattler.UI.Toolkit
             if (rowIndex >= displayOrder.Count) return;
 
             var breakdown = _trackedStats.GetBreakdown(displayOrder[rowIndex]);
-            _stringBuilder.Clear();
+            ref var row = ref _statRows[rowIndex];
+
+            var baseSourceLabel = row.BreakdownBaseRow[0] as Label;
+            var baseValueLabel = row.BreakdownBaseRow[1] as Label;
+
+            if (breakdown.Modifiers != null && breakdown.Modifiers.Length > 0)
+            {
+                var baseEntry = breakdown.Modifiers[0];
+                if (baseSourceLabel != null)
+                    baseSourceLabel.text = ModifierSources.GetDisplayLabel(baseEntry.Source);
+                if (baseValueLabel != null)
+                    baseValueLabel.text = baseEntry.Value;
+            }
+
+            row.BreakdownModifiersList.Clear();
 
             if (breakdown.Modifiers != null)
             {
-                for (int i = 0; i < breakdown.Modifiers.Length; i++)
+                for (int i = 1; i < breakdown.Modifiers.Length; i++)
                 {
                     var modifier = breakdown.Modifiers[i];
-                    _stringBuilder.Append(modifier.Source).Append(": ").AppendLine(modifier.Value);
+                    var modRow = new VisualElement();
+                    modRow.AddToClassList("stat-breakdown-modifier-row");
+                    var sourceLabel = new Label { text = ModifierSources.GetDisplayLabel(modifier.Source) };
+                    var valueLabel = new Label { text = modifier.Value };
+                    modRow.Add(sourceLabel);
+                    modRow.Add(valueLabel);
+                    row.BreakdownModifiersList.Add(modRow);
                 }
             }
 
-            _stringBuilder.AppendLine(BreakdownSectionDividerLine);
-            _stringBuilder.Append("Total: ").Append(breakdown.FinalValue);
-
-            _statRows[rowIndex].BreakdownText.text = _stringBuilder.ToString();
+            var totalValueLabel = row.BreakdownTotalRow[1] as Label;
+            if (totalValueLabel != null)
+                totalValueLabel.text = breakdown.FinalValue;
         }
 
         internal void NavigateToNextAlly()
@@ -566,9 +600,37 @@ namespace RogueliteAutoBattler.UI.Toolkit
             rowIndex >= 0 && rowIndex < _statRows.Length
             && !_statRows[rowIndex].BreakdownContainer.ClassListContains(UssClasses.BreakdownHidden);
 
-        internal string BreakdownText(int rowIndex) =>
-            rowIndex >= 0 && rowIndex < _statRows.Length
-                ? _statRows[rowIndex].BreakdownText.text : "";
+        internal string BreakdownText(int rowIndex)
+        {
+            if (rowIndex < 0 || rowIndex >= _statRows.Length) return "";
+            ref var row = ref _statRows[rowIndex];
+            _stringBuilder.Clear();
+            if (row.BreakdownBaseRow != null)
+            {
+                foreach (var child in row.BreakdownBaseRow.Children())
+                {
+                    if (child is Label l) _stringBuilder.Append(l.text).Append(' ');
+                }
+            }
+            if (row.BreakdownModifiersList != null)
+            {
+                foreach (var modRow in row.BreakdownModifiersList.Children())
+                {
+                    foreach (var child in modRow.Children())
+                    {
+                        if (child is Label l) _stringBuilder.Append(l.text).Append(' ');
+                    }
+                }
+            }
+            if (row.BreakdownTotalRow != null)
+            {
+                foreach (var child in row.BreakdownTotalRow.Children())
+                {
+                    if (child is Label l) _stringBuilder.Append(l.text).Append(' ');
+                }
+            }
+            return _stringBuilder.ToString().TrimEnd();
+        }
 
         internal string StatValueText(int rowIndex) =>
             rowIndex >= 0 && rowIndex < _statRows.Length
@@ -577,6 +639,15 @@ namespace RogueliteAutoBattler.UI.Toolkit
         internal string StatNameText(int rowIndex) =>
             rowIndex >= 0 && rowIndex < _statRows.Length
                 ? _statRows[rowIndex].NameLabel.text : "";
+
+        internal VisualElement GetBreakdownBaseRow(int rowIndex) =>
+            rowIndex >= 0 && rowIndex < _statRows.Length ? _statRows[rowIndex].BreakdownBaseRow : null;
+
+        internal VisualElement GetBreakdownModifiersList(int rowIndex) =>
+            rowIndex >= 0 && rowIndex < _statRows.Length ? _statRows[rowIndex].BreakdownModifiersList : null;
+
+        internal VisualElement GetBreakdownTotalRow(int rowIndex) =>
+            rowIndex >= 0 && rowIndex < _statRows.Length ? _statRows[rowIndex].BreakdownTotalRow : null;
 
         internal bool IsVisible =>
             _contentContainer.resolvedStyle.display == DisplayStyle.Flex

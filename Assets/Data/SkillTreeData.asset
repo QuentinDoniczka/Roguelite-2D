@@ -14,8 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: RogueliteAutoBattler.Runtime::RogueliteAutoBattler.Data.SkillTreeData
   ringRadius: 8
   ringNodeCount: 6
-  unitSize: 200
-  nodeSize: 80
+  unitSize: 40
+  nodeSize: 48
   nodeColor: {r: 0.3, g: 0.3, b: 0.3, a: 1}
   borderNormalColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
   borderSelectedColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}

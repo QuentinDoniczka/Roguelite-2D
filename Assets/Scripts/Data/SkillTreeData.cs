@@ -11,9 +11,10 @@ namespace RogueliteAutoBattler.Data
     {
         public const int DefaultRingNodeCount = 6;
         public const float DefaultRingRadius = 5f;
-        public const float DefaultUnitSize = 200f;
-        public const float DefaultNodeSize = 80f;
+        public const float DefaultUnitSize = 40f;
+        public const float DefaultNodeSize = 48f;
         public const float DefaultEdgeThickness = 4f;
+        public const int DefaultMaxLevel = 5;
 
         public static readonly Color DefaultNodeColor = new Color(0.3f, 0.3f, 0.3f, 1f);
         public static readonly Color DefaultBorderNormalColor = Color.gray;
@@ -32,6 +33,16 @@ namespace RogueliteAutoBattler.Data
             Flat,
             Percent
         }
+
+        internal static readonly (StatType stat, StatModifierMode mode, float valuePerLevel)[] DefaultNodeStatRotation =
+        {
+            (StatType.Hp, StatModifierMode.Percent, 5f),
+            (StatType.Atk, StatModifierMode.Percent, 5f),
+            (StatType.Def, StatModifierMode.Percent, 5f),
+            (StatType.AttackSpeed, StatModifierMode.Percent, 5f),
+            (StatType.CritRate, StatModifierMode.Percent, 5f),
+            (StatType.RegenHp, StatModifierMode.Percent, 5f)
+        };
 
         [Serializable]
         public struct SkillNodeEntry
@@ -110,23 +121,26 @@ namespace RogueliteAutoBattler.Data
         {
             Debug.Assert(nodeCount > 0, "Ring node count must be positive");
 
+            int rotationLength = DefaultNodeStatRotation.Length;
             for (int i = 0; i < nodeCount; i++)
             {
                 float angle = i * (2f * Mathf.PI / nodeCount);
                 Vector2 pos = new Vector2(radius * Mathf.Cos(angle), radius * Mathf.Sin(angle));
+                var rotationEntry = DefaultNodeStatRotation[i % rotationLength];
                 output.Add(new SkillNodeEntry
                 {
                     id = i,
                     position = pos,
                     connectedNodeIds = new List<int> { (i + 1) % nodeCount },
                     costType = CostType.Gold,
-                    maxLevel = 0,
+                    maxLevel = DefaultMaxLevel,
                     baseCost = defaultBaseCost,
                     costMultiplierOdd = defaultMultOdd,
                     costMultiplierEven = defaultMultEven,
                     costAdditivePerLevel = defaultAdditive,
-                    statModifierType = StatType.Hp,
-                    statModifierValuePerLevel = 0f
+                    statModifierType = rotationEntry.stat,
+                    statModifierMode = rotationEntry.mode,
+                    statModifierValuePerLevel = rotationEntry.valuePerLevel
                 });
             }
         }
@@ -190,6 +204,13 @@ namespace RogueliteAutoBattler.Data
             Debug.Assert(index >= 0 && index < nodes.Count, $"SetNode index {index} out of range [0, {nodes.Count})");
             if (index < 0 || index >= nodes.Count) return;
             nodes[index] = entry;
+            _cachedEdges = null;
+        }
+
+        internal void InitializeForTest(List<SkillNodeEntry> testNodes)
+        {
+            Debug.Assert(testNodes != null, "InitializeForTest requires non-null node list — pass empty list explicitly.");
+            nodes = testNodes ?? new List<SkillNodeEntry>();
             _cachedEdges = null;
         }
     }

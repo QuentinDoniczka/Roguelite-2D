@@ -452,6 +452,44 @@
     white-space: normal;
 }
 
+.stat-breakdown-base-row {
+    flex-direction: row;
+    justify-content: space-between;
+}
+
+.stat-breakdown-base-row > Label {
+    font-size: var(--info-breakdown-font-size);
+    color: rgb(140, 210, 255);
+    white-space: normal;
+}
+
+.stat-breakdown-modifier-row {
+    flex-direction: row;
+    justify-content: space-between;
+    padding-left: 16px;
+}
+
+.stat-breakdown-modifier-row > Label {
+    font-size: var(--info-breakdown-font-size);
+    color: rgb(140, 210, 255);
+    white-space: normal;
+}
+
+.stat-breakdown-total-row {
+    flex-direction: row;
+    justify-content: space-between;
+    border-top-width: 1px;
+    border-top-color: rgba(255, 255, 255, 0.3);
+    margin-top: 4px;
+    padding-top: 2px;
+}
+
+.stat-breakdown-total-row > Label {
+    font-size: var(--info-breakdown-font-size);
+    color: rgb(140, 210, 255);
+    white-space: normal;
+}
+
 #screen-skilltree {
     background-color: rgb(20, 20, 28);
     flex-grow: 1;

@@ -214,8 +214,8 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             Assert.AreEqual("0", _controller.StatValueText(2));
             Assert.AreEqual("0", _controller.StatValueText(3));
             Assert.AreEqual("0", _controller.StatValueText(4));
-            Assert.AreEqual("1.2", _controller.StatValueText(5));
-            Assert.AreEqual("2.0/s", _controller.StatValueText(6));
+            Assert.AreEqual("1.20", _controller.StatValueText(5));
+            Assert.AreEqual("2.00/s", _controller.StatValueText(6));
             Assert.AreEqual("0%", _controller.StatValueText(7));
         }
 
@@ -777,6 +777,50 @@ namespace RogueliteAutoBattler.Tests.PlayMode
 
             Assert.IsFalse(_controller.IsDisplayingDeadUnit);
             Assert.IsFalse(_controller.IsNameLabelDeadMarked);
+        }
+
+        [UnityTest]
+        public IEnumerator Breakdown_ForHpStat_RendersBaseRowAndTechTreeModifierRowSeparately()
+        {
+            var ally = TestCharacterFactory.CreateSelectableCharacter("Ally", 200, 15, true, new Vector2(0, 0));
+            Track(ally);
+            ally.GetComponent<CombatStats>().InitializeDirect(maxHp: 200, atk: 15, attackSpeed: 1f);
+            ally.GetComponent<CombatStats>().AddModifier(StatType.Hp, ModifierTier.Flat, ModifierSources.TechTreeNode(0), 15f);
+
+            _selectionManager.ForceSelect(ally);
+            yield return null;
+
+            _controller.ToggleBreakdown(0);
+            yield return null;
+
+            VisualElement baseRow = _controller.GetBreakdownBaseRow(0);
+            Assert.IsNotNull(baseRow, "breakdown-base-row should exist");
+            string baseRowText = ConcatLabels(baseRow);
+            StringAssert.Contains("Base", baseRowText, "Base row source label should contain 'Base'");
+
+            VisualElement modifiersList = _controller.GetBreakdownModifiersList(0);
+            Assert.IsNotNull(modifiersList, "breakdown-modifiers-list should exist");
+            Assert.AreEqual(1, modifiersList.childCount, "Should have exactly one modifier row for the TechTree bonus");
+            string modRowText = ConcatLabels(modifiersList[0]);
+            StringAssert.Contains("Tech Tree", modRowText, "Modifier source should display 'Tech Tree', not the raw key");
+            StringAssert.Contains("15", modRowText, "Modifier row should contain the value 15");
+            StringAssert.DoesNotContain("techtree:node0", modRowText, "Raw source key must not appear in the UI");
+
+            VisualElement totalRow = _controller.GetBreakdownTotalRow(0);
+            Assert.IsNotNull(totalRow, "breakdown-total-row should exist");
+            string totalRowText = ConcatLabels(totalRow);
+            StringAssert.Contains("Total", totalRowText, "Total row label should contain 'Total'");
+            StringAssert.Contains("215", totalRowText, "Total row should contain the computed total (200 + 15)");
+        }
+
+        private static string ConcatLabels(VisualElement element)
+        {
+            var sb = new System.Text.StringBuilder();
+            foreach (var child in element.Children())
+            {
+                if (child is Label l) sb.Append(l.text).Append(' ');
+            }
+            return sb.ToString();
         }
     }
 

@@ -112,6 +112,10 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             {
                 if (err.Contains("[GameBootstrap] No navigation system"))
                     continue;
+                if (err.Contains("[GameBootstrap] ProgressionLoader not initialized"))
+                    continue;
+                if (err.Contains("[GameBootstrap] AllyStatBonusService not initialized"))
+                    continue;
                 unexpectedErrors.Add(err);
             }
 

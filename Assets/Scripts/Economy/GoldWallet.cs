@@ -35,5 +35,11 @@ namespace RogueliteAutoBattler.Economy
             _gold = 0;
             OnGoldChanged?.Invoke(_gold);
         }
+
+        internal void InitializeForPersistence(int gold)
+        {
+            _gold = gold < 0 ? 0 : gold;
+            OnGoldChanged?.Invoke(_gold);
+        }
     }
 }

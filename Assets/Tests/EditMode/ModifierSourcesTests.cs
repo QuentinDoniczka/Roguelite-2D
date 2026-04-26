@@ -21,5 +21,13 @@ namespace RogueliteAutoBattler.Tests.EditMode
         {
             Assert.AreEqual("item:sword42", ModifierSources.ItemSource("sword42"));
         }
+
+        [Test]
+        public void TechTreeNode_FormatsAsTechtreeColonNodeId()
+        {
+            Assert.AreEqual("techtree:node0", ModifierSources.TechTreeNode(0));
+            Assert.AreEqual("techtree:node7", ModifierSources.TechTreeNode(7));
+            Assert.AreEqual("techtree:node42", ModifierSources.TechTreeNode(42));
+        }
     }
 }

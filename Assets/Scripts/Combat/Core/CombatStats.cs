@@ -58,9 +58,9 @@ namespace RogueliteAutoBattler.Combat.Core
             switch (statType)
             {
                 case StatType.Hp:
-                    return MakeBreakdown(statType, label, $"{_currentHp} / {_maxHp}", $"{_maxHp}");
+                    return MakeBreakdown(statType, label, $"{_currentHp} / {_maxHp}", $"{(int)_baseValues[(int)StatType.Hp]}");
                 case StatType.Atk:
-                    return MakeBreakdown(statType, label, $"{_atk}");
+                    return MakeBreakdown(statType, label, $"{_atk}", $"{(int)_baseValues[(int)StatType.Atk]}");
                 case StatType.Def:
                     return MakeBreakdown(statType, label, "0");
                 case StatType.Mana:
@@ -68,9 +68,9 @@ namespace RogueliteAutoBattler.Combat.Core
                 case StatType.Power:
                     return MakeBreakdown(statType, label, "0");
                 case StatType.AttackSpeed:
-                    return MakeBreakdown(statType, label, _attackSpeed.ToString("F1", CultureInfo.InvariantCulture));
+                    return MakeBreakdown(statType, label, _attackSpeed.ToString("F2", CultureInfo.InvariantCulture), _baseValues[(int)StatType.AttackSpeed].ToString("F2", CultureInfo.InvariantCulture));
                 case StatType.RegenHp:
-                    return MakeBreakdown(statType, label, _regenHpPerSecond.ToString("F1", CultureInfo.InvariantCulture) + "/s");
+                    return MakeBreakdown(statType, label, _regenHpPerSecond.ToString("F2", CultureInfo.InvariantCulture) + "/s", _baseValues[(int)StatType.RegenHp].ToString("F2", CultureInfo.InvariantCulture) + "/s");
                 case StatType.CritRate:
                     return MakeBreakdown(statType, label, "0%");
                 default:
@@ -112,7 +112,7 @@ namespace RogueliteAutoBattler.Combat.Core
                     float percent = magnitude * PercentToDisplayMultiplier;
                     bool percentIsWhole = Mathf.Approximately(percent, Mathf.Round(percent));
                     string percentStr = percentIsWhole
-                        ? ((int)percent).ToString(CultureInfo.InvariantCulture)
+                        ? Mathf.RoundToInt(percent).ToString(CultureInfo.InvariantCulture)
                         : percent.ToString(FractionalNumberFormat, CultureInfo.InvariantCulture);
                     return sign + percentStr + "%";
                 case ModifierTier.Base:
@@ -120,7 +120,7 @@ namespace RogueliteAutoBattler.Combat.Core
                 default:
                     bool isWhole = Mathf.Approximately(magnitude, Mathf.Round(magnitude));
                     string numberStr = isWhole
-                        ? ((int)magnitude).ToString(CultureInfo.InvariantCulture)
+                        ? Mathf.RoundToInt(magnitude).ToString(CultureInfo.InvariantCulture)
                         : magnitude.ToString(FractionalNumberFormat, CultureInfo.InvariantCulture);
                     return sign + numberStr;
             }
@@ -181,6 +181,12 @@ namespace RogueliteAutoBattler.Combat.Core
                 }
             }
             return removed;
+        }
+
+        public void HealToFull()
+        {
+            Recompute(StatType.Hp);
+            _currentHp = _maxHp;
         }
 
         internal float GetStatValue(StatType stat) => Recompute(stat);

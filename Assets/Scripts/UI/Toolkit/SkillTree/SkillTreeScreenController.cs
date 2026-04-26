@@ -33,6 +33,9 @@ namespace RogueliteAutoBattler.UI.Toolkit.SkillTree
         [SerializeField] private GoldWallet _goldWallet;
         [SerializeField] private SkillPointWallet _skillPointWallet;
 
+        internal SkillTreeData Data => _data;
+        internal SkillTreeProgress Progress => _progress;
+
         private readonly List<SkillTreeNodeElement> _nodeElements = new();
         private readonly List<Vector2> _positionsCache = new();
         private readonly List<SkillTreeNodeVisualState> _statesCache = new();

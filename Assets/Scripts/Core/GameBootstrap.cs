@@ -1,6 +1,11 @@
 using RogueliteAutoBattler.Combat.Core;
 using RogueliteAutoBattler.Common;
+using RogueliteAutoBattler.Data;
+using RogueliteAutoBattler.Economy;
+using RogueliteAutoBattler.Services;
+using RogueliteAutoBattler.Services.Local;
 using RogueliteAutoBattler.UI.Toolkit;
+using RogueliteAutoBattler.UI.Toolkit.SkillTree;
 using UnityEngine;
 
 namespace RogueliteAutoBattler.Core
@@ -13,6 +18,14 @@ namespace RogueliteAutoBattler.Core
         public static TeamRoster TeamRoster { get; private set; }
         public static NavigationHost NavigationHost { get; private set; }
         public static Camera MainCamera { get; private set; }
+        internal static GoldWallet GoldWallet { get; private set; }
+        internal static IPlayerProgressionLoader ProgressionLoader { get; private set; }
+        internal static AllyStatBonusService AllyStatBonusService { get; private set; }
+
+        internal static SkillTreeData SkillTreeDataAssetForTest;
+        internal static SkillTreeProgress SkillTreeProgressAssetForTest;
+        internal static GoldWallet GoldWalletForTest;
+        internal static string ProgressionFilePathForTest;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         internal static void Initialize()
@@ -23,6 +36,33 @@ namespace RogueliteAutoBattler.Core
             var combatWorldGo = GameObject.Find(CombatWorldName);
             CombatWorld = combatWorldGo != null ? combatWorldGo.transform : null;
             TeamRoster = combatWorldGo != null ? combatWorldGo.GetComponent<TeamRoster>() : null;
+
+            GoldWallet = GoldWalletForTest != null
+                ? GoldWalletForTest
+                : Object.FindFirstObjectByType<GoldWallet>(FindObjectsInactive.Include);
+
+            SkillTreeData skillTreeData = SkillTreeDataAssetForTest;
+            SkillTreeProgress skillTreeProgress = SkillTreeProgressAssetForTest;
+            if (skillTreeData == null || skillTreeProgress == null)
+            {
+                var skillTreeController = Object.FindFirstObjectByType<SkillTreeScreenController>(FindObjectsInactive.Include);
+                if (skillTreeController != null)
+                {
+                    if (skillTreeData == null) skillTreeData = skillTreeController.Data;
+                    if (skillTreeProgress == null) skillTreeProgress = skillTreeController.Progress;
+                }
+            }
+
+            if (GoldWallet != null && skillTreeProgress != null)
+            {
+                ProgressionLoader = new LocalPlayerProgressionLoader(skillTreeProgress, GoldWallet, ProgressionFilePathForTest);
+                ProgressionLoader.Load();
+            }
+
+            if (TeamRoster != null && skillTreeData != null && skillTreeProgress != null)
+            {
+                AllyStatBonusService = new AllyStatBonusService(TeamRoster, skillTreeData, skillTreeProgress);
+            }
 
             ConfigurePhysicsLayers();
 
@@ -56,11 +96,27 @@ namespace RogueliteAutoBattler.Core
                 Debug.LogError("[GameBootstrap] No navigation system found in scene (NavigationHost missing).");
             if (MainCamera == null)
                 Debug.LogError("[GameBootstrap] Main Camera not found in scene.");
+            if (GoldWallet == null)
+                Debug.LogError("[GameBootstrap] GoldWallet not found in scene.");
+            if (ProgressionLoader == null)
+                Debug.LogError("[GameBootstrap] ProgressionLoader not initialized (missing GoldWallet or SkillTreeProgress).");
+            if (AllyStatBonusService == null)
+                Debug.LogError("[GameBootstrap] AllyStatBonusService not initialized (missing TeamRoster/SkillTreeData/SkillTreeProgress).");
         }
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         private static void ResetOnDomainReload()
         {
+            AllyStatBonusService?.Dispose();
+            AllyStatBonusService = null;
+            ProgressionLoader?.Dispose();
+            ProgressionLoader = null;
+            GoldWallet = null;
+            SkillTreeDataAssetForTest = null;
+            SkillTreeProgressAssetForTest = null;
+            GoldWalletForTest = null;
+            ProgressionFilePathForTest = null;
+
             CombatWorld = null;
             TeamRoster = null;
             NavigationHost = null;
