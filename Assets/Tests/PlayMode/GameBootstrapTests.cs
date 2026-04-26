@@ -321,8 +321,8 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             finally
             {
                 GameBootstrap.ResetForTest();
-                Object.DestroyImmediate(data);
-                Object.DestroyImmediate(progress);
+                UnityEngine.Object.DestroyImmediate(data);
+                UnityEngine.Object.DestroyImmediate(progress);
                 if (Directory.Exists(tempDirectory))
                     Directory.Delete(tempDirectory, true);
             }
