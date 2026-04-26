@@ -22,6 +22,8 @@
     --nav-tab-font-size: 28px;
     --nav-tab-radius: 8px;
     --nav-tab-margin: 4px;
+    --nav-icon-size: 64%;
+    --nav-icon-size-active: 52%;
 
     --hud-gold-font-size: 36px;
     --hud-gold-icon-size: 56px;
@@ -94,6 +96,9 @@
     -unity-font-style: bold;
     border-width: 0;
     transition: background-color 0.2s ease, color 0.2s ease;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
 }
 
 .tab-inactive {
@@ -102,9 +107,31 @@
 }
 
 .tab-active {
-    background-color: var(--color-tab-active);
-    color: var(--color-tab-text-active);
+    background-color: var(--color-tab-normal);
+    color: var(--color-tab-text);
 }
+
+.tab-icon {
+    width: var(--nav-icon-size);
+    height: var(--nav-icon-size);
+    background-size: contain;
+    background-position-x: center;
+    background-position-y: center;
+    transition: scale 0.15s ease, -unity-background-image-tint-color 0.15s ease;
+}
+
+.tab-icon--village   { background-image: url("project://database/Assets/UI/Icons/Nav/village.png"); }
+.tab-icon--skilltree { background-image: url("project://database/Assets/UI/Icons/Nav/skilltree.png"); }
+.tab-icon--map       { background-image: url("project://database/Assets/UI/Icons/Nav/map.png"); }
+.tab-icon--guilde    { background-image: url("project://database/Assets/UI/Icons/Nav/guilde.png"); }
+.tab-icon--shop      { background-image: url("project://database/Assets/UI/Icons/Nav/shop.png"); }
+
+.tab-active .tab-icon    {
+    background-image: url("project://database/Assets/UI/Icons/Nav/remove.png");
+    width: var(--nav-icon-size-active);
+    height: var(--nav-icon-size-active);
+}
+.tab-inactive .tab-icon  { -unity-background-image-tint-color: rgba(255, 255, 255, 0.7); }
 
 .screen-default {
     background-color: rgba(0, 0, 0, 0);

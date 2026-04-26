@@ -82,7 +82,7 @@
                         <ui:Button name="info-tab-traits" text="Traits" class="info-tab" />
                         <ui:Button name="info-tab-loot" text="Loot" class="info-tab" />
                     </ui:VisualElement>
-                    <ui:ScrollView name="info-tab-content-stats" class="info-tab-content" />
+                    <ui:ScrollView name="info-tab-content-stats" class="info-tab-content" vertical-scroller-visibility="Hidden" horizontal-scroller-visibility="Hidden" />
                     <ui:VisualElement name="info-tab-content-traits" class="info-tab-content info-tab-content--hidden">
                         <ui:Label text="Coming soon..." class="info-empty-label" />
                     </ui:VisualElement>
@@ -93,11 +93,21 @@
             </ui:VisualElement>
         </ui:VisualElement>
         <ui:VisualElement name="nav-bar" class="nav-bar">
-            <ui:Button name="tab-village" text="Village" class="tab-button tab-inactive" />
-            <ui:Button name="tab-skilltree" text="Arbre" class="tab-button tab-inactive" />
-            <ui:Button name="tab-map" text="Map" class="tab-button tab-inactive" />
-            <ui:Button name="tab-guilde" text="Guilde" class="tab-button tab-inactive" />
-            <ui:Button name="tab-shop" text="Shop" class="tab-button tab-inactive" />
+            <ui:Button name="tab-village" class="tab-button tab-inactive" tooltip="Village">
+                <ui:VisualElement class="tab-icon tab-icon--village" picking-mode="Ignore" />
+            </ui:Button>
+            <ui:Button name="tab-skilltree" class="tab-button tab-inactive" tooltip="Arbre">
+                <ui:VisualElement class="tab-icon tab-icon--skilltree" picking-mode="Ignore" />
+            </ui:Button>
+            <ui:Button name="tab-map" class="tab-button tab-inactive" tooltip="Map">
+                <ui:VisualElement class="tab-icon tab-icon--map" picking-mode="Ignore" />
+            </ui:Button>
+            <ui:Button name="tab-guilde" class="tab-button tab-inactive" tooltip="Guilde">
+                <ui:VisualElement class="tab-icon tab-icon--guilde" picking-mode="Ignore" />
+            </ui:Button>
+            <ui:Button name="tab-shop" class="tab-button tab-inactive" tooltip="Shop">
+                <ui:VisualElement class="tab-icon tab-icon--shop" picking-mode="Ignore" />
+            </ui:Button>
         </ui:VisualElement>
     </ui:VisualElement>
 </ui:UXML>
