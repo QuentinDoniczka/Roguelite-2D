@@ -9,5 +9,7 @@ namespace RogueliteAutoBattler.Combat.Core
         public const string LevelUp = "levelup";
 
         public static string ItemSource(string instanceId) => "item:" + instanceId;
+
+        public static string TechTreeNode(int nodeId) => "techtree:node" + nodeId;
     }
 }

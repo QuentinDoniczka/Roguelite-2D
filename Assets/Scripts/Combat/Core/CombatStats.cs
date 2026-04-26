@@ -183,6 +183,12 @@ namespace RogueliteAutoBattler.Combat.Core
             return removed;
         }
 
+        public void HealToFull()
+        {
+            Recompute(StatType.Hp);
+            _currentHp = _maxHp;
+        }
+
         internal float GetStatValue(StatType stat) => Recompute(stat);
 
         private float Recompute(StatType stat)
