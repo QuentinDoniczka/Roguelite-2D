@@ -8,7 +8,7 @@ namespace RogueliteAutoBattler.Services.Local
 {
     public sealed class LocalPlayerProgressionLoader : IPlayerProgressionLoader, IDisposable
     {
-        private const string DEFAULT_FILE_NAME = "player_progression.json";
+        internal const string DefaultFileName = "player_progression.json";
 
         private readonly SkillTreeProgress _progress;
         private readonly GoldWallet _wallet;
@@ -23,7 +23,7 @@ namespace RogueliteAutoBattler.Services.Local
             _progress = progress ?? throw new ArgumentNullException(nameof(progress));
             _wallet = wallet ?? throw new ArgumentNullException(nameof(wallet));
             _filePath = string.IsNullOrEmpty(filePath)
-                ? Path.Combine(Application.persistentDataPath, DEFAULT_FILE_NAME)
+                ? Path.Combine(Application.persistentDataPath, DefaultFileName)
                 : filePath;
 
             _levelChangedHandler = (_, __) =>
@@ -40,8 +40,6 @@ namespace RogueliteAutoBattler.Services.Local
             _progress.OnLevelChanged += _levelChangedHandler;
             _wallet.OnGoldChanged += _goldChangedHandler;
         }
-
-        public string FilePath => _filePath;
 
         public void Load()
         {

@@ -42,7 +42,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
         [UnityTest]
         public IEnumerator Initialize_FindsAllSceneRefs()
         {
-            var combatWorldGo = Track(new GameObject("CombatWorld"));
+            var combatWorldGo = Track(new GameObject(GameBootstrap.CombatWorldName));
 
             var camGo = Track(new GameObject("MainCamera"));
             var cam = camGo.AddComponent<Camera>();
@@ -96,7 +96,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
         [UnityTest]
         public IEnumerator ResetForTest_ClearsAllRefs()
         {
-            Track(new GameObject("CombatWorld"));
+            Track(new GameObject(GameBootstrap.CombatWorldName));
 
             var camGo = Track(new GameObject("MainCamera"));
             var cam = camGo.AddComponent<Camera>();
@@ -120,7 +120,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
         [UnityTest]
         public IEnumerator Initialize_SetsTeamRoster_WhenCombatWorldHasComponent()
         {
-            var combatWorldGo = Track(new GameObject("CombatWorld"));
+            var combatWorldGo = Track(new GameObject(GameBootstrap.CombatWorldName));
             var expectedRoster = combatWorldGo.AddComponent<TeamRoster>();
 
             var camGo = Track(new GameObject("MainCamera"));
@@ -140,7 +140,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
         [UnityTest]
         public IEnumerator Initialize_LogsError_WhenCombatWorldLacksTeamRoster()
         {
-            Track(new GameObject("CombatWorld"));
+            Track(new GameObject(GameBootstrap.CombatWorldName));
 
             var camGo = Track(new GameObject("MainCamera"));
             var cam = camGo.AddComponent<Camera>();
@@ -159,7 +159,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
         [UnityTest]
         public IEnumerator ResetForTest_ClearsTeamRoster()
         {
-            var combatWorldGo = Track(new GameObject("CombatWorld"));
+            var combatWorldGo = Track(new GameObject(GameBootstrap.CombatWorldName));
             combatWorldGo.AddComponent<TeamRoster>();
 
             var camGo = Track(new GameObject("MainCamera"));
@@ -181,7 +181,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
         [UnityTest]
         public IEnumerator Initialize_WithSkillTreeAssetsInjected_CreatesAllyStatBonusServiceAndLoader()
         {
-            var combatWorldGo = Track(new GameObject("CombatWorld"));
+            var combatWorldGo = Track(new GameObject(GameBootstrap.CombatWorldName));
             combatWorldGo.AddComponent<TeamRoster>();
 
             var camGo = Track(new GameObject("MainCamera"));
@@ -240,7 +240,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
         [UnityTest]
         public IEnumerator Initialize_MissingSkillTreeAssets_LogsErrorAndServiceNull()
         {
-            var combatWorldGo = Track(new GameObject("CombatWorld"));
+            var combatWorldGo = Track(new GameObject(GameBootstrap.CombatWorldName));
             combatWorldGo.AddComponent<TeamRoster>();
 
             var camGo = Track(new GameObject("MainCamera"));
@@ -261,7 +261,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
         [UnityTest]
         public IEnumerator ResetForTest_DisposesProgressionLoaderAndService()
         {
-            var combatWorldGo = Track(new GameObject("CombatWorld"));
+            var combatWorldGo = Track(new GameObject(GameBootstrap.CombatWorldName));
             combatWorldGo.AddComponent<TeamRoster>();
 
             var camGo = Track(new GameObject("MainCamera"));

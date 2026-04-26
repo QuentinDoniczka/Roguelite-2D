@@ -24,7 +24,7 @@ namespace RogueliteAutoBattler.Tests.EditMode
             _wallet = _walletGameObject.AddComponent<GoldWallet>();
 
             _tempDirectory = Path.Combine(Path.GetTempPath(), "roguelite-tests", Guid.NewGuid().ToString());
-            _tempFilePath = Path.Combine(_tempDirectory, "player_progression.json");
+            _tempFilePath = Path.Combine(_tempDirectory, LocalPlayerProgressionLoader.DefaultFileName);
         }
 
         [TearDown]

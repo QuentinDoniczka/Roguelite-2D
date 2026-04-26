@@ -16,28 +16,16 @@ namespace RogueliteAutoBattler.Combat.Core
             _data = data ?? throw new ArgumentNullException(nameof(data));
             _progress = progress ?? throw new ArgumentNullException(nameof(progress));
 
-            _roster.OnMemberSpawned += HandleMemberSpawned;
-            _roster.OnMemberRevived += HandleMemberRevived;
+            _roster.OnMemberSpawned += ApplyAndHealMember;
+            _roster.OnMemberRevived += ApplyAndHealMember;
             _progress.OnLevelChanged += HandleLevelChanged;
 
             var existing = _roster.Members;
             for (int i = 0; i < existing.Count; i++)
-            {
-                var member = existing[i];
-                ApplyAllToMember(member);
-                if (member?.Stats != null && !member.Stats.IsDead)
-                    member.Stats.HealToFull();
-            }
+                ApplyAndHealMember(existing[i]);
         }
 
-        private void HandleMemberSpawned(TeamMember member)
-        {
-            ApplyAllToMember(member);
-            if (member?.Stats != null && !member.Stats.IsDead)
-                member.Stats.HealToFull();
-        }
-
-        private void HandleMemberRevived(TeamMember member)
+        private void ApplyAndHealMember(TeamMember member)
         {
             ApplyAllToMember(member);
             if (member?.Stats != null && !member.Stats.IsDead)
@@ -50,13 +38,7 @@ namespace RogueliteAutoBattler.Combat.Core
             if (nodeIndex < 0)
             {
                 for (int i = 0; i < members.Count; i++)
-                {
-                    var member = members[i];
-                    if (member?.Stats == null) continue;
-                    RemoveAllFromMember(member);
-                    ApplyAllToMember(member);
-                    if (!member.Stats.IsDead) member.Stats.HealToFull();
-                }
+                    ApplyAndHealMember(members[i]);
                 return;
             }
 
@@ -89,7 +71,7 @@ namespace RogueliteAutoBattler.Combat.Core
             return (node.statModifierType, tier, value);
         }
 
-        internal void ApplyAllToMember(TeamMember member)
+        private void ApplyAllToMember(TeamMember member)
         {
             if (member?.Stats == null) return;
             var nodes = _data.Nodes;
@@ -105,20 +87,12 @@ namespace RogueliteAutoBattler.Combat.Core
             }
         }
 
-        internal void RemoveAllFromMember(TeamMember member)
-        {
-            if (member?.Stats == null) return;
-            var nodes = _data.Nodes;
-            for (int i = 0; i < nodes.Count; i++)
-                member.Stats.RemoveModifiersFromSource(ModifierSources.TechTreeNode(nodes[i].id));
-        }
-
         public void Dispose()
         {
             if (_disposed) return;
             _disposed = true;
-            _roster.OnMemberSpawned -= HandleMemberSpawned;
-            _roster.OnMemberRevived -= HandleMemberRevived;
+            _roster.OnMemberSpawned -= ApplyAndHealMember;
+            _roster.OnMemberRevived -= ApplyAndHealMember;
             _progress.OnLevelChanged -= HandleLevelChanged;
         }
     }

@@ -1,5 +1,6 @@
 using System.IO;
 using RogueliteAutoBattler.Data;
+using RogueliteAutoBattler.Services.Local;
 using UnityEditor;
 using UnityEngine;
 
@@ -8,7 +9,6 @@ namespace RogueliteAutoBattler.Editor.Tools
     internal static class ResetPlayerProgressMenu
     {
         private const string MenuPath = "Roguelite/Reset Player Progress";
-        private const string PersistedFileName = "player_progression.json";
         private const string LogTag = "[ResetPlayerProgress]";
         private const string DialogTitle = "Reset Player Progress";
         private const string DialogConfirmButton = "Reset";
@@ -17,7 +17,7 @@ namespace RogueliteAutoBattler.Editor.Tools
         [MenuItem(MenuPath)]
         private static void ResetPlayerProgressMenuItem()
         {
-            string jsonPath = Path.Combine(Application.persistentDataPath, PersistedFileName);
+            string jsonPath = Path.Combine(Application.persistentDataPath, LocalPlayerProgressionLoader.DefaultFileName);
             string message =
                 "Reset all player progression?\n\n" +
                 "- Skill tree levels -> 0\n" +
