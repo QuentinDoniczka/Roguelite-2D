@@ -195,6 +195,7 @@ namespace RogueliteAutoBattler.Data
 
         internal void InitializeForTest(List<SkillNodeEntry> testNodes)
         {
+            Debug.Assert(testNodes != null, "InitializeForTest requires non-null node list — pass empty list explicitly.");
             nodes = testNodes ?? new List<SkillNodeEntry>();
             _cachedEdges = null;
         }

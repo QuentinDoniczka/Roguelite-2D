@@ -26,19 +26,17 @@ namespace RogueliteAutoBattler.Services.Local
                 ? Path.Combine(Application.persistentDataPath, DefaultFileName)
                 : filePath;
 
-            _levelChangedHandler = (_, __) =>
-            {
-                if (_isSuppressingSave) return;
-                Save();
-            };
-            _goldChangedHandler = _ =>
-            {
-                if (_isSuppressingSave) return;
-                Save();
-            };
+            _levelChangedHandler = (_, __) => HandleProgressChangedSaveIfNotSuppressed();
+            _goldChangedHandler = _ => HandleProgressChangedSaveIfNotSuppressed();
 
             _progress.OnLevelChanged += _levelChangedHandler;
             _wallet.OnGoldChanged += _goldChangedHandler;
+        }
+
+        private void HandleProgressChangedSaveIfNotSuppressed()
+        {
+            if (_isSuppressingSave) return;
+            Save();
         }
 
         public void Load()

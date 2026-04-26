@@ -1,6 +1,8 @@
+using System;
+
 namespace RogueliteAutoBattler.Services
 {
-    public interface IPlayerProgressionLoader
+    public interface IPlayerProgressionLoader : IDisposable
     {
         void Load();
         void Save();

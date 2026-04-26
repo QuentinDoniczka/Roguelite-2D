@@ -109,7 +109,7 @@ namespace RogueliteAutoBattler.Core
         {
             AllyStatBonusService?.Dispose();
             AllyStatBonusService = null;
-            if (ProgressionLoader is System.IDisposable disposable) disposable.Dispose();
+            ProgressionLoader?.Dispose();
             ProgressionLoader = null;
             GoldWallet = null;
             SkillTreeDataAssetForTest = null;

@@ -35,7 +35,7 @@ namespace RogueliteAutoBattler.Combat.Core
         private void HandleLevelChanged(int nodeIndex, int newLevel)
         {
             var members = _roster.Members;
-            if (nodeIndex < 0)
+            if (nodeIndex == SkillTreeProgress.BulkResetNodeIndex)
             {
                 for (int i = 0; i < members.Count; i++)
                     ApplyAndHealMember(members[i]);
@@ -52,11 +52,16 @@ namespace RogueliteAutoBattler.Combat.Core
             {
                 var member = members[i];
                 if (member?.Stats == null) continue;
-                member.Stats.RemoveModifiersFromSource(source);
-                if (resolved.HasValue)
-                    member.Stats.AddModifier(resolved.Value.stat, resolved.Value.tier, source, resolved.Value.value);
+                ReapplyNodeModifierToStats(member.Stats, source, resolved);
                 if (!member.Stats.IsDead) member.Stats.HealToFull();
             }
+        }
+
+        private static void ReapplyNodeModifierToStats(CombatStats stats, string source, (StatType stat, ModifierTier tier, float value)? resolved)
+        {
+            stats.RemoveModifiersFromSource(source);
+            if (resolved.HasValue)
+                stats.AddModifier(resolved.Value.stat, resolved.Value.tier, source, resolved.Value.value);
         }
 
         internal static (StatType stat, ModifierTier tier, float value)? ResolveNodeModifier(
@@ -79,11 +84,9 @@ namespace RogueliteAutoBattler.Combat.Core
             {
                 var node = nodes[i];
                 string source = ModifierSources.TechTreeNode(node.id);
-                member.Stats.RemoveModifiersFromSource(source);
                 int level = _progress.GetLevel(i);
                 var resolved = ResolveNodeModifier(node, level);
-                if (resolved.HasValue)
-                    member.Stats.AddModifier(resolved.Value.stat, resolved.Value.tier, source, resolved.Value.value);
+                ReapplyNodeModifierToStats(member.Stats, source, resolved);
             }
         }
 

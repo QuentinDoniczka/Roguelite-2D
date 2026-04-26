@@ -7,6 +7,8 @@ namespace RogueliteAutoBattler.Data
     [CreateAssetMenu(fileName = "SkillTreeProgress", menuName = "Roguelite/Skill Tree Progress")]
     public class SkillTreeProgress : ScriptableObject
     {
+        public const int BulkResetNodeIndex = -1;
+
         [SerializeField] private List<int> levels = new List<int>();
 
         internal IReadOnlyList<int> Levels => levels;
@@ -32,7 +34,7 @@ namespace RogueliteAutoBattler.Data
         {
             for (int i = 0; i < levels.Count; i++)
                 levels[i] = 0;
-            OnLevelChanged?.Invoke(-1, 0);
+            OnLevelChanged?.Invoke(BulkResetNodeIndex, 0);
         }
     }
 }

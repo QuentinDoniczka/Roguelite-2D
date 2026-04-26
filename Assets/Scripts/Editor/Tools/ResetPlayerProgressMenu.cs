@@ -31,17 +31,15 @@ namespace RogueliteAutoBattler.Editor.Tools
             SkillTreeProgress progressAsset =
                 AssetDatabase.LoadAssetAtPath<SkillTreeProgress>(EditorPaths.SkillTreeProgressAsset);
 
-            bool fileExisted = File.Exists(jsonPath);
-            bool assetReset = progressAsset != null;
+            bool jsonFileDeleted = File.Exists(jsonPath);
+            bool progressAssetReset = progressAsset != null;
 
             PerformReset(jsonPath, progressAsset);
 
-            if (assetReset)
+            if (progressAssetReset)
                 AssetDatabase.SaveAssets();
 
-            int deletedFiles = fileExisted ? 1 : 0;
-            int resetAssets = assetReset ? 1 : 0;
-            Debug.Log($"{LogTag} Done. JSON deleted: {deletedFiles}, asset reset: {resetAssets}.");
+            Debug.Log($"{LogTag} Done. JSON deleted: {(jsonFileDeleted ? 1 : 0)}, asset reset: {(progressAssetReset ? 1 : 0)}.");
         }
 
         internal static void PerformReset(string jsonPath, SkillTreeProgress progressAsset)
