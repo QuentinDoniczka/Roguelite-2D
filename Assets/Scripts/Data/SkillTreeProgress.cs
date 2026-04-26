@@ -9,6 +9,8 @@ namespace RogueliteAutoBattler.Data
     {
         [SerializeField] private List<int> levels = new List<int>();
 
+        internal IReadOnlyList<int> Levels => levels;
+
         /// <summary>
         /// Raised when a node level changes via <see cref="SetLevel"/> or <see cref="ResetAll"/>.
         /// Per-node change: (nodeIndex, newLevel).
