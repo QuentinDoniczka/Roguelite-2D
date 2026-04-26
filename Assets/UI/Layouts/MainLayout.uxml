@@ -93,11 +93,21 @@
             </ui:VisualElement>
         </ui:VisualElement>
         <ui:VisualElement name="nav-bar" class="nav-bar">
-            <ui:Button name="tab-village" text="Village" class="tab-button tab-inactive" />
-            <ui:Button name="tab-skilltree" text="Arbre" class="tab-button tab-inactive" />
-            <ui:Button name="tab-map" text="Map" class="tab-button tab-inactive" />
-            <ui:Button name="tab-guilde" text="Guilde" class="tab-button tab-inactive" />
-            <ui:Button name="tab-shop" text="Shop" class="tab-button tab-inactive" />
+            <ui:Button name="tab-village" tooltip="Village" class="tab-button tab-inactive">
+                <ui:VisualElement picking-mode="Ignore" class="tab-icon tab-icon--village" />
+            </ui:Button>
+            <ui:Button name="tab-skilltree" tooltip="Arbre" class="tab-button tab-inactive">
+                <ui:VisualElement picking-mode="Ignore" class="tab-icon tab-icon--skilltree" />
+            </ui:Button>
+            <ui:Button name="tab-map" tooltip="Map" class="tab-button tab-inactive">
+                <ui:VisualElement picking-mode="Ignore" class="tab-icon tab-icon--map" />
+            </ui:Button>
+            <ui:Button name="tab-guilde" tooltip="Guilde" class="tab-button tab-inactive">
+                <ui:VisualElement picking-mode="Ignore" class="tab-icon tab-icon--guilde" />
+            </ui:Button>
+            <ui:Button name="tab-shop" tooltip="Shop" class="tab-button tab-inactive">
+                <ui:VisualElement picking-mode="Ignore" class="tab-icon tab-icon--shop" />
+            </ui:Button>
         </ui:VisualElement>
     </ui:VisualElement>
 </ui:UXML>
