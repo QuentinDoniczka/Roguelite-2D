@@ -65,8 +65,8 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             _service?.Dispose();
             _service = null;
 
-            if (_data != null) Object.DestroyImmediate(_data);
-            if (_progress != null) Object.DestroyImmediate(_progress);
+            if (_data != null) UnityEngine.Object.DestroyImmediate(_data);
+            if (_progress != null) UnityEngine.Object.DestroyImmediate(_progress);
 
             base.TearDown();
         }
@@ -308,7 +308,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             {
                 GameBootstrap.ResetForTest();
                 if (teamDb != null)
-                    Object.DestroyImmediate(teamDb);
+                    UnityEngine.Object.DestroyImmediate(teamDb);
                 if (Directory.Exists(tempDirectory))
                     Directory.Delete(tempDirectory, true);
             }
