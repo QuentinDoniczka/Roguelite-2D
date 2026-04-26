@@ -20,18 +20,25 @@ namespace RogueliteAutoBattler.Tests.EditMode
         {
             foreach (string slug in NavIconsImporter.NavIconSlugs)
             {
-                string path = NavIconsImporter.GetNavIconAssetPath(slug);
-
-                var sprite = AssetDatabase.LoadAssetAtPath<Sprite>(path);
-                Assert.IsNotNull(sprite, $"Sprite not found at '{path}'. Ensure the PNG is imported as Sprite.");
-
-                var importer = AssetImporter.GetAtPath(path) as TextureImporter;
-                Assert.IsNotNull(importer, $"TextureImporter not found for '{path}'.");
-                Assert.AreEqual(TextureImporterType.Sprite, importer.textureType,
-                    $"Texture at '{path}' must have textureType == Sprite.");
-                Assert.IsTrue(importer.alphaIsTransparency,
-                    $"Texture at '{path}' must have alphaIsTransparency == true.");
+                AssertSpriteImportedCorrectly(slug);
             }
+
+            AssertSpriteImportedCorrectly(NavIconsImporter.NavActiveStateIconSlug);
+        }
+
+        private static void AssertSpriteImportedCorrectly(string slug)
+        {
+            string path = NavIconsImporter.GetNavIconAssetPath(slug);
+
+            var sprite = AssetDatabase.LoadAssetAtPath<Sprite>(path);
+            Assert.IsNotNull(sprite, $"Sprite not found at '{path}'. Ensure the PNG is imported as Sprite.");
+
+            var importer = AssetImporter.GetAtPath(path) as TextureImporter;
+            Assert.IsNotNull(importer, $"TextureImporter not found for '{path}'.");
+            Assert.AreEqual(TextureImporterType.Sprite, importer.textureType,
+                $"Texture at '{path}' must have textureType == Sprite.");
+            Assert.IsTrue(importer.alphaIsTransparency,
+                $"Texture at '{path}' must have alphaIsTransparency == true.");
         }
 
         [Test]
