@@ -305,6 +305,16 @@ namespace RogueliteAutoBattler.Editor.Windows
             if (GUILayout.Button("Generate", GUILayout.Height(30)))
             {
                 _serializedData.ApplyModifiedProperties();
+                if (_data.Nodes.Count > 0)
+                {
+                    bool confirmed = EditorUtility.DisplayDialog(
+                        "Replace Skill Tree?",
+                        "The skill tree already has " + _data.Nodes.Count + " nodes. Regenerating will overwrite all existing nodes (positions, levels, stats, costs).\n\nThis can be undone with Ctrl+Z.",
+                        "Replace",
+                        "Cancel");
+                    if (!confirmed) return;
+                }
+                Undo.RecordObject(_data, "Generate Skill Tree Nodes");
                 _data.GenerateNodes();
                 _selectedNodeIndex = -1;
                 _activeTab = 0;

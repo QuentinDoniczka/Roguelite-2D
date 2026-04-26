@@ -36,12 +36,12 @@ namespace RogueliteAutoBattler.Data
 
         internal static readonly (StatType stat, StatModifierMode mode, float valuePerLevel)[] DefaultNodeStatRotation =
         {
-            (StatType.Hp, StatModifierMode.Flat, 5f),
-            (StatType.Atk, StatModifierMode.Flat, 1f),
-            (StatType.Def, StatModifierMode.Flat, 1f),
+            (StatType.Hp, StatModifierMode.Percent, 5f),
+            (StatType.Atk, StatModifierMode.Percent, 5f),
+            (StatType.Def, StatModifierMode.Percent, 5f),
             (StatType.AttackSpeed, StatModifierMode.Percent, 5f),
             (StatType.CritRate, StatModifierMode.Percent, 5f),
-            (StatType.RegenHp, StatModifierMode.Flat, 1f)
+            (StatType.RegenHp, StatModifierMode.Percent, 5f)
         };
 
         [Serializable]
