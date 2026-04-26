@@ -192,5 +192,11 @@ namespace RogueliteAutoBattler.Data
             nodes[index] = entry;
             _cachedEdges = null;
         }
+
+        internal void InitializeForTest(List<SkillNodeEntry> testNodes)
+        {
+            nodes = testNodes ?? new List<SkillNodeEntry>();
+            _cachedEdges = null;
+        }
     }
 }
