@@ -161,7 +161,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             var screenDefault = new VisualElement { name = "screen-default" };
             gameArea.Add(screenDefault);
 
-            string[] screenNames = { "screen-village", "screen-skilltree", "screen-autre", "screen-guilde", "screen-shop" };
+            string[] screenNames = { "screen-village", "screen-skilltree", "screen-map", "screen-guilde", "screen-shop" };
             foreach (string screenName in screenNames)
             {
                 var screen = new VisualElement { name = screenName };
@@ -172,7 +172,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             var navBar = new VisualElement { name = "nav-bar" };
             root.Add(navBar);
 
-            string[] tabNames = { "tab-village", "tab-skilltree", "tab-autre", "tab-guilde", "tab-shop" };
+            string[] tabNames = { "tab-village", "tab-skilltree", "tab-map", "tab-guilde", "tab-shop" };
             foreach (string tabName in tabNames)
             {
                 var button = new Button { name = tabName };

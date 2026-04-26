@@ -8,12 +8,12 @@ namespace RogueliteAutoBattler.UI.Toolkit
     {
         private static readonly string[] TabButtonNames =
         {
-            "tab-village", "tab-skilltree", "tab-autre", "tab-guilde", "tab-shop"
+            "tab-village", "tab-skilltree", "tab-map", "tab-guilde", "tab-shop"
         };
 
         private static readonly string[] ScreenNames =
         {
-            "screen-village", "screen-skilltree", "screen-autre", "screen-guilde", "screen-shop"
+            "screen-village", "screen-skilltree", "screen-map", "screen-guilde", "screen-shop"
         };
 
         private const string DefaultScreenName = "screen-default";

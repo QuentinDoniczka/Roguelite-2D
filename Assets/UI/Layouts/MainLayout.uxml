@@ -40,9 +40,9 @@
                     <ui:Button name="skilltree-detail-close-btn" class="skill-tree-detail-close-btn" text="X" />
                 </ui:VisualElement>
             </ui:VisualElement>
-            <ui:VisualElement name="screen-autre" class="screen-container hidden">
-                <ui:VisualElement class="screen-placeholder screen-autre-bg">
-                    <ui:Label text="AUTRE" class="screen-placeholder-label" />
+            <ui:VisualElement name="screen-map" class="screen-container hidden">
+                <ui:VisualElement class="screen-placeholder screen-map-bg">
+                    <ui:Label text="MAP" class="screen-placeholder-label" />
                 </ui:VisualElement>
             </ui:VisualElement>
             <ui:VisualElement name="screen-guilde" class="screen-container hidden">
@@ -95,7 +95,7 @@
         <ui:VisualElement name="nav-bar" class="nav-bar">
             <ui:Button name="tab-village" text="Village" class="tab-button tab-inactive" />
             <ui:Button name="tab-skilltree" text="Arbre" class="tab-button tab-inactive" />
-            <ui:Button name="tab-autre" text="Autre" class="tab-button tab-inactive" />
+            <ui:Button name="tab-map" text="Map" class="tab-button tab-inactive" />
             <ui:Button name="tab-guilde" text="Guilde" class="tab-button tab-inactive" />
             <ui:Button name="tab-shop" text="Shop" class="tab-button tab-inactive" />
         </ui:VisualElement>
