@@ -68,9 +68,9 @@ namespace RogueliteAutoBattler.Combat.Core
                 case StatType.Power:
                     return MakeBreakdown(statType, label, "0");
                 case StatType.AttackSpeed:
-                    return MakeBreakdown(statType, label, _attackSpeed.ToString("F1", CultureInfo.InvariantCulture), _baseValues[(int)StatType.AttackSpeed].ToString("F1", CultureInfo.InvariantCulture));
+                    return MakeBreakdown(statType, label, _attackSpeed.ToString("F2", CultureInfo.InvariantCulture), _baseValues[(int)StatType.AttackSpeed].ToString("F2", CultureInfo.InvariantCulture));
                 case StatType.RegenHp:
-                    return MakeBreakdown(statType, label, _regenHpPerSecond.ToString("F1", CultureInfo.InvariantCulture) + "/s", _baseValues[(int)StatType.RegenHp].ToString("F1", CultureInfo.InvariantCulture) + "/s");
+                    return MakeBreakdown(statType, label, _regenHpPerSecond.ToString("F2", CultureInfo.InvariantCulture) + "/s", _baseValues[(int)StatType.RegenHp].ToString("F2", CultureInfo.InvariantCulture) + "/s");
                 case StatType.CritRate:
                     return MakeBreakdown(statType, label, "0%");
                 default:

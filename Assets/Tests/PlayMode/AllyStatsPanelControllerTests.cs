@@ -214,8 +214,8 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             Assert.AreEqual("0", _controller.StatValueText(2));
             Assert.AreEqual("0", _controller.StatValueText(3));
             Assert.AreEqual("0", _controller.StatValueText(4));
-            Assert.AreEqual("1.2", _controller.StatValueText(5));
-            Assert.AreEqual("2.0/s", _controller.StatValueText(6));
+            Assert.AreEqual("1.20", _controller.StatValueText(5));
+            Assert.AreEqual("2.00/s", _controller.StatValueText(6));
             Assert.AreEqual("0%", _controller.StatValueText(7));
         }
 

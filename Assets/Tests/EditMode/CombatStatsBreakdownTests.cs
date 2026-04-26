@@ -52,7 +52,7 @@ namespace RogueliteAutoBattler.Tests.EditMode
         {
             var b = _stats.GetBreakdown(StatType.AttackSpeed);
             Assert.AreEqual("AS", b.StatName);
-            Assert.AreEqual("1.2", b.FinalValue);
+            Assert.AreEqual("1.20", b.FinalValue);
         }
 
         [Test]
@@ -60,7 +60,7 @@ namespace RogueliteAutoBattler.Tests.EditMode
         {
             var b = _stats.GetBreakdown(StatType.RegenHp);
             Assert.AreEqual("REGEN", b.StatName);
-            Assert.AreEqual("2.0/s", b.FinalValue);
+            Assert.AreEqual("2.00/s", b.FinalValue);
         }
 
         [Test]
