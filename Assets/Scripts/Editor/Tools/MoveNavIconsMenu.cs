@@ -5,70 +5,70 @@ namespace RogueliteAutoBattler.Editor.Tools
 {
     internal static class MoveNavIconsMenu
     {
-        private const string NavIconsFolder = "Assets/UI/Icons/Nav";
+        private const string LogPrefix = "[MoveNavIconsMenu]";
         private const string SourceFolder = "Assets/Scripts/Test";
 
-        private static readonly (string src, string dst)[] Moves =
+        private static readonly (string SourceFileName, string DestinationSlug)[] Moves =
         {
-            ("Assets/Scripts/Test/clan.png",    "Assets/UI/Icons/Nav/guilde.png"),
-            ("Assets/Scripts/Test/compass.png", "Assets/UI/Icons/Nav/map.png"),
-            ("Assets/Scripts/Test/forest.png",  "Assets/UI/Icons/Nav/skilltree.png"),
-            ("Assets/Scripts/Test/houses.png",  "Assets/UI/Icons/Nav/village.png"),
-            ("Assets/Scripts/Test/store.png",   "Assets/UI/Icons/Nav/shop.png"),
+            ("clan.png",    "guilde"),
+            ("compass.png", "map"),
+            ("forest.png",  "skilltree"),
+            ("houses.png",  "village"),
+            ("store.png",   "shop"),
         };
 
         [MenuItem("Tools/Roguelite/Move Nav Icons From Test")]
         internal static void Execute()
         {
-            EnsureNavIconsFolder();
+            NavIconsImporter.EnsureNavIconsFolderExists();
 
             int moved = 0;
-            foreach ((string src, string dst) in Moves)
+            try
             {
-                string error = AssetDatabase.MoveAsset(src, dst);
-                if (!string.IsNullOrEmpty(error))
+                AssetDatabase.StartAssetEditing();
+                foreach ((string sourceFileName, string destinationSlug) in Moves)
                 {
-                    Debug.LogError($"[MoveNavIconsMenu] Move failed: {src} -> {dst} | {error}");
-                    continue;
-                }
+                    string sourcePath = $"{SourceFolder}/{sourceFileName}";
+                    string destinationPath = NavIconsImporter.GetNavIconAssetPath(destinationSlug);
 
-                NavIconsImporter.ApplyNavIconSettings(dst);
-                moved++;
-                Debug.Log($"[MoveNavIconsMenu] Moved + configured: {src} -> {dst}");
+                    string moveError = AssetDatabase.MoveAsset(sourcePath, destinationPath);
+                    if (!string.IsNullOrEmpty(moveError))
+                    {
+                        Debug.LogError($"{LogPrefix} Move failed: {sourcePath} -> {destinationPath} | {moveError}");
+                        continue;
+                    }
+
+                    NavIconsImporter.ApplyNavIconSettings(destinationPath);
+                    moved++;
+                    Debug.Log($"{LogPrefix} Moved + configured: {sourcePath} -> {destinationPath}");
+                }
+            }
+            finally
+            {
+                AssetDatabase.StopAssetEditing();
             }
 
             DeleteSourceFolderIfEmpty();
 
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
-            Debug.Log($"[MoveNavIconsMenu] Done. {moved}/{Moves.Length} icons moved to {NavIconsFolder}.");
-        }
-
-        private static void EnsureNavIconsFolder()
-        {
-            if (AssetDatabase.IsValidFolder("Assets/UI/Icons"))
-                return;
-            AssetDatabase.CreateFolder("Assets/UI", "Icons");
-            Debug.Log("[MoveNavIconsMenu] Created Assets/UI/Icons");
-
-            if (!AssetDatabase.IsValidFolder(NavIconsFolder))
-            {
-                AssetDatabase.CreateFolder("Assets/UI/Icons", "Nav");
-                Debug.Log($"[MoveNavIconsMenu] Created {NavIconsFolder}");
-            }
+            Debug.Log($"{LogPrefix} Done. {moved}/{Moves.Length} icons moved to {NavIconsImporter.NavIconsFolder}.");
         }
 
         private static void DeleteSourceFolderIfEmpty()
         {
-            string[] remaining = AssetDatabase.FindAssets("", new[] { SourceFolder });
+            if (!AssetDatabase.IsValidFolder(SourceFolder))
+                return;
+
+            string[] remaining = AssetDatabase.FindAssets(string.Empty, new[] { SourceFolder });
             if (remaining.Length == 0)
             {
                 bool deleted = AssetDatabase.DeleteAsset(SourceFolder);
-                Debug.Log($"[MoveNavIconsMenu] Deleted empty folder {SourceFolder}: {deleted}");
+                Debug.Log($"{LogPrefix} Deleted empty folder {SourceFolder}: {deleted}");
             }
             else
             {
-                Debug.LogWarning($"[MoveNavIconsMenu] {SourceFolder} is not empty ({remaining.Length} assets remain). Skipping folder deletion.");
+                Debug.LogWarning($"{LogPrefix} {SourceFolder} is not empty ({remaining.Length} assets remain). Skipping folder deletion.");
             }
         }
     }

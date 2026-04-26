@@ -1,4 +1,5 @@
 using NUnit.Framework;
+using RogueliteAutoBattler.Editor.Tools;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -10,25 +11,16 @@ namespace RogueliteAutoBattler.Tests.EditMode
     {
         private const string MainLayoutAssetPath = "Assets/UI/Layouts/MainLayout.uxml";
 
-        private static readonly string[] NavIconSlugs =
-        {
-            "village",
-            "skilltree",
-            "map",
-            "guilde",
-            "shop"
-        };
-
-        private static string IconAssetPath(string slug) => $"Assets/UI/Icons/Nav/{slug}.png";
-
         private static string TabButtonName(string slug) => $"tab-{slug}";
 
+        private static string TabIconModifierClass(string slug) => $"tab-icon--{slug}";
+
         [Test]
-        public void NavIcons_AllFiveSpritesExist_AsSpriteType()
+        public void NavIcons_AllSpritesExist_AsSpriteType()
         {
-            foreach (var slug in NavIconSlugs)
+            foreach (string slug in NavIconsImporter.NavIconSlugs)
             {
-                var path = IconAssetPath(slug);
+                string path = NavIconsImporter.GetNavIconAssetPath(slug);
 
                 var sprite = AssetDatabase.LoadAssetAtPath<Sprite>(path);
                 Assert.IsNotNull(sprite, $"Sprite not found at '{path}'. Ensure the PNG is imported as Sprite.");
@@ -45,15 +37,11 @@ namespace RogueliteAutoBattler.Tests.EditMode
         [Test]
         public void NavBarUxml_EachTabButtonHasIconChild()
         {
-            var tree = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(MainLayoutAssetPath);
-            Assert.IsNotNull(tree, $"VisualTreeAsset not found at '{MainLayoutAssetPath}'.");
+            VisualElement root = LoadMainLayoutRoot();
 
-            var root = tree.Instantiate();
-            Assert.IsNotNull(root, "tree.Instantiate() returned null.");
-
-            foreach (var slug in NavIconSlugs)
+            foreach (string slug in NavIconsImporter.NavIconSlugs)
             {
-                var buttonName = TabButtonName(slug);
+                string buttonName = TabButtonName(slug);
                 var button = root.Q<Button>(buttonName);
                 Assert.IsNotNull(button, $"Button '{buttonName}' not found in '{MainLayoutAssetPath}'.");
 
@@ -61,7 +49,7 @@ namespace RogueliteAutoBattler.Tests.EditMode
                 Assert.IsNotNull(iconChild,
                     $"Button '{buttonName}' has no descendant with class 'tab-icon'.");
 
-                var modifierClass = $"tab-icon--{slug}";
+                string modifierClass = TabIconModifierClass(slug);
                 Assert.IsTrue(iconChild.ClassListContains(modifierClass),
                     $"Icon child of '{buttonName}' is missing modifier class '{modifierClass}'.");
 
@@ -73,21 +61,27 @@ namespace RogueliteAutoBattler.Tests.EditMode
         [Test]
         public void NavBarUxml_TabButtons_HaveNoTextLabel()
         {
-            var tree = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(MainLayoutAssetPath);
-            Assert.IsNotNull(tree, $"VisualTreeAsset not found at '{MainLayoutAssetPath}'.");
+            VisualElement root = LoadMainLayoutRoot();
 
-            var root = tree.Instantiate();
-            Assert.IsNotNull(root, "tree.Instantiate() returned null.");
-
-            foreach (var slug in NavIconSlugs)
+            foreach (string slug in NavIconsImporter.NavIconSlugs)
             {
-                var buttonName = TabButtonName(slug);
+                string buttonName = TabButtonName(slug);
                 var button = root.Q<Button>(buttonName);
                 Assert.IsNotNull(button, $"Button '{buttonName}' not found in '{MainLayoutAssetPath}'.");
 
                 Assert.IsTrue(string.IsNullOrEmpty(button.text),
                     $"Button '{buttonName}' must not display text (got '{button.text}').");
             }
+        }
+
+        private static VisualElement LoadMainLayoutRoot()
+        {
+            var tree = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(MainLayoutAssetPath);
+            Assert.IsNotNull(tree, $"VisualTreeAsset not found at '{MainLayoutAssetPath}'.");
+
+            VisualElement root = tree.Instantiate();
+            Assert.IsNotNull(root, "tree.Instantiate() returned null.");
+            return root;
         }
     }
 }
