@@ -16,6 +16,7 @@ namespace RogueliteAutoBattler.Services.Local
         private readonly Action<int, int> _levelChangedHandler;
         private readonly Action<int> _goldChangedHandler;
         private bool _disposed;
+        private bool _isSuppressingSave;
 
         public LocalPlayerProgressionLoader(SkillTreeProgress progress, GoldWallet wallet, string filePath = null)
         {
@@ -25,8 +26,16 @@ namespace RogueliteAutoBattler.Services.Local
                 ? Path.Combine(Application.persistentDataPath, DEFAULT_FILE_NAME)
                 : filePath;
 
-            _levelChangedHandler = (_, __) => Save();
-            _goldChangedHandler = _ => Save();
+            _levelChangedHandler = (_, __) =>
+            {
+                if (_isSuppressingSave) return;
+                Save();
+            };
+            _goldChangedHandler = _ =>
+            {
+                if (_isSuppressingSave) return;
+                Save();
+            };
 
             _progress.OnLevelChanged += _levelChangedHandler;
             _wallet.OnGoldChanged += _goldChangedHandler;
@@ -76,11 +85,19 @@ namespace RogueliteAutoBattler.Services.Local
 
         public void ResetAll()
         {
+            _isSuppressingSave = true;
+            try
+            {
+                _progress.ResetAll();
+                _wallet.ResetGold();
+            }
+            finally
+            {
+                _isSuppressingSave = false;
+            }
+
             if (File.Exists(_filePath))
                 File.Delete(_filePath);
-
-            _progress.ResetAll();
-            _wallet.ResetGold();
         }
 
         public void Dispose()
