@@ -37,9 +37,16 @@ namespace RogueliteAutoBattler.Tests.EditMode
                 new Rect(0f, 0f, texture.width, texture.height),
                 new Vector2(0.5f, 0.5f));
 
-            level.Background = sprite;
+            try
+            {
+                level.Background = sprite;
 
-            Assert.AreSame(sprite, level.Background);
+                Assert.AreSame(sprite, level.Background);
+            }
+            finally
+            {
+                Object.DestroyImmediate(sprite);
+            }
         }
 
         [Test]

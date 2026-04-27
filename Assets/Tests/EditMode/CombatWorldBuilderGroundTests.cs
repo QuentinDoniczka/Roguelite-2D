@@ -45,6 +45,7 @@ namespace RogueliteAutoBattler.Tests.EditMode
             Assert.AreEqual("TEST_DEFAULT_BG", groundRenderer.sprite.name,
                 "Ground SpriteRenderer.sprite must be the DefaultBackground sprite from LevelDatabase.");
 
+            Object.DestroyImmediate(testSprite);
             Object.DestroyImmediate(testTexture);
             Object.DestroyImmediate(levelDb);
         }

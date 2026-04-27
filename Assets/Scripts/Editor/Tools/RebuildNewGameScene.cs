@@ -6,7 +6,7 @@ namespace RogueliteAutoBattler.Editor.Tools
 {
     internal static class RebuildNewGameScene
     {
-        private const string MenuItemPath = "Roguelite/Rebuild NewGameScene from LevelDatabase";
+        private const string MenuItemPath = "Tools/Roguelite/Rebuild NewGameScene from LevelDatabase";
         private const string ScenePath = "Assets/Scenes/NewGameScene.unity";
 
         [MenuItem(MenuItemPath)]

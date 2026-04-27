@@ -196,9 +196,9 @@ namespace RogueliteAutoBattler.Combat.Levels
 
             EnsureGroundFitterCached();
 
-            Sprite sprite = level?.Background != null
-                ? level.Background
-                : _levelDatabase != null ? _levelDatabase.DefaultBackground : null;
+            Sprite levelBackground = level != null ? level.Background : null;
+            Sprite databaseDefault = _levelDatabase != null ? _levelDatabase.DefaultBackground : null;
+            Sprite sprite = levelBackground != null ? levelBackground : databaseDefault;
 
             if (sprite != null)
             {
