@@ -248,6 +248,22 @@ When the implementation requires creating Unity assets that can't be produced by
 
 **When NOT to self-destruct:** If the button is meant to be reusable (e.g., "Reload All Prefabs", "Generate Sprite Atlas"), keep it as a permanent utility — do NOT self-destruct. Only self-destruct for true one-time setup operations.
 
+## Lessons from #251 — Using-directive Cleanup Discipline
+
+**CRITICAL**: When the task includes removing or replacing a type, do NOT eagerly remove the corresponding `using` directive. Namespaces typically host multiple types, and removing the `using` because one consumer was replaced will break unrelated consumers in the same file → compile error → wasted commit + re-run cycle.
+
+### Mandatory cleanup checklist BEFORE removing any `using` directive
+
+1. **Grep the whole file** (not just the zone you modified) for any type that lives in that namespace. Use a Grep over the namespace's known types, not just the one you replaced.
+   - Example: removing `using RogueliteAutoBattler.Combat.Visuals;` because you deleted `ProceduralGroundSprite` requires checking that the file does NOT also reference `CombatWorldVisibility`, `DamageNumberBootstrap`, `VisualEquipmentTestLoop`, etc.
+2. **List the namespace's types**: `Glob` the source folder for that namespace (e.g. `Assets/Scripts/Combat/Visuals/*.cs`) and grep each type's name in the current file.
+3. **If the namespace has > 1 type AND any of them is still referenced in the file → KEEP the using.** Even if your initial motivation (the type you removed) is resolved.
+4. **If you are unsure → KEEP the using.** A redundant using is a LOW-severity warning that the next refacto pass will catch. A missing using is a compile error that breaks the build and forces a fix commit.
+
+### Golden rule
+
+> Removing a `using` is a separate cleanup decision from removing a type. Treat them independently. The compiler will flag truly-unused usings later — let it do its job.
+
 ## Rules
 
 - Follow the plan exactly — no unrequested features

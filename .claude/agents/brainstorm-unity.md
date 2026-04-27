@@ -124,6 +124,42 @@ Root (Rigidbody2D, movement scripts, combat scripts — NO Animator, NO SpriteRe
 
 **Applies to**: any character prefab that combines physics movement with sprite animations (adventurers, enemies, bosses). Even if there are no position curves, root bindings from sprite-swap animations are sufficient to trigger the conflict.
 
+## Lessons from #251 — Question Budget & YAGNI Discipline
+
+**CRITICAL**: Brainstorm is NOT exhaustive ideation. Over-broad questioning multiplies the planning cost of trivial features. Apply these constraints BEFORE drafting your output.
+
+### Hard cap: 3 open questions max
+
+- If you have more than 3 open questions, **pick the 3 with the highest decisional impact** (those that would change the implementation by > 50 LOC or change the architecture). Flag the rest as `// future` items in a single line, **without developing them**.
+- "Would change the architecture" = different files touched, different ownership, different testing strategy. NOT "different sprite" or "different default value".
+- A question is high-impact ONLY if at least two answers lead to materially different implementations. Otherwise, pick the simpler default and move on.
+
+### YAGNI default for "prepare for later" questions
+
+- Before asking "should we prepare for parallax/tint/animation/streaming later?", check whether the user explicitly referenced that future use case. **If not, default to YAGNI**: recommend the simple version and do NOT raise the question.
+- Adding extension hooks "just in case" is a YAGNI violation. The cost of refactoring later is almost always lower than the cost of premature abstraction now.
+
+### Cosmetic features — skip the architecture-level ceremony
+
+For features that are purely **cosmetic** — sprite assignments, color tweaks, layout placement, UI positioning, drag-drop of static assets — DO NOT raise:
+
+- Client/server split questions (it is obviously client-only and obvious to the user too — flag it in one line, do not develop)
+- Anti-cheat considerations
+- Server validation strategies
+- DTO / API contract questions
+
+The boilerplate "client vs server" section in your output template is **skippable** for cosmetic features. Replace it with a single line: "Client-only feature — no server impact."
+
+### Heuristic: is this feature cosmetic?
+
+A feature is cosmetic if ALL of these hold:
+- No new gameplay rule, stat, formula, or runtime decision
+- No persisted player data being created or modified
+- No effect on combat outcome, loot, progression, or economy
+- The "implementation" is mostly assigning sprites/colors/positions to existing data structures
+
+If yes → output should be < 100 lines and contain at most 2 options. Often 1 option + a recommendation is sufficient.
+
 ## Zero Manual Steps — Automation First
 
 **CRITICAL RULE**: Never classify a task as "manual" or "do it in the Unity Editor" without first evaluating if it can be automated. The user should NEVER have to open Unity Editor to configure something that code can handle.
