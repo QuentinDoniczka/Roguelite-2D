@@ -26,7 +26,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             var step = new StepData("Step0", new List<WaveData> { wave });
             var level1 = new LevelData("Level1", new List<StepData> { step });
             var level2 = new LevelData("Level2", new List<StepData> { step });
-            var stage = new StageData("Stage1", null, new List<LevelData> { level1, level2 });
+            var stage = new StageData("Stage1", new List<LevelData> { level1, level2 });
             _levelDatabase.Stages.Add(stage);
 
             var levelManagerGo = new GameObject("LevelManager");

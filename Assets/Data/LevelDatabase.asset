@@ -14,7 +14,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::RogueliteAutoBattler.Data.LevelDatabase
   stages:
   - stageName: Stage 1
-    terrain: {fileID: 21300000, guid: 2ef6616397b8b784492972d5b3dc695e, type: 3}
     levels:
     - levelName: Level 1
       steps:
@@ -537,6 +536,8 @@ MonoBehaviour:
               hatSprite: {fileID: 0}
               weaponSprite: {fileID: 0}
               shieldSprite: {fileID: 0}
+      background: {fileID: 21300000, guid: 2ef6616397b8b784492972d5b3dc695e, type: 3}
+      fit: 0
     - levelName: Level 2
       steps:
       - stepName: Step 1
@@ -602,3 +603,6 @@ MonoBehaviour:
               hatSprite: {fileID: 0}
               weaponSprite: {fileID: 0}
               shieldSprite: {fileID: 0}
+      background: {fileID: 0}
+      fit: 0
+  defaultBackground: {fileID: 21300000, guid: 2ef6616397b8b784492972d5b3dc695e, type: 3}

@@ -73,6 +73,7 @@ namespace RogueliteAutoBattler.Combat.Levels
         private CombatSpawnManager _spawnManager;
         private TeamRoster _teamRoster;
         private WaitForSeconds _waitDefeatReset;
+        private readonly LevelBackgroundApplier _backgroundApplier = new LevelBackgroundApplier();
 
         private EnemySpawner _enemySpawner;
         private AllyTargetManager _allyTargetManager;
@@ -184,21 +185,15 @@ namespace RogueliteAutoBattler.Combat.Levels
                 return;
             }
 
-            var stage = _levelDatabase.Stages[stageIndex];
             _currentStageIndex = stageIndex;
 
-            if (_groundRenderer != null)
-            {
-                Sprite terrainSprite = stage.Terrain != null
-                    ? stage.Terrain
-                    : ProceduralGroundSprite.GetOrCreate();
-                _groundRenderer.sprite = terrainSprite;
-#if UNITY_EDITOR
-                Debug.Log($"[{nameof(LevelManager)}] Applied terrain for stage '{stage.StageName}': {(stage.Terrain != null ? stage.Terrain.name : "procedural fallback")}");
-#endif
-            }
-
             OnStageStarted?.Invoke(_currentStageIndex, _currentLevelIndex);
+        }
+
+        internal void ApplyLevel(LevelData level)
+        {
+            Sprite databaseDefault = _levelDatabase != null ? _levelDatabase.DefaultBackground : null;
+            _backgroundApplier.Apply(_groundRenderer, level, databaseDefault);
         }
 
         public void StartLevel(int levelIndex)
@@ -225,9 +220,11 @@ namespace RogueliteAutoBattler.Combat.Levels
             _enemySpawner.ResetAliveEnemyCount();
             _levelInProgress = true;
 
+            var level = stage.Levels[levelIndex];
+            ApplyLevel(level);
+
             OnLevelStarted?.Invoke(_currentStageIndex, _currentLevelIndex);
 
-            var level = stage.Levels[levelIndex];
             _currentStepIndex = 0;
 
             SpawnStep(level);

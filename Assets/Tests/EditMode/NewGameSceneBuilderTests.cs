@@ -1,6 +1,7 @@
 using NUnit.Framework;
 using RogueliteAutoBattler.Combat.Core;
 using RogueliteAutoBattler.Core;
+using RogueliteAutoBattler.Data;
 using RogueliteAutoBattler.Economy;
 using RogueliteAutoBattler.UI.Toolkit;
 using UnityEditor;
@@ -199,6 +200,30 @@ namespace RogueliteAutoBattler.Tests.EditMode
                 "CombatHudController._goldWallet must be wired after setup (#215).");
             Assert.IsInstanceOf<GoldWallet>(goldWalletProperty.objectReferenceValue,
                 "CombatHudController._goldWallet must reference a GoldWallet component.");
+        }
+
+        [Test]
+        public void BuiltScene_GroundSprite_MatchesLevelDatabaseDefaultBackground()
+        {
+            var levelDb = AssetDatabase.LoadAssetAtPath<LevelDatabase>("Assets/Data/LevelDatabase.asset");
+            Assert.IsNotNull(levelDb, "LevelDatabase.asset must exist at Assets/Data/LevelDatabase.asset.");
+            Assert.IsNotNull(levelDb.DefaultBackground, "LevelDatabase.DefaultBackground must be assigned (ST10 prerequisite).");
+
+            EditorApplication.ExecuteMenuItem(SetupMenuItemPath);
+
+            GameObject combatWorld = GameObject.Find(GameBootstrap.CombatWorldName);
+            Assert.IsNotNull(combatWorld, "CombatWorld must exist after setup.");
+
+            Transform groundTransform = combatWorld.transform.Find("Ground");
+            Assert.IsNotNull(groundTransform, "Ground GameObject must be a direct child of CombatWorld.");
+
+            SpriteRenderer groundRenderer = groundTransform.GetComponent<SpriteRenderer>();
+            Assert.IsNotNull(groundRenderer, "Ground must have a SpriteRenderer component.");
+            Assert.IsNotNull(groundRenderer.sprite, "Ground SpriteRenderer.sprite must not be null after setup.");
+            Assert.AreEqual(
+                levelDb.DefaultBackground.name,
+                groundRenderer.sprite.name,
+                "Ground sprite name must match LevelDatabase.DefaultBackground — the scene was built before ST10 landed and needs rebuild.");
         }
 
         private static UIDocument FindNavigationHostUIDocument()

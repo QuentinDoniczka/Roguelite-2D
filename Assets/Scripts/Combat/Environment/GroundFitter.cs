@@ -1,3 +1,4 @@
+using RogueliteAutoBattler.Data;
 using UnityEngine;
 
 namespace RogueliteAutoBattler.Combat.Environment
@@ -5,7 +6,12 @@ namespace RogueliteAutoBattler.Combat.Environment
     [RequireComponent(typeof(SpriteRenderer))]
     public class GroundFitter : MonoBehaviour
     {
+        private const float HorizontalEdgePadding = 1f;
+        private const float HorizontalTotalPadding = HorizontalEdgePadding * 2f;
+        private const float UiBottomNormalizedHeight = 0.45f;
+
         [SerializeField] private float _groundWidth = 200f;
+        [SerializeField] private BackgroundFit _fit = BackgroundFit.Tile;
 
         private SpriteRenderer _renderer;
         private Camera _camera;
@@ -38,25 +44,54 @@ namespace RogueliteAutoBattler.Combat.Environment
             FitToGameArea();
         }
 
+        public void SetFitMode(BackgroundFit fit)
+        {
+            _fit = fit;
+            if (_renderer == null)
+                return;
+            if (_camera == null)
+                _camera = Camera.main;
+            if (_camera == null)
+                return;
+            FitToGameArea();
+        }
+
+        internal void FitToGameAreaImmediate(Camera camera)
+        {
+            if (_renderer == null)
+                _renderer = GetComponent<SpriteRenderer>();
+            _camera = camera;
+            FitToGameArea();
+        }
+
         private void FitToGameArea()
         {
+            if (_renderer == null || _camera == null)
+                return;
+
             float orthoSize = _camera.orthographicSize;
             float aspect = _camera.aspect;
             float totalHeight = orthoSize * 2f;
             float visibleWidth = totalHeight * aspect;
 
-            // Info-area (35% panel + 10% nav-bar) covers the bottom 45% of screen.
-            // Size the ground to the visible top 55% only to avoid unnecessary tiling below the UI.
-            const float uiBottomNormalizedHeight = 0.45f;
-            float groundHeight = totalHeight * (1f - uiBottomNormalizedHeight);
+            float groundHeight = totalHeight * (1f - UiBottomNormalizedHeight);
             float groundTopY = orthoSize;
             float groundCenterY = groundTopY - groundHeight * 0.5f;
 
-            float width = Mathf.Max(_groundWidth, visibleWidth + 2f);
-            _renderer.size = new Vector2(width, groundHeight);
-
+            float width = Mathf.Max(_groundWidth, visibleWidth + HorizontalTotalPadding);
             float visibleHalfWidth = visibleWidth * 0.5f;
-            float anchorX = -(visibleHalfWidth + 1f) + width * 0.5f;
+            float anchorX = -(visibleHalfWidth + HorizontalEdgePadding) + width * 0.5f;
+
+            if (_fit == BackgroundFit.Stretch)
+            {
+                _renderer.drawMode = SpriteDrawMode.Simple;
+            }
+            else
+            {
+                _renderer.drawMode = SpriteDrawMode.Tiled;
+                _renderer.size = new Vector2(width, groundHeight);
+            }
+
             transform.localPosition = new Vector3(anchorX, groundCenterY, 0f);
 
             _lastOrthoSize = orthoSize;

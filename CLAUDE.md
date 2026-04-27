@@ -118,7 +118,7 @@ Assets/
         DamageNumberService.cs
         DamageNumberSettingsPersistence.cs
         HealthBar.cs
-        ProceduralGroundSprite.cs
+        LevelBackgroundApplier.cs
         SelectionOutline.cs
         VisualEquipmentTestLoop.cs
     Common/
@@ -144,7 +144,9 @@ Assets/
         SkillTreeScreenBuilder.cs
         WalletsBuilder.cs
       Tools/
+        LevelDatabaseBackgroundMigrator.cs
         NavIconsImporter.cs
+        RebuildNewGameScene.cs
         ResetPlayerProgressMenu.cs
         StatTypeValidator.cs
       Windows/
@@ -217,15 +219,19 @@ Assets/
       CombatStatsDamageEventTests.cs
       CombatStatsModifierPipelineTests.cs
       CombatStatsTests.cs
+      CombatWorldBuilderGroundTests.cs
       EditorBuildSettingsSceneTests.cs
       FormationLayoutTests.cs
       GoldFormatterTests.cs
+      LevelDataBackgroundTests.cs
+      LevelDatabaseAssetIntegrityTests.cs
+      LevelDatabaseDefaultBackgroundTests.cs
+      LevelDesignerTabPropertiesTests.cs
       LocalPlayerProgressionLoaderTests.cs
       ModifierSourcesTests.cs
       ModifierStructTests.cs
       ModifierTierTests.cs
       NewGameSceneBuilderTests.cs
-      ProceduralGroundSpriteTests.cs
       RecalculateFormationTests.cs
       ResetPlayerProgressMenuTests.cs
       SkillTreeAssetIntegrityTests.cs
@@ -233,6 +239,7 @@ Assets/
       SkillTreeDataTests.cs
       SkillTreeProgressTests.cs
       SkillTreeScreenBuilderTests.cs
+      StageDataMigrationTests.cs
       StatBreakdownDataTests.cs
       StatModifierEntryTests.cs
       StatTypeIndicesTests.cs
@@ -271,14 +278,16 @@ Assets/
       GameBootstrapTests.cs
       GoldBadgeControllerTests.cs
       GoldWalletTests.cs
+      GroundFitterFitModeTests.cs
       HealthBarTrailTests.cs
       LevelManagerDefeatResetTests.cs
       LevelManagerDefeatTests.cs
+      LevelManagerBackgroundTests.cs
       LevelManagerEventTests.cs
       LevelManagerReviveOnLevelTests.cs
       LevelManagerStepTransitionTests.cs
-      LevelManagerTerrainFallbackTests.cs
       LevelManagerTotalLevelsTests.cs
+      LevelManagerVisualSwapTests.cs
       NavigationHostInfoAreaToggleTests.cs
       NavigationHostTests.cs
       NewGameSceneSmokeTests.cs

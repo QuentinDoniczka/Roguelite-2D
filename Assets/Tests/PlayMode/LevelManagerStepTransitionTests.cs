@@ -106,7 +106,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             var step1 = new StepData("Step_1", new List<WaveData> { wave1 });
 
             var level = new LevelData("Level_0", new List<StepData> { step0, step1 });
-            var stage = new StageData("Stage_0", null, new List<LevelData> { level });
+            var stage = new StageData("Stage_0", new List<LevelData> { level });
             _levelDatabase.Stages = new List<StageData> { stage };
 
             var teamRoster = _combatWorldGo.AddComponent<TeamRoster>();

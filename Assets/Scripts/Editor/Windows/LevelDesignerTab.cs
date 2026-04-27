@@ -153,6 +153,18 @@ namespace RogueliteAutoBattler.Editor.Windows
                 if (EditorGUI.EndChangeCheck())
                     LevelSetDatabase(newDb);
 
+                if (_levelSerializedDatabase != null)
+                {
+                    var defaultBgProp = _levelSerializedDatabase.FindProperty("defaultBackground");
+                    if (defaultBgProp != null)
+                    {
+                        GUILayout.Label("Default Background:", EditorStyles.miniLabel);
+                        defaultBgProp.objectReferenceValue = EditorGUILayout.ObjectField(
+                            defaultBgProp.objectReferenceValue, typeof(Sprite), false,
+                            GUILayout.Width(140));
+                    }
+                }
+
                 GUILayout.FlexibleSpace();
 
                 if (GUILayout.Button("New DB", EditorStyles.toolbarButton, GUILayout.Width(60)))
@@ -236,14 +248,9 @@ namespace RogueliteAutoBattler.Editor.Windows
                 {
                     var stageElement = stagesProp.GetArrayElementAtIndex(_levelSelectedStageIndex);
                     var nameProp    = stageElement.FindPropertyRelative("stageName");
-                    var terrainProp = stageElement.FindPropertyRelative("terrain");
 
                     GUILayout.Label("Name:", EditorStyles.miniLabel);
                     nameProp.stringValue = EditorGUILayout.TextField(nameProp.stringValue);
-
-                    GUILayout.Label("Terrain:", EditorStyles.miniLabel);
-                    terrainProp.objectReferenceValue = EditorGUILayout.ObjectField(
-                        terrainProp.objectReferenceValue, typeof(Sprite), false);
                 }
             }
             GUILayout.EndVertical();
@@ -325,11 +332,25 @@ namespace RogueliteAutoBattler.Editor.Windows
 
                 if (_levelSelectedLevelIndex >= 0 && _levelSelectedLevelIndex < levelsProp.arraySize)
                 {
-                    var nameProp = levelsProp
-                        .GetArrayElementAtIndex(_levelSelectedLevelIndex)
-                        .FindPropertyRelative("levelName");
+                    var levelElement = levelsProp.GetArrayElementAtIndex(_levelSelectedLevelIndex);
+                    var nameProp = levelElement.FindPropertyRelative("levelName");
                     GUILayout.Label("Name:", EditorStyles.miniLabel);
                     nameProp.stringValue = EditorGUILayout.TextField(nameProp.stringValue);
+
+                    var bgProp = levelElement.FindPropertyRelative("background");
+                    if (bgProp != null)
+                    {
+                        GUILayout.Label("Background:", EditorStyles.miniLabel);
+                        bgProp.objectReferenceValue = EditorGUILayout.ObjectField(
+                            bgProp.objectReferenceValue, typeof(Sprite), false);
+                    }
+
+                    var fitProp = levelElement.FindPropertyRelative("fit");
+                    if (fitProp != null)
+                    {
+                        GUILayout.Label("Fit:", EditorStyles.miniLabel);
+                        EditorGUILayout.PropertyField(fitProp, GUIContent.none);
+                    }
                 }
             }
             GUILayout.EndVertical();
