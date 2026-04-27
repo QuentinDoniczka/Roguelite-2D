@@ -20,8 +20,8 @@ namespace RogueliteAutoBattler.Editor.Builders
         private const float GroundWidth = 200f;
 
         private const float EditorInitialGroundXOverriddenByGroundFitterAtRuntime = 95.96f;
-        private const float EditorInitialGroundYOverriddenByGroundFitterAtRuntime = 2.16f;
-        private const float EditorInitialGroundHeightOverriddenByGroundFitterAtRuntime = 6.48f;
+        private const float EditorInitialGroundYOverriddenByGroundFitterAtRuntime = 2.43f;
+        private const float EditorInitialGroundHeightOverriddenByGroundFitterAtRuntime = 5.94f;
 
         private const float HomeAnchorWorldOffsetY = 0f;
 
@@ -94,7 +94,10 @@ namespace RogueliteAutoBattler.Editor.Builders
                 groundRenderer.material = new Material(unlitShader);
             else
                 Debug.LogWarning($"[{nameof(CombatWorldBuilder)}] Shader 'Sprite-Unlit-Default' not found. Ground may render black.");
-            groundGo.AddComponent<GroundFitter>();
+            var groundFitter = groundGo.AddComponent<GroundFitter>();
+            var mainCam = Camera.main;
+            if (mainCam != null)
+                groundFitter.FitToGameAreaImmediate(mainCam);
 
             var teamGo = new GameObject(CombatSetupHelper.TeamContainerName);
             teamGo.transform.SetParent(root.transform, false);

@@ -56,6 +56,14 @@ namespace RogueliteAutoBattler.Combat.Environment
             FitToGameArea();
         }
 
+        internal void FitToGameAreaImmediate(Camera camera)
+        {
+            if (_renderer == null)
+                _renderer = GetComponent<SpriteRenderer>();
+            _camera = camera;
+            FitToGameArea();
+        }
+
         private void FitToGameArea()
         {
             if (_renderer == null || _camera == null)
