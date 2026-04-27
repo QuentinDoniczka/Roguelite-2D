@@ -16,6 +16,12 @@ namespace RogueliteAutoBattler.Data
         Special
     }
 
+    public enum BackgroundFit
+    {
+        Tile = 0,
+        Stretch = 1
+    }
+
     [Serializable]
     public class AppearanceData
     {
@@ -56,9 +62,13 @@ namespace RogueliteAutoBattler.Data
     {
         [SerializeField] private string levelName = "New Level";
         [SerializeField] private List<StepData> steps = new List<StepData>();
+        [SerializeField] private Sprite background;
+        [SerializeField] private BackgroundFit fit = BackgroundFit.Tile;
 
         public string LevelName { get => levelName; internal set => levelName = value; }
         public List<StepData> Steps { get => steps; internal set => steps = value; }
+        public Sprite Background { get => background; internal set => background = value; }
+        public BackgroundFit Fit { get => fit; internal set => fit = value; }
 
         private LevelData() { }
 
