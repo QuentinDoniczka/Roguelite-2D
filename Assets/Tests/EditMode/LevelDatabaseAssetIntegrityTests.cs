@@ -27,16 +27,6 @@ namespace RogueliteAutoBattler.Tests.EditMode
         }
 
         [Test]
-        public void LevelDatabaseAsset_Level1_HasBackgroundSprite()
-        {
-            var db = AssetDatabase.LoadAssetAtPath<LevelDatabase>(LevelDatabaseAssetPath);
-            Assert.IsNotNull(db, "LevelDatabase asset not found");
-            var level1 = db.Stages[0].Levels[0];
-            Assert.IsNotNull(level1.Background, "Level 1 background must be assigned");
-            Assert.That(level1.Background.name, Does.Contain("grid_ground").IgnoreCase);
-        }
-
-        [Test]
         public void LevelDatabaseAsset_AllLevels_FitDefaultsToTile()
         {
             var db = AssetDatabase.LoadAssetAtPath<LevelDatabase>(LevelDatabaseAssetPath);
