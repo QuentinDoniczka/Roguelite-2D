@@ -2,7 +2,6 @@ using System;
 using System.Collections;
 using RogueliteAutoBattler.Combat.Core;
 using RogueliteAutoBattler.Combat.Environment;
-using RogueliteAutoBattler.Combat.Visuals;
 using RogueliteAutoBattler.Data;
 using RogueliteAutoBattler.Economy;
 using UnityEngine;
@@ -184,21 +183,30 @@ namespace RogueliteAutoBattler.Combat.Levels
                 return;
             }
 
-            var stage = _levelDatabase.Stages[stageIndex];
             _currentStageIndex = stageIndex;
 
-            if (_groundRenderer != null)
+            OnStageStarted?.Invoke(_currentStageIndex, _currentLevelIndex);
+        }
+
+        internal void ApplyLevel(LevelData level)
+        {
+            if (_groundRenderer == null) return;
+
+            Sprite sprite = level?.Background != null
+                ? level.Background
+                : _levelDatabase != null ? _levelDatabase.DefaultBackground : null;
+
+            if (sprite != null)
             {
-                Sprite terrainSprite = stage.Terrain != null
-                    ? stage.Terrain
-                    : ProceduralGroundSprite.GetOrCreate();
-                _groundRenderer.sprite = terrainSprite;
+                _groundRenderer.sprite = sprite;
 #if UNITY_EDITOR
-                Debug.Log($"[{nameof(LevelManager)}] Applied terrain for stage '{stage.StageName}': {(stage.Terrain != null ? stage.Terrain.name : "procedural fallback")}");
+                Debug.Log($"[{nameof(LevelManager)}] Applied background '{sprite.name}' for level '{level?.LevelName}'");
 #endif
             }
-
-            OnStageStarted?.Invoke(_currentStageIndex, _currentLevelIndex);
+            else
+            {
+                Debug.LogWarning($"[{nameof(LevelManager)}] No background available for level '{level?.LevelName}' (DefaultBackground also null) — keeping current sprite.");
+            }
         }
 
         public void StartLevel(int levelIndex)
@@ -225,9 +233,11 @@ namespace RogueliteAutoBattler.Combat.Levels
             _enemySpawner.ResetAliveEnemyCount();
             _levelInProgress = true;
 
+            var level = stage.Levels[levelIndex];
+            ApplyLevel(level);
+
             OnLevelStarted?.Invoke(_currentStageIndex, _currentLevelIndex);
 
-            var level = stage.Levels[levelIndex];
             _currentStepIndex = 0;
 
             SpawnStep(level);
