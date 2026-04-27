@@ -137,6 +137,16 @@ Sous-tache 3: Arret — le personnage s'arrete a portee
 
 ### 4. Boucle implementation par sous-tache
 
+> **Lessons from #251 — Batching obligatoire pour eviter l'explosion de cycles Mode A**
+>
+> Avant de demarrer la boucle, evaluer la **granularite** du plan leaddev :
+>
+> - **Si le plan contient > 6 sous-taches pour une feature client-only sans nouveau systeme de gameplay (cosmetique, UI, drag-drop, fields ScriptableObject, scene wiring)** → REGROUPER en **3 a 5 LOTS** de **2 a 4 sous-taches** chacun. Un lot = un commit + UN SEUL run Mode A.
+> - **Default = batcher** les sous-taches qui touchent des fichiers disjoints ET qui ne dependent que de sous-taches deja landed. Sequencer 1-par-1 SEULEMENT quand la sous-tache N+1 depend du resultat runtime de N (rare pour les additions de fields/UI/SO).
+> - **Cap explicite** : max 1 cycle Mode A par lot ; vise **3 a 5 cycles total** pour une feature de moins de 500 LOC. Si tu prevois > 6 cycles Mode A, c'est un signal de sur-decoupage : reagrege.
+> - **Exemple lot acceptable** : "Lot 1 = ajout du field SO + extension Inspector custom + suppression du namespace deprecated dans 3 fichiers" → 1 commit, 1 Mode A. Pas 3 cycles.
+> - **DAG de dependances obligatoire** : avant de dispatcher la sous-tache N, faire un grep de chaque symbole/champ a supprimer ou retirer (`Grep <symbol> Assets/`). Si > 1 fichier consommateur ET ces fichiers ne sont pas tous deja nettoyes par des sous-taches precedentes → reordonner. Au depart de l'etape 4, lister explicitement le DAG (qui depend de qui). **Tout dispatch hors topo-order est interdit** — il provoque des compile errors et des rounds perdus.
+
 **Pour CHAQUE sous-tache du plan** (dans l'ordre), repeter :
 
 **4a. Implementer la sous-tache**
