@@ -3,7 +3,6 @@ using System.Linq;
 using RogueliteAutoBattler.Combat.Core;
 using RogueliteAutoBattler.Combat.Environment;
 using RogueliteAutoBattler.Combat.Levels;
-using RogueliteAutoBattler.Combat.Visuals;
 using RogueliteAutoBattler.Common;
 using RogueliteAutoBattler.Core;
 using RogueliteAutoBattler.Data;
@@ -67,8 +66,10 @@ namespace RogueliteAutoBattler.Editor.Builders
             return cam;
         }
 
-        internal static GameObject CreateCombatWorld()
+        internal static GameObject CreateCombatWorld(LevelDatabase levelDbOverride = null)
         {
+            var levelDb = levelDbOverride ?? AssetDatabase.LoadAssetAtPath<LevelDatabase>(LevelDesignerTab.LevelDatabaseDefaultPath);
+
             var root = new GameObject(GameBootstrap.CombatWorldName);
             root.transform.position = Vector3.zero;
             Undo.RegisterCreatedObjectUndo(root, "Create CombatWorld");
@@ -77,7 +78,7 @@ namespace RogueliteAutoBattler.Editor.Builders
             groundGo.transform.SetParent(root.transform, false);
             Undo.RegisterCreatedObjectUndo(groundGo, "Create CombatWorld");
             SpriteRenderer groundRenderer = groundGo.AddComponent<SpriteRenderer>();
-            groundRenderer.sprite = CreateOrLoadGridSprite();
+            groundRenderer.sprite = ResolveDefaultGroundSprite(levelDb);
             groundRenderer.drawMode = SpriteDrawMode.Tiled;
 
             groundGo.transform.localPosition = new Vector3(
@@ -158,7 +159,6 @@ namespace RogueliteAutoBattler.Editor.Builders
             EditorUIFactory.SetObj(soLevelManager, "_enemiesContainer", enemiesGo.transform);
             EditorUIFactory.SetObj(soLevelManager, "_teamContainer", teamGo.transform);
 
-            var levelDb = AssetDatabase.LoadAssetAtPath<LevelDatabase>(LevelDesignerTab.LevelDatabaseDefaultPath);
             if (levelDb != null)
                 EditorUIFactory.SetObj(soLevelManager, "_levelDatabase", levelDb);
 
@@ -286,59 +286,11 @@ namespace RogueliteAutoBattler.Editor.Builders
             return go.transform;
         }
 
-        private static Sprite CreateOrLoadGridSprite()
+        private static Sprite ResolveDefaultGroundSprite(LevelDatabase levelDb)
         {
-            return CreateOrLoadCheckerboardSprite(GridSpritePath);
-        }
-
-        private static Sprite CreateOrLoadCheckerboardSprite(string path)
-        {
-            Sprite existing = AssetDatabase.LoadAssetAtPath<Sprite>(path);
-            if (existing != null)
-                return existing;
-
-            EditorUIFactory.EnsureDirectoryExists(path);
-
-            var tex = new Texture2D(ProceduralGroundSprite.TextureSize, ProceduralGroundSprite.TextureSize, TextureFormat.RGBA32, false);
-            var pixels = new Color32[ProceduralGroundSprite.TextureSize * ProceduralGroundSprite.TextureSize];
-
-            for (int y = 0; y < ProceduralGroundSprite.TextureSize; y++)
-            {
-                for (int x = 0; x < ProceduralGroundSprite.TextureSize; x++)
-                {
-                    int cellX = x / ProceduralGroundSprite.CellSize;
-                    int cellY = y / ProceduralGroundSprite.CellSize;
-                    pixels[y * ProceduralGroundSprite.TextureSize + x] = ((cellX + cellY) % 2 == 0) ? ProceduralGroundSprite.ColorA : ProceduralGroundSprite.ColorB;
-                }
-            }
-
-            tex.SetPixels32(pixels);
-            tex.Apply();
-
-            System.IO.File.WriteAllBytes(path, tex.EncodeToPNG());
-            Object.DestroyImmediate(tex);
-
-            AssetDatabase.ImportAsset(path, ImportAssetOptions.ForceUpdate);
-
-            var importer = (TextureImporter)AssetImporter.GetAtPath(path);
-            if (importer != null)
-            {
-                importer.textureType = TextureImporterType.Sprite;
-                importer.spriteImportMode = SpriteImportMode.Single;
-                importer.spritePixelsPerUnit = ProceduralGroundSprite.PixelsPerUnit;
-                importer.filterMode = FilterMode.Point;
-                importer.wrapMode = TextureWrapMode.Repeat;
-                importer.textureCompression = TextureImporterCompression.Uncompressed;
-
-                var spriteSettings = new TextureImporterSettings();
-                importer.ReadTextureSettings(spriteSettings);
-                spriteSettings.spriteMeshType = SpriteMeshType.FullRect;
-                importer.SetTextureSettings(spriteSettings);
-
-                importer.SaveAndReimport();
-            }
-
-            return AssetDatabase.LoadAssetAtPath<Sprite>(path);
+            if (levelDb != null && levelDb.DefaultBackground != null)
+                return levelDb.DefaultBackground;
+            return AssetDatabase.LoadAssetAtPath<Sprite>(GridSpritePath);
         }
     }
 }
