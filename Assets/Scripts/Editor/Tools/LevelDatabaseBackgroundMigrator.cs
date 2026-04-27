@@ -1,3 +1,5 @@
+using System.IO;
+using System.Linq;
 using RogueliteAutoBattler.Data;
 using UnityEditor;
 using UnityEngine;
@@ -21,14 +23,14 @@ namespace RogueliteAutoBattler.Editor.Tools
                 return;
             }
 
-            var defaultSprite = AssetDatabase.LoadAssetAtPath<Sprite>(DefaultBackgroundPath);
+            var defaultSprite = LoadCanonicalSprite(DefaultBackgroundPath);
             if (defaultSprite == null)
             {
                 Debug.LogError($"{LogPrefix} Default background sprite not found at {DefaultBackgroundPath}");
                 return;
             }
 
-            var gridSprite = AssetDatabase.LoadAssetAtPath<Sprite>(Level1BackgroundPath);
+            var gridSprite = LoadCanonicalSprite(Level1BackgroundPath);
             if (gridSprite == null)
             {
                 Debug.LogError($"{LogPrefix} Level 1 background sprite not found at {Level1BackgroundPath}");
@@ -62,6 +64,13 @@ namespace RogueliteAutoBattler.Editor.Tools
             AssetDatabase.SaveAssets();
 
             Debug.Log($"{LogPrefix} LevelDatabase backgrounds migrated. Default=backgroundtest, Level1=grid_ground.");
+        }
+
+        private static Sprite LoadCanonicalSprite(string path)
+        {
+            var fileName = Path.GetFileNameWithoutExtension(path);
+            var sprites = AssetDatabase.LoadAllAssetsAtPath(path).OfType<Sprite>().ToArray();
+            return sprites.FirstOrDefault(s => s.name == fileName) ?? sprites.FirstOrDefault();
         }
     }
 }
