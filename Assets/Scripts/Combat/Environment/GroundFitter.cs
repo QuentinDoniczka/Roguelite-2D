@@ -6,6 +6,10 @@ namespace RogueliteAutoBattler.Combat.Environment
     [RequireComponent(typeof(SpriteRenderer))]
     public class GroundFitter : MonoBehaviour
     {
+        private const float HorizontalEdgePadding = 1f;
+        private const float HorizontalTotalPadding = HorizontalEdgePadding * 2f;
+        private const float UiBottomNormalizedHeight = 0.45f;
+
         [SerializeField] private float _groundWidth = 200f;
         [SerializeField] private BackgroundFit _fit = BackgroundFit.Tile;
 
@@ -62,14 +66,13 @@ namespace RogueliteAutoBattler.Combat.Environment
             float totalHeight = orthoSize * 2f;
             float visibleWidth = totalHeight * aspect;
 
-            const float uiBottomNormalizedHeight = 0.45f;
-            float groundHeight = totalHeight * (1f - uiBottomNormalizedHeight);
+            float groundHeight = totalHeight * (1f - UiBottomNormalizedHeight);
             float groundTopY = orthoSize;
             float groundCenterY = groundTopY - groundHeight * 0.5f;
 
-            float width = Mathf.Max(_groundWidth, visibleWidth + 2f);
+            float width = Mathf.Max(_groundWidth, visibleWidth + HorizontalTotalPadding);
             float visibleHalfWidth = visibleWidth * 0.5f;
-            float anchorX = -(visibleHalfWidth + 1f) + width * 0.5f;
+            float anchorX = -(visibleHalfWidth + HorizontalEdgePadding) + width * 0.5f;
 
             if (_fit == BackgroundFit.Stretch)
             {

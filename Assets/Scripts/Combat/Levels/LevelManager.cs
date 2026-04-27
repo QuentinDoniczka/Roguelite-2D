@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using RogueliteAutoBattler.Combat.Core;
 using RogueliteAutoBattler.Combat.Environment;
+using RogueliteAutoBattler.Combat.Visuals;
 using RogueliteAutoBattler.Data;
 using RogueliteAutoBattler.Economy;
 using UnityEngine;
@@ -72,8 +73,7 @@ namespace RogueliteAutoBattler.Combat.Levels
         private CombatSpawnManager _spawnManager;
         private TeamRoster _teamRoster;
         private WaitForSeconds _waitDefeatReset;
-        private GroundFitter _groundFitter;
-        private bool _groundFitterCached;
+        private readonly LevelBackgroundApplier _backgroundApplier = new LevelBackgroundApplier();
 
         private EnemySpawner _enemySpawner;
         private AllyTargetManager _allyTargetManager;
@@ -192,38 +192,8 @@ namespace RogueliteAutoBattler.Combat.Levels
 
         internal void ApplyLevel(LevelData level)
         {
-            if (_groundRenderer == null) return;
-
-            EnsureGroundFitterCached();
-
-            Sprite levelBackground = level != null ? level.Background : null;
             Sprite databaseDefault = _levelDatabase != null ? _levelDatabase.DefaultBackground : null;
-            Sprite sprite = levelBackground != null ? levelBackground : databaseDefault;
-
-            if (sprite != null)
-            {
-                _groundRenderer.sprite = sprite;
-#if UNITY_EDITOR
-                Debug.Log($"[{nameof(LevelManager)}] Applied background '{sprite.name}' for level '{level?.LevelName}'");
-#endif
-            }
-            else
-            {
-                Debug.LogWarning($"[{nameof(LevelManager)}] No background available for level '{level?.LevelName}' (DefaultBackground also null) — keeping current sprite.");
-            }
-
-            if (_groundFitter != null && level != null)
-            {
-                _groundFitter.SetFitMode(level.Fit);
-            }
-        }
-
-        private void EnsureGroundFitterCached()
-        {
-            if (_groundFitterCached) return;
-            _groundFitterCached = true;
-            if (_groundRenderer == null) return;
-            _groundRenderer.TryGetComponent(out _groundFitter);
+            _backgroundApplier.Apply(_groundRenderer, level, databaseDefault);
         }
 
         public void StartLevel(int levelIndex)

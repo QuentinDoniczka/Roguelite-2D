@@ -37,8 +37,6 @@ namespace RogueliteAutoBattler.Editor.Builders
             "Assets/Sprites/Characters/orc/head"
         };
 
-        private const string GridSpritePath = "Assets/Sprites/Environment/grid_ground.png";
-
         internal static Camera ConfigureMainCamera()
         {
             Camera cam = Camera.main;
@@ -291,7 +289,7 @@ namespace RogueliteAutoBattler.Editor.Builders
         {
             if (levelDb != null && levelDb.DefaultBackground != null)
                 return levelDb.DefaultBackground;
-            return AssetDatabase.LoadAssetAtPath<Sprite>(GridSpritePath);
+            return AssetDatabase.LoadAssetAtPath<Sprite>(EditorPaths.GridGroundSprite);
         }
     }
 }

@@ -10,8 +10,6 @@ namespace RogueliteAutoBattler.Editor.Tools
     {
         private const string LevelDatabaseAssetPath = "Assets/Data/LevelDatabase.asset";
         private const string DefaultBackgroundPath = "Assets/Sprites/Environment/backgroundtest.png";
-        private const string Level1BackgroundPath = "Assets/Sprites/Environment/grid_ground.png";
-        private const string LogPrefix = "[LevelDatabaseBackgroundMigrator]";
 
         [MenuItem("Tools/Roguelite/Migrate LevelDatabase Backgrounds")]
         internal static void MigrateLevelDatabaseBackgrounds()
@@ -19,21 +17,21 @@ namespace RogueliteAutoBattler.Editor.Tools
             var db = AssetDatabase.LoadAssetAtPath<LevelDatabase>(LevelDatabaseAssetPath);
             if (db == null)
             {
-                Debug.LogError($"{LogPrefix} LevelDatabase not found at {LevelDatabaseAssetPath}");
+                Debug.LogError($"[{nameof(LevelDatabaseBackgroundMigrator)}] LevelDatabase not found at {LevelDatabaseAssetPath}");
                 return;
             }
 
             var defaultSprite = LoadCanonicalSprite(DefaultBackgroundPath);
             if (defaultSprite == null)
             {
-                Debug.LogError($"{LogPrefix} Default background sprite not found at {DefaultBackgroundPath}");
+                Debug.LogError($"[{nameof(LevelDatabaseBackgroundMigrator)}] Default background sprite not found at {DefaultBackgroundPath}");
                 return;
             }
 
-            var gridSprite = LoadCanonicalSprite(Level1BackgroundPath);
+            var gridSprite = LoadCanonicalSprite(EditorPaths.GridGroundSprite);
             if (gridSprite == null)
             {
-                Debug.LogError($"{LogPrefix} Level 1 background sprite not found at {Level1BackgroundPath}");
+                Debug.LogError($"[{nameof(LevelDatabaseBackgroundMigrator)}] Level 1 background sprite not found at {EditorPaths.GridGroundSprite}");
                 return;
             }
 
@@ -50,7 +48,7 @@ namespace RogueliteAutoBattler.Editor.Tools
                 {
                     var levelProp = levelsProp.GetArrayElementAtIndex(levelIndex);
                     var fitProp = levelProp.FindPropertyRelative("fit");
-                    fitProp.enumValueIndex = 0;
+                    fitProp.enumValueIndex = (int)BackgroundFit.Tile;
 
                     if (stageIndex == 0 && levelIndex == 0)
                     {
@@ -63,7 +61,7 @@ namespace RogueliteAutoBattler.Editor.Tools
             EditorUtility.SetDirty(db);
             AssetDatabase.SaveAssets();
 
-            Debug.Log($"{LogPrefix} LevelDatabase backgrounds migrated. Default=backgroundtest, Level1=grid_ground.");
+            Debug.Log($"[{nameof(LevelDatabaseBackgroundMigrator)}] LevelDatabase backgrounds migrated. Default=backgroundtest, Level1=grid_ground.");
         }
 
         private static Sprite LoadCanonicalSprite(string path)
