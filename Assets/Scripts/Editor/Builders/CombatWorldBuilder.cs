@@ -3,6 +3,7 @@ using System.Linq;
 using RogueliteAutoBattler.Combat.Core;
 using RogueliteAutoBattler.Combat.Environment;
 using RogueliteAutoBattler.Combat.Levels;
+using RogueliteAutoBattler.Combat.Visuals;
 using RogueliteAutoBattler.Common;
 using RogueliteAutoBattler.Core;
 using RogueliteAutoBattler.Data;
