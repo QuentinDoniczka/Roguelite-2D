@@ -40,19 +40,16 @@ namespace RogueliteAutoBattler.Data
     public class StageData
     {
         [SerializeField] private string stageName = "New Stage";
-        [SerializeField] private Sprite terrain;
         [SerializeField] private List<LevelData> levels = new List<LevelData>();
 
         public string StageName { get => stageName; internal set => stageName = value; }
-        public Sprite Terrain { get => terrain; internal set => terrain = value; }
         public List<LevelData> Levels { get => levels; internal set => levels = value; }
 
         private StageData() { }
 
-        internal StageData(string stageName, Sprite terrain, List<LevelData> levels)
+        internal StageData(string stageName, List<LevelData> levels)
         {
             this.stageName = stageName;
-            this.terrain = terrain;
             this.levels = levels;
         }
     }

@@ -236,14 +236,9 @@ namespace RogueliteAutoBattler.Editor.Windows
                 {
                     var stageElement = stagesProp.GetArrayElementAtIndex(_levelSelectedStageIndex);
                     var nameProp    = stageElement.FindPropertyRelative("stageName");
-                    var terrainProp = stageElement.FindPropertyRelative("terrain");
 
                     GUILayout.Label("Name:", EditorStyles.miniLabel);
                     nameProp.stringValue = EditorGUILayout.TextField(nameProp.stringValue);
-
-                    GUILayout.Label("Terrain:", EditorStyles.miniLabel);
-                    terrainProp.objectReferenceValue = EditorGUILayout.ObjectField(
-                        terrainProp.objectReferenceValue, typeof(Sprite), false);
                 }
             }
             GUILayout.EndVertical();

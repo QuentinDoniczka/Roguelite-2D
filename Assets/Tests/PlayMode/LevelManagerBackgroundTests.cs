@@ -79,7 +79,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             var level0 = new LevelData("Level0", new List<StepData> { emptyStep });
             level0.Background = levelBackground;
 
-            var stage = new StageData("Stage0", null, new List<LevelData> { level0 });
+            var stage = new StageData("Stage0", new List<LevelData> { level0 });
             _levelDatabase.Stages.Add(stage);
 
             var levelManagerGo = new GameObject("TestLevelManager");

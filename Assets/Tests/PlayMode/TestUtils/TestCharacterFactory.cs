@@ -217,7 +217,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             var step = new StepData("Step_0", new List<WaveData> { wave });
             var level = new LevelData("Level_0", new List<StepData> { step });
 
-            var stage = new StageData("Stage_0", null, new List<LevelData> { level });
+            var stage = new StageData("Stage_0", new List<LevelData> { level });
 
             levelDb.Stages = new List<StageData> { stage };
             return levelDb;
