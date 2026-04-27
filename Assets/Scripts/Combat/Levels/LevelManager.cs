@@ -72,6 +72,8 @@ namespace RogueliteAutoBattler.Combat.Levels
         private CombatSpawnManager _spawnManager;
         private TeamRoster _teamRoster;
         private WaitForSeconds _waitDefeatReset;
+        private GroundFitter _groundFitter;
+        private bool _groundFitterCached;
 
         private EnemySpawner _enemySpawner;
         private AllyTargetManager _allyTargetManager;
@@ -192,6 +194,8 @@ namespace RogueliteAutoBattler.Combat.Levels
         {
             if (_groundRenderer == null) return;
 
+            EnsureGroundFitterCached();
+
             Sprite sprite = level?.Background != null
                 ? level.Background
                 : _levelDatabase != null ? _levelDatabase.DefaultBackground : null;
@@ -207,6 +211,19 @@ namespace RogueliteAutoBattler.Combat.Levels
             {
                 Debug.LogWarning($"[{nameof(LevelManager)}] No background available for level '{level?.LevelName}' (DefaultBackground also null) — keeping current sprite.");
             }
+
+            if (_groundFitter != null && level != null)
+            {
+                _groundFitter.SetFitMode(level.Fit);
+            }
+        }
+
+        private void EnsureGroundFitterCached()
+        {
+            if (_groundFitterCached) return;
+            _groundFitterCached = true;
+            if (_groundRenderer == null) return;
+            _groundRenderer.TryGetComponent(out _groundFitter);
         }
 
         public void StartLevel(int levelIndex)

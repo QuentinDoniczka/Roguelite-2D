@@ -13,6 +13,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
     public class LevelManagerBackgroundTests : PlayModeTestBase
     {
         private LevelDatabase _levelDatabase;
+        private Camera _camera;
         private readonly List<Sprite> _createdSprites = new List<Sprite>();
         private readonly List<Texture2D> _createdTextures = new List<Texture2D>();
 
@@ -36,6 +37,19 @@ namespace RogueliteAutoBattler.Tests.PlayMode
 
             if (_levelDatabase != null)
                 Object.DestroyImmediate(_levelDatabase);
+
+            _camera = null;
+        }
+
+        private void EnsureMainCamera()
+        {
+            if (_camera != null) return;
+            var camGo = Track(new GameObject("MainCamera"));
+            _camera = camGo.AddComponent<Camera>();
+            _camera.tag = "MainCamera";
+            _camera.orthographic = true;
+            _camera.orthographicSize = 5f;
+            _camera.transform.position = new Vector3(0f, 0f, -10f);
         }
 
         private Sprite CreateTrackedSprite(string spriteName)
@@ -155,6 +169,49 @@ namespace RogueliteAutoBattler.Tests.PlayMode
                 "ApplyLevel must not throw when the ground renderer is unwired.");
 
             yield return null;
+        }
+
+        [UnityTest]
+        public IEnumerator ApplyLevel_WithStretchFit_PropagatesToGroundFitter()
+        {
+            EnsureMainCamera();
+
+            Sprite authoredBackground = CreateTrackedSprite("StretchBackground");
+            var (manager, groundRenderer, level) = CreateLevelManager(
+                levelBackground: authoredBackground,
+                databaseDefaultBackground: null);
+
+            groundRenderer.gameObject.AddComponent<GroundFitter>();
+            yield return null;
+
+            level.Fit = BackgroundFit.Stretch;
+
+            manager.ApplyLevel(level);
+
+            Assert.AreEqual(SpriteDrawMode.Simple, groundRenderer.drawMode,
+                "ApplyLevel with BackgroundFit.Stretch must propagate to GroundFitter and switch the renderer drawMode to Simple.");
+        }
+
+        [UnityTest]
+        public IEnumerator ApplyLevel_WithTileFit_PropagatesToGroundFitter()
+        {
+            EnsureMainCamera();
+
+            Sprite authoredBackground = CreateTrackedSprite("TileBackground");
+            var (manager, groundRenderer, level) = CreateLevelManager(
+                levelBackground: authoredBackground,
+                databaseDefaultBackground: null);
+
+            groundRenderer.gameObject.AddComponent<GroundFitter>();
+            yield return null;
+
+            groundRenderer.drawMode = SpriteDrawMode.Simple;
+            level.Fit = BackgroundFit.Tile;
+
+            manager.ApplyLevel(level);
+
+            Assert.AreEqual(SpriteDrawMode.Tiled, groundRenderer.drawMode,
+                "ApplyLevel with BackgroundFit.Tile must propagate to GroundFitter and switch the renderer drawMode to Tiled.");
         }
 
         private static void SetPrivateField(object obj, string fieldName, object value)
