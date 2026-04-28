@@ -144,6 +144,7 @@ Assets/
         SkillTreeScreenBuilder.cs
         WalletsBuilder.cs
       Tools/
+        HudIconsImporter.cs
         LevelDatabaseBackgroundMigrator.cs
         NavIconsImporter.cs
         RebuildNewGameScene.cs
@@ -213,6 +214,7 @@ Assets/
         StubScreen.cs
       AllyStatBonusServiceResolverTests.cs
       AttackSlotRegistryTests.cs
+      HudIconAssetTests.cs
       NavBarIconsTests.cs
       CombatStatsBreakdownAllStatsTests.cs
       CombatStatsBreakdownTests.cs
@@ -278,6 +280,7 @@ Assets/
       GameBootstrapTests.cs
       GoldBadgeControllerTests.cs
       GoldWalletTests.cs
+      HudIconResolvedStyleTests.cs
       GroundFitterFitModeTests.cs
       HealthBarTrailTests.cs
       LevelManagerDefeatResetTests.cs
@@ -309,6 +312,7 @@ Assets/
   TextMesh Pro/  (173 files -- TMP package: fonts, shaders, examples)
   UI/
     Icons/
+      HUD/  (4 sprites: gold, diamant, warrior, arrow)
       Nav/  (6 sprites: village, skilltree, map, guilde, shop, remove)
     Layouts/
       MainLayout.uxml
