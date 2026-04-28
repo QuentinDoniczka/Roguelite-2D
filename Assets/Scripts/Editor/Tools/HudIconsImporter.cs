@@ -17,6 +17,7 @@ namespace RogueliteAutoBattler.Editor.Tools
         private const TextureImporterCompression HudIconCompression = TextureImporterCompression.CompressedHQ;
         private const TextureImporterNPOTScale HudIconNPOTScale = TextureImporterNPOTScale.None;
         private const TextureWrapMode HudIconWrapMode = TextureWrapMode.Clamp;
+        private const float HudIconPixelsPerUnit = 100f;
 
         internal static readonly string[] HudIconSlugs =
         {
@@ -48,7 +49,7 @@ namespace RogueliteAutoBattler.Editor.Tools
 
             importer.textureType = TextureImporterType.Sprite;
             importer.spriteImportMode = SpriteImportMode.Single;
-            importer.spritePixelsPerUnit = 100f;
+            importer.spritePixelsPerUnit = HudIconPixelsPerUnit;
             importer.mipmapEnabled = false;
             importer.npotScale = HudIconNPOTScale;
             importer.wrapMode = HudIconWrapMode;

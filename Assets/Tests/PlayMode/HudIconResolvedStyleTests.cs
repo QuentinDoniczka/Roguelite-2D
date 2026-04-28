@@ -23,6 +23,8 @@ namespace RogueliteAutoBattler.Tests.PlayMode
         private const float ScaleTolerance = 0.01f;
         private const float RadiusTolerance = 0.01f;
         private const float RotationToleranceDegrees = 0.1f;
+        private const float ReferenceWidthPx = 1080f;
+        private const float ReferenceHeightPx = 1920f;
 
         [UnityTest]
         public IEnumerator AllHudIcons_ResolveToExpectedSpritesAndSizes()
@@ -53,8 +55,8 @@ namespace RogueliteAutoBattler.Tests.PlayMode
                 yield break;
             }
 
-            root.style.width = 1080;
-            root.style.height = 1920;
+            root.style.width = ReferenceWidthPx;
+            root.style.height = ReferenceHeightPx;
             yield return null;
             yield return null;
 
