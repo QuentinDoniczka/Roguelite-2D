@@ -26,7 +26,7 @@
     --nav-icon-size-active: 52%;
 
     --hud-gold-font-size: 36px;
-    --hud-gold-icon-size: 72px;
+    --hud-gold-icon-size: 64px;
     --hud-gold-badge-min-width: 180px;
     --hud-gold-label-min-width: 90px;
     --hud-badge-bg: rgba(0, 0, 0, 0.63);
@@ -208,7 +208,7 @@
 .gold-label {
     font-size: var(--hud-gold-font-size);
     color: var(--color-gold);
-    margin-left: 10px;
+    margin-left: 12px;
     -unity-font-style: bold;
     min-width: var(--hud-gold-label-min-width);
     -unity-text-align: middle-right;
@@ -239,7 +239,7 @@
 .skill-point-label {
     font-size: var(--hud-gold-font-size);
     color: var(--color-skill-point);
-    margin-left: 14px;
+    margin-left: 12px;
     -unity-font-style: bold;
     min-width: var(--hud-gold-label-min-width);
     -unity-text-align: middle-right;
