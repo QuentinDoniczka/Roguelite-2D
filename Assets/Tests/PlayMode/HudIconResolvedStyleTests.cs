@@ -15,8 +15,8 @@ namespace RogueliteAutoBattler.Tests.PlayMode
         private const string PanelSettingsPath = "Assets/UI/MainPanelSettings.asset";
 
         private const float FloatTolerance = 1.5f;
-        private const float GoldIconSize = 56f;
-        private const float SkillPointIconSize = 50f;
+        private const float GoldIconSize = 72f;
+        private const float SkillPointIconSize = 64f;
         private const float InfoIconSize = 64f;
         private const float NavBtnIconSize = 56f;
         private const float TransparentAlphaTolerance = 0.01f;

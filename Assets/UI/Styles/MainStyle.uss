@@ -26,7 +26,7 @@
     --nav-icon-size-active: 52%;
 
     --hud-gold-font-size: 36px;
-    --hud-gold-icon-size: 56px;
+    --hud-gold-icon-size: 72px;
     --hud-gold-badge-min-width: 180px;
     --hud-gold-label-min-width: 90px;
     --hud-badge-bg: rgba(0, 0, 0, 0.63);
@@ -227,8 +227,8 @@
 }
 
 .skill-point-icon {
-    width: 50px;
-    height: 50px;
+    width: 64px;
+    height: 64px;
     background-image: url("project://database/Assets/UI/Icons/HUD/diamant.png");
     background-size: contain;
     background-position-x: center;
