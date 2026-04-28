@@ -18,7 +18,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
         private const float GoldIconSize = 64f;
         private const float SkillPointIconSize = 64f;
         private const float InfoIconSize = 64f;
-        private const float NavBtnIconSize = 56f;
+        private const float NavBtnIconSize = 36f;
         private const float TransparentAlphaTolerance = 0.01f;
         private const float ScaleTolerance = 0.01f;
         private const float RadiusTolerance = 0.01f;

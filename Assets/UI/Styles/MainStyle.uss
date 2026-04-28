@@ -395,18 +395,17 @@
 .info-nav-btn {
     width: var(--info-nav-btn-size);
     height: var(--info-nav-btn-size);
-    background-color: rgba(255, 255, 255, 0.08);
+    background-color: rgba(0, 0, 0, 0);
     border-width: 0;
     margin: 0;
     padding: 0;
-    border-radius: 12px;
     align-items: center;
     justify-content: center;
 }
 
 .info-nav-btn-icon {
-    width: 56px;
-    height: 56px;
+    width: 36px;
+    height: 36px;
     background-image: url("project://database/Assets/UI/Icons/HUD/arrow.png");
     background-size: contain;
     background-position-x: center;
