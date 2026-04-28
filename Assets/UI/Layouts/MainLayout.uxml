@@ -71,11 +71,15 @@
                 <ui:Label name="info-empty-label" text="Select an ally" class="info-empty-label" />
                 <ui:VisualElement name="info-content" class="info-content" style="display: none;">
                     <ui:VisualElement name="info-header" class="info-header">
-                        <ui:Button name="nav-prev-btn" text="&#x276E;" class="info-nav-btn" />
+                        <ui:Button name="nav-prev-btn" class="info-nav-btn">
+                            <ui:VisualElement class="info-nav-btn-icon" picking-mode="Ignore" />
+                        </ui:Button>
                         <ui:VisualElement name="info-icon" class="info-icon" />
                         <ui:Label name="info-name-label" text="" class="info-name-label" />
                         <ui:Label name="info-team-pos-label" text="" class="info-team-pos-label" />
-                        <ui:Button name="nav-next-btn" text="&#x276F;" class="info-nav-btn" />
+                        <ui:Button name="nav-next-btn" class="info-nav-btn">
+                            <ui:VisualElement class="info-nav-btn-icon info-nav-btn-icon--flip" picking-mode="Ignore" />
+                        </ui:Button>
                     </ui:VisualElement>
                     <ui:VisualElement name="info-tab-bar" class="info-tab-bar">
                         <ui:Button name="info-tab-stats" text="Stats" class="info-tab info-tab--active" />

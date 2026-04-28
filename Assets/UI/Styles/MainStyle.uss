@@ -26,7 +26,7 @@
     --nav-icon-size-active: 52%;
 
     --hud-gold-font-size: 36px;
-    --hud-gold-icon-size: 56px;
+    --hud-gold-icon-size: 64px;
     --hud-gold-badge-min-width: 180px;
     --hud-gold-label-min-width: 90px;
     --hud-badge-bg: rgba(0, 0, 0, 0.63);
@@ -198,14 +198,17 @@
 .gold-icon {
     width: var(--hud-gold-icon-size);
     height: var(--hud-gold-icon-size);
-    background-color: var(--color-gold);
-    border-radius: 50%;
+    background-image: url("project://database/Assets/UI/Icons/HUD/gold.png");
+    background-size: contain;
+    background-position-x: center;
+    background-position-y: center;
+    background-color: rgba(0, 0, 0, 0);
 }
 
 .gold-label {
     font-size: var(--hud-gold-font-size);
     color: var(--color-gold);
-    margin-left: 10px;
+    margin-left: 12px;
     -unity-font-style: bold;
     min-width: var(--hud-gold-label-min-width);
     -unity-text-align: middle-right;
@@ -224,18 +227,19 @@
 }
 
 .skill-point-icon {
-    width: 36px;
-    height: 36px;
-    margin-left: 4px;
-    margin-right: 4px;
-    background-color: var(--color-skill-point);
-    rotate: 45deg;
+    width: 64px;
+    height: 64px;
+    background-image: url("project://database/Assets/UI/Icons/HUD/diamant.png");
+    background-size: contain;
+    background-position-x: center;
+    background-position-y: center;
+    background-color: rgba(0, 0, 0, 0);
 }
 
 .skill-point-label {
     font-size: var(--hud-gold-font-size);
     color: var(--color-skill-point);
-    margin-left: 14px;
+    margin-left: 12px;
     -unity-font-style: bold;
     min-width: var(--hud-gold-label-min-width);
     -unity-text-align: middle-right;
@@ -359,10 +363,13 @@
 .info-icon {
     width: 64px;
     height: 64px;
-    border-radius: 50%;
-    background-color: rgba(128, 128, 128, 0.6);
     margin-left: 16px;
     margin-right: 16px;
+    background-image: url("project://database/Assets/UI/Icons/HUD/warrior.png");
+    background-size: contain;
+    background-position-x: center;
+    background-position-y: center;
+    background-color: rgba(0, 0, 0, 0);
 }
 
 .info-name-label {
@@ -388,14 +395,36 @@
 .info-nav-btn {
     width: var(--info-nav-btn-size);
     height: var(--info-nav-btn-size);
-    font-size: 60px;
-    -unity-text-align: middle-center;
-    background-color: rgba(255, 255, 255, 0.08);
-    color: white;
+    background-color: rgba(0, 0, 0, 0);
     border-width: 0;
     margin: 0;
     padding: 0;
-    border-radius: 12px;
+    align-items: center;
+    justify-content: center;
+}
+
+.info-nav-btn-icon {
+    width: 36px;
+    height: 36px;
+    background-image: url("project://database/Assets/UI/Icons/HUD/arrow.png");
+    background-size: contain;
+    background-position-x: center;
+    background-position-y: center;
+    -unity-background-image-tint-color: rgb(255, 255, 255);
+}
+
+.info-nav-btn-icon--flip {
+    scale: -1 1;
+}
+
+#nav-prev-btn {
+    align-items: flex-start;
+    padding-left: 4px;
+}
+
+#nav-next-btn {
+    align-items: flex-end;
+    padding-right: 4px;
 }
 
 .info-tab-bar {

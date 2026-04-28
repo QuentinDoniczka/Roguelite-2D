@@ -17,7 +17,6 @@ namespace RogueliteAutoBattler.Tests.PlayMode
         private const float InfoFontSize = 42f;
         private const float InfoNameFontSize = 34f;
         private const float InfoNavBtnSize = 96f;
-        private const float InfoNavBtnFontSize = 60f;
         private const float InfoIconSize = 64f;
         private const float StatRowHeaderHeight = 100f;
         private const float StatBreakdownPaddingLeft = 32f;
@@ -88,8 +87,6 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             Assert.IsNotNull(navPrevBtn, "nav-prev-btn not found.");
             Assert.That(navPrevBtn.resolvedStyle.width, Is.EqualTo(InfoNavBtnSize).Within(FloatTolerance),
                 $"nav-prev-btn width must resolve to {InfoNavBtnSize}px (var --info-nav-btn-size)");
-            Assert.That(navPrevBtn.resolvedStyle.fontSize, Is.EqualTo(InfoNavBtnFontSize).Within(FloatTolerance),
-                $"nav-prev-btn font-size must resolve to {InfoNavBtnFontSize}px");
 
             VisualElement infoIcon = root.Q<VisualElement>("info-icon");
             Assert.IsNotNull(infoIcon, "info-icon not found.");
