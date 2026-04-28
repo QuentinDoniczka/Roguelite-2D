@@ -410,6 +410,7 @@
     background-size: contain;
     background-position-x: center;
     background-position-y: center;
+    -unity-background-image-tint-color: rgb(255, 255, 255);
 }
 
 .info-nav-btn-icon--flip {
