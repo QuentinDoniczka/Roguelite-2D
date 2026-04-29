@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using RogueliteAutoBattler.Combat.Core;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace RogueliteAutoBattler.Data
 {
@@ -77,6 +78,8 @@ namespace RogueliteAutoBattler.Data
         [SerializeField] private float costMultiplierOdd = 1f;
         [SerializeField] private float costMultiplierEven = 1f;
         [SerializeField] private int costAdditivePerLevel = 0;
+        [FormerlySerializedAs("defaultMaxLevel")]
+        [SerializeField] private int defaultGeneratedMaxLevel = DefaultMaxLevel;
 
         [Header("Edge Visual")]
         [SerializeField] private Color edgeColor = DefaultEdgeColor;
@@ -104,6 +107,7 @@ namespace RogueliteAutoBattler.Data
         public float CostMultiplierOdd { get => costMultiplierOdd; internal set => costMultiplierOdd = value; }
         public float CostMultiplierEven { get => costMultiplierEven; internal set => costMultiplierEven = value; }
         public int CostAdditivePerLevel { get => costAdditivePerLevel; internal set => costAdditivePerLevel = value; }
+        public int DefaultGeneratedMaxLevel { get => defaultGeneratedMaxLevel; internal set => defaultGeneratedMaxLevel = value; }
         public Color EdgeColor { get => edgeColor; internal set => edgeColor = value; }
         public Color RingGuideColor { get => ringGuideColor; internal set => ringGuideColor = value; }
         public float EdgeThickness { get => edgeThickness; internal set => edgeThickness = value; }
@@ -113,11 +117,11 @@ namespace RogueliteAutoBattler.Data
         {
             nodes.Clear();
             _cachedEdges = null;
-            BuildRingLayout(nodes, ringNodeCount, ringRadius, baseCost, costMultiplierOdd, costMultiplierEven, costAdditivePerLevel);
+            BuildRingLayout(nodes, ringNodeCount, ringRadius, baseCost, costMultiplierOdd, costMultiplierEven, costAdditivePerLevel, defaultGeneratedMaxLevel);
         }
 
         internal static void BuildRingLayout(List<SkillNodeEntry> output, int nodeCount, float radius,
-            int defaultBaseCost = 1, float defaultMultOdd = 1f, float defaultMultEven = 1f, int defaultAdditive = 0)
+            int defaultBaseCost = 1, float defaultMultOdd = 1f, float defaultMultEven = 1f, int defaultAdditive = 0, int defaultGeneratedMaxLevel = DefaultMaxLevel)
         {
             Debug.Assert(nodeCount > 0, "Ring node count must be positive");
 
@@ -131,9 +135,9 @@ namespace RogueliteAutoBattler.Data
                 {
                     id = i,
                     position = pos,
-                    connectedNodeIds = new List<int> { (i + 1) % nodeCount },
+                    connectedNodeIds = new List<int>(),
                     costType = CostType.Gold,
-                    maxLevel = DefaultMaxLevel,
+                    maxLevel = defaultGeneratedMaxLevel,
                     baseCost = defaultBaseCost,
                     costMultiplierOdd = defaultMultOdd,
                     costMultiplierEven = defaultMultEven,

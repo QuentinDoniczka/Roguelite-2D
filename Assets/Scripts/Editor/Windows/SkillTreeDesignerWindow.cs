@@ -31,6 +31,7 @@ namespace RogueliteAutoBattler.Editor.Windows
         private static readonly GUIContent LabelCostMultiplierOdd = new GUIContent("Multiplier (Odd Levels)");
         private static readonly GUIContent LabelCostMultiplierEven = new GUIContent("Multiplier (Even Levels)");
         private static readonly GUIContent LabelCostAdditive = new GUIContent("Additive / Level");
+        private static readonly GUIContent LabelDefaultGeneratedMaxLevel = new GUIContent("Default Max Level (0 = unlimited)");
         private static readonly GUIContent LabelEdgeColor = new GUIContent("Edge Color");
         private static readonly GUIContent LabelRingGuideColor = new GUIContent("Ring Guide Color");
         private static readonly GUIContent LabelEdgeThickness = new GUIContent("Edge Thickness");
@@ -48,6 +49,7 @@ namespace RogueliteAutoBattler.Editor.Windows
         private SerializedProperty _propCostMultiplierOdd;
         private SerializedProperty _propCostMultiplierEven;
         private SerializedProperty _propCostAdditivePerLevel;
+        private SerializedProperty _propDefaultGeneratedMaxLevel;
         private SerializedProperty _propEdgeColor;
         private SerializedProperty _propRingGuideColor;
         private SerializedProperty _propEdgeThickness;
@@ -96,6 +98,7 @@ namespace RogueliteAutoBattler.Editor.Windows
             _propCostMultiplierOdd = _serializedData.FindProperty("costMultiplierOdd");
             _propCostMultiplierEven = _serializedData.FindProperty("costMultiplierEven");
             _propCostAdditivePerLevel = _serializedData.FindProperty("costAdditivePerLevel");
+            _propDefaultGeneratedMaxLevel = _serializedData.FindProperty("defaultGeneratedMaxLevel");
             _propEdgeColor = _serializedData.FindProperty("edgeColor");
             _propRingGuideColor = _serializedData.FindProperty("ringGuideColor");
             _propEdgeThickness = _serializedData.FindProperty("edgeThickness");
@@ -293,6 +296,7 @@ namespace RogueliteAutoBattler.Editor.Windows
             EditorGUILayout.PropertyField(_propCostMultiplierOdd, LabelCostMultiplierOdd);
             EditorGUILayout.PropertyField(_propCostMultiplierEven, LabelCostMultiplierEven);
             EditorGUILayout.PropertyField(_propCostAdditivePerLevel, LabelCostAdditive);
+            EditorGUILayout.PropertyField(_propDefaultGeneratedMaxLevel, LabelDefaultGeneratedMaxLevel);
 
             EditorGUILayout.Space(12);
             EditorGUILayout.LabelField("Edge Settings", EditorStyles.boldLabel);
