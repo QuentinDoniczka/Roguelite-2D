@@ -254,6 +254,40 @@ namespace RogueliteAutoBattler.Tests.EditMode
         }
 
         [Test]
+        public void GenerateNodes_RespectsDefaultMaxLevelField()
+        {
+            _skillTreeData.RingNodeCount = 6;
+            _skillTreeData.DefaultGeneratedMaxLevel = 7;
+
+            _skillTreeData.GenerateNodes();
+
+            Assert.AreEqual(6, _skillTreeData.Nodes.Count);
+            for (int i = 0; i < _skillTreeData.Nodes.Count; i++)
+            {
+                Assert.AreEqual(7, _skillTreeData.Nodes[i].maxLevel,
+                    $"Node {i} maxLevel should match the configured DefaultGeneratedMaxLevel");
+            }
+        }
+
+        [Test]
+        public void GenerateNodes_DefaultMaxLevelZero_AllowsUnlimitedNodes()
+        {
+            _skillTreeData.RingNodeCount = 6;
+            _skillTreeData.DefaultGeneratedMaxLevel = 0;
+
+            _skillTreeData.GenerateNodes();
+
+            for (int i = 0; i < _skillTreeData.Nodes.Count; i++)
+            {
+                var node = _skillTreeData.Nodes[i];
+                Assert.AreEqual(0, node.maxLevel,
+                    $"Node {i} maxLevel should propagate the unlimited (0) default");
+                Assert.IsFalse(SkillTreeData.IsMaxLevel(node, 999),
+                    $"Node {i} with maxLevel=0 should never be considered maxed");
+            }
+        }
+
+        [Test]
         public void HitTestNode_ReturnsCorrectIndex()
         {
             _skillTreeData.RingNodeCount = 4;

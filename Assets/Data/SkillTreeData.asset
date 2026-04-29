@@ -19,82 +19,83 @@ MonoBehaviour:
   nodeColor: {r: 0.3, g: 0.3, b: 0.3, a: 1}
   borderNormalColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
   borderSelectedColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
-  baseCost: 1
-  costMultiplierOdd: 5
-  costMultiplierEven: 1
+  baseCost: 5
+  costMultiplierOdd: 2
+  costMultiplierEven: 5
   costAdditivePerLevel: 0
+  defaultMaxLevel: 5
   edgeColor: {r: 0.6, g: 0.6, b: 0.6, a: 1}
   ringGuideColor: {r: 0.25, g: 0.25, b: 0.25, a: 0.5}
   edgeThickness: 4
   nodes:
   - id: 0
     position: {x: 8, y: 0}
-    connectedNodeIds:
+    connectedNodeIds: 
     costType: 0
-    maxLevel: 0
-    baseCost: 1
-    costMultiplierOdd: 5
-    costMultiplierEven: 2
-    costAdditivePerLevel: 0
-    statModifierType: 2
-    statModifierMode: 1
-    statModifierValuePerLevel: 0
-  - id: 1
-    position: {x: 4, y: 6.9282036}
-    connectedNodeIds:
-    costType: 0
-    maxLevel: 0
-    baseCost: 1
-    costMultiplierOdd: 5
-    costMultiplierEven: 2
-    costAdditivePerLevel: 0
-    statModifierType: 3
-    statModifierMode: 1
-    statModifierValuePerLevel: 5
-  - id: 2
-    position: {x: -4, y: 6.9282036}
-    connectedNodeIds:
-    costType: 0
-    maxLevel: 0
-    baseCost: 1
-    costMultiplierOdd: 5
-    costMultiplierEven: 2
-    costAdditivePerLevel: 0
-    statModifierType: 4
-    statModifierMode: 1
-    statModifierValuePerLevel: 0
-  - id: 3
-    position: {x: -8, y: 0}
-    connectedNodeIds:
-    costType: 0
-    maxLevel: 0
-    baseCost: 1
-    costMultiplierOdd: 5
-    costMultiplierEven: 2
-    costAdditivePerLevel: 0
-    statModifierType: 5
-    statModifierMode: 1
-    statModifierValuePerLevel: 0
-  - id: 4
-    position: {x: -4, y: -6.9282036}
-    connectedNodeIds:
-    costType: 0
-    maxLevel: 0
-    baseCost: 1
-    costMultiplierOdd: 5
-    costMultiplierEven: 2
+    maxLevel: 5
+    baseCost: 5
+    costMultiplierOdd: 2
+    costMultiplierEven: 5
     costAdditivePerLevel: 0
     statModifierType: 0
     statModifierMode: 1
     statModifierValuePerLevel: 5
-  - id: 5
-    position: {x: 4, y: -6.9282036}
-    connectedNodeIds:
+  - id: 1
+    position: {x: 3.9999998, y: 6.9282036}
+    connectedNodeIds: 
     costType: 0
-    maxLevel: 0
-    baseCost: 1
-    costMultiplierOdd: 5
-    costMultiplierEven: 2
+    maxLevel: 5
+    baseCost: 5
+    costMultiplierOdd: 2
+    costMultiplierEven: 5
+    costAdditivePerLevel: 0
+    statModifierType: 2
+    statModifierMode: 1
+    statModifierValuePerLevel: 5
+  - id: 2
+    position: {x: -4.0000005, y: 6.928203}
+    connectedNodeIds: 
+    costType: 0
+    maxLevel: 5
+    baseCost: 5
+    costMultiplierOdd: 2
+    costMultiplierEven: 5
+    costAdditivePerLevel: 0
+    statModifierType: 3
+    statModifierMode: 1
+    statModifierValuePerLevel: 5
+  - id: 3
+    position: {x: -8, y: -0.0000006993822}
+    connectedNodeIds: 
+    costType: 0
+    maxLevel: 5
+    baseCost: 5
+    costMultiplierOdd: 2
+    costMultiplierEven: 5
+    costAdditivePerLevel: 0
+    statModifierType: 6
+    statModifierMode: 1
+    statModifierValuePerLevel: 5
+  - id: 4
+    position: {x: -3.9999993, y: -6.9282036}
+    connectedNodeIds: 
+    costType: 0
+    maxLevel: 5
+    baseCost: 5
+    costMultiplierOdd: 2
+    costMultiplierEven: 5
+    costAdditivePerLevel: 0
+    statModifierType: 7
+    statModifierMode: 1
+    statModifierValuePerLevel: 5
+  - id: 5
+    position: {x: 3.9999993, y: -6.9282036}
+    connectedNodeIds: 
+    costType: 0
+    maxLevel: 5
+    baseCost: 5
+    costMultiplierOdd: 2
+    costMultiplierEven: 5
     costAdditivePerLevel: 0
     statModifierType: 1
     statModifierMode: 1
