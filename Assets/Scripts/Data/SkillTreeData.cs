@@ -131,7 +131,7 @@ namespace RogueliteAutoBattler.Data
                 {
                     id = i,
                     position = pos,
-                    connectedNodeIds = new List<int> { (i + 1) % nodeCount },
+                    connectedNodeIds = new List<int>(),
                     costType = CostType.Gold,
                     maxLevel = DefaultMaxLevel,
                     baseCost = defaultBaseCost,

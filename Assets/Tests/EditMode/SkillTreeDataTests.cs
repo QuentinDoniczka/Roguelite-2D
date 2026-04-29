@@ -153,7 +153,7 @@ namespace RogueliteAutoBattler.Tests.EditMode
         }
 
         [Test]
-        public void GenerateNodes_EachNodeHasConnectedNodeIds()
+        public void GenerateNodes_EachNodeHasEmptyConnectedNodeIds()
         {
             _skillTreeData.RingNodeCount = 6;
             _skillTreeData.GenerateNodes();
@@ -161,48 +161,20 @@ namespace RogueliteAutoBattler.Tests.EditMode
             for (int i = 0; i < _skillTreeData.Nodes.Count; i++)
             {
                 Assert.IsNotNull(_skillTreeData.Nodes[i].connectedNodeIds,
-                    $"Node {i} should have connectedNodeIds");
-                Assert.AreEqual(1, _skillTreeData.Nodes[i].connectedNodeIds.Count,
-                    $"Node {i} should connect to exactly 1 neighbor");
+                    $"Node {i} should have empty connectedNodeIds (hubs are roots, no chain)");
+                Assert.AreEqual(0, _skillTreeData.Nodes[i].connectedNodeIds.Count,
+                    $"Node {i} should have empty connectedNodeIds (hubs are roots, no chain)");
             }
         }
 
         [Test]
-        public void GenerateNodes_ConnectionsFormClosedRing()
-        {
-            _skillTreeData.RingNodeCount = 6;
-            _skillTreeData.GenerateNodes();
-
-            for (int i = 0; i < 6; i++)
-            {
-                int expectedNext = (i + 1) % 6;
-                Assert.AreEqual(expectedNext, _skillTreeData.Nodes[i].connectedNodeIds[0],
-                    $"Node {i} should connect to node {expectedNext}");
-            }
-        }
-
-        [Test]
-        public void GenerateNodes_MinRingCount_ConnectionsFormClosedRing()
-        {
-            _skillTreeData.RingNodeCount = 3;
-            _skillTreeData.GenerateNodes();
-
-            for (int i = 0; i < 3; i++)
-            {
-                int expectedNext = (i + 1) % 3;
-                Assert.AreEqual(expectedNext, _skillTreeData.Nodes[i].connectedNodeIds[0],
-                    $"Node {i} should connect to node {expectedNext}");
-            }
-        }
-
-        [Test]
-        public void GetEdges_ReturnsCorrectCount()
+        public void GetEdges_ReturnsZeroForHubsWithoutConnections()
         {
             _skillTreeData.RingNodeCount = 6;
             _skillTreeData.GenerateNodes();
 
             var edges = _skillTreeData.GetEdges();
-            Assert.AreEqual(6, edges.Length);
+            Assert.AreEqual(0, edges.Length);
         }
 
         [Test]
@@ -225,10 +197,11 @@ namespace RogueliteAutoBattler.Tests.EditMode
             _skillTreeData.RingNodeCount = 3;
             _skillTreeData.GenerateNodes();
 
-            Assert.AreEqual(3, _skillTreeData.GetEdges().Length);
+            Assert.AreEqual(0, _skillTreeData.GetEdges().Length);
             for (int i = 0; i < 3; i++)
             {
-                Assert.AreEqual(1, _skillTreeData.Nodes[i].connectedNodeIds.Count);
+                Assert.IsNotNull(_skillTreeData.Nodes[i].connectedNodeIds);
+                Assert.AreEqual(0, _skillTreeData.Nodes[i].connectedNodeIds.Count);
             }
         }
 

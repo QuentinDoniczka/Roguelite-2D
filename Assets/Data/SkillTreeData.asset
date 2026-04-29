@@ -29,7 +29,7 @@ MonoBehaviour:
   nodes:
   - id: 0
     position: {x: 8, y: 0}
-    connectedNodeIds: 01000000
+    connectedNodeIds:
     costType: 0
     maxLevel: 0
     baseCost: 1
@@ -41,7 +41,7 @@ MonoBehaviour:
     statModifierValuePerLevel: 0
   - id: 1
     position: {x: 4, y: 6.9282036}
-    connectedNodeIds: 02000000
+    connectedNodeIds:
     costType: 0
     maxLevel: 0
     baseCost: 1
@@ -53,7 +53,7 @@ MonoBehaviour:
     statModifierValuePerLevel: 5
   - id: 2
     position: {x: -4, y: 6.9282036}
-    connectedNodeIds: 03000000
+    connectedNodeIds:
     costType: 0
     maxLevel: 0
     baseCost: 1
@@ -65,7 +65,7 @@ MonoBehaviour:
     statModifierValuePerLevel: 0
   - id: 3
     position: {x: -8, y: 0}
-    connectedNodeIds: 04000000
+    connectedNodeIds:
     costType: 0
     maxLevel: 0
     baseCost: 1
@@ -77,7 +77,7 @@ MonoBehaviour:
     statModifierValuePerLevel: 0
   - id: 4
     position: {x: -4, y: -6.9282036}
-    connectedNodeIds: 05000000
+    connectedNodeIds:
     costType: 0
     maxLevel: 0
     baseCost: 1
@@ -89,7 +89,7 @@ MonoBehaviour:
     statModifierValuePerLevel: 5
   - id: 5
     position: {x: 4, y: -6.9282036}
-    connectedNodeIds: 00000000
+    connectedNodeIds:
     costType: 0
     maxLevel: 0
     baseCost: 1
