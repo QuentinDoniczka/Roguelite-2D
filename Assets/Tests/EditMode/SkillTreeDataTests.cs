@@ -161,9 +161,9 @@ namespace RogueliteAutoBattler.Tests.EditMode
             for (int i = 0; i < _skillTreeData.Nodes.Count; i++)
             {
                 Assert.IsNotNull(_skillTreeData.Nodes[i].connectedNodeIds,
-                    $"Node {i} should have empty connectedNodeIds (hubs are roots, no chain)");
+                    $"Node {i} connectedNodeIds should not be null");
                 Assert.AreEqual(0, _skillTreeData.Nodes[i].connectedNodeIds.Count,
-                    $"Node {i} should have empty connectedNodeIds (hubs are roots, no chain)");
+                    $"Node {i} connectedNodeIds should be empty");
             }
         }
 
@@ -178,18 +178,28 @@ namespace RogueliteAutoBattler.Tests.EditMode
         }
 
         [Test]
-        public void GetEdges_NoDuplicateEdges()
+        public void GetEdges_FlattensConnectedNodeIdsIntoUniquePairs()
         {
-            _skillTreeData.RingNodeCount = 6;
-            _skillTreeData.GenerateNodes();
+            var nodesWithConnections = new List<SkillTreeData.SkillNodeEntry>
+            {
+                new SkillTreeData.SkillNodeEntry { id = 0, connectedNodeIds = new List<int> { 1, 2 } },
+                new SkillTreeData.SkillNodeEntry { id = 1, connectedNodeIds = new List<int> { 2 } },
+                new SkillTreeData.SkillNodeEntry { id = 2, connectedNodeIds = new List<int>() }
+            };
+            _skillTreeData.InitializeForTest(nodesWithConnections);
 
             var edges = _skillTreeData.GetEdges();
             var uniqueEdges = new HashSet<(int, int)>(edges);
+
+            Assert.AreEqual(3, edges.Length);
             Assert.AreEqual(edges.Length, uniqueEdges.Count, "All edges should be unique");
+            CollectionAssert.Contains(edges, (0, 1));
+            CollectionAssert.Contains(edges, (0, 2));
+            CollectionAssert.Contains(edges, (1, 2));
         }
 
         [Test]
-        public void GenerateNodes_ClearsExistingConnections()
+        public void GenerateNodes_RegeneratedNodesHaveNoEdges()
         {
             _skillTreeData.RingNodeCount = 5;
             _skillTreeData.GenerateNodes();
