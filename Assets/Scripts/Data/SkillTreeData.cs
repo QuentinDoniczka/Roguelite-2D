@@ -107,7 +107,6 @@ namespace RogueliteAutoBattler.Data
         public float CostMultiplierOdd { get => costMultiplierOdd; internal set => costMultiplierOdd = value; }
         public float CostMultiplierEven { get => costMultiplierEven; internal set => costMultiplierEven = value; }
         public int CostAdditivePerLevel { get => costAdditivePerLevel; internal set => costAdditivePerLevel = value; }
-        // Verbose to disambiguate from the public const DefaultMaxLevel (parameter fallback).
         public int DefaultGeneratedMaxLevel { get => defaultGeneratedMaxLevel; internal set => defaultGeneratedMaxLevel = value; }
         public Color EdgeColor { get => edgeColor; internal set => edgeColor = value; }
         public Color RingGuideColor { get => ringGuideColor; internal set => ringGuideColor = value; }
