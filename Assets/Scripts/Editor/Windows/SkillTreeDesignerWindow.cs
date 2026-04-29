@@ -98,7 +98,7 @@ namespace RogueliteAutoBattler.Editor.Windows
             _propCostMultiplierOdd = _serializedData.FindProperty("costMultiplierOdd");
             _propCostMultiplierEven = _serializedData.FindProperty("costMultiplierEven");
             _propCostAdditivePerLevel = _serializedData.FindProperty("costAdditivePerLevel");
-            _propDefaultMaxLevel = _serializedData.FindProperty("defaultMaxLevel");
+            _propDefaultMaxLevel = _serializedData.FindProperty("defaultGeneratedMaxLevel");
             _propEdgeColor = _serializedData.FindProperty("edgeColor");
             _propRingGuideColor = _serializedData.FindProperty("ringGuideColor");
             _propEdgeThickness = _serializedData.FindProperty("edgeThickness");
