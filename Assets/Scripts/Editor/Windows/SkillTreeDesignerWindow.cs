@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using RogueliteAutoBattler.Combat.Core;
 using RogueliteAutoBattler.Data;
+using RogueliteAutoBattler.Editor.Tools;
 using UnityEditor;
 using UnityEngine;
 
@@ -15,10 +16,14 @@ namespace RogueliteAutoBattler.Editor.Windows
         private const float NodeBorderThickness = 2f;
         private const float ZoomScrollSensitivity = 0.05f;
         private const float MinGridSpacingThreshold = 5f;
+        private const float MinBranchPreviewDistance = 0.5f;
+        private const float MaxBranchPreviewDistance = 10f;
+        private const float BranchPreviewDottedSegmentSize = 6f;
 
         private static readonly Color CanvasBackgroundColor = new Color(0.15f, 0.15f, 0.15f, 1f);
         private static readonly Color CrosshairColor = new Color(0.4f, 0.4f, 0.4f, 1f);
         private static readonly Color GridLineColor = new Color(0.2f, 0.2f, 0.2f, 1f);
+        private static readonly Color BranchPreviewTintColor = new Color(1f, 1f, 1f, 0.4f);
 
         private static readonly GUIContent LabelRingNodeCount = new GUIContent("Ring Node Count");
         private static readonly GUIContent LabelRingRadius = new GUIContent("Ring Radius");
@@ -60,7 +65,11 @@ namespace RogueliteAutoBattler.Editor.Windows
         private string[] _nodeLabels;
         private int _selectedNodeIndex = -1;
         private int _activeTab;
-        private static readonly string[] TabLabels = { "Skill Tree", "Node" };
+        private bool _branchPreviewActive;
+        private int _branchPreviewParentIndex = -1;
+        private int _branchPreviewPreviousTab;
+        private BranchPreviewSettings _branchPreviewSettings = BranchPreviewSettings.Defaults;
+        private BranchPreviewSettings _lastBranchPreviewSettings = BranchPreviewSettings.Defaults;
 
         [MenuItem("Roguelite/Skill Tree Designer")]
         private static void OpenWindow()
@@ -188,6 +197,19 @@ namespace RogueliteAutoBattler.Editor.Windows
                 string label = _nodeLabels != null && i < _nodeLabels.Length ? _nodeLabels[i] : entry.id.ToString();
                 GUI.Label(nodeRect, label, _nodeLabelStyle);
             }
+            if (_branchPreviewActive && _branchPreviewParentIndex >= 0 && _branchPreviewParentIndex < _data.Nodes.Count)
+            {
+                Vector2 parentPos = _data.Nodes[_branchPreviewParentIndex].position;
+                Vector2 previewPos = BranchPlacement.ComputeBranchPosition(parentPos, _branchPreviewSettings.distance);
+                Vector2 parentScreen = origin + parentPos * scaledUnit;
+                Vector2 previewScreen = origin + previewPos * scaledUnit;
+                Handles.color = BranchPreviewTintColor;
+                Handles.DrawDottedLine(
+                    new Vector3(parentScreen.x, parentScreen.y, 0f),
+                    new Vector3(previewScreen.x, previewScreen.y, 0f),
+                    BranchPreviewDottedSegmentSize);
+                Handles.DrawWireDisc(new Vector3(previewScreen.x, previewScreen.y, 0f), Vector3.forward, halfNode);
+            }
             Handles.EndGUI();
 
             GUI.EndClip();
@@ -229,7 +251,8 @@ namespace RogueliteAutoBattler.Editor.Windows
 
                 int hitIndex = HitTestNode(mouseInCanvas, origin, _data.Nodes, _data.UnitSize, _data.NodeSize, _canvasZoom);
                 _selectedNodeIndex = hitIndex;
-                _activeTab = hitIndex >= 0 ? 1 : 0;
+                if (!_branchPreviewActive)
+                    _activeTab = hitIndex >= 0 ? 1 : 0;
                 evt.Use();
                 Repaint();
             }
@@ -246,14 +269,19 @@ namespace RogueliteAutoBattler.Editor.Windows
         {
             _serializedData.Update();
 
-            _activeTab = GUILayout.Toolbar(_activeTab, TabLabels);
+            string[] tabLabels = _branchPreviewActive
+                ? new[] { "Skill Tree", "Node", "Branch" }
+                : new[] { "Skill Tree", "Node" };
+            _activeTab = GUILayout.Toolbar(_activeTab, tabLabels);
 
             _configScrollPos = EditorGUILayout.BeginScrollView(_configScrollPos);
 
             if (_activeTab == 0)
                 DrawSkillTreeTab();
-            else
+            else if (_activeTab == 1)
                 DrawNodeTab();
+            else
+                DrawBranchTab();
 
             if (_serializedData.ApplyModifiedProperties())
                 Repaint();
@@ -346,6 +374,18 @@ namespace RogueliteAutoBattler.Editor.Windows
 
             EditorGUILayout.LabelField($"Node {_selectedNodeIndex}", EditorStyles.boldLabel);
 
+            if (GUILayout.Button("Create Branch from Selected"))
+            {
+                _branchPreviewPreviousTab = _activeTab;
+                _branchPreviewActive = true;
+                _branchPreviewParentIndex = _selectedNodeIndex;
+                _branchPreviewSettings = _lastBranchPreviewSettings;
+                _activeTab = 2;
+                Repaint();
+            }
+
+            EditorGUILayout.Space(8);
+
             var node = _data.Nodes[_selectedNodeIndex];
 
             EditorGUI.BeginChangeCheck();
@@ -399,6 +439,66 @@ namespace RogueliteAutoBattler.Editor.Windows
             }
             if (node.maxLevel == 0)
                 EditorGUILayout.LabelField("  ...", "(unlimited)");
+
+        }
+
+        private void DrawBranchTab()
+        {
+            EditorGUILayout.Space(8);
+
+            if (!_branchPreviewActive || _branchPreviewParentIndex < 0 || _branchPreviewParentIndex >= _data.Nodes.Count)
+            {
+                EditorGUILayout.HelpBox("Branch preview not active.", MessageType.Info);
+                return;
+            }
+
+            EditorGUILayout.LabelField($"Branch from Node {_branchPreviewParentIndex}", EditorStyles.boldLabel);
+
+            EditorGUI.BeginChangeCheck();
+            _branchPreviewSettings.distance = EditorGUILayout.Slider("Distance", _branchPreviewSettings.distance, MinBranchPreviewDistance, MaxBranchPreviewDistance);
+            if (EditorGUI.EndChangeCheck())
+                Repaint();
+
+            EditorGUILayout.Space(8);
+            EditorGUILayout.BeginHorizontal();
+            if (GUILayout.Button("Generate"))
+                ExecuteGenerateBranch();
+            if (GUILayout.Button("Cancel"))
+                CancelBranchPreview();
+            EditorGUILayout.EndHorizontal();
+        }
+
+        private void CancelBranchPreview()
+        {
+            _branchPreviewActive = false;
+            _branchPreviewParentIndex = -1;
+            _activeTab = _branchPreviewPreviousTab;
+            Repaint();
+        }
+
+        private void ExecuteGenerateBranch()
+        {
+            int parentIndex = _branchPreviewParentIndex;
+            if (parentIndex < 0 || parentIndex >= _data.Nodes.Count) return;
+
+            int parentId = _data.Nodes[parentIndex].id;
+            Vector2 newPos = BranchPlacement.ComputeBranchPosition(_data.Nodes[parentIndex].position, _branchPreviewSettings.distance);
+            int newId = SkillTreeNodeIdAllocator.ComputeNextNodeId(_data.Nodes);
+
+            Undo.RegisterCompleteObjectUndo(_data, "Create Branch Node");
+            var newEntry = SkillTreeNodeFactory.CreateBranchNode(newId, newPos);
+            _data.AddBranchNode(newEntry, parentId);
+            EditorUtility.SetDirty(_data);
+            AssetDatabase.SaveAssets();
+            _serializedData.Update();
+            RebuildNodeLabels();
+
+            _lastBranchPreviewSettings = _branchPreviewSettings;
+            _selectedNodeIndex = _data.Nodes.Count - 1;
+            _branchPreviewActive = false;
+            _branchPreviewParentIndex = -1;
+            _activeTab = 1;
+            Repaint();
         }
 
         internal static int HitTestNode(Vector2 mousePos, Vector2 origin, IReadOnlyList<SkillTreeData.SkillNodeEntry> nodes, float unitSize, float nodeSize, float zoom)

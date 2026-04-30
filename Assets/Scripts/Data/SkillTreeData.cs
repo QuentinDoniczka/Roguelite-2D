@@ -211,6 +211,68 @@ namespace RogueliteAutoBattler.Data
             _cachedEdges = null;
         }
 
+        internal void AddNode(SkillNodeEntry entry)
+        {
+            foreach (var existing in nodes)
+            {
+                if (existing.id == entry.id)
+                    throw new ArgumentException($"A node with id {entry.id} already exists.");
+            }
+            nodes.Add(entry);
+            _cachedEdges = null;
+        }
+
+        internal void AddEdge(int parentId, int childId)
+        {
+            if (parentId == childId)
+                throw new ArgumentException($"Self-loop not allowed: parentId == childId == {parentId}.");
+            for (int i = 0; i < nodes.Count; i++)
+            {
+                if (nodes[i].id == parentId)
+                {
+                    var parent = nodes[i];
+                    if (parent.connectedNodeIds == null)
+                        parent.connectedNodeIds = new List<int>();
+                    parent.connectedNodeIds.Add(childId);
+                    nodes[i] = parent;
+                    _cachedEdges = null;
+                    return;
+                }
+            }
+            throw new ArgumentException($"No node found with parentId {parentId}.");
+        }
+
+        internal void AddBranchNode(SkillNodeEntry entry, int parentId)
+        {
+            if (parentId == entry.id)
+                throw new ArgumentException($"Self-loop not allowed: parentId == entry.id == {parentId}.");
+
+            int parentIndex = -1;
+            for (int i = 0; i < nodes.Count; i++)
+            {
+                if (nodes[i].id == parentId)
+                {
+                    parentIndex = i;
+                }
+                if (nodes[i].id == entry.id)
+                {
+                    throw new ArgumentException($"A node with id {entry.id} already exists.");
+                }
+            }
+            if (parentIndex < 0)
+                throw new ArgumentException($"No node found with parentId {parentId}.");
+
+            nodes.Add(entry);
+
+            var parent = nodes[parentIndex];
+            if (parent.connectedNodeIds == null)
+                parent.connectedNodeIds = new List<int>();
+            parent.connectedNodeIds.Add(entry.id);
+            nodes[parentIndex] = parent;
+
+            _cachedEdges = null;
+        }
+
         internal void InitializeForTest(List<SkillNodeEntry> testNodes)
         {
             Debug.Assert(testNodes != null, "InitializeForTest requires non-null node list — pass empty list explicitly.");

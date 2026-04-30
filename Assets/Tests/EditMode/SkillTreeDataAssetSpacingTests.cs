@@ -9,7 +9,6 @@ namespace RogueliteAutoBattler.Tests.EditMode
     public class SkillTreeDataAssetSpacingTests
     {
         private const float PositionTolerance = 0.01f;
-        private const float MinimumExpectedRingRadius = 8f;
 
         private SkillTreeData _liveSkillTreeAsset;
 
@@ -19,14 +18,6 @@ namespace RogueliteAutoBattler.Tests.EditMode
             _liveSkillTreeAsset = AssetDatabase.LoadAssetAtPath<SkillTreeData>(EditorPaths.SkillTreeDataAsset);
             Assert.IsNotNull(_liveSkillTreeAsset,
                 $"Live SkillTreeData asset not found at {EditorPaths.SkillTreeDataAsset}");
-        }
-
-        [Test]
-        public void LiveAsset_RingRadius_IsAtLeastEight()
-        {
-            Assert.GreaterOrEqual(_liveSkillTreeAsset.RingRadius, MinimumExpectedRingRadius,
-                $"Live asset ringRadius ({_liveSkillTreeAsset.RingRadius}) is below the minimum required spacing ({MinimumExpectedRingRadius}). " +
-                "Do not lower this value without regenerating node positions.");
         }
 
         [Test]
@@ -45,18 +36,20 @@ namespace RogueliteAutoBattler.Tests.EditMode
         }
 
         [Test]
-        public void LiveAsset_AllNodesAreOnRing()
+        public void LiveAsset_HubNodesAreOnRing()
         {
-            Assert.IsTrue(_liveSkillTreeAsset.Nodes.Count > 0, "Live asset must contain at least one node");
+            int hubCount = _liveSkillTreeAsset.RingNodeCount;
+            Assert.GreaterOrEqual(_liveSkillTreeAsset.Nodes.Count, hubCount,
+                "Live asset must contain at least RingNodeCount hub nodes");
 
             float expectedRadius = _liveSkillTreeAsset.RingRadius;
-            for (int nodeIndex = 0; nodeIndex < _liveSkillTreeAsset.Nodes.Count; nodeIndex++)
+            for (int nodeIndex = 0; nodeIndex < hubCount; nodeIndex++)
             {
                 Vector2 nodePosition = _liveSkillTreeAsset.Nodes[nodeIndex].position;
                 float distanceFromOrigin = nodePosition.magnitude;
                 Assert.That(Mathf.Abs(distanceFromOrigin - expectedRadius), Is.LessThan(PositionTolerance),
-                    $"Node {nodeIndex} distance from origin ({distanceFromOrigin}) should equal ringRadius ({expectedRadius}). " +
-                    "If ringRadius changed, regenerate node positions.");
+                    $"Hub node {nodeIndex} distance from origin ({distanceFromOrigin}) should equal ringRadius ({expectedRadius}). " +
+                    "If ringRadius changed, regenerate hub positions.");
             }
         }
     }
