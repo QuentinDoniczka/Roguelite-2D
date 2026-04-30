@@ -149,5 +149,23 @@ namespace RogueliteAutoBattler.Tests.EditMode
 
             Assert.AreEqual(SkillTreeNodeVisualState.Max, evaluator.GetState(1));
         }
+
+        [Test]
+        public void ChainTopology_Child_Locked_When_Root_Level_Zero_Available()
+        {
+            var nodes = new List<SkillTreeData.SkillNodeEntry>
+            {
+                MakeNode(0, 5, new List<int> { 1 }),
+                MakeNode(1, 5, null)
+            };
+            InitializeData(nodes);
+
+            var evaluator = new SkillTreeStateEvaluator(_data, _progress);
+
+            Assert.AreEqual(SkillTreeNodeVisualState.Available, evaluator.GetState(0),
+                "Node 0 (root, no parents) must be Available at level 0.");
+            Assert.AreEqual(SkillTreeNodeVisualState.Locked, evaluator.GetState(1),
+                "Node 1 (child of unpurchased root) must be Locked.");
+        }
     }
 }

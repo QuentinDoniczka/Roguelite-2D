@@ -65,7 +65,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
                 {
                     id = 1,
                     position = new Vector2(1f, 0f),
-                    connectedNodeIds = new List<int> { 0 },
+                    connectedNodeIds = new List<int>(),
                     costType = SkillTreeData.CostType.Gold,
                     maxLevel = 3,
                     baseCost = 10,
@@ -80,7 +80,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
                 {
                     id = 2,
                     position = new Vector2(2f, 0f),
-                    connectedNodeIds = new List<int> { 1 },
+                    connectedNodeIds = new List<int>(),
                     costType = SkillTreeData.CostType.Gold,
                     maxLevel = 3,
                     baseCost = 10,
@@ -95,7 +95,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
                 {
                     id = 3,
                     position = new Vector2(3f, 0f),
-                    connectedNodeIds = new List<int> { 2 },
+                    connectedNodeIds = new List<int>(),
                     costType = SkillTreeData.CostType.Gold,
                     maxLevel = 3,
                     baseCost = 10,
