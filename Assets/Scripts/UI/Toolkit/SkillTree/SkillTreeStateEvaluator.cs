@@ -8,6 +8,7 @@ namespace RogueliteAutoBattler.UI.Toolkit.SkillTree
         private readonly SkillTreeData _data;
         private readonly SkillTreeProgress _progress;
         private readonly Dictionary<int, int> _idToIndexMap;
+        private readonly Dictionary<int, List<int>> _parentsByIndex;
 
         public SkillTreeStateEvaluator(SkillTreeData data, SkillTreeProgress progress)
         {
@@ -17,6 +18,23 @@ namespace RogueliteAutoBattler.UI.Toolkit.SkillTree
             for (var i = 0; i < data.Nodes.Count; i++)
             {
                 _idToIndexMap[data.Nodes[i].id] = i;
+            }
+
+            _parentsByIndex = new Dictionary<int, List<int>>(data.Nodes.Count);
+            for (var parentIndex = 0; parentIndex < data.Nodes.Count; parentIndex++)
+            {
+                var connectedIds = data.Nodes[parentIndex].connectedNodeIds;
+                if (connectedIds == null) continue;
+                foreach (var childId in connectedIds)
+                {
+                    if (!_idToIndexMap.TryGetValue(childId, out var childIndex)) continue;
+                    if (!_parentsByIndex.TryGetValue(childIndex, out var parentList))
+                    {
+                        parentList = new List<int>();
+                        _parentsByIndex[childIndex] = parentList;
+                    }
+                    parentList.Add(parentIndex);
+                }
             }
         }
 
@@ -34,7 +52,31 @@ namespace RogueliteAutoBattler.UI.Toolkit.SkillTree
             {
                 return SkillTreeNodeVisualState.Purchased;
             }
+            if (IsLockedByParents(nodeIndex))
+            {
+                return SkillTreeNodeVisualState.Locked;
+            }
             return SkillTreeNodeVisualState.Available;
+        }
+
+        private bool IsRoot(int nodeIndex)
+        {
+            return nodeIndex < _data.RingNodeCount;
+        }
+
+        private bool IsLockedByParents(int nodeIndex)
+        {
+            if (IsRoot(nodeIndex)) return false;
+            if (!_parentsByIndex.TryGetValue(nodeIndex, out var parents)) return false;
+            if (parents.Count == 0) return false;
+            foreach (var parentIndex in parents)
+            {
+                if (_progress.GetLevel(parentIndex) > 0)
+                {
+                    return false;
+                }
+            }
+            return true;
         }
     }
 }
