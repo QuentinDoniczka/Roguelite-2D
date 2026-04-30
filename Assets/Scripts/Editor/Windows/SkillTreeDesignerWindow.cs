@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using RogueliteAutoBattler.Combat.Core;
 using RogueliteAutoBattler.Data;
+using RogueliteAutoBattler.Editor.Tools;
 using UnityEditor;
 using UnityEngine;
 
@@ -61,6 +62,9 @@ namespace RogueliteAutoBattler.Editor.Windows
         private int _selectedNodeIndex = -1;
         private int _activeTab;
         private static readonly string[] TabLabels = { "Skill Tree", "Node" };
+        private bool _branchPreviewActive;
+        private int _branchPreviewParentIndex = -1;
+        private float _branchPreviewDistance = 2f;
 
         [MenuItem("Roguelite/Skill Tree Designer")]
         private static void OpenWindow()
@@ -187,6 +191,19 @@ namespace RogueliteAutoBattler.Editor.Windows
 
                 string label = _nodeLabels != null && i < _nodeLabels.Length ? _nodeLabels[i] : entry.id.ToString();
                 GUI.Label(nodeRect, label, _nodeLabelStyle);
+            }
+            if (_branchPreviewActive && _branchPreviewParentIndex >= 0 && _branchPreviewParentIndex < _data.Nodes.Count)
+            {
+                Vector2 parentPos = _data.Nodes[_branchPreviewParentIndex].position;
+                Vector2 previewPos = BranchPlacement.ComputeBranchPosition(parentPos, _branchPreviewDistance);
+                Vector2 parentScreen = origin + parentPos * scaledUnit;
+                Vector2 previewScreen = origin + previewPos * scaledUnit;
+                Handles.color = new Color(1f, 1f, 1f, 0.4f);
+                Handles.DrawDottedLine(
+                    new Vector3(parentScreen.x, parentScreen.y, 0f),
+                    new Vector3(previewScreen.x, previewScreen.y, 0f),
+                    6f);
+                Handles.DrawWireDisc(new Vector3(previewScreen.x, previewScreen.y, 0f), Vector3.forward, halfNode);
             }
             Handles.EndGUI();
 
@@ -399,6 +416,74 @@ namespace RogueliteAutoBattler.Editor.Windows
             }
             if (node.maxLevel == 0)
                 EditorGUILayout.LabelField("  ...", "(unlimited)");
+
+            EditorGUILayout.Space(16);
+            EditorGUILayout.LabelField("Branch", EditorStyles.boldLabel);
+
+            if (!_branchPreviewActive)
+            {
+                if (GUILayout.Button("Create Branch from Selected"))
+                {
+                    _branchPreviewActive = true;
+                    _branchPreviewParentIndex = _selectedNodeIndex;
+                    _branchPreviewDistance = 2f;
+                    Repaint();
+                }
+            }
+            else
+            {
+                EditorGUI.BeginChangeCheck();
+                _branchPreviewDistance = EditorGUILayout.Slider("Distance", _branchPreviewDistance, 0.5f, 10f);
+                if (EditorGUI.EndChangeCheck())
+                    Repaint();
+
+                EditorGUILayout.BeginHorizontal();
+                if (GUILayout.Button("Generate"))
+                    ExecuteGenerateBranch();
+                if (GUILayout.Button("Cancel"))
+                {
+                    _branchPreviewActive = false;
+                    _branchPreviewParentIndex = -1;
+                    Repaint();
+                }
+                EditorGUILayout.EndHorizontal();
+            }
+        }
+
+        private void ExecuteGenerateBranch()
+        {
+            int parentIndex = _branchPreviewParentIndex;
+            if (parentIndex < 0 || parentIndex >= _data.Nodes.Count) return;
+
+            int parentId = _data.Nodes[parentIndex].id;
+            Vector2 newPos = BranchPlacement.ComputeBranchPosition(_data.Nodes[parentIndex].position, _branchPreviewDistance);
+            int newId = ComputeNextNodeId(_data.Nodes);
+
+            Undo.RegisterCompleteObjectUndo(_data, "Create Branch Node");
+            var newEntry = SkillTreeNodeFactory.CreateBranchNode(newId, newPos);
+            _data.AddNode(newEntry);
+            _data.AddEdge(parentId, newId);
+            EditorUtility.SetDirty(_data);
+            AssetDatabase.SaveAssets();
+            _serializedData.Update();
+            RebuildNodeLabels();
+
+            _selectedNodeIndex = _data.Nodes.Count - 1;
+            _branchPreviewActive = false;
+            _branchPreviewParentIndex = -1;
+            Repaint();
+        }
+
+        private static int ComputeNextNodeId(IReadOnlyList<SkillTreeData.SkillNodeEntry> nodes)
+        {
+            if (nodes.Count == 0) return 0;
+            int max = nodes[0].id;
+            for (int i = 1; i < nodes.Count; i++)
+            {
+                if (nodes[i].id > max)
+                    max = nodes[i].id;
+            }
+            return max + 1;
         }
 
         internal static int HitTestNode(Vector2 mousePos, Vector2 origin, IReadOnlyList<SkillTreeData.SkillNodeEntry> nodes, float unitSize, float nodeSize, float zoom)
