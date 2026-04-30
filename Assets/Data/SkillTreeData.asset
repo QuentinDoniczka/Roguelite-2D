@@ -12,8 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9568085fa8c1a7f43962fb27b9ab0163, type: 3}
   m_Name: SkillTreeData
   m_EditorClassIdentifier: RogueliteAutoBattler.Runtime::RogueliteAutoBattler.Data.SkillTreeData
-  ringRadius: 5
-  ringNodeCount: 6
   unitSize: 40
   nodeSize: 48
   nodeColor: {r: 0.3, g: 0.3, b: 0.3, a: 1}
@@ -25,78 +23,5 @@ MonoBehaviour:
   costAdditivePerLevel: 0
   defaultGeneratedMaxLevel: 0
   edgeColor: {r: 0.6, g: 0.6, b: 0.6, a: 1}
-  ringGuideColor: {r: 0.25, g: 0.25, b: 0.25, a: 0.5}
   edgeThickness: 4
-  nodes:
-  - id: 0
-    position: {x: 5, y: 0}
-    connectedNodeIds: 
-    costType: 0
-    maxLevel: 0
-    baseCost: 5
-    costMultiplierOdd: 2
-    costMultiplierEven: 5
-    costAdditivePerLevel: 0
-    statModifierType: 0
-    statModifierMode: 1
-    statModifierValuePerLevel: 5
-  - id: 1
-    position: {x: 2.4999999, y: 4.3301272}
-    connectedNodeIds: 
-    costType: 0
-    maxLevel: 0
-    baseCost: 5
-    costMultiplierOdd: 2
-    costMultiplierEven: 5
-    costAdditivePerLevel: 0
-    statModifierType: 2
-    statModifierMode: 1
-    statModifierValuePerLevel: 5
-  - id: 2
-    position: {x: -2.5000004, y: 4.3301268}
-    connectedNodeIds: 
-    costType: 0
-    maxLevel: 0
-    baseCost: 5
-    costMultiplierOdd: 2
-    costMultiplierEven: 5
-    costAdditivePerLevel: 0
-    statModifierType: 3
-    statModifierMode: 1
-    statModifierValuePerLevel: 5
-  - id: 3
-    position: {x: -5, y: -0.0000004371139}
-    connectedNodeIds: 
-    costType: 0
-    maxLevel: 0
-    baseCost: 5
-    costMultiplierOdd: 2
-    costMultiplierEven: 5
-    costAdditivePerLevel: 0
-    statModifierType: 6
-    statModifierMode: 1
-    statModifierValuePerLevel: 5
-  - id: 4
-    position: {x: -2.4999996, y: -4.3301272}
-    connectedNodeIds: 
-    costType: 0
-    maxLevel: 0
-    baseCost: 5
-    costMultiplierOdd: 2
-    costMultiplierEven: 5
-    costAdditivePerLevel: 0
-    statModifierType: 7
-    statModifierMode: 1
-    statModifierValuePerLevel: 5
-  - id: 5
-    position: {x: 2.4999996, y: -4.3301272}
-    connectedNodeIds: 
-    costType: 0
-    maxLevel: 0
-    baseCost: 5
-    costMultiplierOdd: 2
-    costMultiplierEven: 5
-    costAdditivePerLevel: 0
-    statModifierType: 1
-    statModifierMode: 1
-    statModifierValuePerLevel: 5
+  nodes: []

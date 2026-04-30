@@ -35,9 +35,8 @@ namespace RogueliteAutoBattler.Tests.EditMode
             };
         }
 
-        private void InitializeData(int ringNodeCount, List<SkillTreeData.SkillNodeEntry> nodes)
+        private void InitializeData(List<SkillTreeData.SkillNodeEntry> nodes)
         {
-            _data.RingNodeCount = ringNodeCount;
             _data.InitializeForTest(nodes);
         }
 
@@ -49,7 +48,7 @@ namespace RogueliteAutoBattler.Tests.EditMode
                 MakeNode(0, 5, null),
                 MakeNode(1, 5, null)
             };
-            InitializeData(ringNodeCount: 2, nodes);
+            InitializeData(nodes);
 
             var evaluator = new SkillTreeStateEvaluator(_data, _progress);
 
@@ -64,7 +63,7 @@ namespace RogueliteAutoBattler.Tests.EditMode
             {
                 MakeNode(0, 5, null)
             };
-            InitializeData(ringNodeCount: 1, nodes);
+            InitializeData(nodes);
             _progress.SetLevel(0, 1);
 
             var evaluator = new SkillTreeStateEvaluator(_data, _progress);
@@ -80,7 +79,7 @@ namespace RogueliteAutoBattler.Tests.EditMode
                 MakeNode(0, 5, new List<int> { 1 }),
                 MakeNode(1, 5, null)
             };
-            InitializeData(ringNodeCount: 1, nodes);
+            InitializeData(nodes);
 
             var evaluator = new SkillTreeStateEvaluator(_data, _progress);
 
@@ -96,7 +95,7 @@ namespace RogueliteAutoBattler.Tests.EditMode
                 MakeNode(1, 5, new List<int> { 2 }),
                 MakeNode(2, 5, null)
             };
-            InitializeData(ringNodeCount: 2, nodes);
+            InitializeData(nodes);
             _progress.SetLevel(0, 1);
 
             var evaluator = new SkillTreeStateEvaluator(_data, _progress);
@@ -112,7 +111,7 @@ namespace RogueliteAutoBattler.Tests.EditMode
                 MakeNode(0, 5, new List<int> { 1 }),
                 MakeNode(1, 5, null)
             };
-            InitializeData(ringNodeCount: 1, nodes);
+            InitializeData(nodes);
             _progress.SetLevel(1, 1);
 
             var evaluator = new SkillTreeStateEvaluator(_data, _progress);
@@ -128,7 +127,7 @@ namespace RogueliteAutoBattler.Tests.EditMode
                 MakeNode(0, 5, null),
                 MakeNode(1, 5, null)
             };
-            InitializeData(ringNodeCount: 1, nodes);
+            InitializeData(nodes);
 
             var evaluator = new SkillTreeStateEvaluator(_data, _progress);
 
@@ -143,7 +142,7 @@ namespace RogueliteAutoBattler.Tests.EditMode
                 MakeNode(0, 5, new List<int> { 1 }),
                 MakeNode(1, 3, null)
             };
-            InitializeData(ringNodeCount: 1, nodes);
+            InitializeData(nodes);
             _progress.SetLevel(1, 3);
 
             var evaluator = new SkillTreeStateEvaluator(_data, _progress);

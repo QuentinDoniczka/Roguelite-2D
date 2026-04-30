@@ -10,8 +10,6 @@ namespace RogueliteAutoBattler.Data
     [CreateAssetMenu(fileName = "SkillTreeData", menuName = "Roguelite/Skill Tree Data")]
     public class SkillTreeData : ScriptableObject
     {
-        public const int DefaultRingNodeCount = 6;
-        public const float DefaultRingRadius = 5f;
         public const float DefaultUnitSize = 40f;
         public const float DefaultNodeSize = 48f;
         public const float DefaultEdgeThickness = 4f;
@@ -21,7 +19,6 @@ namespace RogueliteAutoBattler.Data
         public static readonly Color DefaultBorderNormalColor = Color.gray;
         public static readonly Color DefaultBorderSelectedColor = Color.yellow;
         public static readonly Color DefaultEdgeColor = new Color(0.6f, 0.6f, 0.6f, 1f);
-        public static readonly Color DefaultRingGuideColor = new Color(0.25f, 0.25f, 0.25f, 0.5f);
 
         public enum CostType
         {
@@ -34,16 +31,6 @@ namespace RogueliteAutoBattler.Data
             Flat,
             Percent
         }
-
-        internal static readonly (StatType stat, StatModifierMode mode, float valuePerLevel)[] DefaultNodeStatRotation =
-        {
-            (StatType.Hp, StatModifierMode.Percent, 5f),
-            (StatType.Atk, StatModifierMode.Percent, 5f),
-            (StatType.Def, StatModifierMode.Percent, 5f),
-            (StatType.AttackSpeed, StatModifierMode.Percent, 5f),
-            (StatType.CritRate, StatModifierMode.Percent, 5f),
-            (StatType.RegenHp, StatModifierMode.Percent, 5f)
-        };
 
         [Serializable]
         public struct SkillNodeEntry
@@ -62,10 +49,6 @@ namespace RogueliteAutoBattler.Data
             public float statModifierValuePerLevel;
         }
 
-        [Header("Generation")]
-        [SerializeField] private float ringRadius = DefaultRingRadius;
-        [SerializeField, Range(3, 24)] private int ringNodeCount = DefaultRingNodeCount;
-
         [Header("Visual")]
         [SerializeField] private float unitSize = DefaultUnitSize;
         [SerializeField] private float nodeSize = DefaultNodeSize;
@@ -77,16 +60,15 @@ namespace RogueliteAutoBattler.Data
         [SerializeField] private int baseCost = 1;
         [SerializeField] private float costMultiplierOdd = 1f;
         [SerializeField] private float costMultiplierEven = 1f;
-        [SerializeField] private int costAdditivePerLevel = 0;
+        [SerializeField] private int costAdditivePerLevel;
         [FormerlySerializedAs("defaultMaxLevel")]
         [SerializeField] private int defaultGeneratedMaxLevel = DefaultMaxLevel;
 
         [Header("Edge Visual")]
         [SerializeField] private Color edgeColor = DefaultEdgeColor;
-        [SerializeField] private Color ringGuideColor = DefaultRingGuideColor;
         [SerializeField] private float edgeThickness = DefaultEdgeThickness;
 
-        [Header("Generated Nodes")]
+        [Header("Nodes")]
         [SerializeField] private List<SkillNodeEntry> nodes = new List<SkillNodeEntry>();
 
         private (int fromId, int toId)[] _cachedEdges;
@@ -96,8 +78,6 @@ namespace RogueliteAutoBattler.Data
             _cachedEdges = null;
         }
 
-        public float RingRadius { get => ringRadius; internal set => ringRadius = value; }
-        public int RingNodeCount { get => ringNodeCount; internal set => ringNodeCount = value; }
         public float UnitSize { get => unitSize; internal set => unitSize = value; }
         public float NodeSize { get => nodeSize; internal set => nodeSize = value; }
         public Color NodeColor { get => nodeColor; internal set => nodeColor = value; }
@@ -109,45 +89,8 @@ namespace RogueliteAutoBattler.Data
         public int CostAdditivePerLevel { get => costAdditivePerLevel; internal set => costAdditivePerLevel = value; }
         public int DefaultGeneratedMaxLevel { get => defaultGeneratedMaxLevel; internal set => defaultGeneratedMaxLevel = value; }
         public Color EdgeColor { get => edgeColor; internal set => edgeColor = value; }
-        public Color RingGuideColor { get => ringGuideColor; internal set => ringGuideColor = value; }
         public float EdgeThickness { get => edgeThickness; internal set => edgeThickness = value; }
         public IReadOnlyList<SkillNodeEntry> Nodes => nodes;
-
-        public void GenerateNodes()
-        {
-            nodes.Clear();
-            _cachedEdges = null;
-            BuildRingLayout(nodes, ringNodeCount, ringRadius, baseCost, costMultiplierOdd, costMultiplierEven, costAdditivePerLevel, defaultGeneratedMaxLevel);
-        }
-
-        internal static void BuildRingLayout(List<SkillNodeEntry> output, int nodeCount, float radius,
-            int defaultBaseCost = 1, float defaultMultOdd = 1f, float defaultMultEven = 1f, int defaultAdditive = 0, int defaultGeneratedMaxLevel = DefaultMaxLevel)
-        {
-            Debug.Assert(nodeCount > 0, "Ring node count must be positive");
-
-            int rotationLength = DefaultNodeStatRotation.Length;
-            for (int i = 0; i < nodeCount; i++)
-            {
-                float angle = i * (2f * Mathf.PI / nodeCount);
-                Vector2 pos = new Vector2(radius * Mathf.Cos(angle), radius * Mathf.Sin(angle));
-                var rotationEntry = DefaultNodeStatRotation[i % rotationLength];
-                output.Add(new SkillNodeEntry
-                {
-                    id = i,
-                    position = pos,
-                    connectedNodeIds = new List<int>(),
-                    costType = CostType.Gold,
-                    maxLevel = defaultGeneratedMaxLevel,
-                    baseCost = defaultBaseCost,
-                    costMultiplierOdd = defaultMultOdd,
-                    costMultiplierEven = defaultMultEven,
-                    costAdditivePerLevel = defaultAdditive,
-                    statModifierType = rotationEntry.stat,
-                    statModifierMode = rotationEntry.mode,
-                    statModifierValuePerLevel = rotationEntry.valuePerLevel
-                });
-            }
-        }
 
         public (int fromId, int toId)[] GetEdges()
         {

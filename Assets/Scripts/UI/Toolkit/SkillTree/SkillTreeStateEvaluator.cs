@@ -59,14 +59,8 @@ namespace RogueliteAutoBattler.UI.Toolkit.SkillTree
             return SkillTreeNodeVisualState.Available;
         }
 
-        private bool IsOnGenerationRing(int nodeIndex)
-        {
-            return nodeIndex < _data.RingNodeCount;
-        }
-
         private bool IsLockedByParents(int nodeIndex)
         {
-            if (IsOnGenerationRing(nodeIndex)) return false;
             if (!_parentsByIndex.TryGetValue(nodeIndex, out var parents)) return false;
             if (parents.Count == 0) return false;
             foreach (var parentIndex in parents)

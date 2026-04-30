@@ -27,7 +27,21 @@ namespace RogueliteAutoBattler.Tests.EditMode
             var asset = ScriptableObject.CreateInstance<SkillTreeData>();
             try
             {
-                asset.GenerateNodes();
+                asset.AddNode(new SkillTreeData.SkillNodeEntry
+                {
+                    id = 0,
+                    position = Vector2.zero,
+                    connectedNodeIds = new List<int>(),
+                    costType = SkillTreeData.CostType.Gold,
+                    maxLevel = 1,
+                    baseCost = 1,
+                    costMultiplierOdd = 1f,
+                    costMultiplierEven = 1f,
+                    costAdditivePerLevel = 0,
+                    statModifierType = StatType.Hp,
+                    statModifierMode = SkillTreeData.StatModifierMode.Flat,
+                    statModifierValuePerLevel = 0f
+                });
 
                 var report = StatTypeValidator.Run(new[] { asset });
 
