@@ -42,18 +42,6 @@ namespace RogueliteAutoBattler.Tests.EditMode
             };
         }
 
-        private static int ComputeNextNodeId(IReadOnlyList<SkillTreeData.SkillNodeEntry> nodes)
-        {
-            if (nodes.Count == 0) return 0;
-            int max = nodes[0].id;
-            for (int i = 1; i < nodes.Count; i++)
-            {
-                if (nodes[i].id > max)
-                    max = nodes[i].id;
-            }
-            return max + 1;
-        }
-
         [Test]
         public void Generate_AddsNodeAtComputedPosition()
         {
@@ -62,7 +50,7 @@ namespace RogueliteAutoBattler.Tests.EditMode
 
             float distance = 2f;
             Vector2 expectedPos = BranchPlacement.ComputeBranchPosition(parent.position, distance);
-            int newId = ComputeNextNodeId(_data.Nodes);
+            int newId = SkillTreeNodeIdAllocator.ComputeNextNodeId(_data.Nodes);
             var newEntry = SkillTreeNodeFactory.CreateBranchNode(newId, expectedPos);
             _data.AddNode(newEntry);
 
@@ -78,7 +66,7 @@ namespace RogueliteAutoBattler.Tests.EditMode
             _data.InitializeForTest(new List<SkillTreeData.SkillNodeEntry> { parent });
 
             Vector2 newPos = BranchPlacement.ComputeBranchPosition(parent.position, 2f);
-            int newId = ComputeNextNodeId(_data.Nodes);
+            int newId = SkillTreeNodeIdAllocator.ComputeNextNodeId(_data.Nodes);
             var newEntry = SkillTreeNodeFactory.CreateBranchNode(newId, newPos);
             _data.AddNode(newEntry);
             _data.AddEdge(parent.id, newId);
@@ -99,7 +87,7 @@ namespace RogueliteAutoBattler.Tests.EditMode
             };
             _data.InitializeForTest(existing);
 
-            int newId = ComputeNextNodeId(_data.Nodes);
+            int newId = SkillTreeNodeIdAllocator.ComputeNextNodeId(_data.Nodes);
 
             Assert.AreEqual(6, newId);
         }
@@ -111,7 +99,7 @@ namespace RogueliteAutoBattler.Tests.EditMode
             _data.InitializeForTest(new List<SkillTreeData.SkillNodeEntry> { parent });
 
             Vector2 newPos = BranchPlacement.ComputeBranchPosition(parent.position, 2f);
-            int newId = ComputeNextNodeId(_data.Nodes);
+            int newId = SkillTreeNodeIdAllocator.ComputeNextNodeId(_data.Nodes);
             var newEntry = SkillTreeNodeFactory.CreateBranchNode(newId, newPos);
             _data.AddNode(newEntry);
 

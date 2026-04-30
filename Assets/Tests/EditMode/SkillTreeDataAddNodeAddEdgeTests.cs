@@ -90,5 +90,25 @@ namespace RogueliteAutoBattler.Tests.EditMode
 
             Assert.Throws<ArgumentException>(() => _data.AddEdge(0, 0));
         }
+
+        [Test]
+        public void AddBranchNode_AtomicallyValidatesBeforeMutation()
+        {
+            var parent = MakeNode(0, Vector2.zero);
+            _data.InitializeForTest(new List<SkillTreeData.SkillNodeEntry> { parent });
+            int originalCount = _data.Nodes.Count;
+            int originalParentConnectionCount = _data.Nodes[0].connectedNodeIds.Count;
+
+            var newEntry = MakeNode(5, new Vector2(1f, 0f));
+
+            Assert.Throws<ArgumentException>(() => _data.AddBranchNode(newEntry, 999));
+
+            Assert.AreEqual(originalCount, _data.Nodes.Count);
+            Assert.AreEqual(originalParentConnectionCount, _data.Nodes[0].connectedNodeIds.Count);
+            for (int i = 0; i < _data.Nodes.Count; i++)
+            {
+                Assert.AreNotEqual(5, _data.Nodes[i].id);
+            }
+        }
     }
 }

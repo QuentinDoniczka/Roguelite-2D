@@ -16,10 +16,15 @@ namespace RogueliteAutoBattler.Editor.Windows
         private const float NodeBorderThickness = 2f;
         private const float ZoomScrollSensitivity = 0.05f;
         private const float MinGridSpacingThreshold = 5f;
+        private const float DefaultBranchPreviewDistance = 2f;
+        private const float MinBranchPreviewDistance = 0.5f;
+        private const float MaxBranchPreviewDistance = 10f;
+        private const float BranchPreviewDottedSegmentSize = 6f;
 
         private static readonly Color CanvasBackgroundColor = new Color(0.15f, 0.15f, 0.15f, 1f);
         private static readonly Color CrosshairColor = new Color(0.4f, 0.4f, 0.4f, 1f);
         private static readonly Color GridLineColor = new Color(0.2f, 0.2f, 0.2f, 1f);
+        private static readonly Color BranchPreviewTintColor = new Color(1f, 1f, 1f, 0.4f);
 
         private static readonly GUIContent LabelRingNodeCount = new GUIContent("Ring Node Count");
         private static readonly GUIContent LabelRingRadius = new GUIContent("Ring Radius");
@@ -64,7 +69,7 @@ namespace RogueliteAutoBattler.Editor.Windows
         private static readonly string[] TabLabels = { "Skill Tree", "Node" };
         private bool _branchPreviewActive;
         private int _branchPreviewParentIndex = -1;
-        private float _branchPreviewDistance = 2f;
+        private float _branchPreviewDistance = DefaultBranchPreviewDistance;
 
         [MenuItem("Roguelite/Skill Tree Designer")]
         private static void OpenWindow()
@@ -198,11 +203,11 @@ namespace RogueliteAutoBattler.Editor.Windows
                 Vector2 previewPos = BranchPlacement.ComputeBranchPosition(parentPos, _branchPreviewDistance);
                 Vector2 parentScreen = origin + parentPos * scaledUnit;
                 Vector2 previewScreen = origin + previewPos * scaledUnit;
-                Handles.color = new Color(1f, 1f, 1f, 0.4f);
+                Handles.color = BranchPreviewTintColor;
                 Handles.DrawDottedLine(
                     new Vector3(parentScreen.x, parentScreen.y, 0f),
                     new Vector3(previewScreen.x, previewScreen.y, 0f),
-                    6f);
+                    BranchPreviewDottedSegmentSize);
                 Handles.DrawWireDisc(new Vector3(previewScreen.x, previewScreen.y, 0f), Vector3.forward, halfNode);
             }
             Handles.EndGUI();
@@ -426,14 +431,14 @@ namespace RogueliteAutoBattler.Editor.Windows
                 {
                     _branchPreviewActive = true;
                     _branchPreviewParentIndex = _selectedNodeIndex;
-                    _branchPreviewDistance = 2f;
+                    _branchPreviewDistance = DefaultBranchPreviewDistance;
                     Repaint();
                 }
             }
             else
             {
                 EditorGUI.BeginChangeCheck();
-                _branchPreviewDistance = EditorGUILayout.Slider("Distance", _branchPreviewDistance, 0.5f, 10f);
+                _branchPreviewDistance = EditorGUILayout.Slider("Distance", _branchPreviewDistance, MinBranchPreviewDistance, MaxBranchPreviewDistance);
                 if (EditorGUI.EndChangeCheck())
                     Repaint();
 
@@ -457,12 +462,11 @@ namespace RogueliteAutoBattler.Editor.Windows
 
             int parentId = _data.Nodes[parentIndex].id;
             Vector2 newPos = BranchPlacement.ComputeBranchPosition(_data.Nodes[parentIndex].position, _branchPreviewDistance);
-            int newId = ComputeNextNodeId(_data.Nodes);
+            int newId = SkillTreeNodeIdAllocator.ComputeNextNodeId(_data.Nodes);
 
             Undo.RegisterCompleteObjectUndo(_data, "Create Branch Node");
             var newEntry = SkillTreeNodeFactory.CreateBranchNode(newId, newPos);
-            _data.AddNode(newEntry);
-            _data.AddEdge(parentId, newId);
+            _data.AddBranchNode(newEntry, parentId);
             EditorUtility.SetDirty(_data);
             AssetDatabase.SaveAssets();
             _serializedData.Update();
@@ -472,18 +476,6 @@ namespace RogueliteAutoBattler.Editor.Windows
             _branchPreviewActive = false;
             _branchPreviewParentIndex = -1;
             Repaint();
-        }
-
-        private static int ComputeNextNodeId(IReadOnlyList<SkillTreeData.SkillNodeEntry> nodes)
-        {
-            if (nodes.Count == 0) return 0;
-            int max = nodes[0].id;
-            for (int i = 1; i < nodes.Count; i++)
-            {
-                if (nodes[i].id > max)
-                    max = nodes[i].id;
-            }
-            return max + 1;
         }
 
         internal static int HitTestNode(Vector2 mousePos, Vector2 origin, IReadOnlyList<SkillTreeData.SkillNodeEntry> nodes, float unitSize, float nodeSize, float zoom)
