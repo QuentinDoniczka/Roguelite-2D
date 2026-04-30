@@ -1,5 +1,4 @@
 using System;
-using System.Linq;
 using NUnit.Framework;
 using RogueliteAutoBattler.Combat.Core;
 using RogueliteAutoBattler.Data;
