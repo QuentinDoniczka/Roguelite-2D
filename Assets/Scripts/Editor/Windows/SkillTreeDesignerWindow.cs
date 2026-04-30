@@ -16,7 +16,6 @@ namespace RogueliteAutoBattler.Editor.Windows
         private const float NodeBorderThickness = 2f;
         private const float ZoomScrollSensitivity = 0.05f;
         private const float MinGridSpacingThreshold = 5f;
-        private const float DefaultBranchPreviewDistance = 2f;
         private const float MinBranchPreviewDistance = 0.5f;
         private const float MaxBranchPreviewDistance = 10f;
         private const float BranchPreviewDottedSegmentSize = 6f;
@@ -69,7 +68,8 @@ namespace RogueliteAutoBattler.Editor.Windows
         private bool _branchPreviewActive;
         private int _branchPreviewParentIndex = -1;
         private int _branchPreviewPreviousTab;
-        private float _branchPreviewDistance = DefaultBranchPreviewDistance;
+        private BranchPreviewSettings _branchPreviewSettings = BranchPreviewSettings.Defaults;
+        private BranchPreviewSettings _lastBranchPreviewSettings = BranchPreviewSettings.Defaults;
 
         [MenuItem("Roguelite/Skill Tree Designer")]
         private static void OpenWindow()
@@ -200,7 +200,7 @@ namespace RogueliteAutoBattler.Editor.Windows
             if (_branchPreviewActive && _branchPreviewParentIndex >= 0 && _branchPreviewParentIndex < _data.Nodes.Count)
             {
                 Vector2 parentPos = _data.Nodes[_branchPreviewParentIndex].position;
-                Vector2 previewPos = BranchPlacement.ComputeBranchPosition(parentPos, _branchPreviewDistance);
+                Vector2 previewPos = BranchPlacement.ComputeBranchPosition(parentPos, _branchPreviewSettings.distance);
                 Vector2 parentScreen = origin + parentPos * scaledUnit;
                 Vector2 previewScreen = origin + previewPos * scaledUnit;
                 Handles.color = BranchPreviewTintColor;
@@ -379,7 +379,7 @@ namespace RogueliteAutoBattler.Editor.Windows
                 _branchPreviewPreviousTab = _activeTab;
                 _branchPreviewActive = true;
                 _branchPreviewParentIndex = _selectedNodeIndex;
-                _branchPreviewDistance = DefaultBranchPreviewDistance;
+                _branchPreviewSettings = _lastBranchPreviewSettings;
                 _activeTab = 2;
                 Repaint();
             }
@@ -455,7 +455,7 @@ namespace RogueliteAutoBattler.Editor.Windows
             EditorGUILayout.LabelField($"Branch from Node {_branchPreviewParentIndex}", EditorStyles.boldLabel);
 
             EditorGUI.BeginChangeCheck();
-            _branchPreviewDistance = EditorGUILayout.Slider("Distance", _branchPreviewDistance, MinBranchPreviewDistance, MaxBranchPreviewDistance);
+            _branchPreviewSettings.distance = EditorGUILayout.Slider("Distance", _branchPreviewSettings.distance, MinBranchPreviewDistance, MaxBranchPreviewDistance);
             if (EditorGUI.EndChangeCheck())
                 Repaint();
 
@@ -482,7 +482,7 @@ namespace RogueliteAutoBattler.Editor.Windows
             if (parentIndex < 0 || parentIndex >= _data.Nodes.Count) return;
 
             int parentId = _data.Nodes[parentIndex].id;
-            Vector2 newPos = BranchPlacement.ComputeBranchPosition(_data.Nodes[parentIndex].position, _branchPreviewDistance);
+            Vector2 newPos = BranchPlacement.ComputeBranchPosition(_data.Nodes[parentIndex].position, _branchPreviewSettings.distance);
             int newId = SkillTreeNodeIdAllocator.ComputeNextNodeId(_data.Nodes);
 
             Undo.RegisterCompleteObjectUndo(_data, "Create Branch Node");
@@ -493,6 +493,7 @@ namespace RogueliteAutoBattler.Editor.Windows
             _serializedData.Update();
             RebuildNodeLabels();
 
+            _lastBranchPreviewSettings = _branchPreviewSettings;
             _selectedNodeIndex = _data.Nodes.Count - 1;
             _branchPreviewActive = false;
             _branchPreviewParentIndex = -1;
