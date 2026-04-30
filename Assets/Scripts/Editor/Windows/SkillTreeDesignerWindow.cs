@@ -66,9 +66,9 @@ namespace RogueliteAutoBattler.Editor.Windows
         private string[] _nodeLabels;
         private int _selectedNodeIndex = -1;
         private int _activeTab;
-        private static readonly string[] TabLabels = { "Skill Tree", "Node" };
         private bool _branchPreviewActive;
         private int _branchPreviewParentIndex = -1;
+        private int _branchPreviewPreviousTab;
         private float _branchPreviewDistance = DefaultBranchPreviewDistance;
 
         [MenuItem("Roguelite/Skill Tree Designer")]
@@ -251,7 +251,8 @@ namespace RogueliteAutoBattler.Editor.Windows
 
                 int hitIndex = HitTestNode(mouseInCanvas, origin, _data.Nodes, _data.UnitSize, _data.NodeSize, _canvasZoom);
                 _selectedNodeIndex = hitIndex;
-                _activeTab = hitIndex >= 0 ? 1 : 0;
+                if (!_branchPreviewActive)
+                    _activeTab = hitIndex >= 0 ? 1 : 0;
                 evt.Use();
                 Repaint();
             }
@@ -268,14 +269,19 @@ namespace RogueliteAutoBattler.Editor.Windows
         {
             _serializedData.Update();
 
-            _activeTab = GUILayout.Toolbar(_activeTab, TabLabels);
+            string[] tabLabels = _branchPreviewActive
+                ? new[] { "Skill Tree", "Node", "Branch" }
+                : new[] { "Skill Tree", "Node" };
+            _activeTab = GUILayout.Toolbar(_activeTab, tabLabels);
 
             _configScrollPos = EditorGUILayout.BeginScrollView(_configScrollPos);
 
             if (_activeTab == 0)
                 DrawSkillTreeTab();
-            else
+            else if (_activeTab == 1)
                 DrawNodeTab();
+            else
+                DrawBranchTab();
 
             if (_serializedData.ApplyModifiedProperties())
                 Repaint();
@@ -368,6 +374,18 @@ namespace RogueliteAutoBattler.Editor.Windows
 
             EditorGUILayout.LabelField($"Node {_selectedNodeIndex}", EditorStyles.boldLabel);
 
+            if (GUILayout.Button("Create Branch from Selected"))
+            {
+                _branchPreviewPreviousTab = _activeTab;
+                _branchPreviewActive = true;
+                _branchPreviewParentIndex = _selectedNodeIndex;
+                _branchPreviewDistance = DefaultBranchPreviewDistance;
+                _activeTab = 2;
+                Repaint();
+            }
+
+            EditorGUILayout.Space(8);
+
             var node = _data.Nodes[_selectedNodeIndex];
 
             EditorGUI.BeginChangeCheck();
@@ -422,37 +440,40 @@ namespace RogueliteAutoBattler.Editor.Windows
             if (node.maxLevel == 0)
                 EditorGUILayout.LabelField("  ...", "(unlimited)");
 
-            EditorGUILayout.Space(16);
-            EditorGUILayout.LabelField("Branch", EditorStyles.boldLabel);
+        }
 
-            if (!_branchPreviewActive)
-            {
-                if (GUILayout.Button("Create Branch from Selected"))
-                {
-                    _branchPreviewActive = true;
-                    _branchPreviewParentIndex = _selectedNodeIndex;
-                    _branchPreviewDistance = DefaultBranchPreviewDistance;
-                    Repaint();
-                }
-            }
-            else
-            {
-                EditorGUI.BeginChangeCheck();
-                _branchPreviewDistance = EditorGUILayout.Slider("Distance", _branchPreviewDistance, MinBranchPreviewDistance, MaxBranchPreviewDistance);
-                if (EditorGUI.EndChangeCheck())
-                    Repaint();
+        private void DrawBranchTab()
+        {
+            EditorGUILayout.Space(8);
 
-                EditorGUILayout.BeginHorizontal();
-                if (GUILayout.Button("Generate"))
-                    ExecuteGenerateBranch();
-                if (GUILayout.Button("Cancel"))
-                {
-                    _branchPreviewActive = false;
-                    _branchPreviewParentIndex = -1;
-                    Repaint();
-                }
-                EditorGUILayout.EndHorizontal();
+            if (!_branchPreviewActive || _branchPreviewParentIndex < 0 || _branchPreviewParentIndex >= _data.Nodes.Count)
+            {
+                EditorGUILayout.HelpBox("Branch preview not active.", MessageType.Info);
+                return;
             }
+
+            EditorGUILayout.LabelField($"Branch from Node {_branchPreviewParentIndex}", EditorStyles.boldLabel);
+
+            EditorGUI.BeginChangeCheck();
+            _branchPreviewDistance = EditorGUILayout.Slider("Distance", _branchPreviewDistance, MinBranchPreviewDistance, MaxBranchPreviewDistance);
+            if (EditorGUI.EndChangeCheck())
+                Repaint();
+
+            EditorGUILayout.Space(8);
+            EditorGUILayout.BeginHorizontal();
+            if (GUILayout.Button("Generate"))
+                ExecuteGenerateBranch();
+            if (GUILayout.Button("Cancel"))
+                CancelBranchPreview();
+            EditorGUILayout.EndHorizontal();
+        }
+
+        private void CancelBranchPreview()
+        {
+            _branchPreviewActive = false;
+            _branchPreviewParentIndex = -1;
+            _activeTab = _branchPreviewPreviousTab;
+            Repaint();
         }
 
         private void ExecuteGenerateBranch()
@@ -475,6 +496,7 @@ namespace RogueliteAutoBattler.Editor.Windows
             _selectedNodeIndex = _data.Nodes.Count - 1;
             _branchPreviewActive = false;
             _branchPreviewParentIndex = -1;
+            _activeTab = 1;
             Repaint();
         }
 
