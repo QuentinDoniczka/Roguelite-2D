@@ -20,7 +20,7 @@ namespace RogueliteAutoBattler.Tests.EditMode
         [TearDown]
         public void TearDown()
         {
-            Object.DestroyImmediate(_data);
+            UnityEngine.Object.DestroyImmediate(_data);
         }
 
         private static SkillTreeData.SkillNodeEntry MakeNode(int id, Vector2 position)
