@@ -1,5 +1,6 @@
 #if UNITY_EDITOR
 using System.Collections;
+using System.Collections.Generic;
 using NUnit.Framework;
 using RogueliteAutoBattler.Combat.Core;
 using RogueliteAutoBattler.Data;
@@ -69,12 +70,30 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             _uiDocument.rootVisualElement.Add(_panelRoot);
 
             _data = ScriptableObject.CreateInstance<SkillTreeData>();
-            _data.RingNodeCount = 4;
-            _data.RingRadius = 5f;
             _data.BaseCost = 10;
             _data.CostMultiplierOdd = 1.5f;
             _data.CostMultiplierEven = 1.5f;
-            _data.GenerateNodes();
+            const int testNodeCount = 4;
+            const float testRadius = 5f;
+            for (int i = 0; i < testNodeCount; i++)
+            {
+                float angle = i * (2f * Mathf.PI / testNodeCount);
+                _data.AddNode(new SkillTreeData.SkillNodeEntry
+                {
+                    id = i,
+                    position = new Vector2(testRadius * Mathf.Cos(angle), testRadius * Mathf.Sin(angle)),
+                    connectedNodeIds = new List<int>(),
+                    costType = SkillTreeData.CostType.Gold,
+                    maxLevel = 5,
+                    baseCost = 10,
+                    costMultiplierOdd = 1.5f,
+                    costMultiplierEven = 1.5f,
+                    costAdditivePerLevel = 0,
+                    statModifierType = StatType.Hp,
+                    statModifierMode = SkillTreeData.StatModifierMode.Flat,
+                    statModifierValuePerLevel = 0f
+                });
+            }
 
             ConfigureGoldNode(nodeIndex: 0, maxLevel: 5, statType: StatType.Atk, statValue: 3f);
             ConfigureSkillPointNode(nodeIndex: 1, maxLevel: 5, statType: StatType.Hp, statValue: 10f);
