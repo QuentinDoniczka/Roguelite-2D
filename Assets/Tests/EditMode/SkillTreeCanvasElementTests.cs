@@ -125,6 +125,28 @@ namespace RogueliteAutoBattler.Tests.EditMode
         }
 
         [Test]
+        public void HitTest_HandlesUnlaidOutCanvas_WithNonZeroDataPosition()
+        {
+            // The previous bug was masked when dataPos == Vector2.zero because NaN + 0 is still NaN
+            // and DataToScreen-of-zero produced a NaN that round-tripped to "no hit". A non-zero dataPos
+            // forces the NaN path to be exercised distinctly from the all-zero path, exposing that
+            // contentRect.center == NaN on an unlaid-out canvas was poisoning the distance check.
+            // Key: do NOT attach the canvas to a panel. We want to assert HitTest works without a layout pass.
+            const int nodeId = 3;
+            var nodes = new List<SkillTreeData.SkillNodeEntry>
+            {
+                new SkillTreeData.SkillNodeEntry { id = nodeId, position = new Vector2(2f, 3f) }
+            };
+            var data = CreateDataWithNodes(nodes);
+            var canvas = CreateCanvasWithData(data);
+
+            var clickPx = canvas.DataToScreen(new Vector2(2f, 3f));
+            var hit = canvas.HitTest(clickPx);
+
+            Assert.AreEqual(nodeId, hit);
+        }
+
+        [Test]
         public void Canvas_SetData_IncrementsMarkDirtyCount()
         {
             var nodes = new List<SkillTreeData.SkillNodeEntry>

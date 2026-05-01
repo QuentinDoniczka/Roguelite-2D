@@ -60,7 +60,10 @@ namespace RogueliteAutoBattler.Editor.Windows.SkillTreeDesigner
 
         internal Vector2 DataToScreen(Vector2 dataPos)
         {
-            return SkillTreeCanvasMesh.DataToScreen(dataPos, contentRect.center, UnitToPx, _pan, _zoom);
+            var origin = contentRect.center;
+            if (float.IsNaN(origin.x) || float.IsNaN(origin.y))
+                origin = Vector2.zero;
+            return SkillTreeCanvasMesh.DataToScreen(dataPos, origin, UnitToPx, _pan, _zoom);
         }
 
         internal int? HitTest(Vector2 localPx)
@@ -151,6 +154,8 @@ namespace RogueliteAutoBattler.Editor.Windows.SkillTreeDesigner
             var painter = mgc.painter2D;
             var viewport = contentRect;
             var origin = contentRect.center;
+            if (float.IsNaN(origin.x) || float.IsNaN(origin.y))
+                origin = Vector2.zero;
 
             SkillTreeCanvasMesh.DrawGrid(painter, viewport, _zoom, _pan, GridSpacingPx, GridColor);
             SkillTreeCanvasMesh.DrawEdges(painter, _data.Nodes, origin, UnitToPx, _pan, _zoom, EdgeColor);
