@@ -5,35 +5,40 @@ namespace RogueliteAutoBattler.Editor.Tools
     internal static class BranchPlacement
     {
         private const float DegenerateMagnitudeThreshold = 1e-6f;
+        private const float FullCircleDegrees = 360f;
+        private const float DefaultAngleForOriginParent = 0f;
 
         public static Vector2 ComputeBranchPosition(Vector2 parentPosition, float distance)
         {
-            Vector2 dir = parentPosition;
-            if (dir.sqrMagnitude < DegenerateMagnitudeThreshold)
-            {
-                dir = Vector2.right;
-            }
-            else
-            {
-                dir = dir.normalized;
-            }
-            return parentPosition + dir * distance;
+            Vector2 direction = parentPosition.sqrMagnitude < DegenerateMagnitudeThreshold
+                ? Vector2.right
+                : parentPosition.normalized;
+            return parentPosition + direction * distance;
         }
 
-        public static Vector2 ComputeBranchPosition(Vector2 parentPosition, float distance, float angleDegrees)
+        /// <summary>
+        /// Compute a branch child position offset from <paramref name="parentPosition"/>.
+        /// Angle convention is clockwise from north: 0 = north, 90 = east, 180 = south, 270 = west.
+        /// </summary>
+        public static Vector2 ComputeBranchPosition(Vector2 parentPosition, float distance, float clockwiseFromNorthDegrees)
         {
-            float rad = angleDegrees * Mathf.Deg2Rad;
-            Vector2 dir = new Vector2(Mathf.Sin(rad), Mathf.Cos(rad));
-            return parentPosition + dir * distance;
+            float radians = clockwiseFromNorthDegrees * Mathf.Deg2Rad;
+            Vector2 direction = new Vector2(Mathf.Sin(radians), Mathf.Cos(radians));
+            return parentPosition + direction * distance;
         }
 
+        /// <summary>
+        /// Compute the default branch angle pointing outward from the origin through
+        /// <paramref name="parentPosition"/>. Returned value uses the clockwise-from-north
+        /// convention (0 = north, 90 = east, 180 = south, 270 = west).
+        /// </summary>
         public static float ComputeDefaultAngle(Vector2 parentPosition)
         {
             if (parentPosition.sqrMagnitude < DegenerateMagnitudeThreshold)
-                return 0f;
+                return DefaultAngleForOriginParent;
 
-            float angle = Mathf.Atan2(parentPosition.x, parentPosition.y) * Mathf.Rad2Deg;
-            return (angle % 360f + 360f) % 360f;
+            float clockwiseFromNorthDegrees = Mathf.Atan2(parentPosition.x, parentPosition.y) * Mathf.Rad2Deg;
+            return (clockwiseFromNorthDegrees % FullCircleDegrees + FullCircleDegrees) % FullCircleDegrees;
         }
     }
 }

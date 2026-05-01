@@ -21,4 +21,9 @@ namespace RogueliteAutoBattler.Combat.Core
         CritRate = 7,
         None = 8
     }
+
+    public static class StatTypeDisplay
+    {
+        public const string NoneDisplayName = "(none)";
+    }
 }

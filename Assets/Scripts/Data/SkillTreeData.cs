@@ -163,7 +163,7 @@ namespace RogueliteAutoBattler.Data
                 StatType.Power => "Power",
                 StatType.AttackSpeed => "Attack Speed",
                 StatType.CritRate => "Crit Rate",
-                StatType.None => "(none)",
+                StatType.None => StatTypeDisplay.NoneDisplayName,
                 _ => type.ToString()
             };
         }

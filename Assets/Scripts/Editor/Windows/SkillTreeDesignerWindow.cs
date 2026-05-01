@@ -18,14 +18,22 @@ namespace RogueliteAutoBattler.Editor.Windows
         private const float MinGridSpacingThreshold = 5f;
         private const float MinBranchPreviewDistance = 0.5f;
         private const float MaxBranchPreviewDistance = 10f;
-        private const float MinBranchAngle = 0f;
-        private const float MaxBranchAngle = 360f;
+        private const float MinBranchAngleDegrees = 0f;
+        private const float MaxBranchAngleDegrees = 360f;
         private const float BranchPreviewDottedSegmentSize = 6f;
         private const int CostPreviewMaxRows = 10;
         private const float MinWindowWidth = 800f;
         private const float MinWindowHeight = 500f;
         private const int LeftMouseButton = 0;
         private const int MiddleMouseButton = 2;
+        private const int TabIndexSkillTree = 0;
+        private const int TabIndexNode = 1;
+        private const int TabIndexBranch = 2;
+        private const float SectionSpacingSmall = 8f;
+        private const float SectionSpacingMedium = 12f;
+        private const float SectionSpacingLarge = 16f;
+        private const float CrosshairLineThickness = 1f;
+        private const float CrosshairHalfPixelOffset = 0.5f;
 
         private static readonly Color CanvasBackgroundColor = new Color(0.15f, 0.15f, 0.15f, 1f);
         private static readonly Color CrosshairColor = new Color(0.4f, 0.4f, 0.4f, 1f);
@@ -44,6 +52,8 @@ namespace RogueliteAutoBattler.Editor.Windows
         private static readonly GUIContent LabelDefaultGeneratedMaxLevel = new GUIContent("Default Max Level (0 = unlimited)");
         private static readonly GUIContent LabelEdgeColor = new GUIContent("Edge Color");
         private static readonly GUIContent LabelEdgeThickness = new GUIContent("Edge Thickness");
+
+        private const string AngleSliderLabel = "Angle (deg, 0=N, 90=E)";
 
         private SkillTreeData _data;
         private SerializedObject _serializedData;
@@ -146,8 +156,8 @@ namespace RogueliteAutoBattler.Editor.Windows
 
             DrawGrid(canvasRect, origin);
 
-            EditorGUI.DrawRect(new Rect(origin.x - 0.5f, 0, 1, canvasRect.height), CrosshairColor);
-            EditorGUI.DrawRect(new Rect(0, origin.y - 0.5f, canvasRect.width, 1), CrosshairColor);
+            EditorGUI.DrawRect(new Rect(origin.x - CrosshairHalfPixelOffset, 0, CrosshairLineThickness, canvasRect.height), CrosshairColor);
+            EditorGUI.DrawRect(new Rect(0, origin.y - CrosshairHalfPixelOffset, canvasRect.width, CrosshairLineThickness), CrosshairColor);
 
             if (_nodeLabelStyle == null)
             {
@@ -246,7 +256,7 @@ namespace RogueliteAutoBattler.Editor.Windows
                 int hitIndex = HitTestNode(mouseInCanvas, origin, _data.Nodes, _data.UnitSize, _data.NodeSize, _canvasZoom);
                 _selectedNodeIndex = hitIndex;
                 if (!_branchPreviewActive)
-                    _activeTab = hitIndex >= 0 ? 1 : 0;
+                    _activeTab = hitIndex >= 0 ? TabIndexNode : TabIndexSkillTree;
                 evt.Use();
                 Repaint();
             }
@@ -270,9 +280,9 @@ namespace RogueliteAutoBattler.Editor.Windows
 
             _configScrollPos = EditorGUILayout.BeginScrollView(_configScrollPos);
 
-            if (_activeTab == 0)
+            if (_activeTab == TabIndexSkillTree)
                 DrawSkillTreeTab();
-            else if (_activeTab == 1)
+            else if (_activeTab == TabIndexNode)
                 DrawNodeTab();
             else
                 DrawBranchTab();
@@ -285,7 +295,7 @@ namespace RogueliteAutoBattler.Editor.Windows
 
         private void DrawSkillTreeTab()
         {
-            EditorGUILayout.Space(8);
+            EditorGUILayout.Space(SectionSpacingSmall);
 
             EditorGUI.BeginChangeCheck();
             var newData = (SkillTreeData)EditorGUILayout.ObjectField("Data Asset", _data, typeof(SkillTreeData), false);
@@ -296,7 +306,7 @@ namespace RogueliteAutoBattler.Editor.Windows
                 CacheSerializedProperties();
             }
 
-            EditorGUILayout.Space(12);
+            EditorGUILayout.Space(SectionSpacingMedium);
             EditorGUILayout.LabelField("Visual Settings", EditorStyles.boldLabel);
 
             EditorGUILayout.PropertyField(_propUnitSize, LabelUnitSize);
@@ -305,7 +315,7 @@ namespace RogueliteAutoBattler.Editor.Windows
             EditorGUILayout.PropertyField(_propBorderNormalColor, LabelBorderNormal);
             EditorGUILayout.PropertyField(_propBorderSelectedColor, LabelBorderSelected);
 
-            EditorGUILayout.Space(12);
+            EditorGUILayout.Space(SectionSpacingMedium);
             EditorGUILayout.LabelField("Cost Defaults (applied on Generate)", EditorStyles.boldLabel);
             EditorGUILayout.HelpBox("cost(0) = base, cost(n) = floor(prev \u00d7 mult) + add\nmult alternates: odd/even", MessageType.None);
             EditorGUILayout.PropertyField(_propBaseCost, LabelBaseCost);
@@ -314,12 +324,12 @@ namespace RogueliteAutoBattler.Editor.Windows
             EditorGUILayout.PropertyField(_propCostAdditivePerLevel, LabelCostAdditive);
             EditorGUILayout.PropertyField(_propDefaultGeneratedMaxLevel, LabelDefaultGeneratedMaxLevel);
 
-            EditorGUILayout.Space(12);
+            EditorGUILayout.Space(SectionSpacingMedium);
             EditorGUILayout.LabelField("Edge Settings", EditorStyles.boldLabel);
             EditorGUILayout.PropertyField(_propEdgeColor, LabelEdgeColor);
             EditorGUILayout.PropertyField(_propEdgeThickness, LabelEdgeThickness);
 
-            EditorGUILayout.Space(16);
+            EditorGUILayout.Space(SectionSpacingLarge);
 
             EditorGUILayout.HelpBox(
                 $"{_data.Nodes.Count} node(s). Select a node and use the Branch tab to add new nodes.",
@@ -328,7 +338,7 @@ namespace RogueliteAutoBattler.Editor.Windows
 
         private void DrawNodeTab()
         {
-            EditorGUILayout.Space(8);
+            EditorGUILayout.Space(SectionSpacingSmall);
 
             if (_selectedNodeIndex < 0 || _selectedNodeIndex >= _data.Nodes.Count)
             {
@@ -345,11 +355,11 @@ namespace RogueliteAutoBattler.Editor.Windows
                 _branchPreviewParentIndex = _selectedNodeIndex;
                 _branchPreviewSettings = _lastBranchPreviewSettings;
                 _branchPreviewSettings.angleDegrees = BranchPlacement.ComputeDefaultAngle(_data.Nodes[_selectedNodeIndex].position);
-                _activeTab = 2;
+                _activeTab = TabIndexBranch;
                 Repaint();
             }
 
-            EditorGUILayout.Space(8);
+            EditorGUILayout.Space(SectionSpacingSmall);
 
             var node = _data.Nodes[_selectedNodeIndex];
 
@@ -358,14 +368,14 @@ namespace RogueliteAutoBattler.Editor.Windows
             var newCostType = (SkillTreeData.CostType)EditorGUILayout.EnumPopup("Cost Type", node.costType);
             int newMaxLevel = EditorGUILayout.IntField("Max Level (0=unlimited)", node.maxLevel);
 
-            EditorGUILayout.Space(8);
+            EditorGUILayout.Space(SectionSpacingSmall);
             EditorGUILayout.LabelField("Cost Formula", EditorStyles.boldLabel);
             int newBaseCost = EditorGUILayout.IntField("Base Cost", node.baseCost);
             float newMultOdd = EditorGUILayout.FloatField("Multiplier (Odd)", node.costMultiplierOdd);
             float newMultEven = EditorGUILayout.FloatField("Multiplier (Even)", node.costMultiplierEven);
             int newAdditive = EditorGUILayout.IntField("Additive / Level", node.costAdditivePerLevel);
 
-            EditorGUILayout.Space(8);
+            EditorGUILayout.Space(SectionSpacingSmall);
             EditorGUILayout.LabelField("Stat Modifier", EditorStyles.boldLabel);
             var newStatModType = (StatType)EditorGUILayout.EnumPopup("Stat", node.statModifierType);
             var newStatModMode = (SkillTreeData.StatModifierMode)EditorGUILayout.EnumPopup("Mode", node.statModifierMode);
@@ -394,7 +404,7 @@ namespace RogueliteAutoBattler.Editor.Windows
                 AssetDatabase.SaveAssets();
             }
 
-            EditorGUILayout.Space(8);
+            EditorGUILayout.Space(SectionSpacingSmall);
             EditorGUILayout.LabelField("Cost Preview", EditorStyles.boldLabel);
             int previewLevels = node.maxLevel > 0 ? Mathf.Min(node.maxLevel, CostPreviewMaxRows) : CostPreviewMaxRows;
             for (int lvl = 0; lvl < previewLevels; lvl++)
@@ -405,7 +415,7 @@ namespace RogueliteAutoBattler.Editor.Windows
             if (node.maxLevel == 0)
                 EditorGUILayout.LabelField("  ...", "(unlimited)");
 
-            EditorGUILayout.Space(16);
+            EditorGUILayout.Space(SectionSpacingLarge);
             EditorGUILayout.LabelField("Danger Zone", EditorStyles.boldLabel);
 
             bool isRoot = node.id == SkillTreeData.CentralNodeId;
@@ -417,7 +427,7 @@ namespace RogueliteAutoBattler.Editor.Windows
                 EditorUtility.SetDirty(_data);
                 AssetDatabase.SaveAssets();
                 _selectedNodeIndex = -1;
-                _activeTab = 0;
+                _activeTab = TabIndexSkillTree;
                 RebuildNodeLabels();
                 _serializedData.Update();
                 Repaint();
@@ -426,12 +436,11 @@ namespace RogueliteAutoBattler.Editor.Windows
 
             if (isRoot)
                 EditorGUILayout.HelpBox("The root node cannot be deleted — it's the unlock seed.", MessageType.Info);
-
         }
 
         private void DrawBranchTab()
         {
-            EditorGUILayout.Space(8);
+            EditorGUILayout.Space(SectionSpacingSmall);
 
             if (!_branchPreviewActive || _branchPreviewParentIndex < 0 || _branchPreviewParentIndex >= _data.Nodes.Count)
             {
@@ -447,11 +456,11 @@ namespace RogueliteAutoBattler.Editor.Windows
                 Repaint();
 
             EditorGUI.BeginChangeCheck();
-            _branchPreviewSettings.angleDegrees = EditorGUILayout.Slider("Angle (deg, 0=N, 90=E)", _branchPreviewSettings.angleDegrees, MinBranchAngle, MaxBranchAngle);
+            _branchPreviewSettings.angleDegrees = EditorGUILayout.Slider(AngleSliderLabel, _branchPreviewSettings.angleDegrees, MinBranchAngleDegrees, MaxBranchAngleDegrees);
             if (EditorGUI.EndChangeCheck())
                 Repaint();
 
-            EditorGUILayout.Space(8);
+            EditorGUILayout.Space(SectionSpacingSmall);
             EditorGUILayout.BeginHorizontal();
             if (GUILayout.Button("Generate"))
                 ExecuteGenerateBranch();
@@ -489,7 +498,7 @@ namespace RogueliteAutoBattler.Editor.Windows
             _selectedNodeIndex = _data.Nodes.Count - 1;
             _branchPreviewActive = false;
             _branchPreviewParentIndex = -1;
-            _activeTab = 1;
+            _activeTab = TabIndexNode;
             Repaint();
         }
 

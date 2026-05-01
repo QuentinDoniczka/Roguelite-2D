@@ -12,8 +12,7 @@ namespace RogueliteAutoBattler.Combat.Core
         private const float PercentToDisplayMultiplier = 100f;
         private const string FractionalNumberFormat = "0.##";
 
-        private const string NoneStatLabel = "(none)";
-        private const string NoneStatPlaceholderValue = "0";
+        private const string NoneStatPlaceholderValue = "—";
 
         private static readonly Dictionary<StatType, string> StatLabels = new Dictionary<StatType, string>
         {
@@ -25,7 +24,7 @@ namespace RogueliteAutoBattler.Combat.Core
             { StatType.AttackSpeed, "AS" },
             { StatType.RegenHp, "REGEN" },
             { StatType.CritRate, "CRIT" },
-            { StatType.None, NoneStatLabel }
+            { StatType.None, StatTypeDisplay.NoneDisplayName }
         };
 
         private readonly List<Modifier> _modifiers = new List<Modifier>();
