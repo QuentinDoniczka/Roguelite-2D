@@ -19,6 +19,11 @@ namespace RogueliteAutoBattler.Editor.Windows
         private const float MinBranchPreviewDistance = 0.5f;
         private const float MaxBranchPreviewDistance = 10f;
         private const float BranchPreviewDottedSegmentSize = 6f;
+        private const int CostPreviewMaxRows = 10;
+        private const float MinWindowWidth = 800f;
+        private const float MinWindowHeight = 500f;
+        private const int LeftMouseButton = 0;
+        private const int MiddleMouseButton = 2;
 
         private static readonly Color CanvasBackgroundColor = new Color(0.15f, 0.15f, 0.15f, 1f);
         private static readonly Color CrosshairColor = new Color(0.4f, 0.4f, 0.4f, 1f);
@@ -69,7 +74,7 @@ namespace RogueliteAutoBattler.Editor.Windows
         private static void OpenWindow()
         {
             var window = GetWindow<SkillTreeDesignerWindow>("Skill Tree Designer");
-            window.minSize = new Vector2(800, 500);
+            window.minSize = new Vector2(MinWindowWidth, MinWindowHeight);
             window.Show();
         }
 
@@ -90,18 +95,18 @@ namespace RogueliteAutoBattler.Editor.Windows
 
         private void CacheSerializedProperties()
         {
-            _propUnitSize = _serializedData.FindProperty("unitSize");
-            _propNodeSize = _serializedData.FindProperty("nodeSize");
-            _propNodeColor = _serializedData.FindProperty("nodeColor");
-            _propBorderNormalColor = _serializedData.FindProperty("borderNormalColor");
-            _propBorderSelectedColor = _serializedData.FindProperty("borderSelectedColor");
-            _propBaseCost = _serializedData.FindProperty("baseCost");
-            _propCostMultiplierOdd = _serializedData.FindProperty("costMultiplierOdd");
-            _propCostMultiplierEven = _serializedData.FindProperty("costMultiplierEven");
-            _propCostAdditivePerLevel = _serializedData.FindProperty("costAdditivePerLevel");
-            _propDefaultGeneratedMaxLevel = _serializedData.FindProperty("defaultGeneratedMaxLevel");
-            _propEdgeColor = _serializedData.FindProperty("edgeColor");
-            _propEdgeThickness = _serializedData.FindProperty("edgeThickness");
+            _propUnitSize = _serializedData.FindProperty(SkillTreeData.FieldNames.UnitSize);
+            _propNodeSize = _serializedData.FindProperty(SkillTreeData.FieldNames.NodeSize);
+            _propNodeColor = _serializedData.FindProperty(SkillTreeData.FieldNames.NodeColor);
+            _propBorderNormalColor = _serializedData.FindProperty(SkillTreeData.FieldNames.BorderNormalColor);
+            _propBorderSelectedColor = _serializedData.FindProperty(SkillTreeData.FieldNames.BorderSelectedColor);
+            _propBaseCost = _serializedData.FindProperty(SkillTreeData.FieldNames.BaseCost);
+            _propCostMultiplierOdd = _serializedData.FindProperty(SkillTreeData.FieldNames.CostMultiplierOdd);
+            _propCostMultiplierEven = _serializedData.FindProperty(SkillTreeData.FieldNames.CostMultiplierEven);
+            _propCostAdditivePerLevel = _serializedData.FindProperty(SkillTreeData.FieldNames.CostAdditivePerLevel);
+            _propDefaultGeneratedMaxLevel = _serializedData.FindProperty(SkillTreeData.FieldNames.DefaultGeneratedMaxLevel);
+            _propEdgeColor = _serializedData.FindProperty(SkillTreeData.FieldNames.EdgeColor);
+            _propEdgeThickness = _serializedData.FindProperty(SkillTreeData.FieldNames.EdgeThickness);
         }
 
         private void OnGUI()
@@ -230,7 +235,7 @@ namespace RogueliteAutoBattler.Editor.Windows
                 Repaint();
             }
 
-            if (evt.type == EventType.MouseDown && evt.button == 0 && !evt.alt)
+            if (evt.type == EventType.MouseDown && evt.button == LeftMouseButton && !evt.alt)
             {
                 Vector2 mouseInCanvas = evt.mousePosition;
                 Vector2 center = new Vector2(canvasRect.width * 0.5f, canvasRect.height * 0.5f);
@@ -244,7 +249,7 @@ namespace RogueliteAutoBattler.Editor.Windows
                 Repaint();
             }
 
-            if (evt.type == EventType.MouseDrag && (evt.button == 2 || (evt.button == 0 && evt.alt)))
+            if (evt.type == EventType.MouseDrag && (evt.button == MiddleMouseButton || (evt.button == LeftMouseButton && evt.alt)))
             {
                 _canvasOffset += evt.delta;
                 evt.Use();
@@ -388,7 +393,7 @@ namespace RogueliteAutoBattler.Editor.Windows
 
             EditorGUILayout.Space(8);
             EditorGUILayout.LabelField("Cost Preview", EditorStyles.boldLabel);
-            int previewLevels = node.maxLevel > 0 ? Mathf.Min(node.maxLevel, 10) : 10;
+            int previewLevels = node.maxLevel > 0 ? Mathf.Min(node.maxLevel, CostPreviewMaxRows) : CostPreviewMaxRows;
             for (int lvl = 0; lvl < previewLevels; lvl++)
             {
                 int cost = SkillTreeData.ComputeNodeCost(node, lvl);

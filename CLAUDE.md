@@ -144,27 +144,22 @@ Assets/
         SkillTreeScreenBuilder.cs
         WalletsBuilder.cs
       Tools/
+        BranchPlacement.cs
+        BranchPreviewSettings.cs
         HudIconsImporter.cs
         LevelDatabaseBackgroundMigrator.cs
         NavIconsImporter.cs
         RebuildNewGameScene.cs
         ResetPlayerProgressMenu.cs
+        SkillTreeNodeFactory.cs
+        SkillTreeNodeIdAllocator.cs
         StatTypeValidator.cs
       Windows/
         GameDesignerWindow.cs
         LevelDesignerTab.cs
         SettingsWindow.cs
+        SkillTreeDesignerWindow.cs
         TeamBuilderTab.cs
-        SkillTreeDesigner/
-          BranchGeometry.cs
-          BranchTabController.cs
-          NodeTabController.cs
-          SkillTreeCanvasElement.cs
-          SkillTreeCanvasMesh.cs
-          SkillTreeDesignerWindow.cs
-          SkillTreeDesignerWindow.uss
-          SkillTreeDesignerWindow.uxml
-          TreeTabController.cs
     Items/  (empty)
     Data/
       DamageNumberConfig.cs
@@ -223,13 +218,12 @@ Assets/
         StubScreen.cs
       AllyStatBonusServiceResolverTests.cs
       AttackSlotRegistryTests.cs
-      BranchGeometryTests.cs
-      BranchTabControllerTests.cs
+      BranchPlacementTests.cs
       HudIconAssetTests.cs
       NavBarIconsTests.cs
-      NodeTabControllerCentralGuardTests.cs
-      SkillTreeCanvasElementTests.cs
-      SkillTreeDesignerWindowOpenTests.cs
+      SkillTreeDesignerBranchTests.cs
+      SkillTreeNodeFactoryTests.cs
+      SkillTreeNodeIdAllocatorTests.cs
       CombatStatsBreakdownAllStatsTests.cs
       CombatStatsBreakdownTests.cs
       CombatStatsDamageEventTests.cs
