@@ -1,3 +1,4 @@
+using System;
 using RogueliteAutoBattler.Data;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -36,6 +37,8 @@ namespace RogueliteAutoBattler.Editor.Windows.SkillTreeDesigner
             RegisterCallback<MouseMoveEvent>(OnMouseMove);
             RegisterCallback<MouseUpEvent>(OnMouseUp);
         }
+
+        internal event Action<int> NodeClicked;
 
         internal float Zoom => _zoom;
         internal Vector2 Pan => _pan;
@@ -89,9 +92,7 @@ namespace RogueliteAutoBattler.Editor.Windows.SkillTreeDesigner
         {
             var hit = HitTest(localPx);
             if (!hit.HasValue) return;
-            using var e = NodeClickedEvent.GetPooled(hit.Value);
-            e.target = this;
-            SendEvent(e);
+            NodeClicked?.Invoke(hit.Value);
         }
 
         private void MarkDirty()
@@ -124,11 +125,7 @@ namespace RogueliteAutoBattler.Editor.Windows.SkillTreeDesigner
             {
                 var hit = HitTest(evt.localMousePosition);
                 if (hit.HasValue)
-                {
-                    using var e = NodeClickedEvent.GetPooled(hit.Value);
-                    e.target = this;
-                    SendEvent(e);
-                }
+                    NodeClicked?.Invoke(hit.Value);
             }
         }
 

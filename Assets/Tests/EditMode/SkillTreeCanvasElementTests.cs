@@ -76,7 +76,7 @@ namespace RogueliteAutoBattler.Tests.EditMode
         }
 
         [Test]
-        public void NodeClickedEvent_FiresWithCorrectId_OnSimulateClickInsideNode()
+        public void NodeClicked_FiresWithCorrectId_OnSimulateClickInsideNode()
         {
             var nodes = new List<SkillTreeData.SkillNodeEntry>
             {
@@ -86,9 +86,7 @@ namespace RogueliteAutoBattler.Tests.EditMode
             var canvas = CreateCanvasWithData(data);
 
             int? receivedId = null;
-            var host = new VisualElement();
-            host.Add(canvas);
-            host.RegisterCallback<NodeClickedEvent>(evt => receivedId = evt.NodeId);
+            canvas.NodeClicked += id => receivedId = id;
 
             var screenPos = canvas.DataToScreen(Vector2.zero);
             canvas.SimulateClickAt(screenPos);
@@ -97,7 +95,7 @@ namespace RogueliteAutoBattler.Tests.EditMode
         }
 
         [Test]
-        public void Window_UpdatesSelectedNodeId_OnNodeClickedEvent()
+        public void Window_UpdatesSelectedNodeId_OnNodeClicked()
         {
             var nodes = new List<SkillTreeData.SkillNodeEntry>
             {
@@ -161,6 +159,28 @@ namespace RogueliteAutoBattler.Tests.EditMode
             int after = canvas.MarkDirtyRepaintCount;
 
             Assert.Greater(after, before);
+        }
+
+        [Test]
+        public void NodeClicked_FiresWithoutPanel_OnSimulateClick()
+        {
+            // WHY: pins the panel-independent contract. The previous EventBase-based dispatch
+            // silently no-oped when the canvas had no panel — this test would have caught that.
+            const int nodeId = 1;
+            var nodes = new List<SkillTreeData.SkillNodeEntry>
+            {
+                new SkillTreeData.SkillNodeEntry { id = nodeId, position = new Vector2(1f, 1f) }
+            };
+            var data = CreateDataWithNodes(nodes);
+            var canvas = new SkillTreeCanvasElement();
+            canvas.SetData(data, null);
+
+            int? received = null;
+            canvas.NodeClicked += id => received = id;
+
+            canvas.SimulateClickAt(canvas.DataToScreen(new Vector2(1f, 1f)));
+
+            Assert.That(received, Is.EqualTo(nodeId));
         }
     }
 }

@@ -80,13 +80,13 @@ namespace RogueliteAutoBattler.Editor.Windows.SkillTreeDesigner
             placeholder.RemoveFromHierarchy();
             parent.Insert(index, _canvas);
 
-            root.RegisterCallback<NodeClickedEvent>(OnNodeClicked);
+            _canvas.NodeClicked += OnNodeClickedId;
         }
 
-        private void OnNodeClicked(NodeClickedEvent evt)
+        private void OnNodeClickedId(int nodeId)
         {
-            _selectedNodeId = evt.NodeId;
-            if (_canvas != null && _data != null)
+            _selectedNodeId = nodeId;
+            if (_canvas != null)
                 _canvas.SetData(_data, _selectedNodeId);
         }
 
