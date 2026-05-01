@@ -22,7 +22,9 @@ namespace RogueliteAutoBattler.Editor.Windows.SkillTreeDesigner
             GetWindow<SkillTreeDesignerWindow>("Skill Tree Designer");
         }
 
-        private void CreateGUI()
+        private void CreateGUI() => BuildUI(rootVisualElement);
+
+        internal void BuildUI(VisualElement root)
         {
             VisualTreeAsset uxml = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(UxmlPath);
             if (uxml == null)
@@ -33,11 +35,11 @@ namespace RogueliteAutoBattler.Editor.Windows.SkillTreeDesigner
 
             TemplateContainer cloned = uxml.CloneTree();
             cloned.style.flexGrow = 1;
-            rootVisualElement.Add(cloned);
+            root.Add(cloned);
 
             StyleSheet uss = AssetDatabase.LoadAssetAtPath<StyleSheet>(UssPath);
             if (uss != null)
-                rootVisualElement.styleSheets.Add(uss);
+                root.styleSheets.Add(uss);
 
             string[] guids = AssetDatabase.FindAssets("t:SkillTreeData");
             if (guids.Length == 0)
@@ -56,18 +58,18 @@ namespace RogueliteAutoBattler.Editor.Windows.SkillTreeDesigner
 
             _serialized = new SerializedObject(_data);
 
-            WireTabButtons();
+            WireTabButtons(root);
         }
 
-        private void WireTabButtons()
+        private void WireTabButtons(VisualElement root)
         {
-            Button btnTree = rootVisualElement.Q<Button>("tab-btn-tree");
-            Button btnNode = rootVisualElement.Q<Button>("tab-btn-node");
-            Button btnBranch = rootVisualElement.Q<Button>("tab-btn-branch");
+            Button btnTree = root.Q<Button>("tab-btn-tree");
+            Button btnNode = root.Q<Button>("tab-btn-node");
+            Button btnBranch = root.Q<Button>("tab-btn-branch");
 
-            VisualElement tabTree = rootVisualElement.Q<VisualElement>("tab-tree");
-            VisualElement tabNode = rootVisualElement.Q<VisualElement>("tab-node");
-            VisualElement tabBranch = rootVisualElement.Q<VisualElement>("tab-branch");
+            VisualElement tabTree = root.Q<VisualElement>("tab-tree");
+            VisualElement tabNode = root.Q<VisualElement>("tab-node");
+            VisualElement tabBranch = root.Q<VisualElement>("tab-branch");
 
             btnTree.clicked += () => ActivateTab(btnTree, tabTree);
             btnNode.clicked += () => ActivateTab(btnNode, tabNode);
