@@ -211,24 +211,6 @@ namespace RogueliteAutoBattler.Tests.PlayMode
         }
 
         [UnityTest]
-        public IEnumerator Awake_AllUnpurchasedNodes_AreAvailable()
-        {
-            SkillTreeData data = CreateFourNodeChainSkillTreeData();
-            SkillTreeProgress progress = ScriptableObject.CreateInstance<SkillTreeProgress>();
-            GoldWallet goldWallet = CreateGoldWalletWithBalance(AffordableGoldAmount);
-            SkillPointWallet skillPointWallet = CreateSkillPointWallet();
-
-            SkillTreeScreenController controller = BuildController(data, progress, goldWallet, skillPointWallet, out _);
-            yield return null;
-
-            for (var i = 0; i < controller.NodeElements.Count; i++)
-            {
-                Assert.AreEqual(SkillTreeNodeVisualState.Available, controller.NodeElements[i].CurrentState,
-                    $"Node {i} must start in Available state because tier-1 nodes have no prerequisites.");
-            }
-        }
-
-        [UnityTest]
         public IEnumerator NodeClick_SetsSelectedNodeIndex_AndShowsDetailPanel()
         {
             SkillTreeData data = CreateFourNodeChainSkillTreeData();

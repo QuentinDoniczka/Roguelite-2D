@@ -23,6 +23,22 @@ namespace RogueliteAutoBattler.Data
         public static readonly Color DefaultBorderSelectedColor = Color.yellow;
         public static readonly Color DefaultEdgeColor = new Color(0.6f, 0.6f, 0.6f, 1f);
 
+        internal static class FieldNames
+        {
+            public const string UnitSize = nameof(SkillTreeData.unitSize);
+            public const string NodeSize = nameof(SkillTreeData.nodeSize);
+            public const string NodeColor = nameof(SkillTreeData.nodeColor);
+            public const string BorderNormalColor = nameof(SkillTreeData.borderNormalColor);
+            public const string BorderSelectedColor = nameof(SkillTreeData.borderSelectedColor);
+            public const string BaseCost = nameof(SkillTreeData.baseCost);
+            public const string CostMultiplierOdd = nameof(SkillTreeData.costMultiplierOdd);
+            public const string CostMultiplierEven = nameof(SkillTreeData.costMultiplierEven);
+            public const string CostAdditivePerLevel = nameof(SkillTreeData.costAdditivePerLevel);
+            public const string DefaultGeneratedMaxLevel = nameof(SkillTreeData.defaultGeneratedMaxLevel);
+            public const string EdgeColor = nameof(SkillTreeData.edgeColor);
+            public const string EdgeThickness = nameof(SkillTreeData.edgeThickness);
+        }
+
         public enum CostType
         {
             Gold,
@@ -147,6 +163,7 @@ namespace RogueliteAutoBattler.Data
                 StatType.Power => "Power",
                 StatType.AttackSpeed => "Attack Speed",
                 StatType.CritRate => "Crit Rate",
+                StatType.None => StatTypeDisplay.NoneDisplayName,
                 _ => type.ToString()
             };
         }
@@ -248,7 +265,7 @@ namespace RogueliteAutoBattler.Data
                 costMultiplierOdd = 1f,
                 costMultiplierEven = 1f,
                 costAdditivePerLevel = 0,
-                statModifierType = StatType.Hp,
+                statModifierType = StatType.None,
                 statModifierMode = StatModifierMode.Flat,
                 statModifierValuePerLevel = 0f
             };

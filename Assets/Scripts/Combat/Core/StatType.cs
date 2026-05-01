@@ -18,6 +18,12 @@ namespace RogueliteAutoBattler.Combat.Core
         Mana = 4,
         Power = 5,
         AttackSpeed = 6,
-        CritRate = 7
+        CritRate = 7,
+        None = 8
+    }
+
+    public static class StatTypeDisplay
+    {
+        public const string NoneDisplayName = "(none)";
     }
 }

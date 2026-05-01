@@ -75,10 +75,11 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             _data.CostMultiplierEven = 1.5f;
             const int testNodeCount = 4;
             const float testRadius = 5f;
+            var testNodes = new List<SkillTreeData.SkillNodeEntry>(testNodeCount);
             for (int i = 0; i < testNodeCount; i++)
             {
                 float angle = i * (2f * Mathf.PI / testNodeCount);
-                _data.AddNode(new SkillTreeData.SkillNodeEntry
+                testNodes.Add(new SkillTreeData.SkillNodeEntry
                 {
                     id = i,
                     position = new Vector2(testRadius * Mathf.Cos(angle), testRadius * Mathf.Sin(angle)),
@@ -95,10 +96,12 @@ namespace RogueliteAutoBattler.Tests.PlayMode
                 });
             }
 
-            ConfigureGoldNode(nodeIndex: 0, maxLevel: 5, statType: StatType.Atk, statValue: 3f);
-            ConfigureSkillPointNode(nodeIndex: 1, maxLevel: 5, statType: StatType.Hp, statValue: 10f);
-            ConfigureGoldNode(nodeIndex: 2, maxLevel: 5, statType: StatType.Def, statValue: 2f);
-            ConfigureGoldNode(nodeIndex: 3, maxLevel: 3, statType: StatType.Mana, statValue: 5f);
+            ApplyGoldNodeConfig(testNodes, nodeIndex: 0, maxLevel: 5, statType: StatType.Atk, statValue: 3f);
+            ApplySkillPointNodeConfig(testNodes, nodeIndex: 1, maxLevel: 5, statType: StatType.Hp, statValue: 10f);
+            ApplyGoldNodeConfig(testNodes, nodeIndex: 2, maxLevel: 5, statType: StatType.Def, statValue: 2f);
+            ApplyGoldNodeConfig(testNodes, nodeIndex: 3, maxLevel: 3, statType: StatType.Mana, statValue: 5f);
+
+            _data.InitializeForTest(testNodes);
 
             _progress = ScriptableObject.CreateInstance<SkillTreeProgress>();
 
@@ -131,26 +134,26 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             base.TearDown();
         }
 
-        private void ConfigureGoldNode(int nodeIndex, int maxLevel, StatType statType, float statValue)
+        private static void ApplyGoldNodeConfig(List<SkillTreeData.SkillNodeEntry> testNodes, int nodeIndex, int maxLevel, StatType statType, float statValue)
         {
-            var node = _data.Nodes[nodeIndex];
+            var node = testNodes[nodeIndex];
             node.costType = SkillTreeData.CostType.Gold;
             node.maxLevel = maxLevel;
             node.statModifierType = statType;
             node.statModifierMode = SkillTreeData.StatModifierMode.Flat;
             node.statModifierValuePerLevel = statValue;
-            _data.SetNode(nodeIndex, node);
+            testNodes[nodeIndex] = node;
         }
 
-        private void ConfigureSkillPointNode(int nodeIndex, int maxLevel, StatType statType, float statValue)
+        private static void ApplySkillPointNodeConfig(List<SkillTreeData.SkillNodeEntry> testNodes, int nodeIndex, int maxLevel, StatType statType, float statValue)
         {
-            var node = _data.Nodes[nodeIndex];
+            var node = testNodes[nodeIndex];
             node.costType = SkillTreeData.CostType.SkillPoint;
             node.maxLevel = maxLevel;
             node.statModifierType = statType;
             node.statModifierMode = SkillTreeData.StatModifierMode.Flat;
             node.statModifierValuePerLevel = statValue;
-            _data.SetNode(nodeIndex, node);
+            testNodes[nodeIndex] = node;
         }
 
         private void InvokeButtonClick(Button button)
