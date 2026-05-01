@@ -177,6 +177,24 @@ namespace RogueliteAutoBattler.Tests.EditMode
         }
 
         [Test]
+        public void OnEnable_AutoInjectsCentralNode_BeforeAnyAddNodeCall()
+        {
+            var data = ScriptableObject.CreateInstance<SkillTreeData>();
+            try
+            {
+                Assert.AreEqual(1, data.Nodes.Count, "OnEnable must auto-inject central node id=0.");
+                Assert.AreEqual(SkillTreeData.CentralNodeId, data.Nodes[0].id);
+                Assert.Throws<ArgumentException>(
+                    () => data.AddNode(new SkillTreeData.SkillNodeEntry { id = 0 }),
+                    "AddNode(id=0) must throw because central is already there. Use InitializeForTest to bypass.");
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(data);
+            }
+        }
+
+        [Test]
         public void AddBranchNode_AtomicallyValidatesBeforeMutation()
         {
             var parent = MakeNode(0, Vector2.zero);

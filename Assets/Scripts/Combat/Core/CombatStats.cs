@@ -12,6 +12,9 @@ namespace RogueliteAutoBattler.Combat.Core
         private const float PercentToDisplayMultiplier = 100f;
         private const string FractionalNumberFormat = "0.##";
 
+        private const string NoneStatLabel = "(none)";
+        private const string NoneStatPlaceholderValue = "0";
+
         private static readonly Dictionary<StatType, string> StatLabels = new Dictionary<StatType, string>
         {
             { StatType.Hp, "HP" },
@@ -21,7 +24,8 @@ namespace RogueliteAutoBattler.Combat.Core
             { StatType.Power, "POWER" },
             { StatType.AttackSpeed, "AS" },
             { StatType.RegenHp, "REGEN" },
-            { StatType.CritRate, "CRIT" }
+            { StatType.CritRate, "CRIT" },
+            { StatType.None, NoneStatLabel }
         };
 
         private readonly List<Modifier> _modifiers = new List<Modifier>();
@@ -45,7 +49,7 @@ namespace RogueliteAutoBattler.Combat.Core
         private static readonly StatType[] DisplayOrderArray =
         {
             StatType.Hp, StatType.Atk, StatType.Def, StatType.Mana, StatType.Power,
-            StatType.AttackSpeed, StatType.RegenHp, StatType.CritRate
+            StatType.AttackSpeed, StatType.RegenHp, StatType.CritRate, StatType.None
         };
 
         public static IReadOnlyList<StatType> DisplayOrder => DisplayOrderArray;
@@ -73,6 +77,8 @@ namespace RogueliteAutoBattler.Combat.Core
                     return MakeBreakdown(statType, label, _regenHpPerSecond.ToString("F2", CultureInfo.InvariantCulture) + "/s", _baseValues[(int)StatType.RegenHp].ToString("F2", CultureInfo.InvariantCulture) + "/s");
                 case StatType.CritRate:
                     return MakeBreakdown(statType, label, "0%");
+                case StatType.None:
+                    return MakeBreakdown(statType, label, NoneStatPlaceholderValue);
                 default:
                     return new StatBreakdownData("", "", System.Array.Empty<StatModifierEntry>());
             }
