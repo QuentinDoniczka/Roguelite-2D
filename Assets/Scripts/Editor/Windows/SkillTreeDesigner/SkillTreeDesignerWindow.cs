@@ -16,6 +16,8 @@ namespace RogueliteAutoBattler.Editor.Windows.SkillTreeDesigner
         private VisualElement _activeTabContent;
         private Button _activeTabButton;
         private SkillTreeCanvasElement _canvas;
+        private BranchTabController _branchTab;
+        private TreeTabController _treeTab;
 
         [MenuItem("Roguelite/Skill Tree Designer")]
         private static void OpenWindow()
@@ -64,6 +66,13 @@ namespace RogueliteAutoBattler.Editor.Windows.SkillTreeDesigner
             if (_canvas != null)
                 _canvas.SetData(_data, _selectedNodeId);
 
+            VisualElement tabBranch = root.Q<VisualElement>("tab-branch");
+            VisualElement tabTree = root.Q<VisualElement>("tab-tree");
+            VisualElement canvasOverlayHost = root.Q<VisualElement>("canvas-host");
+
+            _branchTab = new BranchTabController(tabBranch, canvasOverlayHost, _data, _serialized, _canvas, () => _selectedNodeId);
+            _treeTab = new TreeTabController(tabTree, _serialized);
+
             WireTabButtons(root);
         }
 
@@ -88,6 +97,7 @@ namespace RogueliteAutoBattler.Editor.Windows.SkillTreeDesigner
             _selectedNodeId = nodeId;
             if (_canvas != null)
                 _canvas.SetData(_data, _selectedNodeId);
+            _branchTab?.OnSelectionChanged(_selectedNodeId);
         }
 
         private void WireTabButtons(VisualElement root)
@@ -129,5 +139,7 @@ namespace RogueliteAutoBattler.Editor.Windows.SkillTreeDesigner
         internal VisualElement Root => rootVisualElement;
         internal string ActiveTabName => _activeTabContent?.name;
         internal SkillTreeCanvasElement Canvas => _canvas;
+        internal BranchTabController BranchTab => _branchTab;
+        internal TreeTabController TreeTab => _treeTab;
     }
 }

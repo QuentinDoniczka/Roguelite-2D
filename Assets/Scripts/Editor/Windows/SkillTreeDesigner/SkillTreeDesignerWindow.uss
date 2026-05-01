@@ -41,3 +41,13 @@
 .tab-content--active {
     display: flex;
 }
+
+.preview-ghost {
+    position: absolute;
+    width: 36px;
+    height: 36px;
+    border-width: 2px;
+    border-color: rgba(255, 220, 50, 0.9);
+    border-radius: 18px;
+    background-color: rgba(255, 220, 50, 0.15);
+}

@@ -12,7 +12,7 @@ namespace RogueliteAutoBattler.Editor.Windows.SkillTreeDesigner
         private const float MaxZoom = 4f;
         private const float ZoomStep = 0.1f;
         private const float UnitToPx = 64f;
-        private const float NodeRadiusPx = 18f;
+        internal const float NodeRadiusPx = 18f;
         private const float GridSpacingPx = 32f;
 
         private static readonly Color GridColor = new Color(0.25f, 0.25f, 0.25f, 0.8f);
