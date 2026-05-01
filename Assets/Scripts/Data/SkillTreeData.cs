@@ -77,8 +77,14 @@ namespace RogueliteAutoBattler.Data
 
         private (int fromId, int toId)[] _cachedEdges;
 
+        private void OnEnable()
+        {
+            EnsureCentralNode();
+        }
+
         private void OnValidate()
         {
+            EnsureCentralNode();
             _cachedEdges = null;
         }
 

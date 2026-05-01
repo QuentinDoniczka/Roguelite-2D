@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Reflection;
 using NUnit.Framework;
 using RogueliteAutoBattler.Combat.Core;
 using RogueliteAutoBattler.Data;
@@ -152,6 +153,38 @@ namespace RogueliteAutoBattler.Tests.EditMode
         public void CentralUnlockCost_DefaultsTo100()
         {
             Assert.AreEqual(100, _data.CentralUnlockCost);
+        }
+
+        [Test]
+        public void OnEnable_AutoEnsuresCentralNode()
+        {
+            var freshInstance = ScriptableObject.CreateInstance<SkillTreeData>();
+            try
+            {
+                Assert.GreaterOrEqual(freshInstance.Nodes.Count, 1);
+                Assert.AreEqual(0, freshInstance.Nodes[0].id);
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(freshInstance);
+            }
+        }
+
+        [Test]
+        public void OnValidate_AutoEnsuresCentralNode_AfterClearing()
+        {
+            _data.InitializeForTest(new List<SkillTreeData.SkillNodeEntry>());
+            Assert.AreEqual(0, _data.Nodes.Count);
+
+            var onValidateMethod = typeof(SkillTreeData).GetMethod(
+                "OnValidate",
+                BindingFlags.Instance | BindingFlags.NonPublic);
+            Assert.IsNotNull(onValidateMethod, "OnValidate reflection lookup failed.");
+            onValidateMethod.Invoke(_data, null);
+
+            int index = FindIndexOfId(_data, 0);
+            Assert.GreaterOrEqual(index, 0);
+            Assert.AreEqual(0, _data.Nodes[index].id);
         }
     }
 }
