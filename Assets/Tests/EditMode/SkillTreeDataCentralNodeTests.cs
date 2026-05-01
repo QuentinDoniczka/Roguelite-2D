@@ -152,7 +152,7 @@ namespace RogueliteAutoBattler.Tests.EditMode
         [Test]
         public void CentralUnlockCost_DefaultsTo100()
         {
-            Assert.AreEqual(100, _data.CentralUnlockCost);
+            Assert.AreEqual(SkillTreeData.DefaultCentralUnlockCost, _data.CentralUnlockCost);
         }
 
         [Test]

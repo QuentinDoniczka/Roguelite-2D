@@ -15,6 +15,8 @@ namespace RogueliteAutoBattler.Data
         public const float DefaultNodeSize = 48f;
         public const float DefaultEdgeThickness = 4f;
         public const int DefaultMaxLevel = 5;
+        public const int DefaultCentralUnlockCost = 100;
+        private const int CentralMaxLevel = 1;
 
         public static readonly Color DefaultNodeColor = new Color(0.3f, 0.3f, 0.3f, 1f);
         public static readonly Color DefaultBorderNormalColor = Color.gray;
@@ -70,7 +72,7 @@ namespace RogueliteAutoBattler.Data
         [SerializeField] private float edgeThickness = DefaultEdgeThickness;
 
         [Header("Central Node")]
-        [SerializeField] private int centralUnlockCost = 100;
+        [SerializeField] private int centralUnlockCost = DefaultCentralUnlockCost;
 
         [Header("Nodes")]
         [SerializeField] private List<SkillNodeEntry> nodes = new List<SkillNodeEntry>();
@@ -85,7 +87,6 @@ namespace RogueliteAutoBattler.Data
         private void OnValidate()
         {
             EnsureCentralNode();
-            _cachedEdges = null;
         }
 
         public float UnitSize { get => unitSize; internal set => unitSize = value; }
@@ -180,20 +181,25 @@ namespace RogueliteAutoBattler.Data
         {
             if (parentId == childId)
                 throw new ArgumentException($"Self-loop not allowed: parentId == childId == {parentId}.");
+            int parentIndex = IndexOfId(parentId);
+            if (parentIndex < 0)
+                throw new ArgumentException($"No node found with parentId {parentId}.");
+
+            var parent = nodes[parentIndex];
+            if (parent.connectedNodeIds == null)
+                parent.connectedNodeIds = new List<int>();
+            parent.connectedNodeIds.Add(childId);
+            nodes[parentIndex] = parent;
+            _cachedEdges = null;
+        }
+
+        private int IndexOfId(int id)
+        {
             for (int i = 0; i < nodes.Count; i++)
             {
-                if (nodes[i].id == parentId)
-                {
-                    var parent = nodes[i];
-                    if (parent.connectedNodeIds == null)
-                        parent.connectedNodeIds = new List<int>();
-                    parent.connectedNodeIds.Add(childId);
-                    nodes[i] = parent;
-                    _cachedEdges = null;
-                    return;
-                }
+                if (nodes[i].id == id) return i;
             }
-            throw new ArgumentException($"No node found with parentId {parentId}.");
+            return -1;
         }
 
         public bool RemoveNode(int id)
@@ -204,15 +210,7 @@ namespace RogueliteAutoBattler.Data
                 return false;
             }
 
-            int targetIndex = -1;
-            for (int i = 0; i < nodes.Count; i++)
-            {
-                if (nodes[i].id == id)
-                {
-                    targetIndex = i;
-                    break;
-                }
-            }
+            int targetIndex = IndexOfId(id);
             if (targetIndex < 0) return false;
 
             nodes.RemoveAt(targetIndex);
@@ -231,20 +229,12 @@ namespace RogueliteAutoBattler.Data
             return true;
         }
 
-        public void EnsureCentralNode()
+        internal void EnsureCentralNode()
         {
-            int existingIndex = -1;
-            for (int i = 0; i < nodes.Count; i++)
-            {
-                if (nodes[i].id == CentralNodeId)
-                {
-                    existingIndex = i;
-                    break;
-                }
-            }
+            int existingIndex = IndexOfId(CentralNodeId);
 
             List<int> preservedChildren = existingIndex >= 0 && nodes[existingIndex].connectedNodeIds != null
-                ? nodes[existingIndex].connectedNodeIds
+                ? new List<int>(nodes[existingIndex].connectedNodeIds)
                 : new List<int>();
 
             var centralEntry = new SkillNodeEntry
@@ -253,7 +243,7 @@ namespace RogueliteAutoBattler.Data
                 position = Vector2.zero,
                 connectedNodeIds = preservedChildren,
                 costType = CostType.Gold,
-                maxLevel = 1,
+                maxLevel = CentralMaxLevel,
                 baseCost = centralUnlockCost,
                 costMultiplierOdd = 1f,
                 costMultiplierEven = 1f,
@@ -276,20 +266,12 @@ namespace RogueliteAutoBattler.Data
             if (parentId == entry.id)
                 throw new ArgumentException($"Self-loop not allowed: parentId == entry.id == {parentId}.");
 
-            int parentIndex = -1;
-            for (int i = 0; i < nodes.Count; i++)
-            {
-                if (nodes[i].id == parentId)
-                {
-                    parentIndex = i;
-                }
-                if (nodes[i].id == entry.id)
-                {
-                    throw new ArgumentException($"A node with id {entry.id} already exists.");
-                }
-            }
+            int parentIndex = IndexOfId(parentId);
             if (parentIndex < 0)
                 throw new ArgumentException($"No node found with parentId {parentId}.");
+
+            if (IndexOfId(entry.id) >= 0)
+                throw new ArgumentException($"A node with id {entry.id} already exists.");
 
             nodes.Add(entry);
 
