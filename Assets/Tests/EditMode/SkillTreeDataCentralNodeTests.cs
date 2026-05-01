@@ -138,6 +138,18 @@ namespace RogueliteAutoBattler.Tests.EditMode
         }
 
         [Test]
+        public void EnsureCentralNode_WritesNoneStatModifier()
+        {
+            _data.InitializeForTest(new List<SkillTreeData.SkillNodeEntry>());
+
+            _data.EnsureCentralNode();
+
+            int index = FindIndexOfId(_data, 0);
+            Assert.GreaterOrEqual(index, 0);
+            Assert.AreEqual(StatType.None, _data.Nodes[index].statModifierType);
+        }
+
+        [Test]
         public void EnsureCentralNode_CostType_IsGold()
         {
             _data.InitializeForTest(new List<SkillTreeData.SkillNodeEntry>());

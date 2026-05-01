@@ -18,6 +18,8 @@ namespace RogueliteAutoBattler.Editor.Windows
         private const float MinGridSpacingThreshold = 5f;
         private const float MinBranchPreviewDistance = 0.5f;
         private const float MaxBranchPreviewDistance = 10f;
+        private const float MinBranchAngle = 0f;
+        private const float MaxBranchAngle = 360f;
         private const float BranchPreviewDottedSegmentSize = 6f;
         private const int CostPreviewMaxRows = 10;
         private const float MinWindowWidth = 800f;
@@ -192,7 +194,7 @@ namespace RogueliteAutoBattler.Editor.Windows
             if (_branchPreviewActive && _branchPreviewParentIndex >= 0 && _branchPreviewParentIndex < _data.Nodes.Count)
             {
                 Vector2 parentPos = _data.Nodes[_branchPreviewParentIndex].position;
-                Vector2 previewPos = BranchPlacement.ComputeBranchPosition(parentPos, _branchPreviewSettings.distance);
+                Vector2 previewPos = BranchPlacement.ComputeBranchPosition(parentPos, _branchPreviewSettings.distance, _branchPreviewSettings.angleDegrees);
                 Vector2 parentScreen = origin + parentPos * scaledUnit;
                 Vector2 previewScreen = origin + previewPos * scaledUnit;
                 Handles.color = BranchPreviewTintColor;
@@ -342,6 +344,7 @@ namespace RogueliteAutoBattler.Editor.Windows
                 _branchPreviewActive = true;
                 _branchPreviewParentIndex = _selectedNodeIndex;
                 _branchPreviewSettings = _lastBranchPreviewSettings;
+                _branchPreviewSettings.angleDegrees = BranchPlacement.ComputeDefaultAngle(_data.Nodes[_selectedNodeIndex].position);
                 _activeTab = 2;
                 Repaint();
             }
@@ -402,6 +405,28 @@ namespace RogueliteAutoBattler.Editor.Windows
             if (node.maxLevel == 0)
                 EditorGUILayout.LabelField("  ...", "(unlimited)");
 
+            EditorGUILayout.Space(16);
+            EditorGUILayout.LabelField("Danger Zone", EditorStyles.boldLabel);
+
+            bool isRoot = node.id == SkillTreeData.CentralNodeId;
+            EditorGUI.BeginDisabledGroup(isRoot);
+            if (GUILayout.Button("Delete Node"))
+            {
+                Undo.RegisterCompleteObjectUndo(_data, "Delete Node");
+                _data.RemoveNode(node.id);
+                EditorUtility.SetDirty(_data);
+                AssetDatabase.SaveAssets();
+                _selectedNodeIndex = -1;
+                _activeTab = 0;
+                RebuildNodeLabels();
+                _serializedData.Update();
+                Repaint();
+            }
+            EditorGUI.EndDisabledGroup();
+
+            if (isRoot)
+                EditorGUILayout.HelpBox("The root node cannot be deleted — it's the unlock seed.", MessageType.Info);
+
         }
 
         private void DrawBranchTab()
@@ -418,6 +443,11 @@ namespace RogueliteAutoBattler.Editor.Windows
 
             EditorGUI.BeginChangeCheck();
             _branchPreviewSettings.distance = EditorGUILayout.Slider("Distance", _branchPreviewSettings.distance, MinBranchPreviewDistance, MaxBranchPreviewDistance);
+            if (EditorGUI.EndChangeCheck())
+                Repaint();
+
+            EditorGUI.BeginChangeCheck();
+            _branchPreviewSettings.angleDegrees = EditorGUILayout.Slider("Angle (deg, 0=N, 90=E)", _branchPreviewSettings.angleDegrees, MinBranchAngle, MaxBranchAngle);
             if (EditorGUI.EndChangeCheck())
                 Repaint();
 
@@ -444,7 +474,7 @@ namespace RogueliteAutoBattler.Editor.Windows
             if (parentIndex < 0 || parentIndex >= _data.Nodes.Count) return;
 
             int parentId = _data.Nodes[parentIndex].id;
-            Vector2 newPos = BranchPlacement.ComputeBranchPosition(_data.Nodes[parentIndex].position, _branchPreviewSettings.distance);
+            Vector2 newPos = BranchPlacement.ComputeBranchPosition(_data.Nodes[parentIndex].position, _branchPreviewSettings.distance, _branchPreviewSettings.angleDegrees);
             int newId = SkillTreeNodeIdAllocator.ComputeNextNodeId(_data.Nodes);
 
             Undo.RegisterCompleteObjectUndo(_data, "Create Branch Node");

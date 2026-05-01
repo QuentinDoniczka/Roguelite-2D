@@ -9,9 +9,9 @@ namespace RogueliteAutoBattler.Tests.EditMode
     public class StatTypeIndicesTests
     {
         [Test]
-        public void StatType_HasExactlyEightValues()
+        public void StatType_HasExactlyNineValues()
         {
-            Assert.AreEqual(8, Enum.GetValues(typeof(StatType)).Length);
+            Assert.AreEqual(9, Enum.GetValues(typeof(StatType)).Length);
         }
 
         [Test]
@@ -25,16 +25,24 @@ namespace RogueliteAutoBattler.Tests.EditMode
             Assert.AreEqual(5, (int)StatType.Power);
             Assert.AreEqual(6, (int)StatType.AttackSpeed);
             Assert.AreEqual(7, (int)StatType.CritRate);
+            Assert.AreEqual(8, (int)StatType.None);
         }
 
         [Test]
         public void StatType_NamesMatchExpectedSequence()
         {
-            string[] expected = { "Hp", "RegenHp", "Atk", "Def", "Mana", "Power", "AttackSpeed", "CritRate" };
+            string[] expected = { "Hp", "RegenHp", "Atk", "Def", "Mana", "Power", "AttackSpeed", "CritRate", "None" };
             for (int i = 0; i < expected.Length; i++)
             {
                 Assert.AreEqual(expected[i], Enum.GetName(typeof(StatType), i));
             }
+        }
+
+        [Test]
+        public void StatType_None_HasIndex8()
+        {
+            Assert.AreEqual(8, (int)StatType.None);
+            Assert.AreEqual("None", Enum.GetName(typeof(StatType), 8));
         }
 
         [Test]

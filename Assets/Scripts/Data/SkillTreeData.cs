@@ -163,6 +163,7 @@ namespace RogueliteAutoBattler.Data
                 StatType.Power => "Power",
                 StatType.AttackSpeed => "Attack Speed",
                 StatType.CritRate => "Crit Rate",
+                StatType.None => "(none)",
                 _ => type.ToString()
             };
         }
@@ -264,7 +265,7 @@ namespace RogueliteAutoBattler.Data
                 costMultiplierOdd = 1f,
                 costMultiplierEven = 1f,
                 costAdditivePerLevel = 0,
-                statModifierType = StatType.Hp,
+                statModifierType = StatType.None,
                 statModifierMode = StatModifierMode.Flat,
                 statModifierValuePerLevel = 0f
             };
