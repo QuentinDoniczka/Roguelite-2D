@@ -18,6 +18,7 @@ namespace RogueliteAutoBattler.Editor.Windows.SkillTreeDesigner
         private SkillTreeCanvasElement _canvas;
         private BranchTabController _branchTab;
         private TreeTabController _treeTab;
+        private NodeTabController _nodeTab;
 
         [MenuItem("Roguelite/Skill Tree Designer")]
         private static void OpenWindow()
@@ -68,10 +69,18 @@ namespace RogueliteAutoBattler.Editor.Windows.SkillTreeDesigner
 
             VisualElement tabBranch = root.Q<VisualElement>("tab-branch");
             VisualElement tabTree = root.Q<VisualElement>("tab-tree");
+            VisualElement tabNode = root.Q<VisualElement>("tab-node");
             VisualElement canvasOverlayHost = root.Q<VisualElement>("canvas-host");
 
             _branchTab = new BranchTabController(tabBranch, canvasOverlayHost, _data, _serialized, _canvas, () => _selectedNodeId);
             _treeTab = new TreeTabController(tabTree, _serialized);
+            _nodeTab = new NodeTabController(tabNode, _data, _serialized, _canvas, () => _selectedNodeId, id => _selectedNodeId = id);
+            _nodeTab.NodeDeleted += () =>
+            {
+                _selectedNodeId = null;
+                _branchTab?.OnSelectionChanged(null);
+                _nodeTab?.OnSelectionChanged(null);
+            };
 
             WireTabButtons(root);
         }
@@ -98,6 +107,15 @@ namespace RogueliteAutoBattler.Editor.Windows.SkillTreeDesigner
             if (_canvas != null)
                 _canvas.SetData(_data, _selectedNodeId);
             _branchTab?.OnSelectionChanged(_selectedNodeId);
+            _nodeTab?.OnSelectionChanged(_selectedNodeId);
+        }
+
+        private void OnDisable()
+        {
+            if (_data != null && EditorUtility.IsDirty(_data))
+            {
+                AssetDatabase.SaveAssetIfDirty(_data);
+            }
         }
 
         private void WireTabButtons(VisualElement root)
@@ -141,5 +159,6 @@ namespace RogueliteAutoBattler.Editor.Windows.SkillTreeDesigner
         internal SkillTreeCanvasElement Canvas => _canvas;
         internal BranchTabController BranchTab => _branchTab;
         internal TreeTabController TreeTab => _treeTab;
+        internal NodeTabController NodeTab => _nodeTab;
     }
 }
