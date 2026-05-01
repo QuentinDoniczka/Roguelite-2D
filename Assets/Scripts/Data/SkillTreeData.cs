@@ -10,6 +10,7 @@ namespace RogueliteAutoBattler.Data
     [CreateAssetMenu(fileName = "SkillTreeData", menuName = "Roguelite/Skill Tree Data")]
     public class SkillTreeData : ScriptableObject
     {
+        public const int CentralNodeId = 0;
         public const float DefaultUnitSize = 40f;
         public const float DefaultNodeSize = 48f;
         public const float DefaultEdgeThickness = 4f;
@@ -183,6 +184,42 @@ namespace RogueliteAutoBattler.Data
                 }
             }
             throw new ArgumentException($"No node found with parentId {parentId}.");
+        }
+
+        public bool RemoveNode(int id)
+        {
+            if (id == CentralNodeId)
+            {
+                Debug.LogWarning("Cannot remove central node (id 0).");
+                return false;
+            }
+
+            int targetIndex = -1;
+            for (int i = 0; i < nodes.Count; i++)
+            {
+                if (nodes[i].id == id)
+                {
+                    targetIndex = i;
+                    break;
+                }
+            }
+            if (targetIndex < 0) return false;
+
+            nodes.RemoveAt(targetIndex);
+
+            for (int i = 0; i < nodes.Count; i++)
+            {
+                var current = nodes[i];
+                if (current.connectedNodeIds == null) continue;
+                if (current.connectedNodeIds.Remove(id))
+                {
+                    while (current.connectedNodeIds.Remove(id)) { }
+                    nodes[i] = current;
+                }
+            }
+
+            _cachedEdges = null;
+            return true;
         }
 
         internal void AddBranchNode(SkillNodeEntry entry, int parentId)
