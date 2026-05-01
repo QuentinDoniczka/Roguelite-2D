@@ -41,19 +41,17 @@ namespace RogueliteAutoBattler.Tests.EditMode
         }
 
         [Test]
-        public void Root_AlwaysAvailable_WhenLevelZero()
+        public void CentralNode_AlwaysAvailable_AtLevelZero()
         {
             var nodes = new List<SkillTreeData.SkillNodeEntry>
             {
-                MakeNode(0, 5, null),
-                MakeNode(1, 5, null)
+                MakeNode(0, 5, null)
             };
             InitializeData(nodes);
 
             var evaluator = new SkillTreeStateEvaluator(_data, _progress);
 
             Assert.AreEqual(SkillTreeNodeVisualState.Available, evaluator.GetState(0));
-            Assert.AreEqual(SkillTreeNodeVisualState.Available, evaluator.GetState(1));
         }
 
         [Test]
@@ -120,18 +118,36 @@ namespace RogueliteAutoBattler.Tests.EditMode
         }
 
         [Test]
-        public void OrphanNode_TreatedAsUnlocked()
+        public void OrphanNode_NonCentral_TreatedAsLocked()
         {
             var nodes = new List<SkillTreeData.SkillNodeEntry>
             {
                 MakeNode(0, 5, null),
-                MakeNode(1, 5, null)
+                MakeNode(99, 5, null)
             };
             InitializeData(nodes);
 
             var evaluator = new SkillTreeStateEvaluator(_data, _progress);
 
-            Assert.AreEqual(SkillTreeNodeVisualState.Available, evaluator.GetState(1));
+            Assert.AreEqual(SkillTreeNodeVisualState.Locked, evaluator.GetState(evaluator.IdToIndexMap[99]));
+        }
+
+        [Test]
+        public void CentralNode_AvailableEvenWhenOtherOrphansLocked()
+        {
+            var nodes = new List<SkillTreeData.SkillNodeEntry>
+            {
+                MakeNode(0, 5, null),
+                MakeNode(5, 5, null),
+                MakeNode(7, 5, null)
+            };
+            InitializeData(nodes);
+
+            var evaluator = new SkillTreeStateEvaluator(_data, _progress);
+
+            Assert.AreEqual(SkillTreeNodeVisualState.Available, evaluator.GetState(evaluator.IdToIndexMap[0]));
+            Assert.AreEqual(SkillTreeNodeVisualState.Locked, evaluator.GetState(evaluator.IdToIndexMap[5]));
+            Assert.AreEqual(SkillTreeNodeVisualState.Locked, evaluator.GetState(evaluator.IdToIndexMap[7]));
         }
 
         [Test]

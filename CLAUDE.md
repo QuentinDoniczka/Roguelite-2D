@@ -25,7 +25,7 @@
 Doc detaille : `Assets/doc/premier-jet-roguelite.html`
 
 # Project Structure
-Generated: 2026-04-30
+Generated: 2026-05-01
 
 .github/
   workflows/
@@ -237,6 +237,7 @@ Assets/
       ResetPlayerProgressMenuTests.cs
       SkillTreeAssetIntegrityTests.cs
       SkillTreeDataAddNodeAddEdgeTests.cs
+      SkillTreeDataCentralNodeTests.cs
       SkillTreeProgressTests.cs
       SkillTreeScreenBuilderTests.cs
       SkillTreeStateEvaluatorLockedTests.cs

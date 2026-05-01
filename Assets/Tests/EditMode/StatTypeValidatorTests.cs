@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
-using RogueliteAutoBattler.Combat.Core;
 using RogueliteAutoBattler.Data;
 using RogueliteAutoBattler.Editor.Tools;
 
@@ -27,22 +26,6 @@ namespace RogueliteAutoBattler.Tests.EditMode
             var asset = ScriptableObject.CreateInstance<SkillTreeData>();
             try
             {
-                asset.AddNode(new SkillTreeData.SkillNodeEntry
-                {
-                    id = 0,
-                    position = Vector2.zero,
-                    connectedNodeIds = new List<int>(),
-                    costType = SkillTreeData.CostType.Gold,
-                    maxLevel = 1,
-                    baseCost = 1,
-                    costMultiplierOdd = 1f,
-                    costMultiplierEven = 1f,
-                    costAdditivePerLevel = 0,
-                    statModifierType = StatType.Hp,
-                    statModifierMode = SkillTreeData.StatModifierMode.Flat,
-                    statModifierValuePerLevel = 0f
-                });
-
                 var report = StatTypeValidator.Run(new[] { asset });
 
                 Assert.AreEqual(1, report.ScannedAssets);

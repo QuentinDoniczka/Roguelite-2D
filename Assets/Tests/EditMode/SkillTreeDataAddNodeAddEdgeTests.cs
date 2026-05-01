@@ -4,6 +4,8 @@ using NUnit.Framework;
 using RogueliteAutoBattler.Combat.Core;
 using RogueliteAutoBattler.Data;
 using UnityEngine;
+using UnityEngine.TestTools;
+using System.Text.RegularExpressions;
 
 namespace RogueliteAutoBattler.Tests.EditMode
 {
@@ -89,6 +91,89 @@ namespace RogueliteAutoBattler.Tests.EditMode
             _data.InitializeForTest(new List<SkillTreeData.SkillNodeEntry> { MakeNode(0, Vector2.zero) });
 
             Assert.Throws<ArgumentException>(() => _data.AddEdge(0, 0));
+        }
+
+        [Test]
+        public void CentralNodeId_IsZero()
+        {
+            Assert.AreEqual(0, SkillTreeData.CentralNodeId);
+        }
+
+        [Test]
+        public void RemoveNode_NonCentral_RemovesAndReturnsTrue()
+        {
+            _data.InitializeForTest(new List<SkillTreeData.SkillNodeEntry>
+            {
+                MakeNode(0, Vector2.zero),
+                MakeNode(5, new Vector2(1f, 0f))
+            });
+            int originalCount = _data.Nodes.Count;
+
+            bool result = _data.RemoveNode(5);
+
+            Assert.IsTrue(result);
+            Assert.AreEqual(originalCount - 1, _data.Nodes.Count);
+            for (int i = 0; i < _data.Nodes.Count; i++)
+            {
+                Assert.AreNotEqual(5, _data.Nodes[i].id);
+            }
+        }
+
+        [Test]
+        public void RemoveNode_Central_LogsWarning_AndReturnsFalse_AndKeepsNode()
+        {
+            _data.InitializeForTest(new List<SkillTreeData.SkillNodeEntry>
+            {
+                MakeNode(0, Vector2.zero)
+            });
+
+            LogAssert.Expect(LogType.Warning, new Regex("[Cc]entral node"));
+
+            bool result = _data.RemoveNode(0);
+
+            Assert.IsFalse(result);
+            Assert.AreEqual(1, _data.Nodes.Count);
+            Assert.AreEqual(0, _data.Nodes[0].id);
+        }
+
+        [Test]
+        public void RemoveNode_UnknownId_ReturnsFalse()
+        {
+            _data.InitializeForTest(new List<SkillTreeData.SkillNodeEntry>
+            {
+                MakeNode(0, Vector2.zero)
+            });
+
+            bool result = _data.RemoveNode(99);
+
+            Assert.IsFalse(result);
+            Assert.AreEqual(1, _data.Nodes.Count);
+        }
+
+        [Test]
+        public void RemoveNode_AlsoStripsIncomingEdges()
+        {
+            _data.InitializeForTest(new List<SkillTreeData.SkillNodeEntry>
+            {
+                MakeNode(0, Vector2.zero),
+                MakeNode(5, new Vector2(1f, 0f)),
+                MakeNode(7, new Vector2(2f, 0f))
+            });
+            _data.AddEdge(0, 5);
+            _data.AddEdge(5, 7);
+
+            bool result = _data.RemoveNode(5);
+
+            Assert.IsTrue(result);
+            for (int i = 0; i < _data.Nodes.Count; i++)
+            {
+                if (_data.Nodes[i].id == 0)
+                {
+                    var connections = _data.Nodes[i].connectedNodeIds;
+                    if (connections != null)
+                        CollectionAssert.DoesNotContain(connections, 5);
+                }
+            }
         }
 
         [Test]
