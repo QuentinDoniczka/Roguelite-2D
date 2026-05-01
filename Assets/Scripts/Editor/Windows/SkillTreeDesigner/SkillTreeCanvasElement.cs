@@ -27,7 +27,7 @@ namespace RogueliteAutoBattler.Editor.Windows.SkillTreeDesigner
         private Vector2 _lastMousePos;
         private int _markDirtyCount;
 
-        internal SkillTreeCanvasElement()
+        public SkillTreeCanvasElement()
         {
             style.flexGrow = 1;
             generateVisualContent += OnGenerateVisualContent;
