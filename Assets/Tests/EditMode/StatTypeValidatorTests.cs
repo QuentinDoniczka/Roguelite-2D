@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
-using RogueliteAutoBattler.Combat.Core;
 using RogueliteAutoBattler.Data;
 using RogueliteAutoBattler.Editor.Tools;
 

@@ -221,9 +221,8 @@ namespace RogueliteAutoBattler.Data
             {
                 var current = nodes[i];
                 if (current.connectedNodeIds == null) continue;
-                if (current.connectedNodeIds.Remove(id))
+                if (current.connectedNodeIds.RemoveAll(connectedId => connectedId == id) > 0)
                 {
-                    while (current.connectedNodeIds.Remove(id)) { }
                     nodes[i] = current;
                 }
             }
