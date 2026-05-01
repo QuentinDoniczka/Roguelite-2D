@@ -15,6 +15,7 @@ namespace RogueliteAutoBattler.Editor.Windows.SkillTreeDesigner
         private int? _selectedNodeId;
         private VisualElement _activeTabContent;
         private Button _activeTabButton;
+        private SkillTreeCanvasElement _canvas;
 
         [MenuItem("Roguelite/Skill Tree Designer")]
         private static void OpenWindow()
@@ -41,6 +42,8 @@ namespace RogueliteAutoBattler.Editor.Windows.SkillTreeDesigner
             if (uss != null)
                 root.styleSheets.Add(uss);
 
+            WireCanvas(root);
+
             string[] guids = AssetDatabase.FindAssets("t:SkillTreeData");
             if (guids.Length == 0)
             {
@@ -58,7 +61,33 @@ namespace RogueliteAutoBattler.Editor.Windows.SkillTreeDesigner
 
             _serialized = new SerializedObject(_data);
 
+            if (_canvas != null)
+                _canvas.SetData(_data, _selectedNodeId);
+
             WireTabButtons(root);
+        }
+
+        private void WireCanvas(VisualElement root)
+        {
+            VisualElement placeholder = root.Q<VisualElement>("canvas-root");
+            if (placeholder == null) return;
+
+            _canvas = new SkillTreeCanvasElement { name = "canvas-root" };
+            _canvas.style.flexGrow = 1;
+
+            var parent = placeholder.parent;
+            int index = parent.IndexOf(placeholder);
+            placeholder.RemoveFromHierarchy();
+            parent.Insert(index, _canvas);
+
+            root.RegisterCallback<NodeClickedEvent>(OnNodeClicked);
+        }
+
+        private void OnNodeClicked(NodeClickedEvent evt)
+        {
+            _selectedNodeId = evt.NodeId;
+            if (_canvas != null && _data != null)
+                _canvas.SetData(_data, _selectedNodeId);
         }
 
         private void WireTabButtons(VisualElement root)
@@ -99,5 +128,6 @@ namespace RogueliteAutoBattler.Editor.Windows.SkillTreeDesigner
         internal int? SelectedNodeId { get => _selectedNodeId; set => _selectedNodeId = value; }
         internal VisualElement Root => rootVisualElement;
         internal string ActiveTabName => _activeTabContent?.name;
+        internal SkillTreeCanvasElement Canvas => _canvas;
     }
 }
