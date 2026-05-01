@@ -69,6 +69,9 @@ namespace RogueliteAutoBattler.Data
         [SerializeField] private Color edgeColor = DefaultEdgeColor;
         [SerializeField] private float edgeThickness = DefaultEdgeThickness;
 
+        [Header("Central Node")]
+        [SerializeField] private int centralUnlockCost = 100;
+
         [Header("Nodes")]
         [SerializeField] private List<SkillNodeEntry> nodes = new List<SkillNodeEntry>();
 
@@ -91,6 +94,7 @@ namespace RogueliteAutoBattler.Data
         public int DefaultGeneratedMaxLevel { get => defaultGeneratedMaxLevel; internal set => defaultGeneratedMaxLevel = value; }
         public Color EdgeColor { get => edgeColor; internal set => edgeColor = value; }
         public float EdgeThickness { get => edgeThickness; internal set => edgeThickness = value; }
+        public int CentralUnlockCost { get => centralUnlockCost; internal set => centralUnlockCost = value; }
         public IReadOnlyList<SkillNodeEntry> Nodes => nodes;
 
         public (int fromId, int toId)[] GetEdges()
@@ -220,6 +224,46 @@ namespace RogueliteAutoBattler.Data
 
             _cachedEdges = null;
             return true;
+        }
+
+        public void EnsureCentralNode()
+        {
+            int existingIndex = -1;
+            for (int i = 0; i < nodes.Count; i++)
+            {
+                if (nodes[i].id == CentralNodeId)
+                {
+                    existingIndex = i;
+                    break;
+                }
+            }
+
+            List<int> preservedChildren = existingIndex >= 0 && nodes[existingIndex].connectedNodeIds != null
+                ? nodes[existingIndex].connectedNodeIds
+                : new List<int>();
+
+            var centralEntry = new SkillNodeEntry
+            {
+                id = CentralNodeId,
+                position = Vector2.zero,
+                connectedNodeIds = preservedChildren,
+                costType = CostType.Gold,
+                maxLevel = 1,
+                baseCost = centralUnlockCost,
+                costMultiplierOdd = 1f,
+                costMultiplierEven = 1f,
+                costAdditivePerLevel = 0,
+                statModifierType = StatType.Hp,
+                statModifierMode = StatModifierMode.Flat,
+                statModifierValuePerLevel = 0f
+            };
+
+            if (existingIndex >= 0)
+                nodes[existingIndex] = centralEntry;
+            else
+                nodes.Add(centralEntry);
+
+            _cachedEdges = null;
         }
 
         internal void AddBranchNode(SkillNodeEntry entry, int parentId)
