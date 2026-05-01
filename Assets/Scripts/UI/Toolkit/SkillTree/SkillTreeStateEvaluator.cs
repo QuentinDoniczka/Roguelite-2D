@@ -61,8 +61,9 @@ namespace RogueliteAutoBattler.UI.Toolkit.SkillTree
 
         private bool IsLockedByParents(int nodeIndex)
         {
-            if (!_parentsByIndex.TryGetValue(nodeIndex, out var parents)) return false;
-            if (parents.Count == 0) return false;
+            if (_data.Nodes[nodeIndex].id == SkillTreeData.CentralNodeId) return false;
+            if (!_parentsByIndex.TryGetValue(nodeIndex, out var parents)) return true;
+            if (parents.Count == 0) return true;
             foreach (var parentIndex in parents)
             {
                 if (_progress.GetLevel(parentIndex) > 0)
