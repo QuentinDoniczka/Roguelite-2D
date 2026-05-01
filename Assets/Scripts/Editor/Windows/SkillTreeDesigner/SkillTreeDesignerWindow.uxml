@@ -1,0 +1,19 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements">
+  <ui:VisualElement name="root" class="root">
+    <ui:TwoPaneSplitView fixed-pane-initial-dimension="320" orientation="Horizontal" fixed-pane-index="1">
+      <ui:VisualElement name="canvas-host" class="canvas-host">
+        <ui:VisualElement name="canvas-root" class="canvas-root" />
+      </ui:VisualElement>
+      <ui:VisualElement name="side-panel" class="side-panel">
+        <ui:VisualElement name="tab-bar" class="tab-bar">
+          <ui:Button name="tab-btn-tree" text="Tree" class="tab-btn" />
+          <ui:Button name="tab-btn-node" text="Node" class="tab-btn" />
+          <ui:Button name="tab-btn-branch" text="Branch" class="tab-btn" />
+        </ui:VisualElement>
+        <ui:VisualElement name="tab-tree" class="tab-content" />
+        <ui:VisualElement name="tab-node" class="tab-content" />
+        <ui:VisualElement name="tab-branch" class="tab-content" />
+      </ui:VisualElement>
+    </ui:TwoPaneSplitView>
+  </ui:VisualElement>
+</ui:UXML>
