@@ -14,6 +14,8 @@ namespace RogueliteAutoBattler.Editor.Windows.SkillTreeDesigner
         private const float UnitToPx = 64f;
         internal const float NodeRadiusPx = 18f;
         private const float GridSpacingPx = 32f;
+        private const int LeftMouseButton = 0;
+        private const int MiddleMouseButton = 2;
 
         private static readonly Color GridColor = new Color(0.25f, 0.25f, 0.25f, 0.8f);
         private static readonly Color NodeColor = new Color(0.35f, 0.55f, 0.85f, 1f);
@@ -75,17 +77,17 @@ namespace RogueliteAutoBattler.Editor.Windows.SkillTreeDesigner
 
             var nodes = _data.Nodes;
             float radiusSq = (NodeRadiusPx * _zoom) * (NodeRadiusPx * _zoom);
-            int? result = null;
+            int? topmostHit = null;
 
             for (int i = 0; i < nodes.Count; i++)
             {
                 var screen = DataToScreen(nodes[i].position);
                 var delta = localPx - screen;
                 if (delta.x * delta.x + delta.y * delta.y <= radiusSq)
-                    result = nodes[i].id;
+                    topmostHit = nodes[i].id;
             }
 
-            return result;
+            return topmostHit;
         }
 
         internal void SimulateClickAt(Vector2 localPx)
@@ -110,7 +112,7 @@ namespace RogueliteAutoBattler.Editor.Windows.SkillTreeDesigner
 
         private void OnMouseDown(MouseDownEvent evt)
         {
-            bool isPanGesture = evt.button == 2 || (evt.button == 0 && evt.altKey);
+            bool isPanGesture = evt.button == MiddleMouseButton || (evt.button == LeftMouseButton && evt.altKey);
 
             if (isPanGesture)
             {
@@ -121,7 +123,7 @@ namespace RogueliteAutoBattler.Editor.Windows.SkillTreeDesigner
                 return;
             }
 
-            if (evt.button == 0)
+            if (evt.button == LeftMouseButton)
             {
                 var hit = HitTest(evt.localMousePosition);
                 if (hit.HasValue)

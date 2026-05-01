@@ -7,6 +7,14 @@ namespace RogueliteAutoBattler.Editor.Windows.SkillTreeDesigner
 {
     internal static class SkillTreeCanvasMesh
     {
+        private const float MinVisibleGridSpacingPx = 4f;
+        private const float GridLineWidthPx = 1f;
+        private const float EdgeLineWidthPx = 2f;
+        private const float SelectionRingPaddingPx = 4f;
+        private const float SelectionRingThicknessPx = 3f;
+        private const float ArcStartDeg = 0f;
+        private const float ArcEndDeg = 360f;
+
         internal static void DrawGrid(
             Painter2D p,
             Rect viewportPx,
@@ -16,10 +24,10 @@ namespace RogueliteAutoBattler.Editor.Windows.SkillTreeDesigner
             Color gridColor)
         {
             float spacing = gridSpacingPx * zoom;
-            if (spacing < 4f) return;
+            if (spacing < MinVisibleGridSpacingPx) return;
 
             p.strokeColor = gridColor;
-            p.lineWidth = 1f;
+            p.lineWidth = GridLineWidthPx;
 
             float offsetX = ((panPx.x % spacing) + spacing) % spacing;
             float offsetY = ((panPx.y % spacing) + spacing) % spacing;
@@ -55,7 +63,7 @@ namespace RogueliteAutoBattler.Editor.Windows.SkillTreeDesigner
             var idToPos = BuildIdToScreenPos(nodes, origin, unitToPx, panPx, zoom);
 
             p.strokeColor = edgeColor;
-            p.lineWidth = 2f;
+            p.lineWidth = EdgeLineWidthPx;
 
             foreach (var node in nodes)
             {
@@ -88,8 +96,8 @@ namespace RogueliteAutoBattler.Editor.Windows.SkillTreeDesigner
             if (nodes == null || nodes.Count == 0) return;
 
             float scaledRadius = nodeRadiusPx * zoom;
-            float ringRadius = scaledRadius + 4f * zoom;
-            float ringThickness = 3f * zoom;
+            float ringRadius = scaledRadius + SelectionRingPaddingPx * zoom;
+            float ringThickness = SelectionRingThicknessPx * zoom;
 
             foreach (var node in nodes)
             {
@@ -97,7 +105,7 @@ namespace RogueliteAutoBattler.Editor.Windows.SkillTreeDesigner
 
                 p.fillColor = nodeColor;
                 p.BeginPath();
-                p.Arc(screen, scaledRadius, 0f, 360f);
+                p.Arc(screen, scaledRadius, ArcStartDeg, ArcEndDeg);
                 p.Fill();
 
                 if (node.id == selectedId)
@@ -105,7 +113,7 @@ namespace RogueliteAutoBattler.Editor.Windows.SkillTreeDesigner
                     p.strokeColor = selectedRingColor;
                     p.lineWidth = ringThickness;
                     p.BeginPath();
-                    p.Arc(screen, ringRadius, 0f, 360f);
+                    p.Arc(screen, ringRadius, ArcStartDeg, ArcEndDeg);
                     p.Stroke();
                 }
             }

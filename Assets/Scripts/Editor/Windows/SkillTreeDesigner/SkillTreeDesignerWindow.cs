@@ -9,6 +9,7 @@ namespace RogueliteAutoBattler.Editor.Windows.SkillTreeDesigner
     {
         private const string UxmlPath = "Assets/Scripts/Editor/Windows/SkillTreeDesigner/SkillTreeDesignerWindow.uxml";
         private const string UssPath = "Assets/Scripts/Editor/Windows/SkillTreeDesigner/SkillTreeDesignerWindow.uss";
+        private const string MenuPath = "Roguelite/Skill Tree Designer";
 
         private SkillTreeData _data;
         private SerializedObject _serialized;
@@ -20,7 +21,7 @@ namespace RogueliteAutoBattler.Editor.Windows.SkillTreeDesigner
         private TreeTabController _treeTab;
         private NodeTabController _nodeTab;
 
-        [MenuItem("Roguelite/Skill Tree Designer")]
+        [MenuItem(MenuPath)]
         private static void OpenWindow()
         {
             GetWindow<SkillTreeDesignerWindow>("Skill Tree Designer");
@@ -30,11 +31,28 @@ namespace RogueliteAutoBattler.Editor.Windows.SkillTreeDesigner
 
         internal void BuildUI(VisualElement root)
         {
+            if (!LoadUxmlAndUss(root))
+                return;
+
+            WireCanvas(root);
+
+            if (!LoadSkillTreeDataAsset())
+                return;
+
+            if (_canvas != null)
+                _canvas.SetData(_data, _selectedNodeId);
+
+            WireTabs(root);
+            WireTabButtons(root);
+        }
+
+        private bool LoadUxmlAndUss(VisualElement root)
+        {
             VisualTreeAsset uxml = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(UxmlPath);
             if (uxml == null)
             {
                 Debug.LogWarning($"[SkillTreeDesignerWindow] UXML not found at {UxmlPath}");
-                return;
+                return false;
             }
 
             TemplateContainer cloned = uxml.CloneTree();
@@ -45,13 +63,16 @@ namespace RogueliteAutoBattler.Editor.Windows.SkillTreeDesigner
             if (uss != null)
                 root.styleSheets.Add(uss);
 
-            WireCanvas(root);
+            return true;
+        }
 
+        private bool LoadSkillTreeDataAsset()
+        {
             string[] guids = AssetDatabase.FindAssets("t:SkillTreeData");
             if (guids.Length == 0)
             {
                 Debug.LogWarning("[SkillTreeDesignerWindow] No SkillTreeData asset found in project.");
-                return;
+                return false;
             }
 
             string path = AssetDatabase.GUIDToAssetPath(guids[0]);
@@ -59,30 +80,29 @@ namespace RogueliteAutoBattler.Editor.Windows.SkillTreeDesigner
             if (_data == null)
             {
                 Debug.LogWarning($"[SkillTreeDesignerWindow] Failed to load SkillTreeData at {path}");
-                return;
+                return false;
             }
 
             _serialized = new SerializedObject(_data);
+            return true;
+        }
 
-            if (_canvas != null)
-                _canvas.SetData(_data, _selectedNodeId);
-
+        private void WireTabs(VisualElement root)
+        {
             VisualElement tabBranch = root.Q<VisualElement>("tab-branch");
             VisualElement tabTree = root.Q<VisualElement>("tab-tree");
             VisualElement tabNode = root.Q<VisualElement>("tab-node");
             VisualElement canvasOverlayHost = root.Q<VisualElement>("canvas-host");
 
-            _branchTab = new BranchTabController(tabBranch, canvasOverlayHost, _data, _serialized, _canvas, () => _selectedNodeId);
+            _branchTab = new BranchTabController(tabBranch, canvasOverlayHost, _data, _canvas, () => _selectedNodeId);
             _treeTab = new TreeTabController(tabTree, _serialized);
-            _nodeTab = new NodeTabController(tabNode, _data, _serialized, _canvas, () => _selectedNodeId, id => _selectedNodeId = id);
+            _nodeTab = new NodeTabController(tabNode, _data, _canvas, () => _selectedNodeId, id => _selectedNodeId = id);
             _nodeTab.NodeDeleted += () =>
             {
                 _selectedNodeId = null;
                 _branchTab?.OnSelectionChanged(null);
                 _nodeTab?.OnSelectionChanged(null);
             };
-
-            WireTabButtons(root);
         }
 
         private void WireCanvas(VisualElement root)
@@ -149,7 +169,7 @@ namespace RogueliteAutoBattler.Editor.Windows.SkillTreeDesigner
             _activeTabContent.AddToClassList("tab-content--active");
         }
 
-        internal static string GetMenuItemPath() => "Roguelite/Skill Tree Designer";
+        internal static string GetMenuItemPath() => MenuPath;
 
         internal SkillTreeData Data => _data;
         internal SerializedObject SerializedData => _serialized;

@@ -12,9 +12,21 @@ namespace RogueliteAutoBattler.Editor.Windows.SkillTreeDesigner
     {
         private const float GhostDiameterPx = SkillTreeCanvasElement.NodeRadiusPx * 2f;
         private const float GhostHalfPx = SkillTreeCanvasElement.NodeRadiusPx;
+        private const float DistanceMin = 0.5f;
+        private const float DistanceMax = 10f;
+        private const float DistanceDefault = 2f;
+        private const float AngleMin = 0f;
+        private const float AngleMax = 360f;
+        private const float AngleDefault = 0f;
+        private const int CostDefault = 1;
+        private const float CostMultiplierDefault = 1f;
+        private const int CostAdditiveDefault = 0;
+        private const float StatModifierValuePerLevelDefault = 1f;
+        private const int FirstNodeId = 1;
+
+        private const int MaxLevelFallback = 1;
 
         private readonly SkillTreeData _data;
-        private readonly SerializedObject _serialized;
         private readonly SkillTreeCanvasElement _canvas;
         private readonly Func<int?> _selectedIdProvider;
 
@@ -30,24 +42,22 @@ namespace RogueliteAutoBattler.Editor.Windows.SkillTreeDesigner
             VisualElement tabContent,
             VisualElement canvasOverlayHost,
             SkillTreeData data,
-            SerializedObject serialized,
             SkillTreeCanvasElement canvas,
             Func<int?> selectedIdProvider)
         {
             _data = data;
-            _serialized = serialized;
             _canvas = canvas;
             _selectedIdProvider = selectedIdProvider;
 
-            _distance = new Slider("Distance", 0.5f, 10f) { name = "branch-distance", value = 2f };
+            _distance = new Slider("Distance", DistanceMin, DistanceMax) { name = "branch-distance", value = DistanceDefault };
             _distance.RegisterValueChangedCallback(_ => UpdatePreview());
 
-            _angle = new Slider("Angle (°, 0=up clockwise)", 0f, 360f) { name = "branch-angle", value = 0f };
+            _angle = new Slider("Angle (°, 0=up clockwise)", AngleMin, AngleMax) { name = "branch-angle", value = AngleDefault };
             _angle.RegisterValueChangedCallback(_ => UpdatePreview());
 
             _stat = new EnumField("Stat", StatType.Hp) { name = "branch-stat" };
 
-            _cost = new IntegerField("Cost") { name = "branch-cost", value = 1 };
+            _cost = new IntegerField("Cost") { name = "branch-cost", value = CostDefault };
 
             _costType = new EnumField("Cost Type", SkillTreeData.CostType.Gold) { name = "branch-cost-type" };
 
@@ -119,14 +129,14 @@ namespace RogueliteAutoBattler.Editor.Windows.SkillTreeDesigner
                 position = newPos,
                 connectedNodeIds = new List<int>(),
                 costType = (SkillTreeData.CostType)_costType.value,
-                maxLevel = _data != null ? _data.DefaultGeneratedMaxLevel : 1,
+                maxLevel = _data != null ? _data.DefaultGeneratedMaxLevel : MaxLevelFallback,
                 baseCost = _cost.value,
-                costMultiplierOdd = 1f,
-                costMultiplierEven = 1f,
-                costAdditivePerLevel = 0,
+                costMultiplierOdd = CostMultiplierDefault,
+                costMultiplierEven = CostMultiplierDefault,
+                costAdditivePerLevel = CostAdditiveDefault,
                 statModifierType = statType,
                 statModifierMode = SkillTreeData.StatModifierMode.Flat,
-                statModifierValuePerLevel = 1f
+                statModifierValuePerLevel = StatModifierValuePerLevelDefault
             };
         }
 
@@ -158,7 +168,7 @@ namespace RogueliteAutoBattler.Editor.Windows.SkillTreeDesigner
 
         private int ComputeNextId()
         {
-            if (_data == null || _data.Nodes.Count == 0) return 1;
+            if (_data == null || _data.Nodes.Count == 0) return FirstNodeId;
             int max = 0;
             foreach (var node in _data.Nodes)
             {

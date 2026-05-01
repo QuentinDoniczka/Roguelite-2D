@@ -59,7 +59,6 @@ namespace RogueliteAutoBattler.Tests.EditMode
                 _tabContent,
                 _overlayHost,
                 _data,
-                null,
                 _canvas,
                 () => _selectedId);
         }

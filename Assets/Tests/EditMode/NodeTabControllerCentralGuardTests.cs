@@ -3,7 +3,6 @@ using NUnit.Framework;
 using RogueliteAutoBattler.Combat.Core;
 using RogueliteAutoBattler.Data;
 using RogueliteAutoBattler.Editor.Windows.SkillTreeDesigner;
-using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -33,11 +32,9 @@ namespace RogueliteAutoBattler.Tests.EditMode
         private NodeTabController MakeController()
         {
             var tabContent = new VisualElement();
-            var serialized = new SerializedObject(_data);
             return new NodeTabController(
                 tabContent,
                 _data,
-                serialized,
                 _canvas,
                 () => _selectedId,
                 id => _selectedId = id);

@@ -8,11 +8,10 @@ namespace RogueliteAutoBattler.Editor.Windows.SkillTreeDesigner
 {
     internal sealed class NodeTabController
     {
-        // Matches SkillTreeData.CentralNodeId — kept local to avoid a public coupling on the constant.
-        private const int CentralNodeId = SkillTreeData.CentralNodeId;
+        private const string NoNodeSelectedLabel = "No node selected";
+        private const string NodeInfoFormat = "Node id: {0}  pos: ({1:0.##}, {2:0.##})";
 
         private readonly SkillTreeData _data;
-        private readonly SerializedObject _serialized;
         private readonly SkillTreeCanvasElement _canvas;
         private readonly Func<int?> _selectedIdProvider;
         private readonly Action<int?> _setSelectedId;
@@ -25,18 +24,16 @@ namespace RogueliteAutoBattler.Editor.Windows.SkillTreeDesigner
         internal NodeTabController(
             VisualElement tabContent,
             SkillTreeData data,
-            SerializedObject serialized,
             SkillTreeCanvasElement canvas,
             Func<int?> selectedIdProvider,
             Action<int?> setSelectedId = null)
         {
             _data = data;
-            _serialized = serialized;
             _canvas = canvas;
             _selectedIdProvider = selectedIdProvider;
             _setSelectedId = setSelectedId;
 
-            _infoLabel = new Label("No node selected") { name = "node-info" };
+            _infoLabel = new Label(NoNodeSelectedLabel) { name = "node-info" };
 
             _deleteButton = new Button(Delete) { name = "node-delete", text = "Delete Node" };
             _deleteButton.SetEnabled(false);
@@ -55,7 +52,7 @@ namespace RogueliteAutoBattler.Editor.Windows.SkillTreeDesigner
         {
             if (!selectedId.HasValue)
             {
-                _infoLabel.text = "No node selected";
+                _infoLabel.text = NoNodeSelectedLabel;
                 return;
             }
 
@@ -73,19 +70,19 @@ namespace RogueliteAutoBattler.Editor.Windows.SkillTreeDesigner
                 }
             }
 
-            _infoLabel.text = $"Node id: {id}  pos: ({position.x:0.##}, {position.y:0.##})";
+            _infoLabel.text = string.Format(NodeInfoFormat, id, position.x, position.y);
         }
 
         internal void RefreshDeleteButtonEnabled(int? selectedId)
         {
-            _deleteButton.SetEnabled(selectedId.HasValue && selectedId.Value != CentralNodeId);
+            _deleteButton.SetEnabled(selectedId.HasValue && selectedId.Value != SkillTreeData.CentralNodeId);
         }
 
         internal void Delete()
         {
             int? selectedId = _selectedIdProvider();
             if (!selectedId.HasValue) return;
-            if (selectedId.Value == CentralNodeId) return;
+            if (selectedId.Value == SkillTreeData.CentralNodeId) return;
 
             if (_data == null) return;
 
