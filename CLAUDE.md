@@ -218,6 +218,7 @@ Assets/
         StubScreen.cs
       AllyStatBonusServiceResolverTests.cs
       AttackSlotRegistryTests.cs
+      BranchPlacementDefaultAngleTests.cs
       BranchPlacementTests.cs
       HudIconAssetTests.cs
       NavBarIconsTests.cs
