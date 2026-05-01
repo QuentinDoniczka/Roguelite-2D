@@ -24,4 +24,17 @@ MonoBehaviour:
   defaultGeneratedMaxLevel: 0
   edgeColor: {r: 0.6, g: 0.6, b: 0.6, a: 1}
   edgeThickness: 4
-  nodes: []
+  centralUnlockCost: 100
+  nodes:
+  - id: 0
+    position: {x: 0, y: 0}
+    connectedNodeIds: []
+    costType: 0
+    maxLevel: 1
+    baseCost: 100
+    costMultiplierOdd: 1
+    costMultiplierEven: 1
+    costAdditivePerLevel: 0
+    statModifierType: 0
+    statModifierMode: 0
+    statModifierValuePerLevel: 0
