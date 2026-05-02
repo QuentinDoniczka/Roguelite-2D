@@ -10,6 +10,8 @@ namespace RogueliteAutoBattler.Editor.Tools
         internal const string LegacyAssetPath = "Assets/Data/SkillTreeData.asset";
         internal const string MigratedAssetPath = "Assets/Data/SkillTrees/Default.asset";
 
+        private const string LogTag = "[SkillTreeAssetMigration]";
+
         static SkillTreeAssetMigration()
         {
             EditorApplication.delayCall += RunDefault;
@@ -27,32 +29,35 @@ namespace RogueliteAutoBattler.Editor.Tools
             if (existingPointer != null && existingPointer.Target != null)
             {
                 var targetPath = AssetDatabase.GetAssetPath(existingPointer.Target);
-                if (!string.IsNullOrEmpty(targetPath) && targetPath.StartsWith(treesFolder))
+                if (!string.IsNullOrEmpty(targetPath)
+                    && targetPath.StartsWith(treesFolder)
+                    && AssetDatabase.LoadAssetAtPath<SkillTreeData>(targetPath) == existingPointer.Target)
                     return;
             }
 
-            EnsureFolderExists(treesFolder);
-            EnsureFolderExists(System.IO.Path.GetDirectoryName(pointerPath).Replace('\\', '/'));
+            EditorAssetFolders.EnsureFolder(treesFolder);
+            EditorAssetFolders.EnsureFolder(System.IO.Path.GetDirectoryName(pointerPath).Replace('\\', '/'));
 
+            var migratedAsset = AssetDatabase.LoadAssetAtPath<SkillTreeData>(migratedPath);
             SkillTreeData targetAsset;
-            if (AssetDatabase.LoadAssetAtPath<SkillTreeData>(migratedPath) != null)
+            if (migratedAsset != null)
             {
-                targetAsset = AssetDatabase.LoadAssetAtPath<SkillTreeData>(migratedPath);
+                targetAsset = migratedAsset;
             }
             else if (AssetDatabase.LoadAssetAtPath<SkillTreeData>(legacyPath) != null)
             {
                 var moveError = AssetDatabase.MoveAsset(legacyPath, migratedPath);
                 if (!string.IsNullOrEmpty(moveError))
                 {
-                    Debug.LogError($"[{nameof(SkillTreeAssetMigration)}] Failed to move {legacyPath} to {migratedPath}: {moveError}");
+                    Debug.LogError($"{LogTag} Failed to move {legacyPath} to {migratedPath}: {moveError}");
                     return;
                 }
-                Debug.Log($"[{nameof(SkillTreeAssetMigration)}] Moved {legacyPath} to {migratedPath}.");
+                Debug.Log($"{LogTag} Moved {legacyPath} to {migratedPath}.");
                 targetAsset = AssetDatabase.LoadAssetAtPath<SkillTreeData>(migratedPath);
             }
             else
             {
-                Debug.LogWarning($"[{nameof(SkillTreeAssetMigration)}] No SkillTreeData found at legacy or migrated path. Creating empty asset at {migratedPath}.");
+                Debug.LogWarning($"{LogTag} No SkillTreeData found at legacy or migrated path. Creating empty asset at {migratedPath}.");
                 targetAsset = ScriptableObject.CreateInstance<SkillTreeData>();
                 AssetDatabase.CreateAsset(targetAsset, migratedPath);
             }
@@ -73,22 +78,6 @@ namespace RogueliteAutoBattler.Editor.Tools
             so.ApplyModifiedPropertiesWithoutUndo();
             EditorUtility.SetDirty(pointer);
             AssetDatabase.SaveAssets();
-        }
-
-        private static void EnsureFolderExists(string folderPath)
-        {
-            if (string.IsNullOrEmpty(folderPath)) return;
-            if (AssetDatabase.IsValidFolder(folderPath)) return;
-
-            var parts = folderPath.Replace('\\', '/').Split('/');
-            var current = parts[0];
-            for (var i = 1; i < parts.Length; i++)
-            {
-                var next = current + "/" + parts[i];
-                if (!AssetDatabase.IsValidFolder(next))
-                    AssetDatabase.CreateFolder(current, parts[i]);
-                current = next;
-            }
         }
     }
 }

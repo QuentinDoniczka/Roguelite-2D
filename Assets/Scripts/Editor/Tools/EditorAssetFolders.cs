@@ -1,11 +1,12 @@
 using UnityEditor;
 
-namespace RogueliteAutoBattler.Tests.EditMode
+namespace RogueliteAutoBattler.Editor.Tools
 {
-    internal static class AssetFolderUtils
+    internal static class EditorAssetFolders
     {
         internal static void EnsureFolder(string folder)
         {
+            if (string.IsNullOrEmpty(folder)) return;
             if (AssetDatabase.IsValidFolder(folder)) return;
             int lastSlash = folder.LastIndexOf('/');
             string parent = folder.Substring(0, lastSlash);

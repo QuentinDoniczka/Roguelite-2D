@@ -40,9 +40,10 @@ Assets/
     Buildings/  (empty)
     Enemies/  (empty)
     LootTables/  (empty)
+    SkillTrees/
+      Default.asset
     DamageNumberConfig.asset
     LevelDatabase.asset
-    SkillTreeData.asset
     SkillTreeProgress.asset
     TeamDatabase.asset
   doc/
@@ -70,6 +71,8 @@ Assets/
     Characters/  (5 prefabs: Elk, Horse, Wildboar, Wolf, sampleCharacterHuman)
     Effects/  (empty)
     UI/  (empty)
+  Resources/
+    ActiveSkillTree.asset
   Scenes/
     NewGameScene.unity
   Scripts/

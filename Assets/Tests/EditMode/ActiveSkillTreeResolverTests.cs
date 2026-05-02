@@ -1,5 +1,6 @@
 using NUnit.Framework;
 using RogueliteAutoBattler.Data;
+using RogueliteAutoBattler.Editor.Tools;
 using UnityEditor;
 using UnityEngine;
 
@@ -19,7 +20,7 @@ namespace RogueliteAutoBattler.Tests.EditMode
         [OneTimeSetUp]
         public void OneTimeSetUp()
         {
-            AssetFolderUtils.EnsureFolder(TempFolder);
+            EditorAssetFolders.EnsureFolder(TempFolder);
             _hadProductionPointer = AssetDatabase.LoadAssetAtPath<ActiveSkillTreePointer>(PointerAssetPath) != null;
             if (_hadProductionPointer)
             {
@@ -35,7 +36,7 @@ namespace RogueliteAutoBattler.Tests.EditMode
             CleanupAssets();
             if (_hadProductionPointer)
             {
-                AssetFolderUtils.EnsureFolder(ResourcesFolder);
+                EditorAssetFolders.EnsureFolder(ResourcesFolder);
                 var moveError = AssetDatabase.MoveAsset(PreservedPointerPath, PointerAssetPath);
                 if (!string.IsNullOrEmpty(moveError))
                     Debug.LogError($"Failed to restore production pointer: {moveError}");
@@ -71,7 +72,7 @@ namespace RogueliteAutoBattler.Tests.EditMode
         [Test]
         public void GetActive_ReturnsNull_WhenPointerTargetIsNull()
         {
-            AssetFolderUtils.EnsureFolder(ResourcesFolder);
+            EditorAssetFolders.EnsureFolder(ResourcesFolder);
             var pointer = ScriptableObject.CreateInstance<ActiveSkillTreePointer>();
             try
             {
@@ -92,8 +93,8 @@ namespace RogueliteAutoBattler.Tests.EditMode
         [Test]
         public void GetActive_ReturnsTargetAsset_WhenPointerWired()
         {
-            AssetFolderUtils.EnsureFolder(ResourcesFolder);
-            AssetFolderUtils.EnsureFolder(TempFolder);
+            EditorAssetFolders.EnsureFolder(ResourcesFolder);
+            EditorAssetFolders.EnsureFolder(TempFolder);
 
             var skillTree = ScriptableObject.CreateInstance<SkillTreeData>();
             var pointer = ScriptableObject.CreateInstance<ActiveSkillTreePointer>();

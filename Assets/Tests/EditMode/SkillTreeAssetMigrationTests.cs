@@ -25,7 +25,7 @@ namespace RogueliteAutoBattler.Tests.EditMode
         [Test]
         public void RunForTest_MovesLegacyAssetAndWiresPointer_WhenLegacyExists()
         {
-            AssetFolderUtils.EnsureFolder(TempRootFolder);
+            EditorAssetFolders.EnsureFolder(TempRootFolder);
             var legacy = ScriptableObject.CreateInstance<SkillTreeData>();
             AssetDatabase.CreateAsset(legacy, TempLegacyPath);
 
@@ -45,9 +45,9 @@ namespace RogueliteAutoBattler.Tests.EditMode
         [Test]
         public void RunForTest_IsIdempotent_WhenAlreadyMigrated()
         {
-            AssetFolderUtils.EnsureFolder(TempRootFolder);
-            AssetFolderUtils.EnsureFolder(TempTreesFolder);
-            AssetFolderUtils.EnsureFolder("Assets/Tests/Temp/Resources");
+            EditorAssetFolders.EnsureFolder(TempRootFolder);
+            EditorAssetFolders.EnsureFolder(TempTreesFolder);
+            EditorAssetFolders.EnsureFolder("Assets/Tests/Temp/Resources");
 
             var data = ScriptableObject.CreateInstance<SkillTreeData>();
             AssetDatabase.CreateAsset(data, TempMigratedPath);
@@ -73,7 +73,7 @@ namespace RogueliteAutoBattler.Tests.EditMode
         [Test]
         public void RunForTest_CreatesEmptyAsset_WhenNoLegacy()
         {
-            AssetFolderUtils.EnsureFolder(TempRootFolder);
+            EditorAssetFolders.EnsureFolder(TempRootFolder);
 
             SkillTreeAssetMigration.RunForTest(TempLegacyPath, TempMigratedPath, TempPointerPath, TempTreesFolder);
 
