@@ -25,7 +25,7 @@ namespace RogueliteAutoBattler.Tests.EditMode
         [Test]
         public void RunForTest_MovesLegacyAssetAndWiresPointer_WhenLegacyExists()
         {
-            EnsureTempFolder();
+            AssetFolderUtils.EnsureFolder(TempRootFolder);
             var legacy = ScriptableObject.CreateInstance<SkillTreeData>();
             AssetDatabase.CreateAsset(legacy, TempLegacyPath);
 
@@ -45,17 +45,17 @@ namespace RogueliteAutoBattler.Tests.EditMode
         [Test]
         public void RunForTest_IsIdempotent_WhenAlreadyMigrated()
         {
-            EnsureTempFolder();
-            EnsureFolder("Assets/Tests/Temp/SkillTrees");
-            EnsureFolder("Assets/Tests/Temp/Resources");
+            AssetFolderUtils.EnsureFolder(TempRootFolder);
+            AssetFolderUtils.EnsureFolder(TempTreesFolder);
+            AssetFolderUtils.EnsureFolder("Assets/Tests/Temp/Resources");
 
             var data = ScriptableObject.CreateInstance<SkillTreeData>();
             AssetDatabase.CreateAsset(data, TempMigratedPath);
 
             var pointer = ScriptableObject.CreateInstance<ActiveSkillTreePointer>();
             AssetDatabase.CreateAsset(pointer, TempPointerPath);
-            var so = new UnityEditor.SerializedObject(pointer);
-            so.FindProperty("target").objectReferenceValue = data;
+            var so = new SerializedObject(pointer);
+            so.FindProperty(ActiveSkillTreePointer.FieldNames.Target).objectReferenceValue = data;
             so.ApplyModifiedPropertiesWithoutUndo();
             AssetDatabase.SaveAssets();
 
@@ -73,7 +73,7 @@ namespace RogueliteAutoBattler.Tests.EditMode
         [Test]
         public void RunForTest_CreatesEmptyAsset_WhenNoLegacy()
         {
-            EnsureTempFolder();
+            AssetFolderUtils.EnsureFolder(TempRootFolder);
 
             SkillTreeAssetMigration.RunForTest(TempLegacyPath, TempMigratedPath, TempPointerPath, TempTreesFolder);
 
@@ -84,21 +84,5 @@ namespace RogueliteAutoBattler.Tests.EditMode
             Assert.IsNotNull(pointer.Target, "Pointer.Target should be wired to the empty asset.");
         }
 
-        private static void EnsureTempFolder()
-        {
-            if (!AssetDatabase.IsValidFolder(TempRootFolder))
-                AssetDatabase.CreateFolder("Assets/Tests", "Temp");
-        }
-
-        private static void EnsureFolder(string path)
-        {
-            if (AssetDatabase.IsValidFolder(path)) return;
-            var lastSlash = path.LastIndexOf('/');
-            var parent = path.Substring(0, lastSlash);
-            var leaf = path.Substring(lastSlash + 1);
-            if (!AssetDatabase.IsValidFolder(parent))
-                EnsureFolder(parent);
-            AssetDatabase.CreateFolder(parent, leaf);
-        }
     }
 }

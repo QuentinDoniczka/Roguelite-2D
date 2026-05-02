@@ -69,7 +69,7 @@ namespace RogueliteAutoBattler.Editor.Tools
             }
 
             var so = new SerializedObject(pointer);
-            so.FindProperty("target").objectReferenceValue = targetAsset;
+            so.FindProperty(ActiveSkillTreePointer.FieldNames.Target).objectReferenceValue = targetAsset;
             so.ApplyModifiedPropertiesWithoutUndo();
             EditorUtility.SetDirty(pointer);
             AssetDatabase.SaveAssets();

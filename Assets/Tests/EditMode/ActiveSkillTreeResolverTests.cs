@@ -19,7 +19,7 @@ namespace RogueliteAutoBattler.Tests.EditMode
         [OneTimeSetUp]
         public void OneTimeSetUp()
         {
-            EnsureFolder(TempFolder);
+            AssetFolderUtils.EnsureFolder(TempFolder);
             _hadProductionPointer = AssetDatabase.LoadAssetAtPath<ActiveSkillTreePointer>(PointerAssetPath) != null;
             if (_hadProductionPointer)
             {
@@ -35,7 +35,7 @@ namespace RogueliteAutoBattler.Tests.EditMode
             CleanupAssets();
             if (_hadProductionPointer)
             {
-                EnsureFolder(ResourcesFolder);
+                AssetFolderUtils.EnsureFolder(ResourcesFolder);
                 var moveError = AssetDatabase.MoveAsset(PreservedPointerPath, PointerAssetPath);
                 if (!string.IsNullOrEmpty(moveError))
                     Debug.LogError($"Failed to restore production pointer: {moveError}");
@@ -71,7 +71,7 @@ namespace RogueliteAutoBattler.Tests.EditMode
         [Test]
         public void GetActive_ReturnsNull_WhenPointerTargetIsNull()
         {
-            EnsureFolder(ResourcesFolder);
+            AssetFolderUtils.EnsureFolder(ResourcesFolder);
             var pointer = ScriptableObject.CreateInstance<ActiveSkillTreePointer>();
             try
             {
@@ -92,8 +92,8 @@ namespace RogueliteAutoBattler.Tests.EditMode
         [Test]
         public void GetActive_ReturnsTargetAsset_WhenPointerWired()
         {
-            EnsureFolder(ResourcesFolder);
-            EnsureFolder(TempFolder);
+            AssetFolderUtils.EnsureFolder(ResourcesFolder);
+            AssetFolderUtils.EnsureFolder(TempFolder);
 
             var skillTree = ScriptableObject.CreateInstance<SkillTreeData>();
             var pointer = ScriptableObject.CreateInstance<ActiveSkillTreePointer>();
@@ -103,7 +103,7 @@ namespace RogueliteAutoBattler.Tests.EditMode
                 AssetDatabase.CreateAsset(pointer, PointerAssetPath);
 
                 var serialized = new SerializedObject(pointer);
-                serialized.FindProperty("target").objectReferenceValue = skillTree;
+                serialized.FindProperty(ActiveSkillTreePointer.FieldNames.Target).objectReferenceValue = skillTree;
                 serialized.ApplyModifiedPropertiesWithoutUndo();
 
                 AssetDatabase.SaveAssets();
@@ -118,17 +118,6 @@ namespace RogueliteAutoBattler.Tests.EditMode
             {
                 CleanupAssets();
             }
-        }
-
-        private static void EnsureFolder(string folder)
-        {
-            if (AssetDatabase.IsValidFolder(folder)) return;
-            int lastSlash = folder.LastIndexOf('/');
-            string parent = folder.Substring(0, lastSlash);
-            string leaf = folder.Substring(lastSlash + 1);
-            if (!AssetDatabase.IsValidFolder(parent))
-                EnsureFolder(parent);
-            AssetDatabase.CreateFolder(parent, leaf);
         }
 
         private static void CleanupAssets()
