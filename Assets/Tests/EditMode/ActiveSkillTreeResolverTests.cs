@@ -12,6 +12,38 @@ namespace RogueliteAutoBattler.Tests.EditMode
         private const string PointerAssetPath = "Assets/Resources/ActiveSkillTree.asset";
         private const string TempFolder = "Assets/Tests/Temp";
         private const string TempSkillTreePath = "Assets/Tests/Temp/TempSkillTreeData.asset";
+        private const string PreservedPointerPath = "Assets/Tests/Temp/PreservedActiveSkillTreePointer.asset";
+
+        private bool _hadProductionPointer;
+
+        [OneTimeSetUp]
+        public void OneTimeSetUp()
+        {
+            EnsureFolder(TempFolder);
+            _hadProductionPointer = AssetDatabase.LoadAssetAtPath<ActiveSkillTreePointer>(PointerAssetPath) != null;
+            if (_hadProductionPointer)
+            {
+                var moveError = AssetDatabase.MoveAsset(PointerAssetPath, PreservedPointerPath);
+                if (!string.IsNullOrEmpty(moveError))
+                    Assert.Fail($"Failed to preserve production pointer: {moveError}");
+            }
+        }
+
+        [OneTimeTearDown]
+        public void OneTimeTearDown()
+        {
+            CleanupAssets();
+            if (_hadProductionPointer)
+            {
+                EnsureFolder(ResourcesFolder);
+                var moveError = AssetDatabase.MoveAsset(PreservedPointerPath, PointerAssetPath);
+                if (!string.IsNullOrEmpty(moveError))
+                    Debug.LogError($"Failed to restore production pointer: {moveError}");
+            }
+            if (AssetDatabase.IsValidFolder(TempFolder))
+                AssetDatabase.DeleteAsset(TempFolder);
+            AssetDatabase.Refresh();
+        }
 
         [SetUp]
         public void SetUp()
