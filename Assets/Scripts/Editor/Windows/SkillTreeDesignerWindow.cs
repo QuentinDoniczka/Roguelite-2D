@@ -92,13 +92,11 @@ namespace RogueliteAutoBattler.Editor.Windows
 
         private void OnEnable()
         {
-            _data = AssetDatabase.LoadAssetAtPath<SkillTreeData>(EditorPaths.SkillTreeDataAsset);
+            _data = ActiveSkillTreeResolver.GetActive();
             if (_data == null)
             {
-                EditorUIFactory.EnsureDirectoryExists(EditorPaths.SkillTreeDataAsset);
-                _data = CreateInstance<SkillTreeData>();
-                AssetDatabase.CreateAsset(_data, EditorPaths.SkillTreeDataAsset);
-                AssetDatabase.SaveAssets();
+                Debug.LogError($"[{nameof(SkillTreeDesignerWindow)}] No active SkillTreeData resolved. Migration may not have run yet — close and reopen the window once the project finishes loading.");
+                return;
             }
             _serializedData = new SerializedObject(_data);
             CacheSerializedProperties();

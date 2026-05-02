@@ -43,14 +43,15 @@ namespace RogueliteAutoBattler.Core
 
             SkillTreeData skillTreeData = SkillTreeDataAssetForTest;
             SkillTreeProgress skillTreeProgress = SkillTreeProgressAssetForTest;
-            if (skillTreeData == null || skillTreeProgress == null)
+
+            if (skillTreeData == null)
+                skillTreeData = ActiveSkillTreeResolver.GetActive();
+
+            if (skillTreeProgress == null)
             {
                 var skillTreeController = Object.FindFirstObjectByType<SkillTreeScreenController>(FindObjectsInactive.Include);
                 if (skillTreeController != null)
-                {
-                    if (skillTreeData == null) skillTreeData = skillTreeController.Data;
-                    if (skillTreeProgress == null) skillTreeProgress = skillTreeController.Progress;
-                }
+                    skillTreeProgress = skillTreeController.Progress;
             }
 
             if (GoldWallet != null && skillTreeProgress != null)

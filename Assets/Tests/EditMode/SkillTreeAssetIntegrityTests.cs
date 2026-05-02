@@ -3,33 +3,30 @@ using System.Linq;
 using NUnit.Framework;
 using RogueliteAutoBattler.Combat.Core;
 using RogueliteAutoBattler.Data;
-using UnityEditor;
 
 namespace RogueliteAutoBattler.Tests.EditMode
 {
     [TestFixture]
     public class SkillTreeAssetIntegrityTests
     {
-        private const string AssetPath = "Assets/Data/SkillTreeData.asset";
-
         private SkillTreeData _asset;
 
         [SetUp]
         public void SetUp()
         {
-            _asset = AssetDatabase.LoadAssetAtPath<SkillTreeData>(AssetPath);
+            _asset = ActiveSkillTreeResolver.GetActive();
         }
 
         [Test]
         public void Asset_LoadsSuccessfully()
         {
-            Assert.IsNotNull(_asset, $"Failed to load SkillTreeData at {AssetPath}");
+            Assert.IsNotNull(_asset, "Failed to resolve active SkillTreeData via ActiveSkillTreeResolver");
         }
 
         [Test]
         public void Asset_AllNodesHaveValidStatType()
         {
-            Assert.IsNotNull(_asset, $"Failed to load SkillTreeData at {AssetPath}");
+            Assert.IsNotNull(_asset, "Failed to resolve active SkillTreeData via ActiveSkillTreeResolver");
 
             foreach (var node in _asset.Nodes)
             {
@@ -41,7 +38,7 @@ namespace RogueliteAutoBattler.Tests.EditMode
         [Test]
         public void Asset_AllNodesHaveValidModifierMode()
         {
-            Assert.IsNotNull(_asset, $"Failed to load SkillTreeData at {AssetPath}");
+            Assert.IsNotNull(_asset, "Failed to resolve active SkillTreeData via ActiveSkillTreeResolver");
 
             foreach (var node in _asset.Nodes)
             {
@@ -53,7 +50,7 @@ namespace RogueliteAutoBattler.Tests.EditMode
         [Test]
         public void Asset_HasExactlyOneCentralNode_AtId0()
         {
-            Assert.IsNotNull(_asset, $"Failed to load SkillTreeData at {AssetPath}");
+            Assert.IsNotNull(_asset, "Failed to resolve active SkillTreeData via ActiveSkillTreeResolver");
 
             var centrals = _asset.Nodes.Where(n => n.id == SkillTreeData.CentralNodeId).ToList();
             Assert.AreEqual(1, centrals.Count, "Expected exactly one node with id == CentralNodeId.");
@@ -62,7 +59,7 @@ namespace RogueliteAutoBattler.Tests.EditMode
         [Test]
         public void Asset_CentralNode_HasExpectedShape()
         {
-            Assert.IsNotNull(_asset, $"Failed to load SkillTreeData at {AssetPath}");
+            Assert.IsNotNull(_asset, "Failed to resolve active SkillTreeData via ActiveSkillTreeResolver");
 
             var central = _asset.Nodes.First(n => n.id == SkillTreeData.CentralNodeId);
             Assert.AreEqual(SkillTreeData.CostType.Gold, central.costType, "Central node costType should be Gold.");

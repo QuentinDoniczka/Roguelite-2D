@@ -20,8 +20,12 @@ namespace RogueliteAutoBattler.Editor.Builders
 
             UIDocument uiDocument = navigationHostGo.GetComponent<UIDocument>();
 
-            SkillTreeData data =
-                AssetDatabase.LoadAssetAtPath<SkillTreeData>(EditorPaths.SkillTreeDataAsset);
+            SkillTreeData data = ActiveSkillTreeResolver.GetActive();
+            if (data == null)
+            {
+                Debug.LogError($"[{nameof(SkillTreeScreenBuilder)}] No active SkillTreeData resolved. Migration may not have run yet.");
+                return;
+            }
             SkillTreeProgress progress = EnsureSkillTreeProgressAsset();
 
             SkillTreeScreenController controller =
