@@ -41,8 +41,8 @@ namespace RogueliteAutoBattler.Tests.EditMode
         [Test]
         public void Run_WithRealProjectAsset_ReportsZeroIssues()
         {
-            var realAsset = AssetDatabase.LoadAssetAtPath<SkillTreeData>("Assets/Data/SkillTreeData.asset");
-            Assert.IsNotNull(realAsset, "Expected real SkillTreeData asset at Assets/Data/SkillTreeData.asset");
+            var realAsset = ActiveSkillTreeResolver.GetActive();
+            Assert.IsNotNull(realAsset, "Expected active SkillTreeData via ActiveSkillTreeResolver");
 
             var report = StatTypeValidator.Run(new[] { realAsset });
 

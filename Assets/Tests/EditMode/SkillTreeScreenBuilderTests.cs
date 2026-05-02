@@ -68,9 +68,9 @@ namespace RogueliteAutoBattler.Tests.EditMode
             Assert.IsNotNull(dataProperty.objectReferenceValue,
                 "SkillTreeScreenController._data must be wired after setup.");
 
-            string assetPath = AssetDatabase.GetAssetPath(dataProperty.objectReferenceValue);
-            Assert.AreEqual(EditorPaths.SkillTreeDataAsset, assetPath,
-                $"SkillTreeScreenController._data must reference the default asset at '{EditorPaths.SkillTreeDataAsset}'.");
+            var activeData = ActiveSkillTreeResolver.GetActive();
+            Assert.AreSame(activeData, dataProperty.objectReferenceValue,
+                "SkillTreeScreenController._data must reference the active SkillTreeData resolved via ActiveSkillTreeResolver.");
         }
 
         [Test]
