@@ -181,6 +181,66 @@ namespace RogueliteAutoBattler.Editor.Windows
             RefreshActivePointerCache();
         }
 
+        private void CreateNewTree()
+        {
+            var path = EditorUtility.SaveFilePanel("Create Skill Tree", EditorPaths.SkillTreesFolder, "NewSkillTree", "asset");
+            if (string.IsNullOrEmpty(path)) return;
+            if (!SkillTreesEnumerator.IsPathUnderSkillTreesFolder(path, EditorPaths.SkillTreesFolder))
+            {
+                EditorUtility.DisplayDialog("Invalid Path", $"Skill trees must live under {EditorPaths.SkillTreesFolder}.", "OK");
+                return;
+            }
+            var assetRelative = SkillTreesEnumerator.ConvertAbsoluteToAssetRelative(path);
+            var asset = ScriptableObject.CreateInstance<SkillTreeData>();
+            AssetDatabase.CreateAsset(asset, assetRelative);
+            AssetDatabase.SaveAssets();
+            var guid = AssetDatabase.AssetPathToGUID(assetRelative);
+            RefreshTreeList();
+            BindAsset(FindEntryByGuid(guid));
+        }
+
+        private void DuplicateCurrentTree()
+        {
+            if (_data == null) return;
+            var sourcePath = AssetDatabase.GetAssetPath(_data);
+            var dupPath = SkillTreesEnumerator.MakeUniqueDuplicatePath(sourcePath);
+            if (string.IsNullOrEmpty(dupPath)) return;
+            if (!AssetDatabase.CopyAsset(sourcePath, dupPath))
+            {
+                Debug.LogError($"[{nameof(SkillTreeDesignerWindow)}] Failed to duplicate {sourcePath} to {dupPath}");
+                return;
+            }
+            AssetDatabase.SaveAssets();
+            var guid = AssetDatabase.AssetPathToGUID(dupPath);
+            RefreshTreeList();
+            BindAsset(FindEntryByGuid(guid));
+        }
+
+        private void DeleteCurrentTree()
+        {
+            if (_data == null) return;
+            if (_treeEntries.Count <= 1) return;
+            if (_data == _activePointerTarget) return;
+            var name = _data.name;
+            if (!EditorUtility.DisplayDialog("Delete Skill Tree", $"Delete '{name}'? This cannot be undone.", "Delete", "Cancel"))
+                return;
+            var path = AssetDatabase.GetAssetPath(_data);
+            if (!AssetDatabase.DeleteAsset(path))
+            {
+                Debug.LogError($"[{nameof(SkillTreeDesignerWindow)}] Failed to delete {path}");
+                return;
+            }
+            AssetDatabase.SaveAssets();
+            RefreshTreeList();
+            BindAsset(_treeEntries.Count > 0 ? _treeEntries[0] : (SkillTreesEnumerator.TreeEntry?)null);
+        }
+
+        private SkillTreesEnumerator.TreeEntry? FindEntryByGuid(string guid)
+        {
+            var idx = IndexOfGuid(guid);
+            return idx >= 0 ? _treeEntries[idx] : (SkillTreesEnumerator.TreeEntry?)null;
+        }
+
         private void CacheSerializedProperties()
         {
             _propUnitSize = _serializedData.FindProperty(SkillTreeData.FieldNames.UnitSize);
@@ -393,6 +453,24 @@ namespace RogueliteAutoBattler.Editor.Windows
                 {
                     if (GUILayout.Button("Set as Active"))
                         SetActivePointerToCurrent();
+                }
+                if (GUILayout.Button("New"))
+                    CreateNewTree();
+                using (new EditorGUI.DisabledScope(_data == null))
+                {
+                    if (GUILayout.Button("Duplicate"))
+                        DuplicateCurrentTree();
+                }
+                bool canDelete = _data != null && _treeEntries != null && _treeEntries.Count > 1 && !isActive;
+                using (new EditorGUI.DisabledScope(!canDelete))
+                {
+                    var deleteContent = new GUIContent("Delete", canDelete
+                        ? "Delete this skill tree."
+                        : (_data == null ? "No skill tree selected."
+                            : isActive ? "Cannot delete the active skill tree. Switch to another tree first."
+                            : "Cannot delete the last skill tree."));
+                    if (GUILayout.Button(deleteContent))
+                        DeleteCurrentTree();
                 }
                 EditorGUILayout.EndHorizontal();
             }

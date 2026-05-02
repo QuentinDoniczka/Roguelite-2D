@@ -122,6 +122,95 @@ namespace RogueliteAutoBattler.Tests.EditMode
             Assert.IsFalse(result);
         }
 
+        [Test]
+        public void MakeUniqueDuplicatePath_AppendsCopy_WhenNoCollision()
+        {
+            EditorAssetFolders.EnsureFolder(TempTreesFolder);
+            CreateTreeAsset(TempTreesFolder, "Foo");
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
+
+            var dup = SkillTreesEnumerator.MakeUniqueDuplicatePath($"{TempTreesFolder}/Foo.asset");
+
+            Assert.AreEqual($"{TempTreesFolder}/Foo_Copy.asset", dup);
+        }
+
+        [Test]
+        public void MakeUniqueDuplicatePath_AppendsCopy2_WhenCopyExists()
+        {
+            EditorAssetFolders.EnsureFolder(TempTreesFolder);
+            CreateTreeAsset(TempTreesFolder, "Foo");
+            CreateTreeAsset(TempTreesFolder, "Foo_Copy");
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
+
+            var dup = SkillTreesEnumerator.MakeUniqueDuplicatePath($"{TempTreesFolder}/Foo.asset");
+
+            Assert.AreEqual($"{TempTreesFolder}/Foo_Copy_2.asset", dup);
+        }
+
+        [Test]
+        public void MakeUniqueDuplicatePath_AppendsCopy3_WhenCopyAndCopy2Exist()
+        {
+            EditorAssetFolders.EnsureFolder(TempTreesFolder);
+            CreateTreeAsset(TempTreesFolder, "Foo");
+            CreateTreeAsset(TempTreesFolder, "Foo_Copy");
+            CreateTreeAsset(TempTreesFolder, "Foo_Copy_2");
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
+
+            var dup = SkillTreesEnumerator.MakeUniqueDuplicatePath($"{TempTreesFolder}/Foo.asset");
+
+            Assert.AreEqual($"{TempTreesFolder}/Foo_Copy_3.asset", dup);
+        }
+
+        [Test]
+        public void IsPathUnderSkillTreesFolder_ReturnsTrue_ForRelativePath()
+        {
+            bool result = SkillTreesEnumerator.IsPathUnderSkillTreesFolder(
+                "Assets/Data/SkillTrees/MyTree.asset", "Assets/Data/SkillTrees");
+
+            Assert.IsTrue(result);
+        }
+
+        [Test]
+        public void IsPathUnderSkillTreesFolder_ReturnsFalse_ForOutsidePath()
+        {
+            bool result = SkillTreesEnumerator.IsPathUnderSkillTreesFolder(
+                "Assets/Data/Other/MyTree.asset", "Assets/Data/SkillTrees");
+
+            Assert.IsFalse(result);
+        }
+
+        [Test]
+        public void IsPathUnderSkillTreesFolder_ReturnsTrue_ForAbsolutePathInsideProject()
+        {
+            const string skillTreesFolder = "Assets/Data/SkillTrees";
+            var absolute = Application.dataPath + "/" + skillTreesFolder.Substring("Assets/".Length) + "/MyTree.asset";
+
+            bool result = SkillTreesEnumerator.IsPathUnderSkillTreesFolder(absolute, skillTreesFolder);
+
+            Assert.IsTrue(result);
+        }
+
+        [Test]
+        public void ConvertAbsoluteToAssetRelative_HandlesAbsolutePath()
+        {
+            var absolute = Application.dataPath + "/Data/SkillTrees/MyTree.asset";
+
+            var rel = SkillTreesEnumerator.ConvertAbsoluteToAssetRelative(absolute);
+
+            Assert.AreEqual("Assets/Data/SkillTrees/MyTree.asset", rel);
+        }
+
+        [Test]
+        public void ConvertAbsoluteToAssetRelative_HandlesAlreadyRelative()
+        {
+            var rel = SkillTreesEnumerator.ConvertAbsoluteToAssetRelative("Assets/Data/SkillTrees/MyTree.asset");
+
+            Assert.AreEqual("Assets/Data/SkillTrees/MyTree.asset", rel);
+        }
+
         private static SkillTreeData CreateTreeAsset(string folder, string assetName)
         {
             var asset = ScriptableObject.CreateInstance<SkillTreeData>();

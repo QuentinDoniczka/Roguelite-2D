@@ -55,5 +55,46 @@ namespace RogueliteAutoBattler.Editor.Tools
             AssetDatabase.SaveAssets();
             return true;
         }
+
+        internal static bool IsPathUnderSkillTreesFolder(string fullPath, string skillTreesFolder)
+        {
+            if (string.IsNullOrEmpty(fullPath) || string.IsNullOrEmpty(skillTreesFolder)) return false;
+            var normalized = fullPath.Replace('\\', '/');
+            var assetsRelative = ConvertAbsoluteToAssetRelative(normalized);
+            if (string.IsNullOrEmpty(assetsRelative)) return false;
+            return assetsRelative.StartsWith(skillTreesFolder + "/", System.StringComparison.Ordinal)
+                || assetsRelative == skillTreesFolder;
+        }
+
+        internal static string ConvertAbsoluteToAssetRelative(string fullPath)
+        {
+            if (string.IsNullOrEmpty(fullPath)) return null;
+            var normalized = fullPath.Replace('\\', '/');
+            var dataPath = Application.dataPath.Replace('\\', '/');
+            if (normalized.StartsWith(dataPath, System.StringComparison.Ordinal))
+                return "Assets" + normalized.Substring(dataPath.Length);
+            if (normalized.StartsWith("Assets/", System.StringComparison.Ordinal) || normalized == "Assets")
+                return normalized;
+            return null;
+        }
+
+        internal static string MakeUniqueDuplicatePath(string sourcePath)
+        {
+            if (string.IsNullOrEmpty(sourcePath)) return null;
+            var folder = System.IO.Path.GetDirectoryName(sourcePath)?.Replace('\\', '/');
+            var nameNoExt = System.IO.Path.GetFileNameWithoutExtension(sourcePath);
+            var ext = System.IO.Path.GetExtension(sourcePath);
+            if (string.IsNullOrEmpty(folder) || string.IsNullOrEmpty(nameNoExt) || string.IsNullOrEmpty(ext))
+                return null;
+
+            var candidate = $"{folder}/{nameNoExt}_Copy{ext}";
+            int n = 2;
+            while (AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(candidate) != null)
+            {
+                candidate = $"{folder}/{nameNoExt}_Copy_{n}{ext}";
+                n++;
+            }
+            return candidate;
+        }
     }
 }
