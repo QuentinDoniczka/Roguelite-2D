@@ -12,25 +12,37 @@ namespace RogueliteAutoBattler.Services.Local
 
         private readonly SkillTreeProgress _progress;
         private readonly GoldWallet _wallet;
+        private readonly SkillPointWallet _spWallet;
+        private readonly Func<SkillTreeData> _activeTreeProvider;
         private readonly string _filePath;
         private readonly Action<int, int> _levelChangedHandler;
         private readonly Action<int> _goldChangedHandler;
+        private readonly Action<int> _skillPointChangedHandler;
         private bool _disposed;
         private bool _isSuppressingSave;
 
-        public LocalPlayerProgressionLoader(SkillTreeProgress progress, GoldWallet wallet, string filePath = null)
+        public LocalPlayerProgressionLoader(
+            SkillTreeProgress progress,
+            GoldWallet wallet,
+            SkillPointWallet skillPointWallet,
+            Func<SkillTreeData> activeTreeProvider,
+            string filePath = null)
         {
             _progress = progress ?? throw new ArgumentNullException(nameof(progress));
             _wallet = wallet ?? throw new ArgumentNullException(nameof(wallet));
+            _spWallet = skillPointWallet ?? throw new ArgumentNullException(nameof(skillPointWallet));
+            _activeTreeProvider = activeTreeProvider ?? throw new ArgumentNullException(nameof(activeTreeProvider));
             _filePath = string.IsNullOrEmpty(filePath)
                 ? Path.Combine(Application.persistentDataPath, DefaultFileName)
                 : filePath;
 
             _levelChangedHandler = (_, __) => HandleProgressChangedSaveIfNotSuppressed();
             _goldChangedHandler = _ => HandleProgressChangedSaveIfNotSuppressed();
+            _skillPointChangedHandler = _ => HandleProgressChangedSaveIfNotSuppressed();
 
             _progress.OnLevelChanged += _levelChangedHandler;
             _wallet.OnGoldChanged += _goldChangedHandler;
+            _spWallet.OnPointsChanged += _skillPointChangedHandler;
         }
 
         private void HandleProgressChangedSaveIfNotSuppressed()
@@ -49,25 +61,78 @@ namespace RogueliteAutoBattler.Services.Local
             var data = JsonUtility.FromJson<PersistedProgression>(json);
             if (data == null) return;
 
-            if (data.skillTreeLevels != null)
-            {
-                for (int i = 0; i < data.skillTreeLevels.Length; i++)
-                {
-                    int level = data.skillTreeLevels[i];
-                    if (level > 0)
-                        _progress.SetLevel(i, level);
-                }
-            }
+            var activeTree = _activeTreeProvider();
+            if (activeTree != null && IsTreeMismatch(data, activeTree))
+                ApplyRefund(data, activeTree);
+            else
+                ApplyNormalLoad(data);
+        }
 
-            _wallet.InitializeForPersistence(data.gold);
+        private static bool IsTreeMismatch(PersistedProgression data, SkillTreeData activeTree)
+        {
+            bool hasGuid = !string.IsNullOrEmpty(data.activeTreeGuid);
+            bool hasHash = !string.IsNullOrEmpty(data.contentHash);
+            if (!hasGuid && !hasHash) return false;
+
+            string currentGuid = activeTree.AssetGuid ?? string.Empty;
+            string currentHash = SkillTreeData.ComputeGameplayHash(activeTree);
+            bool guidMismatch = hasGuid && data.activeTreeGuid != currentGuid;
+            bool hashMismatch = hasHash && data.contentHash != currentHash;
+            return guidMismatch || hashMismatch;
+        }
+
+        private void ApplyNormalLoad(PersistedProgression data)
+        {
+            _isSuppressingSave = true;
+            try
+            {
+                if (data.skillTreeLevels != null)
+                {
+                    for (int i = 0; i < data.skillTreeLevels.Length; i++)
+                    {
+                        int level = data.skillTreeLevels[i];
+                        if (level > 0)
+                            _progress.SetLevel(i, level);
+                    }
+                }
+                _wallet.InitializeForPersistence(data.gold);
+            }
+            finally
+            {
+                _isSuppressingSave = false;
+            }
+        }
+
+        private void ApplyRefund(PersistedProgression data, SkillTreeData activeTree)
+        {
+            var savedLevels = data.skillTreeLevels ?? Array.Empty<int>();
+            var refund = SkillTreeRefundCalculator.Compute(activeTree, savedLevels);
+
+            _isSuppressingSave = true;
+            try
+            {
+                _progress.ResetAll();
+                _wallet.InitializeForPersistence(data.gold + refund.Gold);
+                _spWallet.ResetPoints();
+                if (refund.SkillPoint > 0)
+                    _spWallet.Add(refund.SkillPoint);
+            }
+            finally
+            {
+                _isSuppressingSave = false;
+            }
+            Save();
         }
 
         public void Save()
         {
+            var activeTree = _activeTreeProvider();
             var data = new PersistedProgression
             {
                 skillTreeLevels = SnapshotLevels(),
-                gold = _wallet.Gold
+                gold = _wallet.Gold,
+                activeTreeGuid = activeTree != null ? (activeTree.AssetGuid ?? string.Empty) : string.Empty,
+                contentHash = activeTree != null ? SkillTreeData.ComputeGameplayHash(activeTree) : string.Empty,
             };
 
             string json = JsonUtility.ToJson(data);
@@ -86,6 +151,7 @@ namespace RogueliteAutoBattler.Services.Local
             {
                 _progress.ResetAll();
                 _wallet.ResetGold();
+                _spWallet.ResetPoints();
             }
             finally
             {
@@ -102,6 +168,7 @@ namespace RogueliteAutoBattler.Services.Local
             _disposed = true;
             _progress.OnLevelChanged -= _levelChangedHandler;
             _wallet.OnGoldChanged -= _goldChangedHandler;
+            _spWallet.OnPointsChanged -= _skillPointChangedHandler;
         }
 
         private int[] SnapshotLevels()
@@ -119,6 +186,8 @@ namespace RogueliteAutoBattler.Services.Local
         {
             public int[] skillTreeLevels;
             public int gold;
+            public string activeTreeGuid;
+            public string contentHash;
         }
     }
 }

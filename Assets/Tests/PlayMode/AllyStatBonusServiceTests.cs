@@ -312,12 +312,16 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             var walletGo = Track(new GameObject("GoldWallet"));
             var wallet = walletGo.AddComponent<GoldWallet>();
 
+            var spWalletGo = Track(new GameObject("SkillPointWallet"));
+            var spWallet = spWalletGo.AddComponent<SkillPointWallet>();
+
             string tempDirectory = Path.Combine(Path.GetTempPath(), "roguelite-tests", Guid.NewGuid().ToString());
             string tempFilePath = Path.Combine(tempDirectory, "progression.json");
 
             GameBootstrap.SkillTreeDataAssetForTest = _data;
             GameBootstrap.SkillTreeProgressAssetForTest = _progress;
             GameBootstrap.GoldWalletForTest = wallet;
+            GameBootstrap.SkillPointWalletForTest = spWallet;
             GameBootstrap.ProgressionFilePathForTest = tempFilePath;
 
             yield return null;
