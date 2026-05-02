@@ -55,6 +55,37 @@ namespace RogueliteAutoBattler.Editor.Windows
 
         private const string AngleSliderLabel = "Angle (deg, 0=N, 90=E)";
 
+        private const string SelectedAssetGuidEditorPrefKey = "SkillTreeDesigner.SelectedAssetGuid";
+        private const string ActiveLabelPrefix = "Active: ";
+        private const string NoActiveLabel = "<none>";
+
+        private const string DefaultNewTreeFileName = "NewSkillTree";
+        private const string AssetExtension = "asset";
+        private const string DialogTitleCreateTree = "Create Skill Tree";
+        private const string DialogTitleInvalidPath = "Invalid Path";
+        private const string DialogTitleDeleteTree = "Delete Skill Tree";
+        private const string DialogConfirmOk = "OK";
+        private const string DialogConfirmDelete = "Delete";
+        private const string DialogConfirmCancel = "Cancel";
+        private const string ButtonLabelSetActive = "Set as Active";
+        private const string ButtonLabelNew = "New";
+        private const string ButtonLabelDuplicate = "Duplicate";
+        private const string ButtonLabelDelete = "Delete";
+        private const string DisabledTooltipNoSelection = "No skill tree selected.";
+        private const string DisabledTooltipAlreadyActive = "This tree is already active.";
+        private const string DisabledTooltipCannotDeleteActive = "Cannot delete the active skill tree. Switch to another tree first.";
+        private const string DisabledTooltipCannotDeleteLast = "Cannot delete the last skill tree.";
+        private const string DisabledTooltipDeleteEnabled = "Delete this skill tree.";
+        private const int MinimumRetainedTreeCount = 1;
+
+        private static readonly string[] TabLabelsWithoutBranch = { "Skill Tree", "Node" };
+        private static readonly string[] TabLabelsWithBranch = { "Skill Tree", "Node", "Branch" };
+
+        private IReadOnlyList<SkillTreesEnumerator.TreeEntry> _treeEntries;
+        private string[] _treeDisplayNames;
+        private int _selectedTreeIndex = -1;
+        private SkillTreeData _activePointerTarget;
+
         private SkillTreeData _data;
         private SerializedObject _serializedData;
         private SerializedProperty _propUnitSize;
@@ -82,6 +113,21 @@ namespace RogueliteAutoBattler.Editor.Windows
         private BranchPreviewSettings _branchPreviewSettings = BranchPreviewSettings.Defaults;
         private BranchPreviewSettings _lastBranchPreviewSettings = BranchPreviewSettings.Defaults;
 
+        private static void LogError(string message)
+        {
+            Debug.LogError($"[{nameof(SkillTreeDesignerWindow)}] {message}");
+        }
+
+        private static void DrawToolbarButton(string label, bool enabled, string disabledTooltip, System.Action onClick)
+        {
+            using (new EditorGUI.DisabledScope(!enabled))
+            {
+                var content = enabled ? new GUIContent(label) : new GUIContent(label, disabledTooltip);
+                if (GUILayout.Button(content))
+                    onClick();
+            }
+        }
+
         [MenuItem("Roguelite/Skill Tree Designer")]
         private static void OpenWindow()
         {
@@ -92,15 +138,144 @@ namespace RogueliteAutoBattler.Editor.Windows
 
         private void OnEnable()
         {
-            _data = ActiveSkillTreeResolver.GetActive();
-            if (_data == null)
+            RefreshTreeList();
+            var initialEntry = ResolveInitialTreeEntry();
+            BindAsset(initialEntry);
+            RefreshActivePointerCache();
+        }
+
+        private void RefreshTreeList()
+        {
+            _treeEntries = SkillTreesEnumerator.Enumerate(EditorPaths.SkillTreesFolder);
+            _treeDisplayNames = new string[_treeEntries.Count];
+            for (int i = 0; i < _treeEntries.Count; i++)
+                _treeDisplayNames[i] = _treeEntries[i].DisplayName;
+        }
+
+        private SkillTreesEnumerator.TreeEntry? ResolveInitialTreeEntry()
+        {
+            if (_treeEntries == null || _treeEntries.Count == 0) return null;
+
+            var savedGuid = EditorPrefs.GetString(SelectedAssetGuidEditorPrefKey, string.Empty);
+            if (!string.IsNullOrEmpty(savedGuid))
             {
-                Debug.LogError($"[{nameof(SkillTreeDesignerWindow)}] No active SkillTreeData resolved. Migration may not have run yet — close and reopen the window once the project finishes loading.");
+                var idx = IndexOfGuid(savedGuid);
+                if (idx >= 0) return _treeEntries[idx];
+            }
+
+            var active = ActiveSkillTreeResolver.GetActive();
+            if (active != null)
+            {
+                var activePath = AssetDatabase.GetAssetPath(active);
+                var activeGuid = AssetDatabase.AssetPathToGUID(activePath);
+                var idx = IndexOfGuid(activeGuid);
+                if (idx >= 0) return _treeEntries[idx];
+            }
+
+            return _treeEntries[0];
+        }
+
+        private int IndexOfGuid(string guid)
+        {
+            for (int i = 0; i < _treeEntries.Count; i++)
+                if (_treeEntries[i].Guid == guid) return i;
+            return -1;
+        }
+
+        private void BindAsset(SkillTreesEnumerator.TreeEntry? entry)
+        {
+            if (!entry.HasValue)
+            {
+                _data = null;
+                _serializedData = null;
+                _selectedTreeIndex = -1;
+                _nodeLabels = null;
                 return;
             }
+            var resolvedEntry = entry.Value;
+            _selectedTreeIndex = IndexOfGuid(resolvedEntry.Guid);
+            _data = resolvedEntry.Asset;
             _serializedData = new SerializedObject(_data);
             CacheSerializedProperties();
             RebuildNodeLabels();
+            EditorPrefs.SetString(SelectedAssetGuidEditorPrefKey, resolvedEntry.Guid);
+        }
+
+        private void RefreshActivePointerCache()
+        {
+            var pointer = AssetDatabase.LoadAssetAtPath<ActiveSkillTreePointer>(EditorPaths.ActiveSkillTreePointerAsset);
+            _activePointerTarget = pointer != null ? pointer.Target : null;
+        }
+
+        private void SetActivePointerToCurrent()
+        {
+            if (_data == null) return;
+            if (!SkillTreesEnumerator.SetActivePointer(EditorPaths.ActiveSkillTreePointerAsset, _data))
+            {
+                LogError($"Active pointer asset missing at {EditorPaths.ActiveSkillTreePointerAsset}");
+                return;
+            }
+            RefreshActivePointerCache();
+        }
+
+        private void CreateNewTree()
+        {
+            var path = EditorUtility.SaveFilePanel(DialogTitleCreateTree, EditorPaths.SkillTreesFolder, DefaultNewTreeFileName, AssetExtension);
+            if (string.IsNullOrEmpty(path)) return;
+            if (!SkillTreesEnumerator.IsPathUnderSkillTreesFolder(path, EditorPaths.SkillTreesFolder))
+            {
+                EditorUtility.DisplayDialog(DialogTitleInvalidPath, $"Skill trees must live under {EditorPaths.SkillTreesFolder}.", DialogConfirmOk);
+                return;
+            }
+            var assetRelative = SkillTreesEnumerator.ConvertAbsoluteToAssetRelative(path);
+            var asset = ScriptableObject.CreateInstance<SkillTreeData>();
+            AssetDatabase.CreateAsset(asset, assetRelative);
+            AssetDatabase.SaveAssets();
+            var guid = AssetDatabase.AssetPathToGUID(assetRelative);
+            RefreshTreeList();
+            BindAsset(FindEntryByGuid(guid));
+        }
+
+        private void DuplicateCurrentTree()
+        {
+            if (_data == null) return;
+            var sourcePath = AssetDatabase.GetAssetPath(_data);
+            var duplicatePath = SkillTreesEnumerator.MakeUniqueDuplicatePath(sourcePath);
+            if (string.IsNullOrEmpty(duplicatePath)) return;
+            if (!AssetDatabase.CopyAsset(sourcePath, duplicatePath))
+            {
+                LogError($"Failed to duplicate {sourcePath} to {duplicatePath}");
+                return;
+            }
+            AssetDatabase.SaveAssets();
+            var guid = AssetDatabase.AssetPathToGUID(duplicatePath);
+            RefreshTreeList();
+            BindAsset(FindEntryByGuid(guid));
+        }
+
+        private void DeleteCurrentTree()
+        {
+            if (_data == null) return;
+            if (_treeEntries.Count <= MinimumRetainedTreeCount) return;
+            if (_data == _activePointerTarget) return;
+            var assetName = _data.name;
+            if (!EditorUtility.DisplayDialog(DialogTitleDeleteTree, $"Delete '{assetName}'? This cannot be undone.", DialogConfirmDelete, DialogConfirmCancel))
+                return;
+            var path = AssetDatabase.GetAssetPath(_data);
+            if (!AssetDatabase.DeleteAsset(path))
+            {
+                LogError($"Failed to delete {path}");
+                return;
+            }
+            AssetDatabase.SaveAssets();
+            RefreshTreeList();
+            BindAsset(_treeEntries.Count > 0 ? _treeEntries[0] : (SkillTreesEnumerator.TreeEntry?)null);
+        }
+
+        private SkillTreesEnumerator.TreeEntry? FindEntryByGuid(string guid)
+        {
+            var idx = IndexOfGuid(guid);
+            return idx >= 0 ? _treeEntries[idx] : (SkillTreesEnumerator.TreeEntry?)null;
         }
 
         private void CacheSerializedProperties()
@@ -271,9 +446,7 @@ namespace RogueliteAutoBattler.Editor.Windows
         {
             _serializedData.Update();
 
-            string[] tabLabels = _branchPreviewActive
-                ? new[] { "Skill Tree", "Node", "Branch" }
-                : new[] { "Skill Tree", "Node" };
+            string[] tabLabels = _branchPreviewActive ? TabLabelsWithBranch : TabLabelsWithoutBranch;
             _activeTab = GUILayout.Toolbar(_activeTab, tabLabels);
 
             _configScrollPos = EditorGUILayout.BeginScrollView(_configScrollPos);
@@ -295,14 +468,41 @@ namespace RogueliteAutoBattler.Editor.Windows
         {
             EditorGUILayout.Space(SectionSpacingSmall);
 
-            EditorGUI.BeginChangeCheck();
-            var newData = (SkillTreeData)EditorGUILayout.ObjectField("Data Asset", _data, typeof(SkillTreeData), false);
-            if (EditorGUI.EndChangeCheck() && newData != null)
+            if (_treeEntries == null || _treeEntries.Count == 0)
             {
-                _data = newData;
-                _serializedData = new SerializedObject(_data);
-                CacheSerializedProperties();
+                EditorGUILayout.HelpBox($"No SkillTreeData assets found under {EditorPaths.SkillTreesFolder}.", MessageType.Warning);
             }
+            else
+            {
+                EditorGUI.BeginChangeCheck();
+                int newIndex = EditorGUILayout.Popup("Skill Tree", _selectedTreeIndex, _treeDisplayNames);
+                if (EditorGUI.EndChangeCheck() && newIndex != _selectedTreeIndex && newIndex >= 0 && newIndex < _treeEntries.Count)
+                    BindAsset(_treeEntries[newIndex]);
+
+                string activeName = _activePointerTarget != null ? _activePointerTarget.name : NoActiveLabel;
+                EditorGUILayout.LabelField(ActiveLabelPrefix + activeName);
+
+                EditorGUILayout.BeginHorizontal();
+                bool isActive = _data == _activePointerTarget;
+                bool canSetActive = _data != null && !isActive;
+                string setActiveTooltip = _data == null ? DisabledTooltipNoSelection : DisabledTooltipAlreadyActive;
+                DrawToolbarButton(ButtonLabelSetActive, canSetActive, setActiveTooltip, SetActivePointerToCurrent);
+
+                DrawToolbarButton(ButtonLabelNew, true, null, CreateNewTree);
+
+                DrawToolbarButton(ButtonLabelDuplicate, _data != null, DisabledTooltipNoSelection, DuplicateCurrentTree);
+
+                bool canDelete = _data != null && _treeEntries != null && _treeEntries.Count > MinimumRetainedTreeCount && !isActive;
+                string deleteTooltip = canDelete
+                    ? DisabledTooltipDeleteEnabled
+                    : (_data == null ? DisabledTooltipNoSelection
+                        : isActive ? DisabledTooltipCannotDeleteActive
+                        : DisabledTooltipCannotDeleteLast);
+                DrawToolbarButton(ButtonLabelDelete, canDelete, deleteTooltip, DeleteCurrentTree);
+                EditorGUILayout.EndHorizontal();
+            }
+
+            if (_data == null) return;
 
             EditorGUILayout.Space(SectionSpacingMedium);
             EditorGUILayout.LabelField("Visual Settings", EditorStyles.boldLabel);

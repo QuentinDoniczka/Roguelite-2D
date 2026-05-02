@@ -149,13 +149,16 @@ Assets/
       Tools/
         BranchPlacement.cs
         BranchPreviewSettings.cs
+        EditorAssetFolders.cs
         HudIconsImporter.cs
         LevelDatabaseBackgroundMigrator.cs
         NavIconsImporter.cs
         RebuildNewGameScene.cs
         ResetPlayerProgressMenu.cs
+        SkillTreeAssetMigration.cs
         SkillTreeNodeFactory.cs
         SkillTreeNodeIdAllocator.cs
+        SkillTreesEnumerator.cs
         StatTypeValidator.cs
       Windows/
         GameDesignerWindow.cs
@@ -165,6 +168,8 @@ Assets/
         TeamBuilderTab.cs
     Items/  (empty)
     Data/
+      ActiveSkillTreePointer.cs
+      ActiveSkillTreeResolver.cs
       DamageNumberConfig.cs
       LevelDataTypes.cs
       LevelDatabase.cs
