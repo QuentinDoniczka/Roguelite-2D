@@ -17,6 +17,7 @@ namespace RogueliteAutoBattler.Data
         public const int DefaultMaxLevel = 5;
         public const int DefaultCentralUnlockCost = 100;
         private const int CentralMaxLevel = 1;
+        private const string LowercaseHexByteFormat = "x2";
 
         public static readonly Color DefaultNodeColor = new Color(0.3f, 0.3f, 0.3f, 1f);
         public static readonly Color DefaultBorderNormalColor = Color.gray;
@@ -163,7 +164,7 @@ namespace RogueliteAutoBattler.Data
             var hash = md5.ComputeHash(bytes);
             var hex = new System.Text.StringBuilder(hash.Length * 2);
             foreach (var b in hash)
-                hex.Append(b.ToString("x2", CultureInfo.InvariantCulture));
+                hex.Append(b.ToString(LowercaseHexByteFormat, CultureInfo.InvariantCulture));
             return hex.ToString();
         }
 
