@@ -12,7 +12,7 @@ namespace RogueliteAutoBattler.Tests.EditMode
         private const string PointerAssetPath = "Assets/Resources/ActiveSkillTree.asset";
         private const string TempFolder = "Assets/Tests/Temp";
         private const string TempSkillTreePath = "Assets/Tests/Temp/TempSkillTreeData.asset";
-        private const string PreservedPointerPath = "Assets/Tests/Temp/PreservedActiveSkillTreePointer.asset";
+        private const string PreservedPointerPath = "Assets/Tests/PreservedActiveSkillTreePointer.asset";
 
         private bool _hadProductionPointer;
 
