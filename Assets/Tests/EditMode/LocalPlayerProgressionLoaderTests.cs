@@ -13,6 +13,9 @@ namespace RogueliteAutoBattler.Tests.EditMode
         private SkillTreeProgress _progress;
         private GameObject _walletGameObject;
         private GoldWallet _wallet;
+        private GameObject _spWalletGameObject;
+        private SkillPointWallet _spWallet;
+        private SkillTreeData _activeTree;
         private string _tempDirectory;
         private string _tempFilePath;
 
@@ -22,6 +25,9 @@ namespace RogueliteAutoBattler.Tests.EditMode
             _progress = ScriptableObject.CreateInstance<SkillTreeProgress>();
             _walletGameObject = new GameObject("TestWallet");
             _wallet = _walletGameObject.AddComponent<GoldWallet>();
+            _spWalletGameObject = new GameObject("TestSpWallet");
+            _spWallet = _spWalletGameObject.AddComponent<SkillPointWallet>();
+            _activeTree = ScriptableObject.CreateInstance<SkillTreeData>();
 
             _tempDirectory = Path.Combine(Path.GetTempPath(), "roguelite-tests", Guid.NewGuid().ToString());
             _tempFilePath = Path.Combine(_tempDirectory, LocalPlayerProgressionLoader.DefaultFileName);
@@ -34,6 +40,10 @@ namespace RogueliteAutoBattler.Tests.EditMode
                 UnityEngine.Object.DestroyImmediate(_progress);
             if (_walletGameObject != null)
                 UnityEngine.Object.DestroyImmediate(_walletGameObject);
+            if (_spWalletGameObject != null)
+                UnityEngine.Object.DestroyImmediate(_spWalletGameObject);
+            if (_activeTree != null)
+                UnityEngine.Object.DestroyImmediate(_activeTree);
 
             if (Directory.Exists(_tempDirectory))
                 Directory.Delete(_tempDirectory, true);
@@ -42,7 +52,7 @@ namespace RogueliteAutoBattler.Tests.EditMode
         [Test]
         public void Load_FileMissing_NoOp()
         {
-            using var loader = new LocalPlayerProgressionLoader(_progress, _wallet, _tempFilePath);
+            using var loader = new LocalPlayerProgressionLoader(_progress, _wallet, _spWallet, () => _activeTree, _tempFilePath);
 
             Assert.IsFalse(File.Exists(_tempFilePath));
 
@@ -55,7 +65,7 @@ namespace RogueliteAutoBattler.Tests.EditMode
         [Test]
         public void Save_ThenLoad_RestoresState()
         {
-            using (var saver = new LocalPlayerProgressionLoader(_progress, _wallet, _tempFilePath))
+            using (var saver = new LocalPlayerProgressionLoader(_progress, _wallet, _spWallet, () => _activeTree, _tempFilePath))
             {
                 _progress.SetLevel(0, 3);
                 _progress.SetLevel(2, 5);
@@ -67,9 +77,11 @@ namespace RogueliteAutoBattler.Tests.EditMode
             var freshProgress = ScriptableObject.CreateInstance<SkillTreeProgress>();
             var freshWalletGameObject = new GameObject("FreshWallet");
             var freshWallet = freshWalletGameObject.AddComponent<GoldWallet>();
+            var freshSpWalletGameObject = new GameObject("FreshSpWallet");
+            var freshSpWallet = freshSpWalletGameObject.AddComponent<SkillPointWallet>();
             try
             {
-                using var loader = new LocalPlayerProgressionLoader(freshProgress, freshWallet, _tempFilePath);
+                using var loader = new LocalPlayerProgressionLoader(freshProgress, freshWallet, freshSpWallet, () => _activeTree, _tempFilePath);
                 loader.Load();
 
                 Assert.AreEqual(150, freshWallet.Gold);
@@ -80,13 +92,14 @@ namespace RogueliteAutoBattler.Tests.EditMode
             {
                 UnityEngine.Object.DestroyImmediate(freshProgress);
                 UnityEngine.Object.DestroyImmediate(freshWalletGameObject);
+                UnityEngine.Object.DestroyImmediate(freshSpWalletGameObject);
             }
         }
 
         [Test]
         public void Save_PersistsImmediatelyOnLevelChange()
         {
-            using var loader = new LocalPlayerProgressionLoader(_progress, _wallet, _tempFilePath);
+            using var loader = new LocalPlayerProgressionLoader(_progress, _wallet, _spWallet, () => _activeTree, _tempFilePath);
 
             _progress.SetLevel(1, 4);
 
@@ -99,7 +112,7 @@ namespace RogueliteAutoBattler.Tests.EditMode
         [Test]
         public void Save_PersistsImmediatelyOnGoldChange()
         {
-            using var loader = new LocalPlayerProgressionLoader(_progress, _wallet, _tempFilePath);
+            using var loader = new LocalPlayerProgressionLoader(_progress, _wallet, _spWallet, () => _activeTree, _tempFilePath);
 
             _wallet.Add(75);
 
@@ -111,10 +124,11 @@ namespace RogueliteAutoBattler.Tests.EditMode
         [Test]
         public void ResetAll_DeletesFileAndZeroesState()
         {
-            using var loader = new LocalPlayerProgressionLoader(_progress, _wallet, _tempFilePath);
+            using var loader = new LocalPlayerProgressionLoader(_progress, _wallet, _spWallet, () => _activeTree, _tempFilePath);
 
             _progress.SetLevel(0, 3);
             _wallet.Add(200);
+            _spWallet.Add(7);
 
             Assert.IsTrue(File.Exists(_tempFilePath));
 
@@ -123,12 +137,13 @@ namespace RogueliteAutoBattler.Tests.EditMode
             Assert.IsFalse(File.Exists(_tempFilePath));
             Assert.AreEqual(0, _progress.GetLevel(0));
             Assert.AreEqual(0, _wallet.Gold);
+            Assert.AreEqual(0, _spWallet.Points);
         }
 
         [Test]
         public void Dispose_StopsAutoSave()
         {
-            var loader = new LocalPlayerProgressionLoader(_progress, _wallet, _tempFilePath);
+            var loader = new LocalPlayerProgressionLoader(_progress, _wallet, _spWallet, () => _activeTree, _tempFilePath);
 
             _progress.SetLevel(0, 1);
             Assert.IsTrue(File.Exists(_tempFilePath));
@@ -141,6 +156,32 @@ namespace RogueliteAutoBattler.Tests.EditMode
             _progress.SetLevel(0, 2);
 
             Assert.IsFalse(File.Exists(_tempFilePath));
+        }
+
+        [Test]
+        public void Load_LegacyJsonWithoutGuidOrHash_AppliesLevelsWithoutRefund()
+        {
+            Directory.CreateDirectory(_tempDirectory);
+            File.WriteAllText(_tempFilePath, "{\"skillTreeLevels\":[0,3],\"gold\":150}");
+
+            using var loader = new LocalPlayerProgressionLoader(_progress, _wallet, _spWallet, () => _activeTree, _tempFilePath);
+            loader.Load();
+
+            Assert.AreEqual(150, _wallet.Gold);
+            Assert.AreEqual(3, _progress.GetLevel(1));
+            Assert.AreEqual(0, _spWallet.Points);
+        }
+
+        [Test]
+        public void Save_WritesGuidAndHashFromActiveTree()
+        {
+            using var loader = new LocalPlayerProgressionLoader(_progress, _wallet, _spWallet, () => _activeTree, _tempFilePath);
+            _wallet.Add(50);
+
+            string json = File.ReadAllText(_tempFilePath);
+            string expectedHash = SkillTreeData.ComputeGameplayHash(_activeTree);
+            StringAssert.Contains($"\"contentHash\":\"{expectedHash}\"", json);
+            StringAssert.Contains("\"activeTreeGuid\":\"\"", json);
         }
     }
 }

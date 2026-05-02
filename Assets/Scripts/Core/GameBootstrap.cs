@@ -19,12 +19,14 @@ namespace RogueliteAutoBattler.Core
         public static NavigationHost NavigationHost { get; private set; }
         public static Camera MainCamera { get; private set; }
         internal static GoldWallet GoldWallet { get; private set; }
+        internal static SkillPointWallet SkillPointWallet { get; private set; }
         internal static IPlayerProgressionLoader ProgressionLoader { get; private set; }
         internal static AllyStatBonusService AllyStatBonusService { get; private set; }
 
         internal static SkillTreeData SkillTreeDataAssetForTest;
         internal static SkillTreeProgress SkillTreeProgressAssetForTest;
         internal static GoldWallet GoldWalletForTest;
+        internal static SkillPointWallet SkillPointWalletForTest;
         internal static string ProgressionFilePathForTest;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
@@ -41,6 +43,10 @@ namespace RogueliteAutoBattler.Core
                 ? GoldWalletForTest
                 : Object.FindFirstObjectByType<GoldWallet>(FindObjectsInactive.Include);
 
+            SkillPointWallet = SkillPointWalletForTest != null
+                ? SkillPointWalletForTest
+                : Object.FindFirstObjectByType<SkillPointWallet>(FindObjectsInactive.Include);
+
             SkillTreeData skillTreeData = SkillTreeDataAssetForTest;
             SkillTreeProgress skillTreeProgress = SkillTreeProgressAssetForTest;
 
@@ -54,9 +60,14 @@ namespace RogueliteAutoBattler.Core
                     skillTreeProgress = skillTreeController.Progress;
             }
 
-            if (GoldWallet != null && skillTreeProgress != null)
+            if (GoldWallet != null && SkillPointWallet != null && skillTreeProgress != null)
             {
-                ProgressionLoader = new LocalPlayerProgressionLoader(skillTreeProgress, GoldWallet, ProgressionFilePathForTest);
+                ProgressionLoader = new LocalPlayerProgressionLoader(
+                    skillTreeProgress,
+                    GoldWallet,
+                    SkillPointWallet,
+                    () => skillTreeData,
+                    ProgressionFilePathForTest);
                 ProgressionLoader.Load();
             }
 
@@ -99,8 +110,10 @@ namespace RogueliteAutoBattler.Core
                 Debug.LogError("[GameBootstrap] Main Camera not found in scene.");
             if (GoldWallet == null)
                 Debug.LogError("[GameBootstrap] GoldWallet not found in scene.");
+            if (SkillPointWallet == null)
+                Debug.LogError("[GameBootstrap] SkillPointWallet not found in scene.");
             if (ProgressionLoader == null)
-                Debug.LogError("[GameBootstrap] ProgressionLoader not initialized (missing GoldWallet or SkillTreeProgress).");
+                Debug.LogError("[GameBootstrap] ProgressionLoader not initialized (missing GoldWallet, SkillPointWallet, or SkillTreeProgress).");
             if (AllyStatBonusService == null)
                 Debug.LogError("[GameBootstrap] AllyStatBonusService not initialized (missing TeamRoster/SkillTreeData/SkillTreeProgress).");
         }
@@ -113,9 +126,11 @@ namespace RogueliteAutoBattler.Core
             ProgressionLoader?.Dispose();
             ProgressionLoader = null;
             GoldWallet = null;
+            SkillPointWallet = null;
             SkillTreeDataAssetForTest = null;
             SkillTreeProgressAssetForTest = null;
             GoldWalletForTest = null;
+            SkillPointWalletForTest = null;
             ProgressionFilePathForTest = null;
 
             CombatWorld = null;

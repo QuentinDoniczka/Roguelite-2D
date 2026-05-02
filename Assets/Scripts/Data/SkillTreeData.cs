@@ -17,6 +17,7 @@ namespace RogueliteAutoBattler.Data
         public const int DefaultMaxLevel = 5;
         public const int DefaultCentralUnlockCost = 100;
         private const int CentralMaxLevel = 1;
+        private const string LowercaseHexByteFormat = "x2";
 
         public static readonly Color DefaultNodeColor = new Color(0.3f, 0.3f, 0.3f, 1f);
         public static readonly Color DefaultBorderNormalColor = Color.gray;
@@ -93,6 +94,10 @@ namespace RogueliteAutoBattler.Data
         [Header("Nodes")]
         [SerializeField] private List<SkillNodeEntry> nodes = new List<SkillNodeEntry>();
 
+        [SerializeField] private string assetGuid;
+
+        public string AssetGuid => assetGuid;
+
         private (int fromId, int toId)[] _cachedEdges;
 
         private void OnEnable()
@@ -103,6 +108,64 @@ namespace RogueliteAutoBattler.Data
         private void OnValidate()
         {
             EnsureCentralNode();
+#if UNITY_EDITOR
+            SyncAssetGuid();
+#endif
+        }
+
+#if UNITY_EDITOR
+        private void SyncAssetGuid()
+        {
+            var path = UnityEditor.AssetDatabase.GetAssetPath(this);
+            if (string.IsNullOrEmpty(path)) return;
+            var resolvedGuid = UnityEditor.AssetDatabase.AssetPathToGUID(path);
+            if (string.IsNullOrEmpty(resolvedGuid)) return;
+            if (assetGuid != resolvedGuid)
+                assetGuid = resolvedGuid;
+        }
+#endif
+
+        public static string ComputeGameplayHash(SkillTreeData data)
+        {
+            if (data == null) return string.Empty;
+
+            var sourceNodes = data.nodes;
+            var ordered = new List<SkillNodeEntry>(sourceNodes);
+            ordered.Sort((a, b) => a.id.CompareTo(b.id));
+
+            var sb = new System.Text.StringBuilder();
+            foreach (var node in ordered)
+            {
+                sb.Append(node.id).Append('|')
+                  .Append((int)node.costType).Append('|')
+                  .Append(node.maxLevel).Append('|')
+                  .Append(node.baseCost).Append('|')
+                  .Append(node.costMultiplierOdd.ToString(CultureInfo.InvariantCulture)).Append('|')
+                  .Append(node.costMultiplierEven.ToString(CultureInfo.InvariantCulture)).Append('|')
+                  .Append(node.costAdditivePerLevel).Append('|')
+                  .Append((int)node.statModifierType).Append('|')
+                  .Append((int)node.statModifierMode).Append('|')
+                  .Append(node.statModifierValuePerLevel.ToString(CultureInfo.InvariantCulture))
+                  .Append('\n');
+            }
+
+            var edges = data.GetEdges();
+            var orderedEdges = new List<(int fromId, int toId)>(edges);
+            orderedEdges.Sort((a, b) =>
+            {
+                int cmp = a.fromId.CompareTo(b.fromId);
+                return cmp != 0 ? cmp : a.toId.CompareTo(b.toId);
+            });
+            foreach (var edge in orderedEdges)
+                sb.Append(edge.fromId).Append("->").Append(edge.toId).Append('\n');
+
+            using var md5 = System.Security.Cryptography.MD5.Create();
+            var bytes = System.Text.Encoding.UTF8.GetBytes(sb.ToString());
+            var hash = md5.ComputeHash(bytes);
+            var hex = new System.Text.StringBuilder(hash.Length * 2);
+            foreach (var b in hash)
+                hex.Append(b.ToString(LowercaseHexByteFormat, CultureInfo.InvariantCulture));
+            return hex.ToString();
         }
 
         public float UnitSize { get => unitSize; internal set => unitSize = value; }

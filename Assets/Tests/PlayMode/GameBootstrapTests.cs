@@ -16,6 +16,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
     public class GameBootstrapTests : PlayModeTestBase
     {
         private static readonly Regex GoldWalletErrorRegex = new Regex("GoldWallet not found");
+        private static readonly Regex SkillPointWalletErrorRegex = new Regex("SkillPointWallet not found");
         private static readonly Regex ProgressionLoaderErrorRegex = new Regex("ProgressionLoader not initialized");
         private static readonly Regex AllyStatBonusServiceErrorRegex = new Regex("AllyStatBonusService not initialized");
 
@@ -35,6 +36,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
         private static void ExpectMissingProgressionRefsErrors()
         {
             LogAssert.Expect(LogType.Error, GoldWalletErrorRegex);
+            LogAssert.Expect(LogType.Error, SkillPointWalletErrorRegex);
             LogAssert.Expect(LogType.Error, ProgressionLoaderErrorRegex);
             LogAssert.Expect(LogType.Error, AllyStatBonusServiceErrorRegex);
         }
@@ -191,6 +193,9 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             var walletGo = Track(new GameObject("GoldWallet"));
             var wallet = walletGo.AddComponent<GoldWallet>();
 
+            var spWalletGo = Track(new GameObject("SkillPointWallet"));
+            var spWallet = spWalletGo.AddComponent<SkillPointWallet>();
+
             var data = ScriptableObject.CreateInstance<SkillTreeData>();
             data.InitializeForTest(new List<SkillTreeData.SkillNodeEntry>
             {
@@ -212,6 +217,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             GameBootstrap.SkillTreeDataAssetForTest = data;
             GameBootstrap.SkillTreeProgressAssetForTest = progress;
             GameBootstrap.GoldWalletForTest = wallet;
+            GameBootstrap.SkillPointWalletForTest = spWallet;
             GameBootstrap.ProgressionFilePathForTest = tempFilePath;
 
             yield return null;
@@ -224,6 +230,8 @@ namespace RogueliteAutoBattler.Tests.PlayMode
 
                 Assert.IsNotNull(GameBootstrap.GoldWallet, "GoldWallet should be resolved from injection.");
                 Assert.AreSame(wallet, GameBootstrap.GoldWallet);
+                Assert.IsNotNull(GameBootstrap.SkillPointWallet, "SkillPointWallet should be resolved from injection.");
+                Assert.AreSame(spWallet, GameBootstrap.SkillPointWallet);
                 Assert.IsNotNull(GameBootstrap.ProgressionLoader, "ProgressionLoader should be created.");
                 Assert.IsNotNull(GameBootstrap.AllyStatBonusService, "AllyStatBonusService should be created.");
             }
@@ -271,6 +279,9 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             var walletGo = Track(new GameObject("GoldWallet"));
             var wallet = walletGo.AddComponent<GoldWallet>();
 
+            var spWalletGo = Track(new GameObject("SkillPointWallet"));
+            var spWallet = spWalletGo.AddComponent<SkillPointWallet>();
+
             var data = ScriptableObject.CreateInstance<SkillTreeData>();
             data.InitializeForTest(new List<SkillTreeData.SkillNodeEntry>
             {
@@ -292,6 +303,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             GameBootstrap.SkillTreeDataAssetForTest = data;
             GameBootstrap.SkillTreeProgressAssetForTest = progress;
             GameBootstrap.GoldWalletForTest = wallet;
+            GameBootstrap.SkillPointWalletForTest = spWallet;
             GameBootstrap.ProgressionFilePathForTest = tempFilePath;
 
             yield return null;
