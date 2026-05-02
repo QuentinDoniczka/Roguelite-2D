@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9568085fa8c1a7f43962fb27b9ab0163, type: 3}
-  m_Name: SkillTreeData
+  m_Name: Default
   m_EditorClassIdentifier: RogueliteAutoBattler.Runtime::RogueliteAutoBattler.Data.SkillTreeData
   unitSize: 40
   nodeSize: 48
