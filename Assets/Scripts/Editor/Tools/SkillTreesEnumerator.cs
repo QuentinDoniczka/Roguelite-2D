@@ -8,6 +8,9 @@ namespace RogueliteAutoBattler.Editor.Tools
 {
     internal static class SkillTreesEnumerator
     {
+        internal const string DuplicateSuffix = "_Copy";
+        private const int FirstAdditionalDuplicateIndex = 2;
+
         internal readonly struct TreeEntry
         {
             public readonly string Guid;
@@ -62,7 +65,7 @@ namespace RogueliteAutoBattler.Editor.Tools
             var normalized = fullPath.Replace('\\', '/');
             var assetsRelative = ConvertAbsoluteToAssetRelative(normalized);
             if (string.IsNullOrEmpty(assetsRelative)) return false;
-            return assetsRelative.StartsWith(skillTreesFolder + "/", System.StringComparison.Ordinal)
+            return assetsRelative.StartsWith(skillTreesFolder + "/", StringComparison.Ordinal)
                 || assetsRelative == skillTreesFolder;
         }
 
@@ -71,9 +74,9 @@ namespace RogueliteAutoBattler.Editor.Tools
             if (string.IsNullOrEmpty(fullPath)) return null;
             var normalized = fullPath.Replace('\\', '/');
             var dataPath = Application.dataPath.Replace('\\', '/');
-            if (normalized.StartsWith(dataPath, System.StringComparison.Ordinal))
+            if (normalized.StartsWith(dataPath, StringComparison.Ordinal))
                 return "Assets" + normalized.Substring(dataPath.Length);
-            if (normalized.StartsWith("Assets/", System.StringComparison.Ordinal) || normalized == "Assets")
+            if (normalized.StartsWith("Assets/", StringComparison.Ordinal) || normalized == "Assets")
                 return normalized;
             return null;
         }
@@ -87,11 +90,11 @@ namespace RogueliteAutoBattler.Editor.Tools
             if (string.IsNullOrEmpty(folder) || string.IsNullOrEmpty(nameNoExt) || string.IsNullOrEmpty(ext))
                 return null;
 
-            var candidate = $"{folder}/{nameNoExt}_Copy{ext}";
-            int n = 2;
+            var candidate = $"{folder}/{nameNoExt}{DuplicateSuffix}{ext}";
+            int n = FirstAdditionalDuplicateIndex;
             while (AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(candidate) != null)
             {
-                candidate = $"{folder}/{nameNoExt}_Copy_{n}{ext}";
+                candidate = $"{folder}/{nameNoExt}{DuplicateSuffix}_{n}{ext}";
                 n++;
             }
             return candidate;

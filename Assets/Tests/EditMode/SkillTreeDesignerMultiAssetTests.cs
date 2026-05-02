@@ -19,6 +19,9 @@ namespace RogueliteAutoBattler.Tests.EditMode
         private const string TreeNameM = "MTree";
         private const string TreeNameZ = "ZTree";
 
+        private const string SampleTreeName = "Foo";
+        private const string MissingPointerName = "Missing";
+
         [SetUp]
         public void SetUp()
         {
@@ -103,7 +106,7 @@ namespace RogueliteAutoBattler.Tests.EditMode
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
 
-            bool result = SkillTreesEnumerator.SetActivePointer("Assets/Tests/Temp/Pointer/Missing.asset", tree);
+            bool result = SkillTreesEnumerator.SetActivePointer($"Assets/Tests/Temp/Pointer/{MissingPointerName}.asset", tree);
 
             Assert.IsFalse(result);
         }
@@ -126,42 +129,42 @@ namespace RogueliteAutoBattler.Tests.EditMode
         public void MakeUniqueDuplicatePath_AppendsCopy_WhenNoCollision()
         {
             EditorAssetFolders.EnsureFolder(TempTreesFolder);
-            CreateTreeAsset(TempTreesFolder, "Foo");
+            CreateTreeAsset(TempTreesFolder, SampleTreeName);
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
 
-            var dup = SkillTreesEnumerator.MakeUniqueDuplicatePath($"{TempTreesFolder}/Foo.asset");
+            var dup = SkillTreesEnumerator.MakeUniqueDuplicatePath($"{TempTreesFolder}/{SampleTreeName}.asset");
 
-            Assert.AreEqual($"{TempTreesFolder}/Foo_Copy.asset", dup);
+            Assert.AreEqual($"{TempTreesFolder}/{SampleTreeName}_Copy.asset", dup);
         }
 
         [Test]
         public void MakeUniqueDuplicatePath_AppendsCopy2_WhenCopyExists()
         {
             EditorAssetFolders.EnsureFolder(TempTreesFolder);
-            CreateTreeAsset(TempTreesFolder, "Foo");
-            CreateTreeAsset(TempTreesFolder, "Foo_Copy");
+            CreateTreeAsset(TempTreesFolder, SampleTreeName);
+            CreateTreeAsset(TempTreesFolder, $"{SampleTreeName}_Copy");
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
 
-            var dup = SkillTreesEnumerator.MakeUniqueDuplicatePath($"{TempTreesFolder}/Foo.asset");
+            var dup = SkillTreesEnumerator.MakeUniqueDuplicatePath($"{TempTreesFolder}/{SampleTreeName}.asset");
 
-            Assert.AreEqual($"{TempTreesFolder}/Foo_Copy_2.asset", dup);
+            Assert.AreEqual($"{TempTreesFolder}/{SampleTreeName}_Copy_2.asset", dup);
         }
 
         [Test]
         public void MakeUniqueDuplicatePath_AppendsCopy3_WhenCopyAndCopy2Exist()
         {
             EditorAssetFolders.EnsureFolder(TempTreesFolder);
-            CreateTreeAsset(TempTreesFolder, "Foo");
-            CreateTreeAsset(TempTreesFolder, "Foo_Copy");
-            CreateTreeAsset(TempTreesFolder, "Foo_Copy_2");
+            CreateTreeAsset(TempTreesFolder, SampleTreeName);
+            CreateTreeAsset(TempTreesFolder, $"{SampleTreeName}_Copy");
+            CreateTreeAsset(TempTreesFolder, $"{SampleTreeName}_Copy_2");
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
 
-            var dup = SkillTreesEnumerator.MakeUniqueDuplicatePath($"{TempTreesFolder}/Foo.asset");
+            var dup = SkillTreesEnumerator.MakeUniqueDuplicatePath($"{TempTreesFolder}/{SampleTreeName}.asset");
 
-            Assert.AreEqual($"{TempTreesFolder}/Foo_Copy_3.asset", dup);
+            Assert.AreEqual($"{TempTreesFolder}/{SampleTreeName}_Copy_3.asset", dup);
         }
 
         [Test]

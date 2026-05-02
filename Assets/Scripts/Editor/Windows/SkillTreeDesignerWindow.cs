@@ -59,6 +59,28 @@ namespace RogueliteAutoBattler.Editor.Windows
         private const string ActiveLabelPrefix = "Active: ";
         private const string NoActiveLabel = "<none>";
 
+        private const string DefaultNewTreeFileName = "NewSkillTree";
+        private const string AssetExtension = "asset";
+        private const string DialogTitleCreateTree = "Create Skill Tree";
+        private const string DialogTitleInvalidPath = "Invalid Path";
+        private const string DialogTitleDeleteTree = "Delete Skill Tree";
+        private const string DialogConfirmOk = "OK";
+        private const string DialogConfirmDelete = "Delete";
+        private const string DialogConfirmCancel = "Cancel";
+        private const string ButtonLabelSetActive = "Set as Active";
+        private const string ButtonLabelNew = "New";
+        private const string ButtonLabelDuplicate = "Duplicate";
+        private const string ButtonLabelDelete = "Delete";
+        private const string DisabledTooltipNoSelection = "No skill tree selected.";
+        private const string DisabledTooltipAlreadyActive = "This tree is already active.";
+        private const string DisabledTooltipCannotDeleteActive = "Cannot delete the active skill tree. Switch to another tree first.";
+        private const string DisabledTooltipCannotDeleteLast = "Cannot delete the last skill tree.";
+        private const string DisabledTooltipDeleteEnabled = "Delete this skill tree.";
+        private const int MinimumRetainedTreeCount = 1;
+
+        private static readonly string[] TabLabelsWithoutBranch = { "Skill Tree", "Node" };
+        private static readonly string[] TabLabelsWithBranch = { "Skill Tree", "Node", "Branch" };
+
         private IReadOnlyList<SkillTreesEnumerator.TreeEntry> _treeEntries;
         private string[] _treeDisplayNames;
         private int _selectedTreeIndex = -1;
@@ -90,6 +112,21 @@ namespace RogueliteAutoBattler.Editor.Windows
         private int _branchPreviewPreviousTab;
         private BranchPreviewSettings _branchPreviewSettings = BranchPreviewSettings.Defaults;
         private BranchPreviewSettings _lastBranchPreviewSettings = BranchPreviewSettings.Defaults;
+
+        private static void LogError(string message)
+        {
+            Debug.LogError($"[{nameof(SkillTreeDesignerWindow)}] {message}");
+        }
+
+        private static void DrawToolbarButton(string label, bool enabled, string disabledTooltip, System.Action onClick)
+        {
+            using (new EditorGUI.DisabledScope(!enabled))
+            {
+                var content = enabled ? new GUIContent(label) : new GUIContent(label, disabledTooltip);
+                if (GUILayout.Button(content))
+                    onClick();
+            }
+        }
 
         [MenuItem("Roguelite/Skill Tree Designer")]
         private static void OpenWindow()
@@ -155,13 +192,13 @@ namespace RogueliteAutoBattler.Editor.Windows
                 _nodeLabels = null;
                 return;
             }
-            var e = entry.Value;
-            _selectedTreeIndex = IndexOfGuid(e.Guid);
-            _data = e.Asset;
+            var resolvedEntry = entry.Value;
+            _selectedTreeIndex = IndexOfGuid(resolvedEntry.Guid);
+            _data = resolvedEntry.Asset;
             _serializedData = new SerializedObject(_data);
             CacheSerializedProperties();
             RebuildNodeLabels();
-            EditorPrefs.SetString(SelectedAssetGuidEditorPrefKey, e.Guid);
+            EditorPrefs.SetString(SelectedAssetGuidEditorPrefKey, resolvedEntry.Guid);
         }
 
         private void RefreshActivePointerCache()
@@ -175,7 +212,7 @@ namespace RogueliteAutoBattler.Editor.Windows
             if (_data == null) return;
             if (!SkillTreesEnumerator.SetActivePointer(EditorPaths.ActiveSkillTreePointerAsset, _data))
             {
-                Debug.LogError($"[{nameof(SkillTreeDesignerWindow)}] Active pointer asset missing at {EditorPaths.ActiveSkillTreePointerAsset}");
+                LogError($"Active pointer asset missing at {EditorPaths.ActiveSkillTreePointerAsset}");
                 return;
             }
             RefreshActivePointerCache();
@@ -183,11 +220,11 @@ namespace RogueliteAutoBattler.Editor.Windows
 
         private void CreateNewTree()
         {
-            var path = EditorUtility.SaveFilePanel("Create Skill Tree", EditorPaths.SkillTreesFolder, "NewSkillTree", "asset");
+            var path = EditorUtility.SaveFilePanel(DialogTitleCreateTree, EditorPaths.SkillTreesFolder, DefaultNewTreeFileName, AssetExtension);
             if (string.IsNullOrEmpty(path)) return;
             if (!SkillTreesEnumerator.IsPathUnderSkillTreesFolder(path, EditorPaths.SkillTreesFolder))
             {
-                EditorUtility.DisplayDialog("Invalid Path", $"Skill trees must live under {EditorPaths.SkillTreesFolder}.", "OK");
+                EditorUtility.DisplayDialog(DialogTitleInvalidPath, $"Skill trees must live under {EditorPaths.SkillTreesFolder}.", DialogConfirmOk);
                 return;
             }
             var assetRelative = SkillTreesEnumerator.ConvertAbsoluteToAssetRelative(path);
@@ -203,15 +240,15 @@ namespace RogueliteAutoBattler.Editor.Windows
         {
             if (_data == null) return;
             var sourcePath = AssetDatabase.GetAssetPath(_data);
-            var dupPath = SkillTreesEnumerator.MakeUniqueDuplicatePath(sourcePath);
-            if (string.IsNullOrEmpty(dupPath)) return;
-            if (!AssetDatabase.CopyAsset(sourcePath, dupPath))
+            var duplicatePath = SkillTreesEnumerator.MakeUniqueDuplicatePath(sourcePath);
+            if (string.IsNullOrEmpty(duplicatePath)) return;
+            if (!AssetDatabase.CopyAsset(sourcePath, duplicatePath))
             {
-                Debug.LogError($"[{nameof(SkillTreeDesignerWindow)}] Failed to duplicate {sourcePath} to {dupPath}");
+                LogError($"Failed to duplicate {sourcePath} to {duplicatePath}");
                 return;
             }
             AssetDatabase.SaveAssets();
-            var guid = AssetDatabase.AssetPathToGUID(dupPath);
+            var guid = AssetDatabase.AssetPathToGUID(duplicatePath);
             RefreshTreeList();
             BindAsset(FindEntryByGuid(guid));
         }
@@ -219,15 +256,15 @@ namespace RogueliteAutoBattler.Editor.Windows
         private void DeleteCurrentTree()
         {
             if (_data == null) return;
-            if (_treeEntries.Count <= 1) return;
+            if (_treeEntries.Count <= MinimumRetainedTreeCount) return;
             if (_data == _activePointerTarget) return;
-            var name = _data.name;
-            if (!EditorUtility.DisplayDialog("Delete Skill Tree", $"Delete '{name}'? This cannot be undone.", "Delete", "Cancel"))
+            var assetName = _data.name;
+            if (!EditorUtility.DisplayDialog(DialogTitleDeleteTree, $"Delete '{assetName}'? This cannot be undone.", DialogConfirmDelete, DialogConfirmCancel))
                 return;
             var path = AssetDatabase.GetAssetPath(_data);
             if (!AssetDatabase.DeleteAsset(path))
             {
-                Debug.LogError($"[{nameof(SkillTreeDesignerWindow)}] Failed to delete {path}");
+                LogError($"Failed to delete {path}");
                 return;
             }
             AssetDatabase.SaveAssets();
@@ -409,9 +446,7 @@ namespace RogueliteAutoBattler.Editor.Windows
         {
             _serializedData.Update();
 
-            string[] tabLabels = _branchPreviewActive
-                ? new[] { "Skill Tree", "Node", "Branch" }
-                : new[] { "Skill Tree", "Node" };
+            string[] tabLabels = _branchPreviewActive ? TabLabelsWithBranch : TabLabelsWithoutBranch;
             _activeTab = GUILayout.Toolbar(_activeTab, tabLabels);
 
             _configScrollPos = EditorGUILayout.BeginScrollView(_configScrollPos);
@@ -449,29 +484,21 @@ namespace RogueliteAutoBattler.Editor.Windows
 
                 EditorGUILayout.BeginHorizontal();
                 bool isActive = _data == _activePointerTarget;
-                using (new EditorGUI.DisabledScope(_data == null || isActive))
-                {
-                    if (GUILayout.Button("Set as Active"))
-                        SetActivePointerToCurrent();
-                }
-                if (GUILayout.Button("New"))
-                    CreateNewTree();
-                using (new EditorGUI.DisabledScope(_data == null))
-                {
-                    if (GUILayout.Button("Duplicate"))
-                        DuplicateCurrentTree();
-                }
-                bool canDelete = _data != null && _treeEntries != null && _treeEntries.Count > 1 && !isActive;
-                using (new EditorGUI.DisabledScope(!canDelete))
-                {
-                    var deleteContent = new GUIContent("Delete", canDelete
-                        ? "Delete this skill tree."
-                        : (_data == null ? "No skill tree selected."
-                            : isActive ? "Cannot delete the active skill tree. Switch to another tree first."
-                            : "Cannot delete the last skill tree."));
-                    if (GUILayout.Button(deleteContent))
-                        DeleteCurrentTree();
-                }
+                bool canSetActive = _data != null && !isActive;
+                string setActiveTooltip = _data == null ? DisabledTooltipNoSelection : DisabledTooltipAlreadyActive;
+                DrawToolbarButton(ButtonLabelSetActive, canSetActive, setActiveTooltip, SetActivePointerToCurrent);
+
+                DrawToolbarButton(ButtonLabelNew, true, null, CreateNewTree);
+
+                DrawToolbarButton(ButtonLabelDuplicate, _data != null, DisabledTooltipNoSelection, DuplicateCurrentTree);
+
+                bool canDelete = _data != null && _treeEntries != null && _treeEntries.Count > MinimumRetainedTreeCount && !isActive;
+                string deleteTooltip = canDelete
+                    ? DisabledTooltipDeleteEnabled
+                    : (_data == null ? DisabledTooltipNoSelection
+                        : isActive ? DisabledTooltipCannotDeleteActive
+                        : DisabledTooltipCannotDeleteLast);
+                DrawToolbarButton(ButtonLabelDelete, canDelete, deleteTooltip, DeleteCurrentTree);
                 EditorGUILayout.EndHorizontal();
             }
 
