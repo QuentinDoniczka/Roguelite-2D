@@ -55,6 +55,15 @@ namespace RogueliteAutoBattler.Editor.Windows
 
         private const string AngleSliderLabel = "Angle (deg, 0=N, 90=E)";
 
+        private const string SelectedAssetGuidEditorPrefKey = "SkillTreeDesigner.SelectedAssetGuid";
+        private const string ActiveLabelPrefix = "Active: ";
+        private const string NoActiveLabel = "<none>";
+
+        private IReadOnlyList<SkillTreesEnumerator.TreeEntry> _treeEntries;
+        private string[] _treeDisplayNames;
+        private int _selectedTreeIndex = -1;
+        private SkillTreeData _activePointerTarget;
+
         private SkillTreeData _data;
         private SerializedObject _serializedData;
         private SerializedProperty _propUnitSize;
@@ -92,15 +101,84 @@ namespace RogueliteAutoBattler.Editor.Windows
 
         private void OnEnable()
         {
-            _data = ActiveSkillTreeResolver.GetActive();
-            if (_data == null)
+            RefreshTreeList();
+            var initialEntry = ResolveInitialTreeEntry();
+            BindAsset(initialEntry);
+            RefreshActivePointerCache();
+        }
+
+        private void RefreshTreeList()
+        {
+            _treeEntries = SkillTreesEnumerator.Enumerate(EditorPaths.SkillTreesFolder);
+            _treeDisplayNames = new string[_treeEntries.Count];
+            for (int i = 0; i < _treeEntries.Count; i++)
+                _treeDisplayNames[i] = _treeEntries[i].DisplayName;
+        }
+
+        private SkillTreesEnumerator.TreeEntry? ResolveInitialTreeEntry()
+        {
+            if (_treeEntries == null || _treeEntries.Count == 0) return null;
+
+            var savedGuid = EditorPrefs.GetString(SelectedAssetGuidEditorPrefKey, string.Empty);
+            if (!string.IsNullOrEmpty(savedGuid))
             {
-                Debug.LogError($"[{nameof(SkillTreeDesignerWindow)}] No active SkillTreeData resolved. Migration may not have run yet — close and reopen the window once the project finishes loading.");
+                var idx = IndexOfGuid(savedGuid);
+                if (idx >= 0) return _treeEntries[idx];
+            }
+
+            var active = ActiveSkillTreeResolver.GetActive();
+            if (active != null)
+            {
+                var activePath = AssetDatabase.GetAssetPath(active);
+                var activeGuid = AssetDatabase.AssetPathToGUID(activePath);
+                var idx = IndexOfGuid(activeGuid);
+                if (idx >= 0) return _treeEntries[idx];
+            }
+
+            return _treeEntries[0];
+        }
+
+        private int IndexOfGuid(string guid)
+        {
+            for (int i = 0; i < _treeEntries.Count; i++)
+                if (_treeEntries[i].Guid == guid) return i;
+            return -1;
+        }
+
+        private void BindAsset(SkillTreesEnumerator.TreeEntry? entry)
+        {
+            if (!entry.HasValue)
+            {
+                _data = null;
+                _serializedData = null;
+                _selectedTreeIndex = -1;
+                _nodeLabels = null;
                 return;
             }
+            var e = entry.Value;
+            _selectedTreeIndex = IndexOfGuid(e.Guid);
+            _data = e.Asset;
             _serializedData = new SerializedObject(_data);
             CacheSerializedProperties();
             RebuildNodeLabels();
+            EditorPrefs.SetString(SelectedAssetGuidEditorPrefKey, e.Guid);
+        }
+
+        private void RefreshActivePointerCache()
+        {
+            var pointer = AssetDatabase.LoadAssetAtPath<ActiveSkillTreePointer>(EditorPaths.ActiveSkillTreePointerAsset);
+            _activePointerTarget = pointer != null ? pointer.Target : null;
+        }
+
+        private void SetActivePointerToCurrent()
+        {
+            if (_data == null) return;
+            if (!SkillTreesEnumerator.SetActivePointer(EditorPaths.ActiveSkillTreePointerAsset, _data))
+            {
+                Debug.LogError($"[{nameof(SkillTreeDesignerWindow)}] Active pointer asset missing at {EditorPaths.ActiveSkillTreePointerAsset}");
+                return;
+            }
+            RefreshActivePointerCache();
         }
 
         private void CacheSerializedProperties()
@@ -295,14 +373,31 @@ namespace RogueliteAutoBattler.Editor.Windows
         {
             EditorGUILayout.Space(SectionSpacingSmall);
 
-            EditorGUI.BeginChangeCheck();
-            var newData = (SkillTreeData)EditorGUILayout.ObjectField("Data Asset", _data, typeof(SkillTreeData), false);
-            if (EditorGUI.EndChangeCheck() && newData != null)
+            if (_treeEntries == null || _treeEntries.Count == 0)
             {
-                _data = newData;
-                _serializedData = new SerializedObject(_data);
-                CacheSerializedProperties();
+                EditorGUILayout.HelpBox($"No SkillTreeData assets found under {EditorPaths.SkillTreesFolder}.", MessageType.Warning);
             }
+            else
+            {
+                EditorGUI.BeginChangeCheck();
+                int newIndex = EditorGUILayout.Popup("Skill Tree", _selectedTreeIndex, _treeDisplayNames);
+                if (EditorGUI.EndChangeCheck() && newIndex != _selectedTreeIndex && newIndex >= 0 && newIndex < _treeEntries.Count)
+                    BindAsset(_treeEntries[newIndex]);
+
+                string activeName = _activePointerTarget != null ? _activePointerTarget.name : NoActiveLabel;
+                EditorGUILayout.LabelField(ActiveLabelPrefix + activeName);
+
+                EditorGUILayout.BeginHorizontal();
+                bool isActive = _data == _activePointerTarget;
+                using (new EditorGUI.DisabledScope(_data == null || isActive))
+                {
+                    if (GUILayout.Button("Set as Active"))
+                        SetActivePointerToCurrent();
+                }
+                EditorGUILayout.EndHorizontal();
+            }
+
+            if (_data == null) return;
 
             EditorGUILayout.Space(SectionSpacingMedium);
             EditorGUILayout.LabelField("Visual Settings", EditorStyles.boldLabel);
