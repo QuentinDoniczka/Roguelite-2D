@@ -247,6 +247,7 @@ namespace RogueliteAutoBattler.Data
         {
             Debug.Assert(index >= 0 && index < nodes.Count, $"SetNode index {index} out of range [0, {nodes.Count})");
             if (index < 0 || index >= nodes.Count) return;
+            entry.position = SkillTreeGrid.Quantize(entry.position);
             nodes[index] = entry;
             _cachedEdges = null;
         }
@@ -258,6 +259,7 @@ namespace RogueliteAutoBattler.Data
                 if (existing.id == entry.id)
                     throw new ArgumentException($"A node with id {entry.id} already exists.");
             }
+            entry.position = SkillTreeGrid.Quantize(entry.position);
             nodes.Add(entry);
             _cachedEdges = null;
         }
@@ -376,6 +378,7 @@ namespace RogueliteAutoBattler.Data
             if (IndexOfId(entry.id) >= 0)
                 throw new ArgumentException($"A node with id {entry.id} already exists.");
 
+            entry.position = SkillTreeGrid.Quantize(entry.position);
             nodes.Add(entry);
 
             var parent = nodes[parentIndex];
