@@ -155,13 +155,18 @@ Assets/
         MirrorAxisGeometry.cs
         MirrorAxisPersistence.cs
         MirrorPairGenerator.cs
+        MirrorPartnerFinder.cs
         NavIconsImporter.cs
+        NodeConnectionsInspector.cs
+        NodeDragController.cs
+        NodeSnapEngine.cs
         RebuildNewGameScene.cs
         ResetPlayerProgressMenu.cs
         SkillTreeAssetMigration.cs
         SkillTreeNodeFactory.cs
         SkillTreeNodeIdAllocator.cs
         SkillTreesEnumerator.cs
+        SnapSettingsPersistence.cs
         StatTypeValidator.cs
       Windows/
         GameDesignerWindow.cs
@@ -239,10 +244,15 @@ Assets/
       MirrorAxisPersistenceTests.cs
       MirrorAxisPersistenceWiringTests.cs
       MirrorPairGeneratorTests.cs
+      MirrorPartnerFinderTests.cs
       NavBarIconsTests.cs
+      NodeConnectionsInspectorTests.cs
+      NodeDragControllerTests.cs
+      NodeSnapEngineTests.cs
       SkillTreeDesignerBranchTests.cs
       SkillTreeNodeFactoryTests.cs
       SkillTreeNodeIdAllocatorTests.cs
+      SnapSettingsPersistenceTests.cs
       CombatStatsBreakdownAllStatsTests.cs
       CombatStatsBreakdownTests.cs
       CombatStatsDamageEventTests.cs
