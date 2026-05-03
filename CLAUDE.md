@@ -166,7 +166,6 @@ Assets/
         SkillTreeNodeFactory.cs
         SkillTreeNodeIdAllocator.cs
         SkillTreesEnumerator.cs
-        SnapSettingsPersistence.cs
         StatTypeValidator.cs
       Windows/
         GameDesignerWindow.cs
@@ -249,10 +248,11 @@ Assets/
       NodeConnectionsInspectorTests.cs
       NodeDragControllerTests.cs
       NodeSnapEngineTests.cs
+      SkillTreeDataSnapNormalizationTests.cs
       SkillTreeDesignerBranchTests.cs
+      SkillTreeNodeFactorySnapDefaultsTests.cs
       SkillTreeNodeFactoryTests.cs
       SkillTreeNodeIdAllocatorTests.cs
-      SnapSettingsPersistenceTests.cs
       CombatStatsBreakdownAllStatsTests.cs
       CombatStatsBreakdownTests.cs
       CombatStatsDamageEventTests.cs
