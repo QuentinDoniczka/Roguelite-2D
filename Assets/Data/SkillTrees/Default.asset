@@ -28,13 +28,74 @@ MonoBehaviour:
   nodes:
   - id: 0
     position: {x: 0, y: 0}
-    connectedNodeIds: []
+    connectedNodeIds: 0100000002000000
     costType: 0
     maxLevel: 1
     baseCost: 100
     costMultiplierOdd: 1
     costMultiplierEven: 1
     costAdditivePerLevel: 0
-    statModifierType: 0
+    statModifierType: 8
     statModifierMode: 0
     statModifierValuePerLevel: 0
+  - id: 1
+    position: {x: 1.5000002, y: -2.598076}
+    connectedNodeIds: 05000000
+    costType: 1
+    maxLevel: 1
+    baseCost: 1
+    costMultiplierOdd: 1
+    costMultiplierEven: 1
+    costAdditivePerLevel: 0
+    statModifierType: 0
+    statModifierMode: 0
+    statModifierValuePerLevel: 5
+  - id: 2
+    position: {x: -1.4999999, y: -2.598076}
+    connectedNodeIds: 0300000004000000
+    costType: 1
+    maxLevel: 1
+    baseCost: 1
+    costMultiplierOdd: 1
+    costMultiplierEven: 1
+    costAdditivePerLevel: 0
+    statModifierType: 0
+    statModifierMode: 0
+    statModifierValuePerLevel: 5
+  - id: 3
+    position: {x: -2.9999998, y: -5.196152}
+    connectedNodeIds: 
+    costType: 1
+    maxLevel: 1
+    baseCost: 1
+    costMultiplierOdd: 1
+    costMultiplierEven: 1
+    costAdditivePerLevel: 0
+    statModifierType: 0
+    statModifierMode: 0
+    statModifierValuePerLevel: 5
+  - id: 4
+    position: {x: 0.00000035762787, y: -5.196152}
+    connectedNodeIds: 
+    costType: 1
+    maxLevel: 1
+    baseCost: 1
+    costMultiplierOdd: 1
+    costMultiplierEven: 1
+    costAdditivePerLevel: 0
+    statModifierType: 0
+    statModifierMode: 0
+    statModifierValuePerLevel: 5
+  - id: 5
+    position: {x: 3.0000005, y: -5.196152}
+    connectedNodeIds: 
+    costType: 1
+    maxLevel: 1
+    baseCost: 1
+    costMultiplierOdd: 1
+    costMultiplierEven: 1
+    costAdditivePerLevel: 0
+    statModifierType: 0
+    statModifierMode: 0
+    statModifierValuePerLevel: 5
+  assetGuid: 63a2645100f4ff4428d968c9feeb46f4

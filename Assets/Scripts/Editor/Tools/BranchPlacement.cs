@@ -8,6 +8,8 @@ namespace RogueliteAutoBattler.Editor.Tools
         private const float FullCircleDegrees = 360f;
         private const float DefaultAngleForOriginParent = 0f;
 
+        public const float PositionTolerance = 1f;
+
         public static Vector2 ComputeBranchPosition(Vector2 parentPosition, float distance)
         {
             Vector2 direction = parentPosition.sqrMagnitude < DegenerateMagnitudeThreshold
@@ -22,9 +24,14 @@ namespace RogueliteAutoBattler.Editor.Tools
         /// </summary>
         public static Vector2 ComputeBranchPosition(Vector2 parentPosition, float distance, float clockwiseFromNorthDegrees)
         {
-            float radians = clockwiseFromNorthDegrees * Mathf.Deg2Rad;
-            Vector2 direction = new Vector2(Mathf.Sin(radians), Mathf.Cos(radians));
+            Vector2 direction = DirectionFromClockwiseNorthDegrees(clockwiseFromNorthDegrees);
             return parentPosition + direction * distance;
+        }
+
+        internal static Vector2 DirectionFromClockwiseNorthDegrees(float clockwiseFromNorthDegrees)
+        {
+            float radians = clockwiseFromNorthDegrees * Mathf.Deg2Rad;
+            return new Vector2(Mathf.Sin(radians), Mathf.Cos(radians));
         }
 
         /// <summary>
@@ -38,7 +45,23 @@ namespace RogueliteAutoBattler.Editor.Tools
                 return DefaultAngleForOriginParent;
 
             float clockwiseFromNorthDegrees = Mathf.Atan2(parentPosition.x, parentPosition.y) * Mathf.Rad2Deg;
-            return (clockwiseFromNorthDegrees % FullCircleDegrees + FullCircleDegrees) % FullCircleDegrees;
+            return NormalizeDegrees(clockwiseFromNorthDegrees);
+        }
+
+        /// <summary>
+        /// Reflect <paramref name="angleDegrees"/> across the axis line defined by
+        /// <paramref name="axisAngleDegrees"/>. Angles use the clockwise-from-north convention
+        /// (0 = north, 90 = east, 180 = south, 270 = west). Formula:
+        /// normalize(2 * normalize(axis) - normalize(angle)). Result is normalized to [0, 360).
+        /// </summary>
+        public static float MirrorAngle(float angleDegrees, float axisAngleDegrees)
+        {
+            return NormalizeDegrees(2f * NormalizeDegrees(axisAngleDegrees) - NormalizeDegrees(angleDegrees));
+        }
+
+        private static float NormalizeDegrees(float angleDegrees)
+        {
+            return (angleDegrees % FullCircleDegrees + FullCircleDegrees) % FullCircleDegrees;
         }
     }
 }
