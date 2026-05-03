@@ -3,6 +3,7 @@ using System.Linq;
 using NUnit.Framework;
 using RogueliteAutoBattler.Combat.Core;
 using RogueliteAutoBattler.Data;
+using UnityEngine;
 
 namespace RogueliteAutoBattler.Tests.EditMode
 {
@@ -66,6 +67,25 @@ namespace RogueliteAutoBattler.Tests.EditMode
             Assert.AreEqual(1, central.maxLevel, "Central node maxLevel should be 1.");
             Assert.AreEqual(_asset.CentralUnlockCost, central.baseCost, "Central node baseCost should match centralUnlockCost.");
             Assert.AreEqual(0f, central.statModifierValuePerLevel, "Central node should grant no stat bonus.");
+        }
+
+        [Test]
+        public void Asset_AllNodePositions_QuantizedTo01Unit()
+        {
+            Assert.IsNotNull(_asset, "Failed to resolve active SkillTreeData via ActiveSkillTreeResolver");
+
+            var nodes = _asset.Nodes;
+            for (int i = 0; i < nodes.Count; i++)
+            {
+                var node = nodes[i];
+                float expectedX = Mathf.Round(node.position.x / SkillTreeGrid.Step) * SkillTreeGrid.Step;
+                float expectedY = Mathf.Round(node.position.y / SkillTreeGrid.Step) * SkillTreeGrid.Step;
+
+                Assert.AreEqual(expectedX, node.position.x, 1e-5f,
+                    $"Asset '{_asset.name}' node[{i}] id={node.id}: position.x={node.position.x} is not quantized to grid step {SkillTreeGrid.Step}");
+                Assert.AreEqual(expectedY, node.position.y, 1e-5f,
+                    $"Asset '{_asset.name}' node[{i}] id={node.id}: position.y={node.position.y} is not quantized to grid step {SkillTreeGrid.Step}");
+            }
         }
     }
 }
