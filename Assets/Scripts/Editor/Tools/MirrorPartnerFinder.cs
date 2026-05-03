@@ -17,11 +17,7 @@ namespace RogueliteAutoBattler.Editor.Tools
             if (nodes == null || sourceIndex < 0 || sourceIndex >= nodes.Count || toleranceUnits <= 0f)
                 return -1;
             Vector2 source = nodes[sourceIndex].position;
-            // reflection across line through origin at angle t: R = (cos2t·x + sin2t·y, sin2t·x − cos2t·y)
-            float t2 = mirrorAxisDegrees * 2f * Mathf.Deg2Rad;
-            float c = Mathf.Cos(t2);
-            float s = Mathf.Sin(t2);
-            Vector2 reflected = new Vector2(source.x * c + source.y * s, source.x * s - source.y * c);
+            Vector2 reflected = MirrorAxisGeometry.ReflectAcrossAxisThroughOrigin(source, mirrorAxisDegrees);
             int best = -1;
             float bestDist = toleranceUnits;
             for (int i = 0; i < nodes.Count; i++)

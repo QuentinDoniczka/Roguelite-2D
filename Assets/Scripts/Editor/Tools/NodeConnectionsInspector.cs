@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using RogueliteAutoBattler.Data;
 using UnityEngine;
@@ -20,7 +21,7 @@ namespace RogueliteAutoBattler.Editor.Tools
             }
         }
 
-        private static readonly IReadOnlyList<ConnectionRow> Empty = new ConnectionRow[0];
+        private static readonly IReadOnlyList<ConnectionRow> Empty = Array.Empty<ConnectionRow>();
 
         public static IReadOnlyList<ConnectionRow> CollectConnections(
             SkillTreeData data,
