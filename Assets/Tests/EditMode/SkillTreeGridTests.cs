@@ -115,5 +115,18 @@ namespace RogueliteAutoBattler.Tests.EditMode
 
             Assert.AreEqual(50, distance);
         }
+
+        [Test]
+        public void DistanceDisplayFromUnits_TypicalValue_RoundsToHundredth()
+        {
+            Assert.AreEqual(30, SkillTreeGrid.DistanceDisplayFromUnits(0.30f));
+            Assert.AreEqual(31, SkillTreeGrid.DistanceDisplayFromUnits(0.305f));
+        }
+
+        [Test]
+        public void DistanceDisplayFromUnits_Zero_ReturnsZero()
+        {
+            Assert.AreEqual(0, SkillTreeGrid.DistanceDisplayFromUnits(0f));
+        }
     }
 }

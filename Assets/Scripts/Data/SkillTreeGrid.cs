@@ -15,5 +15,8 @@ namespace RogueliteAutoBattler.Data
 
         public static int DistanceDisplay(Vector2 a, Vector2 b) =>
             Mathf.RoundToInt(Vector2.Distance(a, b) * DisplayMultiplier);
+
+        public static int DistanceDisplayFromUnits(float distanceUnits) =>
+            Mathf.RoundToInt(distanceUnits / Step);
     }
 }
