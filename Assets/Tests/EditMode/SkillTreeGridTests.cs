@@ -15,6 +15,12 @@ namespace RogueliteAutoBattler.Tests.EditMode
         }
 
         [Test]
+        public void DriftEpsilon_IsPositive()
+        {
+            Assert.Greater(SkillTreeGrid.DriftEpsilon, 0f);
+        }
+
+        [Test]
         public void Quantize_Zero_ReturnsZero()
         {
             var result = SkillTreeGrid.Quantize(Vector2.zero);

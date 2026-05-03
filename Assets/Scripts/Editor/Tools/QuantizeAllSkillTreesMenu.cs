@@ -8,7 +8,6 @@ namespace RogueliteAutoBattler.Editor.Tools
     {
         private const string MenuPath = "Tools/Skill Tree/Quantize All Positions";
         private const string LogTag = "[QuantizeAllSkillTrees]";
-        private const float Epsilon = 1e-5f;
 
         [MenuItem(MenuPath)]
         public static void QuantizeAllPositions()
@@ -30,8 +29,8 @@ namespace RogueliteAutoBattler.Editor.Tools
                     var node = nodes[i];
                     var quantized = SkillTreeGrid.Quantize(node.position);
 
-                    bool xDrifted = Mathf.Abs(node.position.x - quantized.x) > Epsilon;
-                    bool yDrifted = Mathf.Abs(node.position.y - quantized.y) > Epsilon;
+                    bool xDrifted = Mathf.Abs(node.position.x - quantized.x) > SkillTreeGrid.DriftEpsilon;
+                    bool yDrifted = Mathf.Abs(node.position.y - quantized.y) > SkillTreeGrid.DriftEpsilon;
 
                     if (!xDrifted && !yDrifted) continue;
 

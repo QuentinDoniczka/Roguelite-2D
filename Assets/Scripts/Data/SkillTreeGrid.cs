@@ -5,6 +5,7 @@ namespace RogueliteAutoBattler.Data
     public static class SkillTreeGrid
     {
         public const float Step = 0.01f;
+        public const float DriftEpsilon = 1e-5f;
         private const float DisplayMultiplier = 1f / Step;
 
         public static Vector2 Quantize(Vector2 v) =>
@@ -17,6 +18,6 @@ namespace RogueliteAutoBattler.Data
             Mathf.RoundToInt(Vector2.Distance(a, b) * DisplayMultiplier);
 
         public static int DistanceDisplayFromUnits(float distanceUnits) =>
-            Mathf.RoundToInt(distanceUnits / Step);
+            Mathf.RoundToInt(distanceUnits * DisplayMultiplier);
     }
 }
