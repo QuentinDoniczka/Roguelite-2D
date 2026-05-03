@@ -28,7 +28,7 @@ MonoBehaviour:
   nodes:
   - id: 0
     position: {x: 0, y: 0}
-    connectedNodeIds: 0100000002000000
+    connectedNodeIds: 02000000
     costType: 0
     maxLevel: 1
     baseCost: 100
@@ -38,20 +38,8 @@ MonoBehaviour:
     statModifierType: 8
     statModifierMode: 0
     statModifierValuePerLevel: 0
-  - id: 1
-    position: {x: 1.5000002, y: -2.598076}
-    connectedNodeIds: 05000000
-    costType: 1
-    maxLevel: 1
-    baseCost: 1
-    costMultiplierOdd: 1
-    costMultiplierEven: 1
-    costAdditivePerLevel: 0
-    statModifierType: 0
-    statModifierMode: 0
-    statModifierValuePerLevel: 5
   - id: 2
-    position: {x: -1.4999999, y: -2.598076}
+    position: {x: -1.8822026, y: 2.5828934}
     connectedNodeIds: 0300000004000000
     costType: 1
     maxLevel: 1
@@ -63,8 +51,8 @@ MonoBehaviour:
     statModifierMode: 0
     statModifierValuePerLevel: 5
   - id: 3
-    position: {x: -2.9999998, y: -5.196152}
-    connectedNodeIds: 
+    position: {x: 1.1192951, y: -3.5824077}
+    connectedNodeIds: 06000000
     costType: 1
     maxLevel: 1
     baseCost: 1
@@ -75,7 +63,7 @@ MonoBehaviour:
     statModifierMode: 0
     statModifierValuePerLevel: 5
   - id: 4
-    position: {x: 0.00000035762787, y: -5.196152}
+    position: {x: -1.2740085, y: -6.979765}
     connectedNodeIds: 
     costType: 1
     maxLevel: 1
@@ -87,7 +75,19 @@ MonoBehaviour:
     statModifierMode: 0
     statModifierValuePerLevel: 5
   - id: 5
-    position: {x: 3.0000005, y: -5.196152}
+    position: {x: 5.675419, y: -5.620822}
+    connectedNodeIds: 
+    costType: 1
+    maxLevel: 1
+    baseCost: 1
+    costMultiplierOdd: 1
+    costMultiplierEven: 1
+    costAdditivePerLevel: 0
+    statModifierType: 0
+    statModifierMode: 0
+    statModifierValuePerLevel: 5
+  - id: 6
+    position: {x: -4.712334, y: -7.6668277}
     connectedNodeIds: 
     costType: 1
     maxLevel: 1

@@ -34,6 +34,7 @@ namespace RogueliteAutoBattler.Editor.Windows
         private const float SectionSpacingLarge = 16f;
         private const float CrosshairLineThickness = 1f;
         private const float CrosshairHalfPixelOffset = 0.5f;
+        private const float DragStartThresholdPx = 4f;
 
         private static readonly Color CanvasBackgroundColor = new Color(0.15f, 0.15f, 0.15f, 1f);
         private static readonly Color CrosshairColor = new Color(0.4f, 0.4f, 0.4f, 1f);
@@ -60,6 +61,16 @@ namespace RogueliteAutoBattler.Editor.Windows
         private const float MaxMirrorAxisDegrees = 360f;
         private const string MirrorEnabledLabel = "Mirror";
         private const string MirrorAxisSliderLabel = "Mirror Axis (deg, 0=vertical)";
+
+        private const float MinSnapThresholdUnits = 0f;
+        private const float MaxSnapThresholdUnits = 2f;
+        private const float CoordLabelOffsetXPixels = 4f;
+        private const float CoordLabelOffsetYPixels = 8f;
+        private const float CoordLabelWidthPixels = 120f;
+        private const float CoordLabelHeightPixels = 16f;
+        private static readonly Color SnapGuideLineColor = new Color(0.4f, 0.85f, 1f, 0.7f);
+        private const string SnapEnabledLabel = "Snap to Nearby Node";
+        private const string SnapThresholdLabel = "Snap Threshold (units)";
 
         private const string SelectedAssetGuidEditorPrefKey = "SkillTreeDesigner.SelectedAssetGuid";
         private const string ActiveLabelPrefix = "Active: ";
@@ -112,6 +123,14 @@ namespace RogueliteAutoBattler.Editor.Windows
         private GUIStyle _nodeLabelStyle;
         private string[] _nodeLabels;
         private int _selectedNodeIndex = -1;
+        private NodeDragController.DragState _dragState = NodeDragController.DragState.Inactive;
+        private NodeSnapEngine.SnapResult _lastSnapResult;
+        private bool _pendingDragArm;
+        private Vector2 _pendingDragMousePx;
+        private int _pendingDragNodeIndex = -1;
+        private int _pendingDragMirrorPartnerIndex = -1;
+        private Vector2 _pendingDragMirrorPartnerStartPositionUnits;
+        private static GUIStyle _coordLabelStyle;
         private int _activeTab;
         private bool _branchPreviewActive;
         private int _branchPreviewParentIndex = -1;
@@ -119,6 +138,8 @@ namespace RogueliteAutoBattler.Editor.Windows
         private BranchPreviewSettings _branchPreviewSettings = BranchPreviewSettings.Defaults;
         private BranchPreviewSettings _lastBranchPreviewSettings = BranchPreviewSettings.Defaults;
         private string _lastMirrorWarning;
+        private bool _connectionsFoldoutOpen = true;
+        private readonly List<NodeConnectionsInspector.ConnectionRow> _connectionsBuffer = new List<NodeConnectionsInspector.ConnectionRow>();
 
         private static void LogError(string message)
         {
@@ -383,6 +404,25 @@ namespace RogueliteAutoBattler.Editor.Windows
 
                 string label = _nodeLabels != null && i < _nodeLabels.Length ? _nodeLabels[i] : entry.id.ToString();
                 GUI.Label(nodeRect, label, _nodeLabelStyle);
+
+                if (_dragState.IsActive && i == _dragState.NodeIndex)
+                {
+                    if (_coordLabelStyle == null)
+                    {
+                        _coordLabelStyle = new GUIStyle(EditorStyles.miniLabel)
+                        {
+                            alignment = TextAnchor.MiddleLeft,
+                            normal = { textColor = Color.white }
+                        };
+                    }
+                    string coordText = $"({entry.position.x:F2}, {entry.position.y:F2})";
+                    Rect coordRect = new Rect(
+                        screenPos.x + halfNode + CoordLabelOffsetXPixels,
+                        screenPos.y - CoordLabelOffsetYPixels,
+                        CoordLabelWidthPixels,
+                        CoordLabelHeightPixels);
+                    GUI.Label(coordRect, coordText, _coordLabelStyle);
+                }
             }
             if (_branchPreviewActive && _branchPreviewParentIndex >= 0 && _branchPreviewParentIndex < _data.Nodes.Count)
             {
@@ -415,6 +455,29 @@ namespace RogueliteAutoBattler.Editor.Windows
                     Handles.DrawWireDisc(new Vector3(mirrorScreen.x, mirrorScreen.y, 0f), Vector3.forward, halfNode);
                 }
             }
+            if (_dragState.IsActive && _lastSnapResult.SnappedAxis != NodeSnapEngine.SnapAxis.None)
+            {
+                Color prevColor = Handles.color;
+                Handles.color = SnapGuideLineColor;
+                if (_lastSnapResult.SnappedAxis == NodeSnapEngine.SnapAxis.X)
+                {
+                    float snapScreenX = origin.x + _data.Nodes[_lastSnapResult.TargetNodeIndex].position.x * scaledUnit;
+                    Handles.DrawDottedLine(
+                        new Vector3(snapScreenX, 0f, 0f),
+                        new Vector3(snapScreenX, canvasRect.height, 0f),
+                        BranchPreviewDottedSegmentSize);
+                }
+                else
+                {
+                    float snapScreenY = origin.y + _data.Nodes[_lastSnapResult.TargetNodeIndex].position.y * scaledUnit;
+                    Handles.DrawDottedLine(
+                        new Vector3(0f, snapScreenY, 0f),
+                        new Vector3(canvasRect.width, snapScreenY, 0f),
+                        BranchPreviewDottedSegmentSize);
+                }
+                Handles.color = prevColor;
+            }
+
             Handles.EndGUI();
 
             GUI.EndClip();
@@ -435,6 +498,10 @@ namespace RogueliteAutoBattler.Editor.Windows
                 EditorGUI.DrawRect(new Rect(0, y, canvasRect.width, 1), GridLineColor);
         }
 
+        // TODO #283 follow-up: extract NodeDragOrchestrator owning _dragState/_pendingDrag* /_lastSnapResult
+        // and exposing OnMouseDown/OnMouseDrag/OnMouseUp. Deferred from this PR because the extraction
+        // touches mirror partner discovery, snap, undo, dirty/save and shared _branchPreviewSettings —
+        // higher risk than is appropriate for the snap-feature ticket.
         private void HandleCanvasInput(Rect canvasRect)
         {
             Event evt = Event.current;
@@ -458,8 +525,92 @@ namespace RogueliteAutoBattler.Editor.Windows
                 _selectedNodeIndex = hitIndex;
                 if (!_branchPreviewActive)
                     _activeTab = hitIndex >= 0 ? TabIndexNode : TabIndexSkillTree;
+
+                if (hitIndex >= 0 && _data.Nodes[hitIndex].id != SkillTreeData.CentralNodeId)
+                {
+                    _pendingDragArm = true;
+                    _pendingDragMousePx = evt.mousePosition;
+                    _pendingDragNodeIndex = hitIndex;
+                    if (_branchPreviewSettings.mirrorEnabled)
+                    {
+                        _pendingDragMirrorPartnerIndex = MirrorPartnerFinder.FindPartnerIndex(
+                            _data.Nodes, hitIndex, _branchPreviewSettings.mirrorAxisDegrees,
+                            MirrorPartnerFinder.DefaultMatchToleranceUnits);
+                        _pendingDragMirrorPartnerStartPositionUnits = _pendingDragMirrorPartnerIndex >= 0
+                            ? _data.Nodes[_pendingDragMirrorPartnerIndex].position
+                            : Vector2.zero;
+                    }
+                    else
+                    {
+                        _pendingDragMirrorPartnerIndex = -1;
+                        _pendingDragMirrorPartnerStartPositionUnits = Vector2.zero;
+                    }
+                }
+
                 evt.Use();
                 Repaint();
+            }
+
+            if (evt.type == EventType.MouseDrag && evt.button == LeftMouseButton && !evt.alt)
+            {
+                if (_pendingDragArm && (evt.mousePosition - _pendingDragMousePx).magnitude >= DragStartThresholdPx)
+                {
+                    Undo.RegisterCompleteObjectUndo(_data, "Move Node");
+                    var startNode = _data.Nodes[_pendingDragNodeIndex];
+                    _dragState = new NodeDragController.DragState(
+                        _pendingDragNodeIndex,
+                        startNode.position,
+                        _pendingDragMousePx,
+                        _pendingDragMirrorPartnerIndex,
+                        _pendingDragMirrorPartnerStartPositionUnits);
+                    _pendingDragArm = false;
+                }
+
+                if (_dragState.IsActive)
+                {
+                    Vector2 rawNewPos = NodeDragController.ComputeNewNodePosition(
+                        _dragState, evt.mousePosition, _data.UnitSize, _canvasZoom);
+                    var draggedNode = _data.Nodes[_dragState.NodeIndex];
+                    bool snapAllowed = draggedNode.snapEnabled && !evt.shift;
+                    _lastSnapResult = snapAllowed
+                        ? NodeSnapEngine.Resolve(rawNewPos, _dragState.NodeIndex, _data.Nodes, draggedNode.snapThresholdUnits)
+                        : NodeSnapEngine.SnapResult.NoSnap(rawNewPos);
+
+                    var updated = _data.Nodes[_dragState.NodeIndex];
+                    updated.position = _lastSnapResult.ResolvedPosition;
+                    _data.SetNode(_dragState.NodeIndex, updated);
+
+                    if (_dragState.MirrorPartnerIndex >= 0 && _dragState.MirrorPartnerIndex < _data.Nodes.Count)
+                    {
+                        Vector2 delta = _lastSnapResult.ResolvedPosition - _dragState.NodeStartPositionUnits;
+                        Vector2 mirroredDelta = MirrorAxisGeometry.ReflectAcrossClockwiseFromNorthAxis(delta, _branchPreviewSettings.mirrorAxisDegrees);
+                        Vector2 partnerNew = _dragState.MirrorPartnerStartPositionUnits + mirroredDelta;
+                        var partner = _data.Nodes[_dragState.MirrorPartnerIndex];
+                        partner.position = partnerNew;
+                        _data.SetNode(_dragState.MirrorPartnerIndex, partner);
+                    }
+
+                    _serializedData?.Update();
+                    Repaint();
+                }
+
+                evt.Use();
+            }
+
+            if (evt.type == EventType.MouseUp && evt.button == LeftMouseButton)
+            {
+                bool wasDragging = _dragState.IsActive;
+                if (wasDragging)
+                {
+                    _dragState = NodeDragController.DragState.Inactive;
+                    _lastSnapResult = NodeSnapEngine.SnapResult.NoSnap(Vector2.zero);
+                    EditorUtility.SetDirty(_data);
+                    AssetDatabase.SaveAssets();
+                    Repaint();
+                }
+                _pendingDragArm = false;
+                if (wasDragging)
+                    evt.Use();
             }
 
             if (evt.type == EventType.MouseDrag && (evt.button == MiddleMouseButton || (evt.button == LeftMouseButton && evt.alt)))
@@ -574,6 +725,46 @@ namespace RogueliteAutoBattler.Editor.Windows
 
             EditorGUILayout.LabelField($"Node {_selectedNodeIndex}", EditorStyles.boldLabel);
 
+            var nodeForPos = _data.Nodes[_selectedNodeIndex];
+            bool isRootNode = nodeForPos.id == SkillTreeData.CentralNodeId;
+            EditorGUI.BeginDisabledGroup(isRootNode);
+            EditorGUI.BeginChangeCheck();
+            float newX = EditorGUILayout.FloatField("Position X", nodeForPos.position.x);
+            float newY = EditorGUILayout.FloatField("Position Y", nodeForPos.position.y);
+            if (EditorGUI.EndChangeCheck())
+            {
+                Undo.RegisterCompleteObjectUndo(_data, "Edit Node Position");
+                var updatedPos = nodeForPos;
+                updatedPos.position = new Vector2(newX, newY);
+                _data.SetNode(_selectedNodeIndex, updatedPos);
+                EditorUtility.SetDirty(_data);
+            }
+            EditorGUI.EndDisabledGroup();
+
+            nodeForPos = _data.Nodes[_selectedNodeIndex];
+            EditorGUI.BeginDisabledGroup(isRootNode);
+            EditorGUI.BeginChangeCheck();
+            bool newSnapEnabled = EditorGUILayout.Toggle(SnapEnabledLabel, nodeForPos.snapEnabled);
+            float newSnapThreshold = nodeForPos.snapThresholdUnits;
+            using (new EditorGUI.DisabledScope(!newSnapEnabled))
+            {
+                newSnapThreshold = EditorGUILayout.Slider(
+                    SnapThresholdLabel,
+                    newSnapThreshold,
+                    MinSnapThresholdUnits,
+                    MaxSnapThresholdUnits);
+            }
+            if (EditorGUI.EndChangeCheck())
+            {
+                Undo.RegisterCompleteObjectUndo(_data, "Edit Node Snap");
+                var updatedSnap = nodeForPos;
+                updatedSnap.snapEnabled = newSnapEnabled;
+                updatedSnap.snapThresholdUnits = newSnapThreshold;
+                _data.SetNode(_selectedNodeIndex, updatedSnap);
+                EditorUtility.SetDirty(_data);
+            }
+            EditorGUI.EndDisabledGroup();
+
             if (GUILayout.Button("Create Branch from Selected"))
             {
                 _branchPreviewPreviousTab = _activeTab;
@@ -641,6 +832,34 @@ namespace RogueliteAutoBattler.Editor.Windows
             }
             if (node.maxLevel == 0)
                 EditorGUILayout.LabelField("  ...", "(unlimited)");
+
+            EditorGUILayout.Space(SectionSpacingSmall);
+            NodeConnectionsInspector.CollectConnections(_data, _selectedNodeIndex, _connectionsBuffer);
+            _connectionsFoldoutOpen = EditorGUILayout.Foldout(
+                _connectionsFoldoutOpen,
+                $"Connections ({_connectionsBuffer.Count})",
+                toggleOnLabelClick: true,
+                EditorStyles.foldoutHeader);
+            if (_connectionsFoldoutOpen)
+            {
+                if (_connectionsBuffer.Count == 0)
+                {
+                    EditorGUILayout.LabelField("No connections", EditorStyles.miniLabel);
+                }
+                else
+                {
+                    using (new EditorGUI.IndentLevelScope())
+                    {
+                        foreach (var row in _connectionsBuffer)
+                        {
+                            string arrow = row.IsOutgoing ? "→" : "←";
+                            EditorGUILayout.LabelField(
+                                $"{arrow} Node {row.OtherNodeId}",
+                                $"{row.DistanceUnits:0.00} units");
+                        }
+                    }
+                }
+            }
 
             EditorGUILayout.Space(SectionSpacingLarge);
             EditorGUILayout.LabelField("Danger Zone", EditorStyles.boldLabel);
