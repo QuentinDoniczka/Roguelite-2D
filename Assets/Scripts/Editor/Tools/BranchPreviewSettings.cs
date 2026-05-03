@@ -11,17 +11,13 @@ namespace RogueliteAutoBattler.Editor.Tools
         public float angleDegrees;
         public bool mirrorEnabled;
         public float mirrorAxisDegrees;
-        public bool snapEnabled;
-        public float snapThresholdUnits;
 
         internal static readonly BranchPreviewSettings Defaults = new BranchPreviewSettings
         {
             distance = DefaultDistanceUnits,
             angleDegrees = DefaultAngleDegrees,
             mirrorEnabled = DefaultMirrorEnabled,
-            mirrorAxisDegrees = DefaultMirrorAxisDegrees,
-            snapEnabled = true,
-            snapThresholdUnits = 0.25f
+            mirrorAxisDegrees = DefaultMirrorAxisDegrees
         };
     }
 }

@@ -16,6 +16,8 @@ namespace RogueliteAutoBattler.Data
         public const float DefaultEdgeThickness = 4f;
         public const int DefaultMaxLevel = 5;
         public const int DefaultCentralUnlockCost = 100;
+        public const bool DefaultSnapEnabled = true;
+        public const float DefaultSnapThresholdUnits = 0.25f;
         private const int CentralMaxLevel = 1;
         private const string LowercaseHexByteFormat = "x2";
 
@@ -67,6 +69,8 @@ namespace RogueliteAutoBattler.Data
             public StatType statModifierType;
             public StatModifierMode statModifierMode;
             public float statModifierValuePerLevel;
+            public bool snapEnabled;
+            public float snapThresholdUnits;
         }
 
         [Header("Visual")]
@@ -103,6 +107,7 @@ namespace RogueliteAutoBattler.Data
         private void OnEnable()
         {
             EnsureCentralNode();
+            NormalizePristineSnapFields();
         }
 
         private void OnValidate()
@@ -307,6 +312,24 @@ namespace RogueliteAutoBattler.Data
 
             _cachedEdges = null;
             return true;
+        }
+
+        private void NormalizePristineSnapFields()
+        {
+            bool changed = false;
+            for (int i = 0; i < nodes.Count; i++)
+            {
+                var n = nodes[i];
+                // Treat the pristine deserialized state (both fields at default Unity zero) as legacy → apply defaults.
+                if (!n.snapEnabled && n.snapThresholdUnits == 0f)
+                {
+                    n.snapEnabled = DefaultSnapEnabled;
+                    n.snapThresholdUnits = DefaultSnapThresholdUnits;
+                    nodes[i] = n;
+                    changed = true;
+                }
+            }
+            if (changed) _cachedEdges = null;
         }
 
         internal void EnsureCentralNode()

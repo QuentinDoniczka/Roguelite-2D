@@ -29,7 +29,9 @@ namespace RogueliteAutoBattler.Editor.Tools
                 costAdditivePerLevel = DefaultBranchCostAdditivePerLevel,
                 statModifierType = StatType.Hp,
                 statModifierMode = SkillTreeData.StatModifierMode.Flat,
-                statModifierValuePerLevel = DefaultBranchStatValuePerLevel
+                statModifierValuePerLevel = DefaultBranchStatValuePerLevel,
+                snapEnabled = SkillTreeData.DefaultSnapEnabled,
+                snapThresholdUnits = SkillTreeData.DefaultSnapThresholdUnits
             };
         }
     }

@@ -25,18 +25,5 @@ namespace RogueliteAutoBattler.Tests.EditMode
             Assert.That(BranchPreviewSettings.Defaults.distance, Is.EqualTo(3f).Within(Tolerance));
             Assert.That(BranchPreviewSettings.Defaults.angleDegrees, Is.EqualTo(0f).Within(Tolerance));
         }
-
-        [Test]
-        public void Defaults_SnapEnabled_IsTrue()
-        {
-            Assert.That(BranchPreviewSettings.Defaults.snapEnabled, Is.True);
-        }
-
-        [Test]
-        public void Defaults_SnapThresholdUnits_MatchesPersistenceDefault()
-        {
-            Assert.That(BranchPreviewSettings.Defaults.snapThresholdUnits,
-                Is.EqualTo(SnapSettingsPersistence.DefaultThreshold).Within(Tolerance));
-        }
     }
 }

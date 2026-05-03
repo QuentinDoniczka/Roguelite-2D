@@ -172,8 +172,6 @@ namespace RogueliteAutoBattler.Editor.Windows
             RefreshActivePointerCache();
             MirrorAxisPersistence.ApplyTo(ref _branchPreviewSettings);
             MirrorAxisPersistence.ApplyTo(ref _lastBranchPreviewSettings);
-            SnapSettingsPersistence.ApplyTo(ref _branchPreviewSettings);
-            SnapSettingsPersistence.ApplyTo(ref _lastBranchPreviewSettings);
         }
 
         private void RefreshTreeList()
@@ -572,9 +570,10 @@ namespace RogueliteAutoBattler.Editor.Windows
                 {
                     Vector2 rawNewPos = NodeDragController.ComputeNewNodePosition(
                         _dragState, evt.mousePosition, _data.UnitSize, _canvasZoom);
-                    bool snapAllowed = _branchPreviewSettings.snapEnabled && !evt.shift;
+                    var draggedNode = _data.Nodes[_dragState.NodeIndex];
+                    bool snapAllowed = draggedNode.snapEnabled && !evt.shift;
                     _lastSnapResult = snapAllowed
-                        ? NodeSnapEngine.Resolve(rawNewPos, _dragState.NodeIndex, _data.Nodes, _branchPreviewSettings.snapThresholdUnits)
+                        ? NodeSnapEngine.Resolve(rawNewPos, _dragState.NodeIndex, _data.Nodes, draggedNode.snapThresholdUnits)
                         : NodeSnapEngine.SnapResult.NoSnap(rawNewPos);
 
                     var updated = _data.Nodes[_dragState.NodeIndex];
@@ -707,31 +706,6 @@ namespace RogueliteAutoBattler.Editor.Windows
             EditorGUILayout.PropertyField(_propEdgeColor, LabelEdgeColor);
             EditorGUILayout.PropertyField(_propEdgeThickness, LabelEdgeThickness);
 
-            EditorGUILayout.Space(SectionSpacingMedium);
-            EditorGUILayout.LabelField("Designer Settings", EditorStyles.boldLabel);
-
-            EditorGUI.BeginChangeCheck();
-            bool newSnapEnabled = EditorGUILayout.Toggle(SnapEnabledLabel, _branchPreviewSettings.snapEnabled);
-            if (EditorGUI.EndChangeCheck())
-            {
-                _branchPreviewSettings.snapEnabled = newSnapEnabled;
-                SnapSettingsPersistence.SaveEnabled(newSnapEnabled);
-                Repaint();
-            }
-
-            using (new EditorGUI.DisabledScope(!_branchPreviewSettings.snapEnabled))
-            {
-                EditorGUI.BeginChangeCheck();
-                float newThreshold = EditorGUILayout.Slider(SnapThresholdLabel,
-                    _branchPreviewSettings.snapThresholdUnits, MinSnapThresholdUnits, MaxSnapThresholdUnits);
-                if (EditorGUI.EndChangeCheck())
-                {
-                    _branchPreviewSettings.snapThresholdUnits = newThreshold;
-                    SnapSettingsPersistence.SaveThreshold(newThreshold);
-                    Repaint();
-                }
-            }
-
             EditorGUILayout.Space(SectionSpacingLarge);
 
             EditorGUILayout.HelpBox(
@@ -763,6 +737,30 @@ namespace RogueliteAutoBattler.Editor.Windows
                 var updatedPos = nodeForPos;
                 updatedPos.position = new Vector2(newX, newY);
                 _data.SetNode(_selectedNodeIndex, updatedPos);
+                EditorUtility.SetDirty(_data);
+            }
+            EditorGUI.EndDisabledGroup();
+
+            nodeForPos = _data.Nodes[_selectedNodeIndex];
+            EditorGUI.BeginDisabledGroup(isRootNode);
+            EditorGUI.BeginChangeCheck();
+            bool newSnapEnabled = EditorGUILayout.Toggle(SnapEnabledLabel, nodeForPos.snapEnabled);
+            float newSnapThreshold = nodeForPos.snapThresholdUnits;
+            using (new EditorGUI.DisabledScope(!newSnapEnabled))
+            {
+                newSnapThreshold = EditorGUILayout.Slider(
+                    SnapThresholdLabel,
+                    newSnapThreshold,
+                    MinSnapThresholdUnits,
+                    MaxSnapThresholdUnits);
+            }
+            if (EditorGUI.EndChangeCheck())
+            {
+                Undo.RegisterCompleteObjectUndo(_data, "Edit Node Snap");
+                var updatedSnap = nodeForPos;
+                updatedSnap.snapEnabled = newSnapEnabled;
+                updatedSnap.snapThresholdUnits = newSnapThreshold;
+                _data.SetNode(_selectedNodeIndex, updatedSnap);
                 EditorUtility.SetDirty(_data);
             }
             EditorGUI.EndDisabledGroup();
