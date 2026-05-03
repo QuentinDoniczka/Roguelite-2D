@@ -61,6 +61,12 @@ namespace RogueliteAutoBattler.Editor.Windows
         private const string MirrorEnabledLabel = "Mirror";
         private const string MirrorAxisSliderLabel = "Mirror Axis (deg, 0=vertical)";
 
+        private const float MinSnapThresholdUnits = 0f;
+        private const float MaxSnapThresholdUnits = 2f;
+        private static readonly Color SnapGuideLineColor = new Color(0.4f, 0.85f, 1f, 0.7f);
+        private const string SnapEnabledLabel = "Snap to Nearby Node";
+        private const string SnapThresholdLabel = "Snap Threshold (units)";
+
         private const string SelectedAssetGuidEditorPrefKey = "SkillTreeDesigner.SelectedAssetGuid";
         private const string ActiveLabelPrefix = "Active: ";
         private const string NoActiveLabel = "<none>";
@@ -113,10 +119,13 @@ namespace RogueliteAutoBattler.Editor.Windows
         private string[] _nodeLabels;
         private int _selectedNodeIndex = -1;
         private NodeDragController.DragState _dragState = NodeDragController.DragState.Inactive;
+        private NodeSnapEngine.SnapResult _lastSnapResult;
         private const float DragStartThresholdPx = 4f;
         private bool _pendingDragArm;
         private Vector2 _pendingDragMousePx;
         private int _pendingDragNodeIndex = -1;
+        private int _pendingDragMirrorPartnerIndex = -1;
+        private Vector2 _pendingDragMirrorPartnerStartPos;
         private static GUIStyle _coordLabelStyle;
         private int _activeTab;
         private bool _branchPreviewActive;
@@ -157,6 +166,8 @@ namespace RogueliteAutoBattler.Editor.Windows
             RefreshActivePointerCache();
             MirrorAxisPersistence.ApplyTo(ref _branchPreviewSettings);
             MirrorAxisPersistence.ApplyTo(ref _lastBranchPreviewSettings);
+            SnapSettingsPersistence.ApplyTo(ref _branchPreviewSettings);
+            SnapSettingsPersistence.ApplyTo(ref _lastBranchPreviewSettings);
         }
 
         private void RefreshTreeList()
@@ -436,6 +447,29 @@ namespace RogueliteAutoBattler.Editor.Windows
                     Handles.DrawWireDisc(new Vector3(mirrorScreen.x, mirrorScreen.y, 0f), Vector3.forward, halfNode);
                 }
             }
+            if (_dragState.IsActive && _lastSnapResult.SnappedAxis != NodeSnapEngine.SnapAxis.None)
+            {
+                Color prevColor = Handles.color;
+                Handles.color = SnapGuideLineColor;
+                if (_lastSnapResult.SnappedAxis == NodeSnapEngine.SnapAxis.X)
+                {
+                    float snapScreenX = origin.x + _data.Nodes[_lastSnapResult.TargetNodeIndex].position.x * scaledUnit;
+                    Handles.DrawDottedLine(
+                        new Vector3(snapScreenX, 0f, 0f),
+                        new Vector3(snapScreenX, canvasRect.height, 0f),
+                        BranchPreviewDottedSegmentSize);
+                }
+                else
+                {
+                    float snapScreenY = origin.y + _data.Nodes[_lastSnapResult.TargetNodeIndex].position.y * scaledUnit;
+                    Handles.DrawDottedLine(
+                        new Vector3(0f, snapScreenY, 0f),
+                        new Vector3(canvasRect.width, snapScreenY, 0f),
+                        BranchPreviewDottedSegmentSize);
+                }
+                Handles.color = prevColor;
+            }
+
             Handles.EndGUI();
 
             GUI.EndClip();
@@ -485,6 +519,20 @@ namespace RogueliteAutoBattler.Editor.Windows
                     _pendingDragArm = true;
                     _pendingDragMousePx = evt.mousePosition;
                     _pendingDragNodeIndex = hitIndex;
+                    if (_branchPreviewSettings.mirrorEnabled)
+                    {
+                        _pendingDragMirrorPartnerIndex = MirrorPartnerFinder.FindPartnerIndex(
+                            _data.Nodes, hitIndex, _branchPreviewSettings.mirrorAxisDegrees,
+                            MirrorPartnerFinder.DefaultMatchToleranceUnits);
+                        _pendingDragMirrorPartnerStartPos = _pendingDragMirrorPartnerIndex >= 0
+                            ? _data.Nodes[_pendingDragMirrorPartnerIndex].position
+                            : Vector2.zero;
+                    }
+                    else
+                    {
+                        _pendingDragMirrorPartnerIndex = -1;
+                        _pendingDragMirrorPartnerStartPos = Vector2.zero;
+                    }
                 }
 
                 evt.Use();
@@ -497,23 +545,38 @@ namespace RogueliteAutoBattler.Editor.Windows
                 {
                     Undo.RegisterCompleteObjectUndo(_data, "Move Node");
                     var startNode = _data.Nodes[_pendingDragNodeIndex];
-                    // TODO #283 Batch 2: resolve mirror partner index here
                     _dragState = new NodeDragController.DragState(
                         _pendingDragNodeIndex,
                         startNode.position,
                         _pendingDragMousePx,
-                        -1,
-                        Vector2.zero);
+                        _pendingDragMirrorPartnerIndex,
+                        _pendingDragMirrorPartnerStartPos);
                     _pendingDragArm = false;
                 }
 
                 if (_dragState.IsActive)
                 {
-                    Vector2 newPos = NodeDragController.ComputeNewNodePosition(
+                    Vector2 rawNewPos = NodeDragController.ComputeNewNodePosition(
                         _dragState, evt.mousePosition, _data.UnitSize, _canvasZoom);
+                    bool snapAllowed = _branchPreviewSettings.snapEnabled && !evt.shift;
+                    _lastSnapResult = snapAllowed
+                        ? NodeSnapEngine.Resolve(rawNewPos, _dragState.NodeIndex, _data.Nodes, _branchPreviewSettings.snapThresholdUnits)
+                        : NodeSnapEngine.SnapResult.NoSnap(rawNewPos);
+
                     var updated = _data.Nodes[_dragState.NodeIndex];
-                    updated.position = newPos;
+                    updated.position = _lastSnapResult.ResolvedPosition;
                     _data.SetNode(_dragState.NodeIndex, updated);
+
+                    if (_dragState.MirrorPartnerIndex >= 0 && _dragState.MirrorPartnerIndex < _data.Nodes.Count)
+                    {
+                        Vector2 delta = _lastSnapResult.ResolvedPosition - _dragState.NodeStartPositionUnits;
+                        Vector2 mirroredDelta = ApplyMirrorDelta(delta, _branchPreviewSettings.mirrorAxisDegrees);
+                        Vector2 partnerNew = _dragState.MirrorPartnerStartPositionUnits + mirroredDelta;
+                        var partner = _data.Nodes[_dragState.MirrorPartnerIndex];
+                        partner.position = partnerNew;
+                        _data.SetNode(_dragState.MirrorPartnerIndex, partner);
+                    }
+
                     _serializedData?.Update();
                     Repaint();
                 }
@@ -527,6 +590,7 @@ namespace RogueliteAutoBattler.Editor.Windows
                 if (wasDragging)
                 {
                     _dragState = NodeDragController.DragState.Inactive;
+                    _lastSnapResult = NodeSnapEngine.SnapResult.NoSnap(Vector2.zero);
                     EditorUtility.SetDirty(_data);
                     AssetDatabase.SaveAssets();
                     Repaint();
@@ -628,6 +692,31 @@ namespace RogueliteAutoBattler.Editor.Windows
             EditorGUILayout.LabelField("Edge Settings", EditorStyles.boldLabel);
             EditorGUILayout.PropertyField(_propEdgeColor, LabelEdgeColor);
             EditorGUILayout.PropertyField(_propEdgeThickness, LabelEdgeThickness);
+
+            EditorGUILayout.Space(SectionSpacingMedium);
+            EditorGUILayout.LabelField("Designer Settings", EditorStyles.boldLabel);
+
+            EditorGUI.BeginChangeCheck();
+            bool newSnapEnabled = EditorGUILayout.Toggle(SnapEnabledLabel, _branchPreviewSettings.snapEnabled);
+            if (EditorGUI.EndChangeCheck())
+            {
+                _branchPreviewSettings.snapEnabled = newSnapEnabled;
+                SnapSettingsPersistence.SaveEnabled(newSnapEnabled);
+                Repaint();
+            }
+
+            using (new EditorGUI.DisabledScope(!_branchPreviewSettings.snapEnabled))
+            {
+                EditorGUI.BeginChangeCheck();
+                float newThreshold = EditorGUILayout.Slider(SnapThresholdLabel,
+                    _branchPreviewSettings.snapThresholdUnits, MinSnapThresholdUnits, MaxSnapThresholdUnits);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    _branchPreviewSettings.snapThresholdUnits = newThreshold;
+                    SnapSettingsPersistence.SaveThreshold(newThreshold);
+                    Repaint();
+                }
+            }
 
             EditorGUILayout.Space(SectionSpacingLarge);
 
@@ -840,6 +929,15 @@ namespace RogueliteAutoBattler.Editor.Windows
             _branchPreviewParentIndex = -1;
             _activeTab = TabIndexNode;
             Repaint();
+        }
+
+        private static Vector2 ApplyMirrorDelta(Vector2 delta, float mirrorAxisDegrees)
+        {
+            // reflection across line through origin at angle t: R = (cos2t·x + sin2t·y, sin2t·x − cos2t·y)
+            float t2 = mirrorAxisDegrees * 2f * Mathf.Deg2Rad;
+            float c = Mathf.Cos(t2);
+            float s = Mathf.Sin(t2);
+            return new Vector2(delta.x * c + delta.y * s, delta.x * s - delta.y * c);
         }
 
         internal static int HitTestNode(Vector2 mousePos, Vector2 origin, IReadOnlyList<SkillTreeData.SkillNodeEntry> nodes, float unitSize, float nodeSize, float zoom)
