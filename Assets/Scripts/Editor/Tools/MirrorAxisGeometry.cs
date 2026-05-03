@@ -16,7 +16,7 @@ namespace RogueliteAutoBattler.Editor.Tools
             end = origin + axisDir * halfSpan;
         }
 
-        public static Vector2 ReflectAcrossAxisThroughOrigin(Vector2 point, float axisAngleDegrees)
+        public static Vector2 ReflectAcrossClockwiseFromNorthAxis(Vector2 point, float axisAngleDegrees)
         {
             float doubleAngleRadians = axisAngleDegrees * 2f * Mathf.Deg2Rad;
             float cos2t = Mathf.Cos(doubleAngleRadians);

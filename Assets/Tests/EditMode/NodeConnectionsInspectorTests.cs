@@ -45,7 +45,8 @@ namespace RogueliteAutoBattler.Tests.EditMode
         [Test]
         public void CollectConnections_NullData_ReturnsEmpty()
         {
-            var result = NodeConnectionsInspector.CollectConnections(null, 0);
+            var result = new List<NodeConnectionsInspector.ConnectionRow>();
+            NodeConnectionsInspector.CollectConnections(null, 0, result);
 
             Assert.AreEqual(0, result.Count);
         }
@@ -55,7 +56,8 @@ namespace RogueliteAutoBattler.Tests.EditMode
         {
             _data.InitializeForTest(new List<SkillTreeData.SkillNodeEntry> { MakeNode(0, Vector2.zero) });
 
-            var result = NodeConnectionsInspector.CollectConnections(_data, 5);
+            var result = new List<NodeConnectionsInspector.ConnectionRow>();
+            NodeConnectionsInspector.CollectConnections(_data, 5, result);
 
             Assert.AreEqual(0, result.Count);
         }
@@ -69,7 +71,8 @@ namespace RogueliteAutoBattler.Tests.EditMode
                 MakeNode(1, new Vector2(1f, 0f))
             });
 
-            var result = NodeConnectionsInspector.CollectConnections(_data, 0);
+            var result = new List<NodeConnectionsInspector.ConnectionRow>();
+            NodeConnectionsInspector.CollectConnections(_data, 0, result);
 
             Assert.AreEqual(0, result.Count);
         }
@@ -84,7 +87,8 @@ namespace RogueliteAutoBattler.Tests.EditMode
             });
             _data.AddEdge(0, 1);
 
-            var result = NodeConnectionsInspector.CollectConnections(_data, 0);
+            var result = new List<NodeConnectionsInspector.ConnectionRow>();
+            NodeConnectionsInspector.CollectConnections(_data, 0, result);
 
             Assert.AreEqual(1, result.Count);
             Assert.AreEqual(1, result[0].OtherNodeId);
@@ -101,7 +105,8 @@ namespace RogueliteAutoBattler.Tests.EditMode
             });
             _data.AddEdge(0, 1);
 
-            var result = NodeConnectionsInspector.CollectConnections(_data, 1);
+            var result = new List<NodeConnectionsInspector.ConnectionRow>();
+            NodeConnectionsInspector.CollectConnections(_data, 1, result);
 
             Assert.AreEqual(1, result.Count);
             Assert.AreEqual(0, result[0].OtherNodeId);
@@ -118,7 +123,8 @@ namespace RogueliteAutoBattler.Tests.EditMode
             });
             _data.AddEdge(0, 1);
 
-            var result = NodeConnectionsInspector.CollectConnections(_data, 0);
+            var result = new List<NodeConnectionsInspector.ConnectionRow>();
+            NodeConnectionsInspector.CollectConnections(_data, 0, result);
 
             Assert.AreEqual(1, result.Count);
             Assert.That(result[0].DistanceUnits, Is.EqualTo(5f).Within(0.001f));
@@ -138,7 +144,8 @@ namespace RogueliteAutoBattler.Tests.EditMode
             _data.AddEdge(0, 1);
             _data.AddEdge(0, 2);
 
-            var result = NodeConnectionsInspector.CollectConnections(_data, 0);
+            var result = new List<NodeConnectionsInspector.ConnectionRow>();
+            NodeConnectionsInspector.CollectConnections(_data, 0, result);
 
             Assert.AreEqual(3, result.Count);
             Assert.AreEqual(1, result[0].OtherNodeId);
@@ -156,14 +163,16 @@ namespace RogueliteAutoBattler.Tests.EditMode
             });
             _data.AddEdge(0, 1);
 
-            var before = NodeConnectionsInspector.CollectConnections(_data, 0);
+            var before = new List<NodeConnectionsInspector.ConnectionRow>();
+            NodeConnectionsInspector.CollectConnections(_data, 0, before);
             Assert.That(before[0].DistanceUnits, Is.EqualTo(5f).Within(0.001f));
 
             var mutated = _data.Nodes[1];
             mutated.position = new Vector2(0f, 10f);
             _data.SetNode(1, mutated);
 
-            var after = NodeConnectionsInspector.CollectConnections(_data, 0);
+            var after = new List<NodeConnectionsInspector.ConnectionRow>();
+            NodeConnectionsInspector.CollectConnections(_data, 0, after);
             Assert.That(after[0].DistanceUnits, Is.EqualTo(10f).Within(0.001f));
         }
 
@@ -179,7 +188,8 @@ namespace RogueliteAutoBattler.Tests.EditMode
             _data.AddEdge(0, 1);
             _data.AddEdge(1, 2);
 
-            var result = NodeConnectionsInspector.CollectConnections(_data, 1);
+            var result = new List<NodeConnectionsInspector.ConnectionRow>();
+            NodeConnectionsInspector.CollectConnections(_data, 1, result);
 
             Assert.AreEqual(2, result.Count);
             bool hasIncoming = false;

@@ -34,6 +34,7 @@ namespace RogueliteAutoBattler.Editor.Windows
         private const float SectionSpacingLarge = 16f;
         private const float CrosshairLineThickness = 1f;
         private const float CrosshairHalfPixelOffset = 0.5f;
+        private const float DragStartThresholdPx = 4f;
 
         private static readonly Color CanvasBackgroundColor = new Color(0.15f, 0.15f, 0.15f, 1f);
         private static readonly Color CrosshairColor = new Color(0.4f, 0.4f, 0.4f, 1f);
@@ -124,7 +125,6 @@ namespace RogueliteAutoBattler.Editor.Windows
         private int _selectedNodeIndex = -1;
         private NodeDragController.DragState _dragState = NodeDragController.DragState.Inactive;
         private NodeSnapEngine.SnapResult _lastSnapResult;
-        private const float DragStartThresholdPx = 4f;
         private bool _pendingDragArm;
         private Vector2 _pendingDragMousePx;
         private int _pendingDragNodeIndex = -1;
@@ -139,6 +139,7 @@ namespace RogueliteAutoBattler.Editor.Windows
         private BranchPreviewSettings _lastBranchPreviewSettings = BranchPreviewSettings.Defaults;
         private string _lastMirrorWarning;
         private bool _connectionsFoldoutOpen = true;
+        private readonly List<NodeConnectionsInspector.ConnectionRow> _connectionsBuffer = new List<NodeConnectionsInspector.ConnectionRow>();
 
         private static void LogError(string message)
         {
@@ -499,6 +500,10 @@ namespace RogueliteAutoBattler.Editor.Windows
                 EditorGUI.DrawRect(new Rect(0, y, canvasRect.width, 1), GridLineColor);
         }
 
+        // TODO #283 follow-up: extract NodeDragOrchestrator owning _dragState/_pendingDrag* /_lastSnapResult
+        // and exposing OnMouseDown/OnMouseDrag/OnMouseUp. Deferred from this PR because the extraction
+        // touches mirror partner discovery, snap, undo, dirty/save and shared _branchPreviewSettings —
+        // higher risk than is appropriate for the snap-feature ticket.
         private void HandleCanvasInput(Rect canvasRect)
         {
             Event evt = Event.current;
@@ -579,7 +584,7 @@ namespace RogueliteAutoBattler.Editor.Windows
                     if (_dragState.MirrorPartnerIndex >= 0 && _dragState.MirrorPartnerIndex < _data.Nodes.Count)
                     {
                         Vector2 delta = _lastSnapResult.ResolvedPosition - _dragState.NodeStartPositionUnits;
-                        Vector2 mirroredDelta = MirrorAxisGeometry.ReflectAcrossAxisThroughOrigin(delta, _branchPreviewSettings.mirrorAxisDegrees);
+                        Vector2 mirroredDelta = MirrorAxisGeometry.ReflectAcrossClockwiseFromNorthAxis(delta, _branchPreviewSettings.mirrorAxisDegrees);
                         Vector2 partnerNew = _dragState.MirrorPartnerStartPositionUnits + mirroredDelta;
                         var partner = _data.Nodes[_dragState.MirrorPartnerIndex];
                         partner.position = partnerNew;
@@ -831,15 +836,15 @@ namespace RogueliteAutoBattler.Editor.Windows
                 EditorGUILayout.LabelField("  ...", "(unlimited)");
 
             EditorGUILayout.Space(SectionSpacingSmall);
-            var connections = NodeConnectionsInspector.CollectConnections(_data, _selectedNodeIndex);
+            NodeConnectionsInspector.CollectConnections(_data, _selectedNodeIndex, _connectionsBuffer);
             _connectionsFoldoutOpen = EditorGUILayout.Foldout(
                 _connectionsFoldoutOpen,
-                $"Connections ({connections.Count})",
+                $"Connections ({_connectionsBuffer.Count})",
                 toggleOnLabelClick: true,
                 EditorStyles.foldoutHeader);
             if (_connectionsFoldoutOpen)
             {
-                if (connections.Count == 0)
+                if (_connectionsBuffer.Count == 0)
                 {
                     EditorGUILayout.LabelField("No connections", EditorStyles.miniLabel);
                 }
@@ -847,7 +852,7 @@ namespace RogueliteAutoBattler.Editor.Windows
                 {
                     using (new EditorGUI.IndentLevelScope())
                     {
-                        foreach (var row in connections)
+                        foreach (var row in _connectionsBuffer)
                         {
                             string arrow = row.IsOutgoing ? "→" : "←";
                             EditorGUILayout.LabelField(

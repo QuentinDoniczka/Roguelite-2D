@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using RogueliteAutoBattler.Data;
 using UnityEngine;
@@ -21,15 +20,15 @@ namespace RogueliteAutoBattler.Editor.Tools
             }
         }
 
-        private static readonly IReadOnlyList<ConnectionRow> Empty = Array.Empty<ConnectionRow>();
-
-        public static IReadOnlyList<ConnectionRow> CollectConnections(
+        public static void CollectConnections(
             SkillTreeData data,
-            int selectedNodeIndex)
+            int selectedNodeIndex,
+            List<ConnectionRow> buffer)
         {
-            if (data == null || selectedNodeIndex < 0 || selectedNodeIndex >= data.Nodes.Count) return Empty;
+            if (buffer == null) return;
+            buffer.Clear();
+            if (data == null || selectedNodeIndex < 0 || selectedNodeIndex >= data.Nodes.Count) return;
             var selected = data.Nodes[selectedNodeIndex];
-            var rows = new List<ConnectionRow>();
             foreach (var edge in data.GetEdges())
             {
                 int otherId;
@@ -45,10 +44,9 @@ namespace RogueliteAutoBattler.Editor.Tools
                 }
                 if (otherIdx < 0) continue;
                 float dist = Vector2.Distance(selected.position, data.Nodes[otherIdx].position);
-                rows.Add(new ConnectionRow(otherId, dist, outgoing));
+                buffer.Add(new ConnectionRow(otherId, dist, outgoing));
             }
-            rows.Sort((a, b) => a.OtherNodeId.CompareTo(b.OtherNodeId));
-            return rows;
+            buffer.Sort((a, b) => a.OtherNodeId.CompareTo(b.OtherNodeId));
         }
     }
 }
