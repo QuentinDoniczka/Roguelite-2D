@@ -134,6 +134,7 @@ namespace RogueliteAutoBattler.Editor.Windows
         private BranchPreviewSettings _branchPreviewSettings = BranchPreviewSettings.Defaults;
         private BranchPreviewSettings _lastBranchPreviewSettings = BranchPreviewSettings.Defaults;
         private string _lastMirrorWarning;
+        private bool _connectionsFoldoutOpen = true;
 
         private static void LogError(string message)
         {
@@ -820,6 +821,34 @@ namespace RogueliteAutoBattler.Editor.Windows
             }
             if (node.maxLevel == 0)
                 EditorGUILayout.LabelField("  ...", "(unlimited)");
+
+            EditorGUILayout.Space(SectionSpacingSmall);
+            var connections = NodeConnectionsInspector.CollectConnections(_data, _selectedNodeIndex);
+            _connectionsFoldoutOpen = EditorGUILayout.Foldout(
+                _connectionsFoldoutOpen,
+                $"Connections ({connections.Count})",
+                toggleOnLabelClick: true,
+                EditorStyles.foldoutHeader);
+            if (_connectionsFoldoutOpen)
+            {
+                if (connections.Count == 0)
+                {
+                    EditorGUILayout.LabelField("No connections", EditorStyles.miniLabel);
+                }
+                else
+                {
+                    using (new EditorGUI.IndentLevelScope())
+                    {
+                        foreach (var row in connections)
+                        {
+                            string arrow = row.IsOutgoing ? "→" : "←";
+                            EditorGUILayout.LabelField(
+                                $"{arrow} Node {row.OtherNodeId}",
+                                $"{row.DistanceUnits:0.00} units");
+                        }
+                    }
+                }
+            }
 
             EditorGUILayout.Space(SectionSpacingLarge);
             EditorGUILayout.LabelField("Danger Zone", EditorStyles.boldLabel);
