@@ -112,6 +112,12 @@ namespace RogueliteAutoBattler.Editor.Windows
         private GUIStyle _nodeLabelStyle;
         private string[] _nodeLabels;
         private int _selectedNodeIndex = -1;
+        private NodeDragController.DragState _dragState = NodeDragController.DragState.Inactive;
+        private const float DragStartThresholdPx = 4f;
+        private bool _pendingDragArm;
+        private Vector2 _pendingDragMousePx;
+        private int _pendingDragNodeIndex = -1;
+        private static GUIStyle _coordLabelStyle;
         private int _activeTab;
         private bool _branchPreviewActive;
         private int _branchPreviewParentIndex = -1;
@@ -383,6 +389,21 @@ namespace RogueliteAutoBattler.Editor.Windows
 
                 string label = _nodeLabels != null && i < _nodeLabels.Length ? _nodeLabels[i] : entry.id.ToString();
                 GUI.Label(nodeRect, label, _nodeLabelStyle);
+
+                if (_dragState.IsActive && i == _dragState.NodeIndex)
+                {
+                    if (_coordLabelStyle == null)
+                    {
+                        _coordLabelStyle = new GUIStyle(EditorStyles.miniLabel)
+                        {
+                            alignment = TextAnchor.MiddleLeft,
+                            normal = { textColor = Color.white }
+                        };
+                    }
+                    string coordText = $"({entry.position.x:F2}, {entry.position.y:F2})";
+                    Rect coordRect = new Rect(screenPos.x + halfNode + 4f, screenPos.y - 8f, 120f, 16f);
+                    GUI.Label(coordRect, coordText, _coordLabelStyle);
+                }
             }
             if (_branchPreviewActive && _branchPreviewParentIndex >= 0 && _branchPreviewParentIndex < _data.Nodes.Count)
             {
@@ -458,8 +479,61 @@ namespace RogueliteAutoBattler.Editor.Windows
                 _selectedNodeIndex = hitIndex;
                 if (!_branchPreviewActive)
                     _activeTab = hitIndex >= 0 ? TabIndexNode : TabIndexSkillTree;
+
+                if (hitIndex >= 0 && _data.Nodes[hitIndex].id != SkillTreeData.CentralNodeId)
+                {
+                    _pendingDragArm = true;
+                    _pendingDragMousePx = evt.mousePosition;
+                    _pendingDragNodeIndex = hitIndex;
+                }
+
                 evt.Use();
                 Repaint();
+            }
+
+            if (evt.type == EventType.MouseDrag && evt.button == LeftMouseButton && !evt.alt)
+            {
+                if (_pendingDragArm && (evt.mousePosition - _pendingDragMousePx).magnitude >= DragStartThresholdPx)
+                {
+                    Undo.RegisterCompleteObjectUndo(_data, "Move Node");
+                    var startNode = _data.Nodes[_pendingDragNodeIndex];
+                    // TODO #283 Batch 2: resolve mirror partner index here
+                    _dragState = new NodeDragController.DragState(
+                        _pendingDragNodeIndex,
+                        startNode.position,
+                        _pendingDragMousePx,
+                        -1,
+                        Vector2.zero);
+                    _pendingDragArm = false;
+                }
+
+                if (_dragState.IsActive)
+                {
+                    Vector2 newPos = NodeDragController.ComputeNewNodePosition(
+                        _dragState, evt.mousePosition, _data.UnitSize, _canvasZoom);
+                    var updated = _data.Nodes[_dragState.NodeIndex];
+                    updated.position = newPos;
+                    _data.SetNode(_dragState.NodeIndex, updated);
+                    _serializedData?.Update();
+                    Repaint();
+                }
+
+                evt.Use();
+            }
+
+            if (evt.type == EventType.MouseUp && evt.button == LeftMouseButton)
+            {
+                bool wasDragging = _dragState.IsActive;
+                if (wasDragging)
+                {
+                    _dragState = NodeDragController.DragState.Inactive;
+                    EditorUtility.SetDirty(_data);
+                    AssetDatabase.SaveAssets();
+                    Repaint();
+                }
+                _pendingDragArm = false;
+                if (wasDragging)
+                    evt.Use();
             }
 
             if (evt.type == EventType.MouseDrag && (evt.button == MiddleMouseButton || (evt.button == LeftMouseButton && evt.alt)))
@@ -573,6 +647,22 @@ namespace RogueliteAutoBattler.Editor.Windows
             }
 
             EditorGUILayout.LabelField($"Node {_selectedNodeIndex}", EditorStyles.boldLabel);
+
+            var nodeForPos = _data.Nodes[_selectedNodeIndex];
+            bool isRootNode = nodeForPos.id == SkillTreeData.CentralNodeId;
+            EditorGUI.BeginDisabledGroup(isRootNode);
+            EditorGUI.BeginChangeCheck();
+            float newX = EditorGUILayout.FloatField("Position X", nodeForPos.position.x);
+            float newY = EditorGUILayout.FloatField("Position Y", nodeForPos.position.y);
+            if (EditorGUI.EndChangeCheck())
+            {
+                Undo.RegisterCompleteObjectUndo(_data, "Edit Node Position");
+                var updatedPos = nodeForPos;
+                updatedPos.position = new Vector2(newX, newY);
+                _data.SetNode(_selectedNodeIndex, updatedPos);
+                EditorUtility.SetDirty(_data);
+            }
+            EditorGUI.EndDisabledGroup();
 
             if (GUILayout.Button("Create Branch from Selected"))
             {
