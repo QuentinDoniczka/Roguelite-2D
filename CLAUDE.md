@@ -160,6 +160,7 @@ Assets/
         NodeConnectionsInspector.cs
         NodeDragController.cs
         NodeSnapEngine.cs
+        QuantizeAllSkillTreesMenu.cs
         RebuildNewGameScene.cs
         ResetPlayerProgressMenu.cs
         SkillTreeAssetMigration.cs
@@ -181,6 +182,7 @@ Assets/
       LevelDataTypes.cs
       LevelDatabase.cs
       SkillTreeData.cs
+      SkillTreeGrid.cs
       SkillTreeProgress.cs
       SkillTreeRefundCalculator.cs
       TeamDatabase.cs
@@ -250,6 +252,7 @@ Assets/
       NodeSnapEngineTests.cs
       SkillTreeDataSnapNormalizationTests.cs
       SkillTreeDesignerBranchTests.cs
+      SkillTreeGridTests.cs
       SkillTreeNodeFactorySnapDefaultsTests.cs
       SkillTreeNodeFactoryTests.cs
       SkillTreeNodeIdAllocatorTests.cs

@@ -195,6 +195,19 @@ namespace RogueliteAutoBattler.Tests.EditMode
         }
 
         [Test]
+        public void AddNode_NonGridPosition_StoresQuantized()
+        {
+            _data.InitializeForTest(new List<SkillTreeData.SkillNodeEntry>());
+            var entry = MakeNode(1, new Vector2(0.123f, -0.046f));
+
+            _data.AddNode(entry);
+
+            var stored = _data.Nodes[0].position;
+            Assert.AreEqual(0.12f, stored.x, 1e-5f);
+            Assert.AreEqual(-0.05f, stored.y, 1e-5f);
+        }
+
+        [Test]
         public void AddBranchNode_AtomicallyValidatesBeforeMutation()
         {
             var parent = MakeNode(0, Vector2.zero);

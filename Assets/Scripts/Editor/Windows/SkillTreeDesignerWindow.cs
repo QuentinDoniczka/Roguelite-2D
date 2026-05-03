@@ -415,7 +415,8 @@ namespace RogueliteAutoBattler.Editor.Windows
                             normal = { textColor = Color.white }
                         };
                     }
-                    string coordText = $"({entry.position.x:F2}, {entry.position.y:F2})";
+                    var (dx, dy) = SkillTreeGrid.ToDisplay(entry.position);
+                    string coordText = $"({dx}, {dy})";
                     Rect coordRect = new Rect(
                         screenPos.x + halfNode + CoordLabelOffsetXPixels,
                         screenPos.y - CoordLabelOffsetYPixels,
@@ -855,7 +856,7 @@ namespace RogueliteAutoBattler.Editor.Windows
                             string arrow = row.IsOutgoing ? "→" : "←";
                             EditorGUILayout.LabelField(
                                 $"{arrow} Node {row.OtherNodeId}",
-                                $"{row.DistanceUnits:0.00} units");
+                                $"{SkillTreeGrid.DistanceDisplayFromUnits(row.DistanceUnits)} u");
                         }
                     }
                 }

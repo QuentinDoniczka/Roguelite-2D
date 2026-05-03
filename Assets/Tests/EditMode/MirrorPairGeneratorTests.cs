@@ -95,7 +95,7 @@ namespace RogueliteAutoBattler.Tests.EditMode
             Assert.AreEqual(initialCount + 2, _data.Nodes.Count);
 
             float expectedMirrorAngle = BranchPlacement.MirrorAngle(60f, 0f);
-            Vector2 expectedMirrorPos = BranchPlacement.ComputeBranchPosition(new Vector2(0f, 3f), 2f, expectedMirrorAngle);
+            Vector2 expectedMirrorPos = SkillTreeGrid.Quantize(BranchPlacement.ComputeBranchPosition(new Vector2(0f, 3f), 2f, expectedMirrorAngle));
             var lastNode = _data.Nodes[_data.Nodes.Count - 1];
             Assert.That(lastNode.position.x, Is.EqualTo(expectedMirrorPos.x).Within(Tolerance));
             Assert.That(lastNode.position.y, Is.EqualTo(expectedMirrorPos.y).Within(Tolerance));

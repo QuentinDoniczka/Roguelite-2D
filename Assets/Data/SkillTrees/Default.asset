@@ -38,8 +38,10 @@ MonoBehaviour:
     statModifierType: 8
     statModifierMode: 0
     statModifierValuePerLevel: 0
+    snapEnabled: 1
+    snapThresholdUnits: 0.25
   - id: 2
-    position: {x: -1.8822026, y: 2.5828934}
+    position: {x: -1.88, y: 2.58}
     connectedNodeIds: 0300000004000000
     costType: 1
     maxLevel: 1
@@ -50,8 +52,10 @@ MonoBehaviour:
     statModifierType: 0
     statModifierMode: 0
     statModifierValuePerLevel: 5
+    snapEnabled: 1
+    snapThresholdUnits: 0.25
   - id: 3
-    position: {x: 1.1192951, y: -3.5824077}
+    position: {x: 1.12, y: -3.58}
     connectedNodeIds: 06000000
     costType: 1
     maxLevel: 1
@@ -62,8 +66,10 @@ MonoBehaviour:
     statModifierType: 0
     statModifierMode: 0
     statModifierValuePerLevel: 5
+    snapEnabled: 1
+    snapThresholdUnits: 0.25
   - id: 4
-    position: {x: -1.2740085, y: -6.979765}
+    position: {x: -1.88, y: -5.73}
     connectedNodeIds: 
     costType: 1
     maxLevel: 1
@@ -74,8 +80,10 @@ MonoBehaviour:
     statModifierType: 0
     statModifierMode: 0
     statModifierValuePerLevel: 5
+    snapEnabled: 1
+    snapThresholdUnits: 0.25
   - id: 5
-    position: {x: 5.675419, y: -5.620822}
+    position: {x: 5.68, y: -5.62}
     connectedNodeIds: 
     costType: 1
     maxLevel: 1
@@ -86,8 +94,10 @@ MonoBehaviour:
     statModifierType: 0
     statModifierMode: 0
     statModifierValuePerLevel: 5
+    snapEnabled: 1
+    snapThresholdUnits: 0.25
   - id: 6
-    position: {x: -4.712334, y: -7.6668277}
+    position: {x: -4.71, y: -7.67}
     connectedNodeIds: 
     costType: 1
     maxLevel: 1
@@ -98,4 +108,6 @@ MonoBehaviour:
     statModifierType: 0
     statModifierMode: 0
     statModifierValuePerLevel: 5
+    snapEnabled: 1
+    snapThresholdUnits: 0.25
   assetGuid: 63a2645100f4ff4428d968c9feeb46f4
