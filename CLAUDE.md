@@ -25,7 +25,7 @@
 Doc detaille : `Assets/doc/premier-jet-roguelite.html`
 
 # Project Structure
-Generated: 2026-05-01
+Generated: 2026-05-03
 
 .github/
   workflows/
@@ -152,6 +152,9 @@ Assets/
         EditorAssetFolders.cs
         HudIconsImporter.cs
         LevelDatabaseBackgroundMigrator.cs
+        MirrorAxisGeometry.cs
+        MirrorAxisPersistence.cs
+        MirrorPairGenerator.cs
         NavIconsImporter.cs
         RebuildNewGameScene.cs
         ResetPlayerProgressMenu.cs
@@ -228,8 +231,14 @@ Assets/
       AllyStatBonusServiceResolverTests.cs
       AttackSlotRegistryTests.cs
       BranchPlacementDefaultAngleTests.cs
+      BranchPlacementMirrorAngleTests.cs
       BranchPlacementTests.cs
+      BranchPreviewSettingsDefaultsTests.cs
       HudIconAssetTests.cs
+      MirrorAxisGeometryTests.cs
+      MirrorAxisPersistenceTests.cs
+      MirrorAxisPersistenceWiringTests.cs
+      MirrorPairGeneratorTests.cs
       NavBarIconsTests.cs
       SkillTreeDesignerBranchTests.cs
       SkillTreeNodeFactoryTests.cs
