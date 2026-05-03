@@ -38,8 +38,10 @@ namespace RogueliteAutoBattler.Tests.EditMode
             float halfSpan = Mathf.Sqrt(2f);
             MirrorAxisGeometry.ComputeAxisEndpoints(Vector2.zero, 45f, halfSpan, out var start, out var end);
 
-            Assert.AreEqual(1f, Vector2.Distance(start, new Vector2(-1f, -1f)), Tolerance);
-            Assert.AreEqual(1f, Vector2.Distance(end, new Vector2(1f, 1f)), Tolerance);
+            Assert.AreEqual(-1f, start.x, Tolerance);
+            Assert.AreEqual(-1f, start.y, Tolerance);
+            Assert.AreEqual(1f, end.x, Tolerance);
+            Assert.AreEqual(1f, end.y, Tolerance);
         }
 
         [TestCase(0f)]
