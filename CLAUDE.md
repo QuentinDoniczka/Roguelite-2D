@@ -25,7 +25,7 @@
 Doc detaille : `Assets/doc/premier-jet-roguelite.html`
 
 # Project Structure
-Generated: 2026-05-03
+Generated: 2026-05-04
 
 .github/
   workflows/
@@ -149,6 +149,7 @@ Assets/
       Tools/
         BranchPlacement.cs
         BranchPreviewSettings.cs
+        BranchPreviewSettingsPersistence.cs
         EditorAssetFolders.cs
         HudIconsImporter.cs
         LevelDatabaseBackgroundMigrator.cs
@@ -240,6 +241,7 @@ Assets/
       BranchPlacementMirrorAngleTests.cs
       BranchPlacementTests.cs
       BranchPreviewSettingsDefaultsTests.cs
+      BranchPreviewSettingsPersistenceTests.cs
       HudIconAssetTests.cs
       MirrorAxisGeometryTests.cs
       MirrorAxisPersistenceTests.cs
