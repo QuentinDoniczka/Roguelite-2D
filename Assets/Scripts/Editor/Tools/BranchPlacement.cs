@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using RogueliteAutoBattler.Data;
 using UnityEngine;
 
 namespace RogueliteAutoBattler.Editor.Tools
@@ -59,7 +61,26 @@ namespace RogueliteAutoBattler.Editor.Tools
             return NormalizeDegrees(2f * NormalizeDegrees(axisAngleDegrees) - NormalizeDegrees(angleDegrees));
         }
 
-        private static float NormalizeDegrees(float angleDegrees)
+        public static float ResolveAbsoluteAngle(float relative, float axis, bool isRelative)
+        {
+            if (!isRelative) return relative;
+            return NormalizeDegrees(relative + axis);
+        }
+
+        internal static Vector2 ResolveMirrorSourcePosition(
+            IReadOnlyList<SkillTreeData.SkillNodeEntry> nodes,
+            int parentIndex,
+            int sourceOverrideIndex)
+        {
+            if (nodes == null) return Vector2.zero;
+            if (sourceOverrideIndex >= 0 && sourceOverrideIndex < nodes.Count)
+                return nodes[sourceOverrideIndex].position;
+            if (parentIndex >= 0 && parentIndex < nodes.Count)
+                return nodes[parentIndex].position;
+            return Vector2.zero;
+        }
+
+        internal static float NormalizeDegrees(float angleDegrees)
         {
             return (angleDegrees % FullCircleDegrees + FullCircleDegrees) % FullCircleDegrees;
         }
