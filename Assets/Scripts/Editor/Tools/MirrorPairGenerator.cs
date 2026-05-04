@@ -37,7 +37,14 @@ namespace RogueliteAutoBattler.Editor.Tools
             internal static MirrorPairResult Pair(int originalNodeId, int mirrorNodeId) => new MirrorPairResult(true, true, null, originalNodeId, mirrorNodeId);
         }
 
-        public static MirrorPairResult TryGenerate(SkillTreeData data, int parentIndex, BranchPreviewSettings settings)
+        public static MirrorPairResult TryGenerate(
+            SkillTreeData data,
+            int parentIndex,
+            float distance,
+            float resolvedAngleDegrees,
+            bool mirrorEnabled,
+            Vector2 mirrorSourcePosition,
+            float mirrorBranchAngleDegrees)
         {
             if (data == null)
                 return MirrorPairResult.Invalid(ErrorDataNull);
@@ -49,16 +56,15 @@ namespace RogueliteAutoBattler.Editor.Tools
             Vector2 parentPosition = parentEntry.position;
             int parentId = parentEntry.id;
 
-            Vector2 originalPos = BranchPlacement.ComputeBranchPosition(parentPosition, settings.distance, settings.angleDegrees);
+            Vector2 originalPos = BranchPlacement.ComputeBranchPosition(parentPosition, distance, resolvedAngleDegrees);
             int originalNewId = SkillTreeNodeIdAllocator.ComputeNextNodeId(data.Nodes);
             var originalEntry = SkillTreeNodeFactory.CreateBranchNode(originalNewId, originalPos);
             data.AddBranchNode(originalEntry, parentId);
 
-            if (!settings.mirrorEnabled)
+            if (!mirrorEnabled)
                 return MirrorPairResult.OriginalOnly(originalNewId);
 
-            float mirrorAngle = BranchPlacement.MirrorAngle(settings.angleDegrees, settings.mirrorAxisDegrees);
-            Vector2 mirrorPos = BranchPlacement.ComputeBranchPosition(parentPosition, settings.distance, mirrorAngle);
+            Vector2 mirrorPos = BranchPlacement.ComputeBranchPosition(mirrorSourcePosition, distance, mirrorBranchAngleDegrees);
 
             if (HasCollisionAt(data.Nodes, mirrorPos, BranchPlacement.PositionTolerance))
             {

@@ -58,13 +58,15 @@ namespace RogueliteAutoBattler.Tests.EditMode
             _data.InitializeForTest(new List<SkillTreeData.SkillNodeEntry> { central, parent });
             int initialCount = _data.Nodes.Count;
 
-            var settings = BranchPreviewSettings.Defaults;
-            settings.distance = 2f;
-            settings.angleDegrees = 90f;
-            settings.mirrorEnabled = false;
-
             int parentIndex = 1;
-            var result = MirrorPairGenerator.TryGenerate(_data, parentIndex, settings);
+            var result = MirrorPairGenerator.TryGenerate(
+                _data,
+                parentIndex,
+                distance: 2f,
+                resolvedAngleDegrees: 90f,
+                mirrorEnabled: false,
+                mirrorSourcePosition: parent.position,
+                mirrorBranchAngleDegrees: 90f);
 
             Assert.IsTrue(result.OriginalCreated);
             Assert.IsFalse(result.MirrorCreated);
@@ -80,22 +82,23 @@ namespace RogueliteAutoBattler.Tests.EditMode
             _data.InitializeForTest(new List<SkillTreeData.SkillNodeEntry> { central, parent });
             int initialCount = _data.Nodes.Count;
 
-            var settings = BranchPreviewSettings.Defaults;
-            settings.distance = 2f;
-            settings.angleDegrees = 60f;
-            settings.mirrorEnabled = true;
-            settings.mirrorAxisDegrees = 0f;
-
             int parentIndex = 1;
             int parentId = parent.id;
-            var result = MirrorPairGenerator.TryGenerate(_data, parentIndex, settings);
+            float mirrorAngle = BranchPlacement.MirrorAngle(60f, 0f);
+            var result = MirrorPairGenerator.TryGenerate(
+                _data,
+                parentIndex,
+                distance: 2f,
+                resolvedAngleDegrees: 60f,
+                mirrorEnabled: true,
+                mirrorSourcePosition: parent.position,
+                mirrorBranchAngleDegrees: mirrorAngle);
 
             Assert.IsTrue(result.OriginalCreated);
             Assert.IsTrue(result.MirrorCreated);
             Assert.AreEqual(initialCount + 2, _data.Nodes.Count);
 
-            float expectedMirrorAngle = BranchPlacement.MirrorAngle(60f, 0f);
-            Vector2 expectedMirrorPos = SkillTreeGrid.Quantize(BranchPlacement.ComputeBranchPosition(new Vector2(0f, 3f), 2f, expectedMirrorAngle));
+            Vector2 expectedMirrorPos = SkillTreeGrid.Quantize(BranchPlacement.ComputeBranchPosition(new Vector2(0f, 3f), 2f, mirrorAngle));
             var lastNode = _data.Nodes[_data.Nodes.Count - 1];
             Assert.That(lastNode.position.x, Is.EqualTo(expectedMirrorPos.x).Within(Tolerance));
             Assert.That(lastNode.position.y, Is.EqualTo(expectedMirrorPos.y).Within(Tolerance));
@@ -117,21 +120,22 @@ namespace RogueliteAutoBattler.Tests.EditMode
             var parent = MakeNode(1, new Vector2(0f, 3f));
             _data.InitializeForTest(new List<SkillTreeData.SkillNodeEntry> { central, parent });
 
-            float expectedMirrorAngle = BranchPlacement.MirrorAngle(60f, 0f);
-            Vector2 expectedMirrorPos = BranchPlacement.ComputeBranchPosition(new Vector2(0f, 3f), 2f, expectedMirrorAngle);
+            float mirrorAngle = BranchPlacement.MirrorAngle(60f, 0f);
+            Vector2 expectedMirrorPos = BranchPlacement.ComputeBranchPosition(new Vector2(0f, 3f), 2f, mirrorAngle);
             var blocker = MakeNode(99, expectedMirrorPos);
             _data.AddBranchNode(blocker, SkillTreeData.CentralNodeId);
 
             int initialCount = _data.Nodes.Count;
 
-            var settings = BranchPreviewSettings.Defaults;
-            settings.distance = 2f;
-            settings.angleDegrees = 60f;
-            settings.mirrorEnabled = true;
-            settings.mirrorAxisDegrees = 0f;
-
             int parentIndex = 1;
-            var result = MirrorPairGenerator.TryGenerate(_data, parentIndex, settings);
+            var result = MirrorPairGenerator.TryGenerate(
+                _data,
+                parentIndex,
+                distance: 2f,
+                resolvedAngleDegrees: 60f,
+                mirrorEnabled: true,
+                mirrorSourcePosition: parent.position,
+                mirrorBranchAngleDegrees: mirrorAngle);
 
             Assert.IsTrue(result.OriginalCreated);
             Assert.IsFalse(result.MirrorCreated);
@@ -147,21 +151,22 @@ namespace RogueliteAutoBattler.Tests.EditMode
             var parent = MakeNode(1, new Vector2(0f, 3f));
             _data.InitializeForTest(new List<SkillTreeData.SkillNodeEntry> { central, parent });
 
-            float expectedMirrorAngle = BranchPlacement.MirrorAngle(60f, 0f);
-            Vector2 expectedMirrorPos = BranchPlacement.ComputeBranchPosition(new Vector2(0f, 3f), 2f, expectedMirrorAngle);
+            float mirrorAngle = BranchPlacement.MirrorAngle(60f, 0f);
+            Vector2 expectedMirrorPos = BranchPlacement.ComputeBranchPosition(new Vector2(0f, 3f), 2f, mirrorAngle);
             var blocker = MakeNode(99, expectedMirrorPos + new Vector2(0.5f, 0f));
             _data.AddBranchNode(blocker, SkillTreeData.CentralNodeId);
 
             int initialCount = _data.Nodes.Count;
 
-            var settings = BranchPreviewSettings.Defaults;
-            settings.distance = 2f;
-            settings.angleDegrees = 60f;
-            settings.mirrorEnabled = true;
-            settings.mirrorAxisDegrees = 0f;
-
             int parentIndex = 1;
-            var result = MirrorPairGenerator.TryGenerate(_data, parentIndex, settings);
+            var result = MirrorPairGenerator.TryGenerate(
+                _data,
+                parentIndex,
+                distance: 2f,
+                resolvedAngleDegrees: 60f,
+                mirrorEnabled: true,
+                mirrorSourcePosition: parent.position,
+                mirrorBranchAngleDegrees: mirrorAngle);
 
             Assert.IsTrue(result.OriginalCreated);
             Assert.IsFalse(result.MirrorCreated);
@@ -177,19 +182,20 @@ namespace RogueliteAutoBattler.Tests.EditMode
             var parent = MakeNode(1, new Vector2(0f, 3f));
             _data.InitializeForTest(new List<SkillTreeData.SkillNodeEntry> { central, parent });
 
-            float expectedMirrorAngle = BranchPlacement.MirrorAngle(60f, 0f);
-            Vector2 expectedMirrorPos = BranchPlacement.ComputeBranchPosition(new Vector2(0f, 3f), 2f, expectedMirrorAngle);
+            float mirrorAngle = BranchPlacement.MirrorAngle(60f, 0f);
+            Vector2 expectedMirrorPos = BranchPlacement.ComputeBranchPosition(new Vector2(0f, 3f), 2f, mirrorAngle);
             var blocker = MakeNode(99, expectedMirrorPos + new Vector2(1.5f, 0f));
             _data.AddBranchNode(blocker, SkillTreeData.CentralNodeId);
 
-            var settings = BranchPreviewSettings.Defaults;
-            settings.distance = 2f;
-            settings.angleDegrees = 60f;
-            settings.mirrorEnabled = true;
-            settings.mirrorAxisDegrees = 0f;
-
             int parentIndex = 1;
-            var result = MirrorPairGenerator.TryGenerate(_data, parentIndex, settings);
+            var result = MirrorPairGenerator.TryGenerate(
+                _data,
+                parentIndex,
+                distance: 2f,
+                resolvedAngleDegrees: 60f,
+                mirrorEnabled: true,
+                mirrorSourcePosition: parent.position,
+                mirrorBranchAngleDegrees: mirrorAngle);
 
             Assert.IsTrue(result.OriginalCreated);
             Assert.IsTrue(result.MirrorCreated);
@@ -204,14 +210,16 @@ namespace RogueliteAutoBattler.Tests.EditMode
             _data.InitializeForTest(new List<SkillTreeData.SkillNodeEntry> { central, parent });
             int initialCount = _data.Nodes.Count;
 
-            var settings = BranchPreviewSettings.Defaults;
-            settings.distance = 2f;
-            settings.angleDegrees = 0f;
-            settings.mirrorEnabled = true;
-            settings.mirrorAxisDegrees = 0f;
-
             int parentIndex = 1;
-            var result = MirrorPairGenerator.TryGenerate(_data, parentIndex, settings);
+            float mirrorAngle = BranchPlacement.MirrorAngle(0f, 0f);
+            var result = MirrorPairGenerator.TryGenerate(
+                _data,
+                parentIndex,
+                distance: 2f,
+                resolvedAngleDegrees: 0f,
+                mirrorEnabled: true,
+                mirrorSourcePosition: parent.position,
+                mirrorBranchAngleDegrees: mirrorAngle);
 
             Assert.IsTrue(result.OriginalCreated);
             Assert.IsFalse(result.MirrorCreated);
@@ -227,14 +235,16 @@ namespace RogueliteAutoBattler.Tests.EditMode
             var parent = MakeNode(5, new Vector2(0f, 3f));
             _data.InitializeForTest(new List<SkillTreeData.SkillNodeEntry> { central, parent });
 
-            var settings = BranchPreviewSettings.Defaults;
-            settings.distance = 2f;
-            settings.angleDegrees = 60f;
-            settings.mirrorEnabled = true;
-            settings.mirrorAxisDegrees = 0f;
-
             int parentIndex = 1;
-            var result = MirrorPairGenerator.TryGenerate(_data, parentIndex, settings);
+            float mirrorAngle = BranchPlacement.MirrorAngle(60f, 0f);
+            var result = MirrorPairGenerator.TryGenerate(
+                _data,
+                parentIndex,
+                distance: 2f,
+                resolvedAngleDegrees: 60f,
+                mirrorEnabled: true,
+                mirrorSourcePosition: parent.position,
+                mirrorBranchAngleDegrees: mirrorAngle);
 
             Assert.AreEqual(6, result.OriginalNewId);
             Assert.AreEqual(7, result.MirrorNewId);
@@ -243,7 +253,14 @@ namespace RogueliteAutoBattler.Tests.EditMode
         [Test]
         public void TryGenerate_DataNull_ReturnsInvalid()
         {
-            var result = MirrorPairGenerator.TryGenerate(null, 0, BranchPreviewSettings.Defaults);
+            var result = MirrorPairGenerator.TryGenerate(
+                null,
+                parentIndex: 0,
+                distance: 1f,
+                resolvedAngleDegrees: 0f,
+                mirrorEnabled: false,
+                mirrorSourcePosition: Vector2.zero,
+                mirrorBranchAngleDegrees: 0f);
 
             Assert.IsFalse(result.OriginalCreated);
             Assert.IsFalse(result.MirrorCreated);
@@ -256,7 +273,14 @@ namespace RogueliteAutoBattler.Tests.EditMode
             _data.InitializeForTest(new List<SkillTreeData.SkillNodeEntry> { central });
             int initialCount = _data.Nodes.Count;
 
-            var result = MirrorPairGenerator.TryGenerate(_data, 999, BranchPreviewSettings.Defaults);
+            var result = MirrorPairGenerator.TryGenerate(
+                _data,
+                parentIndex: 999,
+                distance: 1f,
+                resolvedAngleDegrees: 0f,
+                mirrorEnabled: false,
+                mirrorSourcePosition: Vector2.zero,
+                mirrorBranchAngleDegrees: 0f);
 
             Assert.IsFalse(result.OriginalCreated);
             Assert.IsFalse(result.MirrorCreated);

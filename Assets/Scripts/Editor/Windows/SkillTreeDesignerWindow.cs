@@ -40,8 +40,11 @@ namespace RogueliteAutoBattler.Editor.Windows
         private static readonly Color CrosshairColor = new Color(0.4f, 0.4f, 0.4f, 1f);
         private static readonly Color GridLineColor = new Color(0.2f, 0.2f, 0.2f, 1f);
         private static readonly Color BranchPreviewTintColor = new Color(1f, 1f, 1f, 0.4f);
-        private static readonly Color MirrorAxisLineColor = new Color(1f, 0.92f, 0.016f, 0.6f);
+        private static readonly Color MirrorAccentRgb = new Color(1f, 0.92f, 0.016f);
+        private static readonly Color MirrorAxisLineColor = new Color(MirrorAccentRgb.r, MirrorAccentRgb.g, MirrorAccentRgb.b, 0.6f);
         private static readonly Color MirrorPreviewTintColor = new Color(0f, 1f, 1f, 0.4f);
+        private static readonly Color MirrorSourceRingColor = new Color(MirrorAccentRgb.r, MirrorAccentRgb.g, MirrorAccentRgb.b, 0.5f);
+        private const float MirrorSourceRingThicknessMultiplier = 1.5f;
 
         private static readonly GUIContent LabelUnitSize = new GUIContent("Unit Size");
         private static readonly GUIContent LabelNodeSize = new GUIContent("Node Size");
@@ -61,6 +64,12 @@ namespace RogueliteAutoBattler.Editor.Windows
         private const float MaxMirrorAxisDegrees = 360f;
         private const string MirrorEnabledLabel = "Mirror";
         private const string MirrorAxisSliderLabel = "Mirror Axis (deg, 0=vertical)";
+        private const string PickMirrorSourceLabel = "Pick Mirror Source";
+        private const string CancelPickLabel = "Cancel Pick";
+        private const string MirrorSourceStatusWorkingNode = "Source: working node";
+        private const string MirrorSourceStatusFormatNode = "Source: Node {0}";
+        private const string AngleRelativeToggleLabel = "Angle from mirror axis";
+        private const string ResolvedAbsoluteAngleFormat = "Resolved absolute angle: {0:F1}°";
 
         private const float MinSnapThresholdUnits = 0f;
         private const float MaxSnapThresholdUnits = 2f;
@@ -137,6 +146,9 @@ namespace RogueliteAutoBattler.Editor.Windows
         private int _branchPreviewPreviousTab;
         private BranchPreviewSettings _branchPreviewSettings = BranchPreviewSettings.Defaults;
         private BranchPreviewSettings _lastBranchPreviewSettings = BranchPreviewSettings.Defaults;
+        private int _mirrorSourceNodeIndex = BranchPlacement.NoMirrorSourceOverride;
+        private bool _angleIsRelativeToMirrorAxis;
+        private bool _pickMirrorSourceMode;
         private string _lastMirrorWarning;
         private bool _connectionsFoldoutOpen = true;
         private readonly List<NodeConnectionsInspector.ConnectionRow> _connectionsBuffer = new List<NodeConnectionsInspector.ConnectionRow>();
@@ -355,8 +367,7 @@ namespace RogueliteAutoBattler.Editor.Windows
 
             GUI.BeginClip(canvasRect);
 
-            Vector2 center = new Vector2(canvasRect.width * 0.5f, canvasRect.height * 0.5f);
-            Vector2 origin = center + _canvasOffset;
+            Vector2 origin = ComputeCanvasOrigin(canvasRect);
 
             DrawGrid(canvasRect, origin);
 
@@ -396,6 +407,13 @@ namespace RogueliteAutoBattler.Editor.Windows
                 Vector3 center3D = new Vector3(screenPos.x, screenPos.y, 0f);
                 Rect nodeRect = new Rect(screenPos.x - halfNode, screenPos.y - halfNode, scaledNodeSize, scaledNodeSize);
 
+                if (_branchPreviewActive && _branchPreviewSettings.mirrorEnabled
+                    && _mirrorSourceNodeIndex == i && i != _branchPreviewParentIndex)
+                {
+                    Handles.color = MirrorSourceRingColor;
+                    Handles.DrawSolidDisc(center3D, Vector3.forward, halfNode + scaledBorder * MirrorSourceRingThicknessMultiplier);
+                }
+
                 Handles.color = (i == _selectedNodeIndex) ? _data.BorderSelectedColor : _data.BorderNormalColor;
                 Handles.DrawSolidDisc(center3D, Vector3.forward, halfNode + scaledBorder);
 
@@ -427,8 +445,8 @@ namespace RogueliteAutoBattler.Editor.Windows
             }
             if (_branchPreviewActive && _branchPreviewParentIndex >= 0 && _branchPreviewParentIndex < _data.Nodes.Count)
             {
-                Vector2 parentPos = _data.Nodes[_branchPreviewParentIndex].position;
-                Vector2 previewPos = BranchPlacement.ComputeBranchPosition(parentPos, _branchPreviewSettings.distance, _branchPreviewSettings.angleDegrees);
+                var (parentPos, mirrorSourcePos, resolvedAngle, mirrorBranchAngle) = ComputeResolvedPreview();
+                Vector2 previewPos = BranchPlacement.ComputeBranchPosition(parentPos, _branchPreviewSettings.distance, resolvedAngle);
                 Vector2 parentScreen = origin + parentPos * scaledUnit;
                 Vector2 previewScreen = origin + previewPos * scaledUnit;
                 Handles.color = BranchPreviewTintColor;
@@ -440,17 +458,17 @@ namespace RogueliteAutoBattler.Editor.Windows
 
                 if (_branchPreviewSettings.mirrorEnabled)
                 {
+                    Vector2 mirrorSourceScreen = origin + mirrorSourcePos * scaledUnit;
                     float halfSpan = Mathf.Max(canvasRect.width, canvasRect.height);
-                    MirrorAxisGeometry.ComputeAxisEndpoints(parentScreen, _branchPreviewSettings.mirrorAxisDegrees, halfSpan, out var axisStart, out var axisEnd);
+                    MirrorAxisGeometry.ComputeAxisEndpoints(mirrorSourceScreen, _branchPreviewSettings.mirrorAxisDegrees, halfSpan, out var axisStart, out var axisEnd);
                     Handles.color = MirrorAxisLineColor;
                     Handles.DrawDottedLine(new Vector3(axisStart.x, axisStart.y, 0f), new Vector3(axisEnd.x, axisEnd.y, 0f), BranchPreviewDottedSegmentSize);
 
-                    float mirrorAngleDegrees = BranchPlacement.MirrorAngle(_branchPreviewSettings.angleDegrees, _branchPreviewSettings.mirrorAxisDegrees);
-                    Vector2 mirrorPos = BranchPlacement.ComputeBranchPosition(parentPos, _branchPreviewSettings.distance, mirrorAngleDegrees);
+                    Vector2 mirrorPos = BranchPlacement.ComputeBranchPosition(mirrorSourcePos, _branchPreviewSettings.distance, mirrorBranchAngle);
                     Vector2 mirrorScreen = origin + mirrorPos * scaledUnit;
                     Handles.color = MirrorPreviewTintColor;
                     Handles.DrawDottedLine(
-                        new Vector3(parentScreen.x, parentScreen.y, 0f),
+                        new Vector3(mirrorSourceScreen.x, mirrorSourceScreen.y, 0f),
                         new Vector3(mirrorScreen.x, mirrorScreen.y, 0f),
                         BranchPreviewDottedSegmentSize);
                     Handles.DrawWireDisc(new Vector3(mirrorScreen.x, mirrorScreen.y, 0f), Vector3.forward, halfNode);
@@ -506,7 +524,25 @@ namespace RogueliteAutoBattler.Editor.Windows
         private void HandleCanvasInput(Rect canvasRect)
         {
             Event evt = Event.current;
+
+            if (_pickMirrorSourceMode && evt.type == EventType.KeyDown && evt.keyCode == KeyCode.Escape)
+            {
+                CancelMirrorSourcePickMode();
+                evt.Use();
+                return;
+            }
+
             if (!canvasRect.Contains(evt.mousePosition)) return;
+
+            if (_pickMirrorSourceMode && evt.type == EventType.MouseDown && evt.button == LeftMouseButton && !evt.alt)
+            {
+                int pickHitIndex = HitTestNodeAt(evt.mousePosition, canvasRect);
+                if (pickHitIndex >= 0 && pickHitIndex != _branchPreviewParentIndex)
+                    _mirrorSourceNodeIndex = pickHitIndex;
+                CancelMirrorSourcePickMode();
+                evt.Use();
+                return;
+            }
 
             if (evt.type == EventType.ScrollWheel)
             {
@@ -518,11 +554,7 @@ namespace RogueliteAutoBattler.Editor.Windows
 
             if (evt.type == EventType.MouseDown && evt.button == LeftMouseButton && !evt.alt)
             {
-                Vector2 mouseInCanvas = evt.mousePosition;
-                Vector2 center = new Vector2(canvasRect.width * 0.5f, canvasRect.height * 0.5f);
-                Vector2 origin = center + _canvasOffset;
-
-                int hitIndex = HitTestNode(mouseInCanvas, origin, _data.Nodes, _data.UnitSize, _data.NodeSize, _canvasZoom);
+                int hitIndex = HitTestNodeAt(evt.mousePosition, canvasRect);
                 _selectedNodeIndex = hitIndex;
                 if (!_branchPreviewActive)
                     _activeTab = hitIndex >= 0 ? TabIndexNode : TabIndexSkillTree;
@@ -768,14 +800,7 @@ namespace RogueliteAutoBattler.Editor.Windows
 
             if (GUILayout.Button("Create Branch from Selected"))
             {
-                _branchPreviewPreviousTab = _activeTab;
-                _branchPreviewActive = true;
-                _branchPreviewParentIndex = _selectedNodeIndex;
-                _branchPreviewSettings = _lastBranchPreviewSettings;
-                _branchPreviewSettings.angleDegrees = BranchPlacement.ComputeDefaultAngle(_data.Nodes[_selectedNodeIndex].position);
-                _lastMirrorWarning = null;
-                _activeTab = TabIndexBranch;
-                Repaint();
+                BeginBranchPreview(_selectedNodeIndex);
             }
 
             EditorGUILayout.Space(SectionSpacingSmall);
@@ -871,6 +896,7 @@ namespace RogueliteAutoBattler.Editor.Windows
             {
                 Undo.RegisterCompleteObjectUndo(_data, "Delete Node");
                 _data.RemoveNode(node.id);
+                InvalidateMirrorSourceIfOutOfRange();
                 EditorUtility.SetDirty(_data);
                 AssetDatabase.SaveAssets();
                 _selectedNodeIndex = -1;
@@ -908,9 +934,12 @@ namespace RogueliteAutoBattler.Editor.Windows
                 Repaint();
 
             EditorGUI.BeginChangeCheck();
-            _branchPreviewSettings.mirrorEnabled = EditorGUILayout.Toggle(MirrorEnabledLabel, _branchPreviewSettings.mirrorEnabled);
+            bool newMirrorEnabled = EditorGUILayout.Toggle(MirrorEnabledLabel, _branchPreviewSettings.mirrorEnabled);
             if (EditorGUI.EndChangeCheck())
+            {
+                SetMirrorEnabled(newMirrorEnabled);
                 Repaint();
+            }
 
             if (_branchPreviewSettings.mirrorEnabled)
             {
@@ -921,6 +950,8 @@ namespace RogueliteAutoBattler.Editor.Windows
                     MirrorAxisPersistence.Save(_branchPreviewSettings.mirrorAxisDegrees);
                     Repaint();
                 }
+
+                DrawMirrorSourceControls();
             }
 
             if (!string.IsNullOrEmpty(_lastMirrorWarning))
@@ -937,10 +968,137 @@ namespace RogueliteAutoBattler.Editor.Windows
             EditorGUILayout.EndHorizontal();
         }
 
-        private void CancelBranchPreview()
+        private void DrawMirrorSourceControls()
+        {
+            if (GUILayout.Button(_pickMirrorSourceMode ? CancelPickLabel : PickMirrorSourceLabel))
+                TogglePickMirrorSourceMode();
+
+            string sourceStatus = _mirrorSourceNodeIndex == BranchPlacement.NoMirrorSourceOverride
+                ? MirrorSourceStatusWorkingNode
+                : string.Format(MirrorSourceStatusFormatNode, _mirrorSourceNodeIndex);
+            EditorGUILayout.LabelField(sourceStatus);
+
+            EditorGUI.BeginChangeCheck();
+            bool newRel = EditorGUILayout.Toggle(AngleRelativeToggleLabel, _angleIsRelativeToMirrorAxis);
+            if (EditorGUI.EndChangeCheck())
+            {
+                _angleIsRelativeToMirrorAxis = newRel;
+                Repaint();
+            }
+
+            if (_angleIsRelativeToMirrorAxis)
+            {
+                float resolvedAbs = BranchPlacement.ResolveAbsoluteAngle(
+                    _branchPreviewSettings.angleDegrees,
+                    _branchPreviewSettings.mirrorAxisDegrees,
+                    true);
+                EditorGUILayout.LabelField(string.Format(ResolvedAbsoluteAngleFormat, resolvedAbs));
+            }
+        }
+
+        internal void TogglePickMirrorSourceMode()
+        {
+            if (_pickMirrorSourceMode)
+                CancelMirrorSourcePickMode();
+            else
+                StartMirrorSourcePickMode();
+        }
+
+        internal void BeginBranchPreview(int parentIndex)
+        {
+            _branchPreviewPreviousTab = _activeTab;
+            _branchPreviewActive = true;
+            _branchPreviewParentIndex = parentIndex;
+            _branchPreviewSettings = _lastBranchPreviewSettings;
+            if (_data != null && parentIndex >= 0 && parentIndex < _data.Nodes.Count)
+                _branchPreviewSettings.angleDegrees = BranchPlacement.ComputeDefaultAngle(_data.Nodes[parentIndex].position);
+            _mirrorSourceNodeIndex = BranchPlacement.NoMirrorSourceOverride;
+            _angleIsRelativeToMirrorAxis = false;
+            _pickMirrorSourceMode = false;
+            _lastMirrorWarning = null;
+            _activeTab = TabIndexBranch;
+            Repaint();
+        }
+
+        internal void EndBranchPreview()
         {
             _branchPreviewActive = false;
             _branchPreviewParentIndex = -1;
+            _mirrorSourceNodeIndex = BranchPlacement.NoMirrorSourceOverride;
+            _angleIsRelativeToMirrorAxis = false;
+            _pickMirrorSourceMode = false;
+        }
+
+        internal void SetMirrorEnabled(bool enabled)
+        {
+            bool wasEnabled = _branchPreviewSettings.mirrorEnabled;
+            _branchPreviewSettings.mirrorEnabled = enabled;
+            if (!wasEnabled && enabled)
+                _angleIsRelativeToMirrorAxis = false;
+            if (!enabled)
+                _pickMirrorSourceMode = false;
+        }
+
+        internal void StartMirrorSourcePickMode()
+        {
+            if (!_branchPreviewActive || !_branchPreviewSettings.mirrorEnabled) return;
+            _pickMirrorSourceMode = true;
+            Repaint();
+        }
+
+        internal void CancelMirrorSourcePickMode()
+        {
+            _pickMirrorSourceMode = false;
+            Repaint();
+        }
+
+        internal bool IsMirrorSourcePickModeActiveForTests => _pickMirrorSourceMode;
+
+        internal void InvalidateMirrorSourceIfOutOfRange()
+        {
+            int nodeCount = _data != null ? _data.Nodes.Count : 0;
+            if (_mirrorSourceNodeIndex >= nodeCount)
+                _mirrorSourceNodeIndex = BranchPlacement.NoMirrorSourceOverride;
+        }
+
+        internal (Vector2 parentPos, Vector2 mirrorSourcePos, float resolvedAngle, float mirrorBranchAngle) ComputeResolvedPreview()
+        {
+            if (!_branchPreviewActive || _data == null
+                || _branchPreviewParentIndex < 0 || _branchPreviewParentIndex >= _data.Nodes.Count)
+            {
+                return (Vector2.zero, Vector2.zero, 0f, 0f);
+            }
+
+            return BranchPlacement.ResolveBranchPlan(
+                _data.Nodes,
+                _branchPreviewParentIndex,
+                _mirrorSourceNodeIndex,
+                _branchPreviewSettings.angleDegrees,
+                _branchPreviewSettings.mirrorAxisDegrees,
+                _angleIsRelativeToMirrorAxis,
+                _branchPreviewSettings.mirrorEnabled);
+        }
+
+        internal int MirrorSourceNodeIndexForTests
+        {
+            get => _mirrorSourceNodeIndex;
+            set => _mirrorSourceNodeIndex = value;
+        }
+
+        internal bool AngleIsRelativeToMirrorAxisForTests
+        {
+            get => _angleIsRelativeToMirrorAxis;
+            set => _angleIsRelativeToMirrorAxis = value;
+        }
+
+        internal void SetDataForTests(SkillTreeData data)
+        {
+            _data = data;
+        }
+
+        private void CancelBranchPreview()
+        {
+            EndBranchPreview();
             _activeTab = _branchPreviewPreviousTab;
             _lastMirrorWarning = null;
             Repaint();
@@ -956,7 +1114,23 @@ namespace RogueliteAutoBattler.Editor.Windows
                 : MirrorPairGenerator.UndoLabelSingleNode;
             Undo.RegisterCompleteObjectUndo(_data, undoLabel);
 
-            var result = MirrorPairGenerator.TryGenerate(_data, parentIndex, _branchPreviewSettings);
+            var (_, mirrorSourcePos, resolvedAngle, mirrorBranchAngle) = BranchPlacement.ResolveBranchPlan(
+                _data.Nodes,
+                parentIndex,
+                _mirrorSourceNodeIndex,
+                _branchPreviewSettings.angleDegrees,
+                _branchPreviewSettings.mirrorAxisDegrees,
+                _angleIsRelativeToMirrorAxis,
+                _branchPreviewSettings.mirrorEnabled);
+
+            var result = MirrorPairGenerator.TryGenerate(
+                _data,
+                parentIndex,
+                _branchPreviewSettings.distance,
+                resolvedAngle,
+                _branchPreviewSettings.mirrorEnabled,
+                mirrorSourcePos,
+                mirrorBranchAngle);
 
             EditorUtility.SetDirty(_data);
             AssetDatabase.SaveAssets();
@@ -966,10 +1140,20 @@ namespace RogueliteAutoBattler.Editor.Windows
             _lastMirrorWarning = result.WarningMessage;
             _lastBranchPreviewSettings = _branchPreviewSettings;
             _selectedNodeIndex = _data.Nodes.Count - 1;
-            _branchPreviewActive = false;
-            _branchPreviewParentIndex = -1;
+            EndBranchPreview();
+            InvalidateMirrorSourceIfOutOfRange();
             _activeTab = TabIndexNode;
             Repaint();
+        }
+
+        private Vector2 ComputeCanvasOrigin(Rect canvasRect)
+        {
+            return new Vector2(canvasRect.width * 0.5f, canvasRect.height * 0.5f) + _canvasOffset;
+        }
+
+        private int HitTestNodeAt(Vector2 mousePos, Rect canvasRect)
+        {
+            return HitTestNode(mousePos, ComputeCanvasOrigin(canvasRect), _data.Nodes, _data.UnitSize, _data.NodeSize, _canvasZoom);
         }
 
         internal static int HitTestNode(Vector2 mousePos, Vector2 origin, IReadOnlyList<SkillTreeData.SkillNodeEntry> nodes, float unitSize, float nodeSize, float zoom)
