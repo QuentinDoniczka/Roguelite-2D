@@ -9,17 +9,30 @@ namespace RogueliteAutoBattler.Tests.EditMode
     {
         private const float Tolerance = 1e-4f;
 
+        private const float RoundTripDistance = 7f;
+        private const float RoundTripAngle = 42f;
+        private const float ImmutabilityDistance = 13f;
+        private const float ImmutabilityAngle = 91f;
+        private const float SentinelPersistedAngle = 123.45f;
+        private const float SentinelMirrorAxisDegrees = 99f;
+        private const float MirrorAxisRoundTrip = 55f;
+
+        private static readonly Vector2 ArbitraryParentPos = new Vector2(1f, 1f);
+        private static readonly Vector2 NonOriginParentPos = new Vector2(3f, 4f);
+
         [SetUp]
         public void SetUp()
         {
-            EditorPrefs.DeleteKey(BranchPreviewSettingsPersistence.DistanceKey);
-            EditorPrefs.DeleteKey(BranchPreviewSettingsPersistence.AngleKey);
-            EditorPrefs.DeleteKey(BranchPreviewSettingsPersistence.MirrorEnabledKey);
-            EditorPrefs.DeleteKey(MirrorAxisPersistence.EditorPrefKey);
+            ClearPrefs();
         }
 
         [TearDown]
         public void TearDown()
+        {
+            ClearPrefs();
+        }
+
+        private static void ClearPrefs()
         {
             EditorPrefs.DeleteKey(BranchPreviewSettingsPersistence.DistanceKey);
             EditorPrefs.DeleteKey(BranchPreviewSettingsPersistence.AngleKey);
@@ -44,10 +57,10 @@ namespace RogueliteAutoBattler.Tests.EditMode
         {
             var settings = new BranchPreviewSettings
             {
-                distance = 7f,
-                angleDegrees = 42f,
+                distance = RoundTripDistance,
+                angleDegrees = RoundTripAngle,
                 mirrorEnabled = true,
-                mirrorAxisDegrees = BranchPreviewSettings.Defaults.mirrorAxisDegrees
+                mirrorAxisDegrees = MirrorAxisRoundTrip
             };
 
             BranchPreviewSettingsPersistence.Save(settings);
@@ -55,10 +68,11 @@ namespace RogueliteAutoBattler.Tests.EditMode
 
             BranchPreviewSettings result = BranchPreviewSettingsPersistence.Load();
 
-            Assert.That(result.distance, Is.EqualTo(7f).Within(Tolerance));
-            Assert.That(result.angleDegrees, Is.EqualTo(42f).Within(Tolerance));
+            Assert.That(result.distance, Is.EqualTo(RoundTripDistance).Within(Tolerance));
+            Assert.That(result.angleDegrees, Is.EqualTo(RoundTripAngle).Within(Tolerance));
             Assert.That(result.mirrorEnabled, Is.True);
-            Assert.That(result.mirrorAxisDegrees, Is.EqualTo(settings.mirrorAxisDegrees).Within(Tolerance));
+            // Load no longer touches the mirror axis: it stays at struct defaults regardless of EditorPrefs.
+            Assert.That(result.mirrorAxisDegrees, Is.EqualTo(BranchPreviewSettings.Defaults.mirrorAxisDegrees).Within(Tolerance));
         }
 
         [Test]
@@ -83,10 +97,9 @@ namespace RogueliteAutoBattler.Tests.EditMode
         [Test]
         public void ResolveInitialAngle_NoPersisted_FallsBackToComputeDefault()
         {
-            var parentPos = new Vector2(3f, 4f);
-            float expected = BranchPlacement.ComputeDefaultAngle(parentPos);
+            float expected = BranchPlacement.ComputeDefaultAngle(NonOriginParentPos);
 
-            float result = BranchPreviewSettingsPersistence.ResolveInitialAngle(false, 0f, parentPos);
+            float result = BranchPreviewSettingsPersistence.ResolveInitialAngle(false, 0f, NonOriginParentPos);
 
             Assert.That(result, Is.EqualTo(expected).Within(Tolerance));
         }
@@ -94,34 +107,40 @@ namespace RogueliteAutoBattler.Tests.EditMode
         [Test]
         public void ResolveInitialAngle_HasPersisted_ReturnsPersisted()
         {
-            float result = BranchPreviewSettingsPersistence.ResolveInitialAngle(true, 123.45f, new Vector2(1f, 1f));
+            float result = BranchPreviewSettingsPersistence.ResolveInitialAngle(true, SentinelPersistedAngle, ArbitraryParentPos);
 
-            Assert.That(result, Is.EqualTo(123.45f).Within(Tolerance));
+            Assert.That(result, Is.EqualTo(SentinelPersistedAngle).Within(Tolerance));
         }
 
         [Test]
         public void Save_DoesNotTouchMirrorAxisKey()
         {
-            EditorPrefs.SetFloat(MirrorAxisPersistence.EditorPrefKey, 99f);
+            EditorPrefs.SetFloat(MirrorAxisPersistence.EditorPrefKey, SentinelMirrorAxisDegrees);
 
             var settings = new BranchPreviewSettings
             {
                 distance = BranchPreviewSettings.Defaults.distance,
                 angleDegrees = BranchPreviewSettings.Defaults.angleDegrees,
                 mirrorEnabled = BranchPreviewSettings.Defaults.mirrorEnabled,
-                mirrorAxisDegrees = 55f
+                mirrorAxisDegrees = MirrorAxisRoundTrip
             };
             BranchPreviewSettingsPersistence.Save(settings);
 
             float mirrorAxis = EditorPrefs.GetFloat(MirrorAxisPersistence.EditorPrefKey);
-            Assert.That(mirrorAxis, Is.EqualTo(99f).Within(Tolerance));
+            Assert.That(mirrorAxis, Is.EqualTo(SentinelMirrorAxisDegrees).Within(Tolerance));
         }
 
         [Test]
         public void Save_RoundTrips_DoesNotMutateDefaults()
         {
             BranchPreviewSettings before = BranchPreviewSettings.Defaults;
-            BranchPreviewSettings toSave = new BranchPreviewSettings { distance = 13f, angleDegrees = 91f, mirrorEnabled = true, mirrorAxisDegrees = before.mirrorAxisDegrees };
+            BranchPreviewSettings toSave = new BranchPreviewSettings
+            {
+                distance = ImmutabilityDistance,
+                angleDegrees = ImmutabilityAngle,
+                mirrorEnabled = true,
+                mirrorAxisDegrees = before.mirrorAxisDegrees
+            };
             BranchPreviewSettingsPersistence.Save(toSave);
             BranchPreviewSettings after = BranchPreviewSettings.Defaults;
             Assert.AreEqual(before.distance, after.distance);

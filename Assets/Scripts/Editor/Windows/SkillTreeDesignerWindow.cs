@@ -183,6 +183,7 @@ namespace RogueliteAutoBattler.Editor.Windows
             BindAsset(initialEntry);
             RefreshActivePointerCache();
             _lastBranchPreviewSettings = BranchPreviewSettingsPersistence.Load();
+            MirrorAxisPersistence.ApplyTo(ref _lastBranchPreviewSettings);
             _branchPreviewSettings = _lastBranchPreviewSettings;
         }
 
@@ -1019,8 +1020,6 @@ namespace RogueliteAutoBattler.Editor.Windows
             _branchPreviewSettings = _lastBranchPreviewSettings;
             if (_data != null && parentIndex >= 0 && parentIndex < _data.Nodes.Count)
                 _branchPreviewSettings.angleDegrees = BranchPreviewSettingsPersistence.ResolveInitialAngle(
-                    BranchPreviewSettingsPersistence.HasPersistedAngle(),
-                    _lastBranchPreviewSettings.angleDegrees,
                     _data.Nodes[parentIndex].position);
             _mirrorSourceNodeIndex = BranchPlacement.NoMirrorSourceOverride;
             _angleIsRelativeToMirrorAxis = false;
