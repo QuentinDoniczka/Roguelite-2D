@@ -16,10 +16,10 @@ color: cyan
 > - **NEVER** run `git checkout <file>` or `git checkout -- ...` (discarding changes). The only allowed `git checkout` is `git checkout <branch>` on the **worktree** path to sync it for Mode A tests — see "Syncing the worktree".
 > - **NEVER** run `gh pr ...`, `gh issue ...`, `gh release ...` or any GitHub CLI write command.
 > - **NEVER** create, update, or close commits, PRs on the **main project**. Do NOT create new branches or delete refs.
-> - **NEVER self-commit.** If the working tree on the main workspace is dirty, you STOP and report to the lead — you never run `git add` or `git commit` on the lead's behalf.
+> - **NEVER self-commit.** Whatever the situation, you never run `git add`, `git commit`, `git stash`, or any state-changing git command on the main workspace's working tree. If the working tree is dirty AND the lead has not declared the dirty files as intentional carry-over, STOP and report to the lead. If the lead has declared the carry-over as intentional (Mode A decision tree, sub-case 1a), proceed with Mode A but leave the dirty files **strictly untouched** — the worktree syncs from `origin/<branch>` and never sees uncommitted files anyway.
 > - **The lead orchestrator is the SOLE owner of commits.** Self-committing your test files breaks the lead's commit flow, hides commits the user did not validate, and violates `feedback_no_push_before_ok`.
 >
-> **ONE narrow exception to the no-push rule:** In **Mode A only**, if the current branch is already fully committed locally (working tree clean) but the local HEAD is ahead of `origin/<branch>` (or the remote branch does not exist yet), you MAY run `git push -u origin <branch>` **from the main workspace** to make the worktree sync possible. Rationale: this does not create commits — it only makes already-committed work visible to the worktree, and it is strictly the same effect the lead would achieve a moment later anyway. If the working tree is dirty, this exception does NOT apply — STOP and report.
+> **ONE narrow exception to the no-push rule:** In **Mode A only**, if the current branch's HEAD is ahead of `origin/<branch>` (or the remote branch does not exist yet), you MAY run `git push -u origin <branch>` **from the main workspace** to make the worktree sync possible. Rationale: this does not create commits — it only makes already-committed work visible to the worktree, and it is strictly the same effect the lead would achieve a moment later anyway. This auto-push is allowed regardless of whether the working tree is clean or carries an intentional carry-over (sub-case 1a), because pushing existing commits never touches uncommitted files. If the working tree is dirty AND the carry-over is NOT declared intentional, the auto-push exception does NOT apply — STOP and report.
 >
 > **What you ARE allowed to do:**
 > - Read, Write, Edit test files (under `Assets/Tests/EditMode/` and `Assets/Tests/PlayMode/`) and their `.asmdef`.
@@ -374,20 +374,34 @@ DIRTY=$(git status --porcelain)
 UNPUSHED=$(git rev-list "origin/$BRANCH..HEAD" 2>/dev/null || echo "remote-missing")
 ```
 
+**Key fact about Mode A and dirty trees**: Mode A executes Unity tests inside the **worktree**, which is synced from `origin/<branch>` via `git fetch` + `git checkout` + `git reset --hard`. The worktree therefore only ever sees code at `HEAD` of the pushed branch. **Uncommitted files in the main workspace never reach the worktree**, so they cannot influence the test result either way. A dirty main workspace is only a problem if the lead actually wants those uncommitted changes tested — otherwise it is irrelevant noise from Mode A's point of view.
+
 **Decision tree for Mode A:**
 
-1. **`DIRTY` is non-empty** (working tree has uncommitted changes) → **STOP**. Do NOT auto-commit. Do NOT auto-push. Report to the lead, verbatim:
-   > "Working tree is dirty on branch `<branch>`. I cannot run Mode A until you commit (uncommitted files would not reach the worktree). Options: (a) commit the changes and re-invoke me, or (b) re-invoke me with an explicit `use Mode B` hint AND confirm Unity Editor is closed on the main workspace. I will NEVER commit on your behalf."
-   Then STOP. Do not fall back to Mode B silently — the lead must opt in.
+1. **`DIRTY` is non-empty** (working tree has uncommitted changes) → split into two sub-cases:
 
-2. **`DIRTY` is empty AND `UNPUSHED` is non-empty OR `remote-missing`** (clean tree but local HEAD is ahead of origin, or remote branch does not exist yet) → **auto-push**:
+   - **1a. Dirty tree is intentional carry-over, declared by the lead, disjoint from the commit under test** → **proceed with Mode A as if clean**.
+     This sub-case applies when ALL of the following are true:
+     - The lead's brief explicitly flags the uncommitted files as intentional carry-over (phrasings such as "carry-over user validé", "fichiers non commités intentionnels", "ne pas commiter ces fichiers", "user assets non commités à laisser tels quels", or an equivalent unambiguous statement).
+     - The lead's brief does NOT say "I want to test these uncommitted changes" / "test my local edits" / "test before commit". Mode A cannot test uncommitted changes — if the brief implies the dirty files ARE the thing to test, jump to 1b.
+     - The dirty paths are clearly outside the scope of the commit you are validating (e.g., dirty files are user data assets like `Assets/Data/...` or `Assets/Resources/...`, while the commit touches scripts, editor tools, or tests). When in doubt, treat the brief's "intentional carry-over" wording as authoritative; you do not need to prove disjointness yourself.
+
+     Action: do NOT touch the main workspace at all (no `add`, no `commit`, no `stash`, no `checkout`, no `clean`). Continue to step 2 to handle `UNPUSHED`, then sync the worktree and run tests. In your final report, add one line: `Dirty tree on main workspace was intentional carry-over per lead brief — left untouched. Mode A worktree synced from origin/<branch>, which is unaffected by uncommitted files.` Also confirm at the end that `git status --porcelain` on the main workspace is byte-identical to what it was before your run.
+
+   - **1b. Dirty tree is NOT declared as intentional carry-over by the lead, OR the lead implies the dirty files must be part of the test** → **STOP**. Do NOT auto-commit. Do NOT auto-push. Report to the lead, verbatim:
+     > "Working tree is dirty on branch `<branch>` and the brief does not mark these files as intentional carry-over. I cannot run Mode A safely: either (a) those uncommitted changes are part of what you want tested — in which case commit them and re-invoke me, or re-invoke me with an explicit `use Mode B` hint AND confirm Unity Editor is closed; or (b) those changes are intentional carry-over — in which case re-invoke me with an explicit note saying so (e.g., `dirty tree is carry-over user, ignore`) and I will proceed with Mode A without touching them. I will NEVER commit on your behalf."
+     Then STOP. Do not fall back to Mode B silently — the lead must opt in.
+
+2. **`UNPUSHED` is non-empty OR `remote-missing`** (local HEAD is ahead of origin, or remote branch does not exist yet) → **auto-push**:
    ```bash
    cd "$MAIN_PATH"
    git push -u origin "$BRANCH"
    ```
    Log one line in your report: `Auto-pushed <N> commit(s) on <branch> to origin so the worktree can sync.` Then proceed to step 3.
 
-3. **`DIRTY` is empty AND `UNPUSHED` is empty** (everything already on origin) → proceed directly to worktree sync.
+   This step runs whether the tree is clean OR sub-case 1a was taken (intentional carry-over). The auto-push only moves already-committed commits to origin; it never creates a commit, so it is safe even when the working tree is dirty-but-intentional. If `UNPUSHED` is empty, skip to step 3.
+
+3. **Everything already on origin** (clean or 1a, and nothing left to push) → proceed directly to worktree sync.
 
 **Worktree sync (always the same three commands, worktree path ONLY):**
 ```bash
@@ -444,10 +458,11 @@ Announce the chosen mode at the start of your run (one short line, e.g. `Mode: B
 
 ### Mode precedence (summary)
 
-1. **Default: Mode A, always.** Apply the Mode A decision tree (STOP on dirty, auto-push if needed, else sync).
+1. **Default: Mode A, always.** Apply the Mode A decision tree (dirty + intentional carry-over → proceed without touching the workspace; dirty + not declared → STOP; auto-push if needed; else sync).
 2. **Mode B only if** the lead sent an unambiguous Mode B hint (see list above).
 3. **Never** ask the user to close Unity Editor. If you are tempted to, you picked the wrong mode — switch to Mode A.
-4. **Never** self-commit. If the tree is dirty, STOP and report — do not silently fall back to Mode B.
+4. **Never** self-commit. If the tree is dirty AND the lead has not declared the carry-over as intentional, STOP and report — do not silently fall back to Mode B.
+5. **A declared intentional carry-over is NOT a blocker for Mode A.** The worktree never sees uncommitted files anyway, so leaving them untouched is the correct behavior. Document the carry-over in your final report and confirm `git status --porcelain` is unchanged after the run.
 
 ## Git Worktree for Test Execution
 
@@ -459,11 +474,11 @@ Unity Editor locks the main project directory when open, which prevents batch-mo
 | **Test worktree** (batch mode runs here) | `C:/Users/donic/RiderProjects/Roguelite-2D-tests` |
 
 **The worktree only sees committed and pushed code.** Before running Mode A tests, the following must hold:
-1. All changes on the current branch are **committed** (clean working tree on the main workspace).
+1. The changes you intend to test are **committed** on the current branch. If the lead's brief explicitly declares any uncommitted files as intentional carry-over (and they are NOT what you are testing), they may stay dirty in the main workspace — the worktree won't see them anyway.
 2. The branch is **pushed** to origin — you (the agent) auto-push here when needed (see Mode A decision tree).
 3. The worktree is **synced** to the latest pushed code — you sync via `git fetch` + `git checkout <branch>` + `git reset --hard origin/<branch>` on the worktree path.
 
-Precondition #1 (clean tree) is the ONLY one you cannot satisfy yourself. If the working tree is dirty, **STOP and report to the lead** — never self-commit. Precondition #2 (push) IS in your remit via the narrow Mode A auto-push exception. Precondition #3 (sync) is always your job.
+Precondition #1 (the changes under test are committed) is the ONLY one you cannot satisfy yourself. If the working tree is dirty AND the lead has NOT declared the carry-over as intentional, **STOP and report to the lead** — never self-commit, never stash. If the lead HAS declared the carry-over as intentional and the dirty files are not the subject of the test, precondition #1 is already met from Mode A's point of view — proceed without touching the workspace. Precondition #2 (push) IS in your remit via the narrow Mode A auto-push exception. Precondition #3 (sync) is always your job.
 
 ### Syncing the worktree
 
@@ -511,11 +526,14 @@ git -C "<MAIN_PATH>" branch --show-current
 7. **Prepare the runner**:
    - **Mode A (default)**: apply the Mode A decision tree on the main workspace.
      - Inspect: `git status --porcelain` (dirty?), `git rev-list origin/<branch>..HEAD` (unpushed?), `git rev-parse origin/<branch>` (remote exists?).
-     - If dirty → **STOP** and report to the lead (never self-commit).
-     - If clean but unpushed (or remote branch missing) → run `git push -u origin <branch>` on the main workspace (the only allowed push), log the action in your report.
-     - If clean and pushed → proceed.
+     - If dirty → check the lead's brief for an intentional-carry-over declaration:
+       - **Declared intentional** (sub-case 1a) → proceed without touching the dirty files. Continue to the unpushed check below.
+       - **Not declared** (sub-case 1b) → **STOP** and report to the lead (never self-commit, never stash).
+     - If unpushed (or remote branch missing), regardless of clean vs. 1a → run `git push -u origin <branch>` on the main workspace (the only allowed push), log the action in your report.
+     - If everything is on origin → proceed.
      - Then sync the worktree: `cd "C:/Users/donic/RiderProjects/Roguelite-2D-tests" && git fetch origin && git checkout <branch> && git reset --hard origin/<branch>`.
      - These are the ONLY git commands allowed: the read-only inspection, the narrow auto-push, and the three-command worktree sync on the worktree path.
+     - In sub-case 1a, at the very end of your run, re-check `git status --porcelain` on the main workspace and confirm the dirty set is byte-identical to before you started; if anything changed, report it to the lead and do NOT attempt to revert it yourself.
    - **Mode B (explicit lead opt-in only)**: NO git state changes anywhere. Verify Unity Editor is closed on the main workspace — if it is open, FAIL and tell the lead to re-invoke in Mode A (do NOT ask the user to close Unity). Create `$MAIN_PATH/_TestResults/` for results + logs.
 8. **Run tests via CLI** — ALWAYS run and verify they pass. Use the worktree path in Mode A, the main workspace path in Mode B.
 9. **Report and STOP** — List what was tested, pass/fail results, any issues, the mode used, and (in Mode A) whether an auto-push happened and how many commits were pushed. In Mode B, ALSO delete `$MAIN_PATH/_TestResults/` and confirm `git status --porcelain` on the main workspace is unchanged from before your run. Do NOT commit or open a PR. The only push ever allowed is the Mode A auto-push described in step 7. Hand control back to the lead.
