@@ -1,9 +1,10 @@
 using System.Collections.Generic;
 using NUnit.Framework;
-using RogueliteAutoBattler.Combat.Core;
 using RogueliteAutoBattler.Data;
 using RogueliteAutoBattler.Editor.Tools;
 using RogueliteAutoBattler.Editor.Windows;
+using RogueliteAutoBattler.Tests.EditMode.TestUtils;
+using UnityEditor;
 using UnityEngine;
 
 namespace RogueliteAutoBattler.Tests.EditMode
@@ -14,16 +15,27 @@ namespace RogueliteAutoBattler.Tests.EditMode
 
         private SkillTreeData _data;
         private SkillTreeDesignerWindow _window;
+        private bool _hadAngleKey;
+        private float _savedAngleKey;
+        private bool _hadMirrorAxisKey;
+        private float _savedMirrorAxisKey;
 
         [SetUp]
         public void SetUp()
         {
+            _hadAngleKey = EditorPrefs.HasKey(BranchPreviewSettingsPersistence.AngleKey);
+            _savedAngleKey = EditorPrefs.GetFloat(BranchPreviewSettingsPersistence.AngleKey, 0f);
+            _hadMirrorAxisKey = EditorPrefs.HasKey(MirrorAxisPersistence.EditorPrefKey);
+            _savedMirrorAxisKey = EditorPrefs.GetFloat(MirrorAxisPersistence.EditorPrefKey, 0f);
+            EditorPrefs.DeleteKey(BranchPreviewSettingsPersistence.AngleKey);
+            EditorPrefs.DeleteKey(MirrorAxisPersistence.EditorPrefKey);
+
             _data = ScriptableObject.CreateInstance<SkillTreeData>();
             _data.InitializeForTest(new List<SkillTreeData.SkillNodeEntry>
             {
-                MakeNode(0, Vector2.zero),
-                MakeNode(1, new Vector2(2f, 0f)),
-                MakeNode(2, new Vector2(0f, 3f))
+                SkillNodeEntryFactory.Default(0, Vector2.zero),
+                SkillNodeEntryFactory.Default(1, new Vector2(2f, 0f)),
+                SkillNodeEntryFactory.Default(2, new Vector2(0f, 3f))
             });
             _window = ScriptableObject.CreateInstance<SkillTreeDesignerWindow>();
             _window.SetDataForTests(_data);
@@ -34,34 +46,23 @@ namespace RogueliteAutoBattler.Tests.EditMode
         {
             Object.DestroyImmediate(_window);
             Object.DestroyImmediate(_data);
-        }
 
-        private static SkillTreeData.SkillNodeEntry MakeNode(int id, Vector2 position)
-        {
-            return new SkillTreeData.SkillNodeEntry
-            {
-                id = id,
-                position = position,
-                connectedNodeIds = new List<int>(),
-                costType = SkillTreeData.CostType.Gold,
-                maxLevel = 1,
-                baseCost = 1,
-                costMultiplierOdd = 1f,
-                costMultiplierEven = 1f,
-                costAdditivePerLevel = 0,
-                statModifierType = StatType.Hp,
-                statModifierMode = SkillTreeData.StatModifierMode.Flat,
-                statModifierValuePerLevel = 1f
-            };
+            if (_hadAngleKey)
+                EditorPrefs.SetFloat(BranchPreviewSettingsPersistence.AngleKey, _savedAngleKey);
+            else
+                EditorPrefs.DeleteKey(BranchPreviewSettingsPersistence.AngleKey);
+            if (_hadMirrorAxisKey)
+                EditorPrefs.SetFloat(MirrorAxisPersistence.EditorPrefKey, _savedMirrorAxisKey);
+            else
+                EditorPrefs.DeleteKey(MirrorAxisPersistence.EditorPrefKey);
         }
 
         [Test]
         public void ComputeResolvedPreview_BeforeBegin_ReturnsZeros()
         {
-            var (parentPos, resolvedAngle, mirrorBranchAngle) = _window.ComputeResolvedPreview();
+            var (parentPos, mirrorBranchAngle) = _window.ComputeResolvedPreview();
 
             Assert.That(parentPos, Is.EqualTo(Vector2.zero));
-            Assert.That(resolvedAngle, Is.EqualTo(0f).Within(Tolerance));
             Assert.That(mirrorBranchAngle, Is.EqualTo(0f).Within(Tolerance));
         }
 
@@ -70,35 +71,24 @@ namespace RogueliteAutoBattler.Tests.EditMode
         {
             _window.BeginBranchPreview(parentIndex: 1);
 
-            var (parentPos, _, _) = _window.ComputeResolvedPreview();
+            var (parentPos, _) = _window.ComputeResolvedPreview();
 
             Assert.That(parentPos.x, Is.EqualTo(2f).Within(Tolerance));
             Assert.That(parentPos.y, Is.EqualTo(0f).Within(Tolerance));
         }
 
         [Test]
-        public void ComputeResolvedPreview_AfterBegin_MirrorDisabled_ResolvedAngleEqualsMirrorBranchAngle()
-        {
-            _window.BeginBranchPreview(parentIndex: 1);
-            _window.SetMirrorEnabled(false);
-
-            var (_, resolvedAngle, mirrorBranchAngle) = _window.ComputeResolvedPreview();
-
-            Assert.That(mirrorBranchAngle, Is.EqualTo(resolvedAngle).Within(Tolerance));
-        }
-
-        [Test]
-        public void ComputeResolvedPreview_MirrorToggleDoesNotChangeResolvedAngle()
+        public void ComputeResolvedPreview_AfterBegin_MirrorEnabled_MirrorBranchAngleDiffersFromMirrorDisabled()
         {
             _window.BeginBranchPreview(parentIndex: 1);
 
             _window.SetMirrorEnabled(false);
-            var (_, resolvedAngleDisabled, _) = _window.ComputeResolvedPreview();
+            var (_, mirrorBranchAngleDisabled) = _window.ComputeResolvedPreview();
 
             _window.SetMirrorEnabled(true);
-            var (_, resolvedAngleEnabled, _) = _window.ComputeResolvedPreview();
+            var (_, mirrorBranchAngleEnabled) = _window.ComputeResolvedPreview();
 
-            Assert.That(resolvedAngleEnabled, Is.EqualTo(resolvedAngleDisabled).Within(Tolerance));
+            Assert.That(mirrorBranchAngleEnabled, Is.Not.EqualTo(mirrorBranchAngleDisabled).Within(Tolerance));
         }
 
         [Test]
@@ -107,10 +97,9 @@ namespace RogueliteAutoBattler.Tests.EditMode
             _window.BeginBranchPreview(parentIndex: 1);
             _window.EndBranchPreview();
 
-            var (parentPos, resolvedAngle, mirrorBranchAngle) = _window.ComputeResolvedPreview();
+            var (parentPos, mirrorBranchAngle) = _window.ComputeResolvedPreview();
 
             Assert.That(parentPos, Is.EqualTo(Vector2.zero));
-            Assert.That(resolvedAngle, Is.EqualTo(0f).Within(Tolerance));
             Assert.That(mirrorBranchAngle, Is.EqualTo(0f).Within(Tolerance));
         }
     }

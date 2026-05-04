@@ -18,8 +18,8 @@ namespace RogueliteAutoBattler.Editor.Windows
         private const float MinGridSpacingThreshold = 5f;
         private const float MinBranchPreviewDistance = 0.5f;
         private const float MaxBranchPreviewDistance = 10f;
-        private const float MinBranchAngleDegrees = 0f;
-        private const float MaxBranchAngleDegrees = 360f;
+        private const float MinAngleDegrees = 0f;
+        private const float MaxAngleDegrees = 360f;
         private const float BranchPreviewDottedSegmentSize = 6f;
         private const int CostPreviewMaxRows = 10;
         private const float MinWindowWidth = 800f;
@@ -40,8 +40,7 @@ namespace RogueliteAutoBattler.Editor.Windows
         private static readonly Color CrosshairColor = new Color(0.4f, 0.4f, 0.4f, 1f);
         private static readonly Color GridLineColor = new Color(0.2f, 0.2f, 0.2f, 1f);
         private static readonly Color BranchPreviewTintColor = new Color(1f, 1f, 1f, 0.4f);
-        private static readonly Color MirrorAccentRgb = new Color(1f, 0.92f, 0.016f);
-        private static readonly Color MirrorAxisLineColor = new Color(MirrorAccentRgb.r, MirrorAccentRgb.g, MirrorAccentRgb.b, 0.6f);
+        private static readonly Color MirrorAxisLineColor = new Color(1f, 0.92f, 0.016f, 0.6f);
         private static readonly Color MirrorPreviewTintColor = new Color(0f, 1f, 1f, 0.4f);
 
         private static readonly GUIContent LabelUnitSize = new GUIContent("Unit Size");
@@ -58,8 +57,6 @@ namespace RogueliteAutoBattler.Editor.Windows
         private static readonly GUIContent LabelEdgeThickness = new GUIContent("Edge Thickness");
 
         private const string AngleSliderLabel = "Angle (deg, 0=N, 90=E)";
-        private const float MinMirrorAxisDegrees = 0f;
-        private const float MaxMirrorAxisDegrees = 360f;
         private const string MirrorEnabledLabel = "Mirror";
         private const string MirrorAxisSliderLabel = "Mirror Axis (deg, 0=vertical)";
 
@@ -428,8 +425,8 @@ namespace RogueliteAutoBattler.Editor.Windows
             }
             if (_branchPreviewActive && _branchPreviewParentIndex >= 0 && _branchPreviewParentIndex < _data.Nodes.Count)
             {
-                var (parentPos, resolvedAngle, mirrorBranchAngle) = ComputeResolvedPreview();
-                Vector2 previewPos = BranchPlacement.ComputeBranchPosition(parentPos, _branchPreviewSettings.distance, resolvedAngle);
+                var (parentPos, mirrorBranchAngle) = ComputeResolvedPreview();
+                Vector2 previewPos = BranchPlacement.ComputeBranchPosition(parentPos, _branchPreviewSettings.distance, _branchPreviewSettings.angleDegrees);
                 Vector2 parentScreen = origin + parentPos * scaledUnit;
                 Vector2 previewScreen = origin + previewPos * scaledUnit;
                 Handles.color = BranchPreviewTintColor;
@@ -499,10 +496,7 @@ namespace RogueliteAutoBattler.Editor.Windows
                 EditorGUI.DrawRect(new Rect(0, y, canvasRect.width, 1), GridLineColor);
         }
 
-        // TODO #283 follow-up: extract NodeDragOrchestrator owning _dragState/_pendingDrag* /_lastSnapResult
-        // and exposing OnMouseDown/OnMouseDrag/OnMouseUp. Deferred from this PR because the extraction
-        // touches mirror partner discovery, snap, undo, dirty/save and shared _branchPreviewSettings —
-        // higher risk than is appropriate for the snap-feature ticket.
+        // TODO #283: extract NodeDragOrchestrator owning drag/pending/snap state.
         private void HandleCanvasInput(Rect canvasRect)
         {
             Event evt = Event.current;
@@ -896,7 +890,7 @@ namespace RogueliteAutoBattler.Editor.Windows
             }
 
             EditorGUI.BeginChangeCheck();
-            _branchPreviewSettings.angleDegrees = EditorGUILayout.Slider(AngleSliderLabel, _branchPreviewSettings.angleDegrees, MinBranchAngleDegrees, MaxBranchAngleDegrees);
+            _branchPreviewSettings.angleDegrees = EditorGUILayout.Slider(AngleSliderLabel, _branchPreviewSettings.angleDegrees, MinAngleDegrees, MaxAngleDegrees);
             if (EditorGUI.EndChangeCheck())
             {
                 BranchPreviewSettingsPersistence.Save(_branchPreviewSettings);
@@ -915,7 +909,7 @@ namespace RogueliteAutoBattler.Editor.Windows
             if (_branchPreviewSettings.mirrorEnabled)
             {
                 EditorGUI.BeginChangeCheck();
-                _branchPreviewSettings.mirrorAxisDegrees = EditorGUILayout.Slider(MirrorAxisSliderLabel, _branchPreviewSettings.mirrorAxisDegrees, MinMirrorAxisDegrees, MaxMirrorAxisDegrees);
+                _branchPreviewSettings.mirrorAxisDegrees = EditorGUILayout.Slider(MirrorAxisSliderLabel, _branchPreviewSettings.mirrorAxisDegrees, MinAngleDegrees, MaxAngleDegrees);
                 if (EditorGUI.EndChangeCheck())
                 {
                     MirrorAxisPersistence.Save(_branchPreviewSettings.mirrorAxisDegrees);
@@ -962,12 +956,12 @@ namespace RogueliteAutoBattler.Editor.Windows
             _branchPreviewSettings.mirrorEnabled = enabled;
         }
 
-        internal (Vector2 parentPos, float resolvedAngle, float mirrorBranchAngle) ComputeResolvedPreview()
+        internal (Vector2 parentPos, float mirrorBranchAngle) ComputeResolvedPreview()
         {
             if (!_branchPreviewActive || _data == null
                 || _branchPreviewParentIndex < 0 || _branchPreviewParentIndex >= _data.Nodes.Count)
             {
-                return (Vector2.zero, 0f, 0f);
+                return (Vector2.zero, 0f);
             }
 
             return BranchPlacement.ResolveBranchPlan(
@@ -1001,7 +995,7 @@ namespace RogueliteAutoBattler.Editor.Windows
                 : MirrorPairGenerator.UndoLabelSingleNode;
             Undo.RegisterCompleteObjectUndo(_data, undoLabel);
 
-            var (_, resolvedAngle, mirrorBranchAngle) = BranchPlacement.ResolveBranchPlan(
+            var (_, mirrorBranchAngle) = BranchPlacement.ResolveBranchPlan(
                 _data.Nodes,
                 parentIndex,
                 _branchPreviewSettings.angleDegrees,
@@ -1012,7 +1006,7 @@ namespace RogueliteAutoBattler.Editor.Windows
                 _data,
                 parentIndex,
                 _branchPreviewSettings.distance,
-                resolvedAngle,
+                _branchPreviewSettings.angleDegrees,
                 _branchPreviewSettings.mirrorEnabled,
                 mirrorBranchAngle);
 

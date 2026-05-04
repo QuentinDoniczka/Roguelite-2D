@@ -1,9 +1,9 @@
 using System.Collections.Generic;
 using System.Globalization;
 using NUnit.Framework;
-using RogueliteAutoBattler.Combat.Core;
 using RogueliteAutoBattler.Data;
 using RogueliteAutoBattler.Editor.Tools;
+using RogueliteAutoBattler.Tests.EditMode.TestUtils;
 using UnityEngine;
 
 namespace RogueliteAutoBattler.Tests.EditMode
@@ -26,35 +26,16 @@ namespace RogueliteAutoBattler.Tests.EditMode
             Object.DestroyImmediate(_data);
         }
 
-        private static SkillTreeData.SkillNodeEntry MakeNode(int id, Vector2 position)
-        {
-            return new SkillTreeData.SkillNodeEntry
-            {
-                id = id,
-                position = position,
-                connectedNodeIds = new List<int>(),
-                costType = SkillTreeData.CostType.Gold,
-                maxLevel = 5,
-                baseCost = 1,
-                costMultiplierOdd = 1f,
-                costMultiplierEven = 1f,
-                costAdditivePerLevel = 0,
-                statModifierType = StatType.Hp,
-                statModifierMode = SkillTreeData.StatModifierMode.Flat,
-                statModifierValuePerLevel = 5f
-            };
-        }
-
         private static SkillTreeData.SkillNodeEntry MakeCentral()
         {
-            return MakeNode(SkillTreeData.CentralNodeId, Vector2.zero);
+            return SkillNodeEntryFactory.Default(SkillTreeData.CentralNodeId, Vector2.zero);
         }
 
         [Test]
         public void TryGenerate_MirrorDisabled_CreatesOnlyOriginal_ReturnsOriginalOnly()
         {
             var central = MakeCentral();
-            var parent = MakeNode(1, new Vector2(0f, 3f));
+            var parent = SkillNodeEntryFactory.Default(1, new Vector2(0f, 3f));
             _data.InitializeForTest(new List<SkillTreeData.SkillNodeEntry> { central, parent });
             int initialCount = _data.Nodes.Count;
 
@@ -77,7 +58,7 @@ namespace RogueliteAutoBattler.Tests.EditMode
         public void TryGenerate_MirrorEnabled_NoCollision_CreatesPair_BothChildrenOfParent()
         {
             var central = MakeCentral();
-            var parent = MakeNode(1, new Vector2(0f, 3f));
+            var parent = SkillNodeEntryFactory.Default(1, new Vector2(0f, 3f));
             _data.InitializeForTest(new List<SkillTreeData.SkillNodeEntry> { central, parent });
             int initialCount = _data.Nodes.Count;
 
@@ -115,12 +96,12 @@ namespace RogueliteAutoBattler.Tests.EditMode
         public void TryGenerate_MirrorEnabled_CollisionAtMirrorPosition_OriginalOnly_WithWarning()
         {
             var central = MakeCentral();
-            var parent = MakeNode(1, new Vector2(0f, 3f));
+            var parent = SkillNodeEntryFactory.Default(1, new Vector2(0f, 3f));
             _data.InitializeForTest(new List<SkillTreeData.SkillNodeEntry> { central, parent });
 
             float mirrorAngle = BranchPlacement.MirrorAngle(60f, 0f);
             Vector2 expectedMirrorPos = BranchPlacement.ComputeBranchPosition(new Vector2(0f, 3f), 2f, mirrorAngle);
-            var blocker = MakeNode(99, expectedMirrorPos);
+            var blocker = SkillNodeEntryFactory.Default(99, expectedMirrorPos);
             _data.AddBranchNode(blocker, SkillTreeData.CentralNodeId);
 
             int initialCount = _data.Nodes.Count;
@@ -145,12 +126,12 @@ namespace RogueliteAutoBattler.Tests.EditMode
         public void TryGenerate_CollisionWithinToleranceButNotExact_StillSkipsMirror()
         {
             var central = MakeCentral();
-            var parent = MakeNode(1, new Vector2(0f, 3f));
+            var parent = SkillNodeEntryFactory.Default(1, new Vector2(0f, 3f));
             _data.InitializeForTest(new List<SkillTreeData.SkillNodeEntry> { central, parent });
 
             float mirrorAngle = BranchPlacement.MirrorAngle(60f, 0f);
             Vector2 expectedMirrorPos = BranchPlacement.ComputeBranchPosition(new Vector2(0f, 3f), 2f, mirrorAngle);
-            var blocker = MakeNode(99, expectedMirrorPos + new Vector2(0.5f, 0f));
+            var blocker = SkillNodeEntryFactory.Default(99, expectedMirrorPos + new Vector2(0.5f, 0f));
             _data.AddBranchNode(blocker, SkillTreeData.CentralNodeId);
 
             int initialCount = _data.Nodes.Count;
@@ -175,12 +156,12 @@ namespace RogueliteAutoBattler.Tests.EditMode
         public void TryGenerate_BlockerOutsideTolerance_PairCreated()
         {
             var central = MakeCentral();
-            var parent = MakeNode(1, new Vector2(0f, 3f));
+            var parent = SkillNodeEntryFactory.Default(1, new Vector2(0f, 3f));
             _data.InitializeForTest(new List<SkillTreeData.SkillNodeEntry> { central, parent });
 
             float mirrorAngle = BranchPlacement.MirrorAngle(60f, 0f);
             Vector2 expectedMirrorPos = BranchPlacement.ComputeBranchPosition(new Vector2(0f, 3f), 2f, mirrorAngle);
-            var blocker = MakeNode(99, expectedMirrorPos + new Vector2(1.5f, 0f));
+            var blocker = SkillNodeEntryFactory.Default(99, expectedMirrorPos + new Vector2(1.5f, 0f));
             _data.AddBranchNode(blocker, SkillTreeData.CentralNodeId);
 
             int parentIndex = 1;
@@ -201,7 +182,7 @@ namespace RogueliteAutoBattler.Tests.EditMode
         public void TryGenerate_OnAxisAngle_PairWouldOverlap_SkipsMirror()
         {
             var central = MakeCentral();
-            var parent = MakeNode(1, new Vector2(0f, 3f));
+            var parent = SkillNodeEntryFactory.Default(1, new Vector2(0f, 3f));
             _data.InitializeForTest(new List<SkillTreeData.SkillNodeEntry> { central, parent });
             int initialCount = _data.Nodes.Count;
 
@@ -226,7 +207,7 @@ namespace RogueliteAutoBattler.Tests.EditMode
         public void TryGenerate_AssignsSequentialIds()
         {
             var central = MakeCentral();
-            var parent = MakeNode(5, new Vector2(0f, 3f));
+            var parent = SkillNodeEntryFactory.Default(5, new Vector2(0f, 3f));
             _data.InitializeForTest(new List<SkillTreeData.SkillNodeEntry> { central, parent });
 
             int parentIndex = 1;
@@ -293,7 +274,7 @@ namespace RogueliteAutoBattler.Tests.EditMode
         {
             var nodes = new List<SkillTreeData.SkillNodeEntry>
             {
-                MakeNode(0, new Vector2(1f, 0f))
+                SkillNodeEntryFactory.At(new Vector2(1f, 0f))
             };
 
             bool collision = MirrorPairGenerator.HasCollisionAt(nodes, Vector2.zero, 1f);
@@ -306,7 +287,7 @@ namespace RogueliteAutoBattler.Tests.EditMode
         {
             var nodes = new List<SkillTreeData.SkillNodeEntry>
             {
-                MakeNode(0, new Vector2(0.999f, 0f))
+                SkillNodeEntryFactory.At(new Vector2(0.999f, 0f))
             };
 
             bool collision = MirrorPairGenerator.HasCollisionAt(nodes, Vector2.zero, 1f);

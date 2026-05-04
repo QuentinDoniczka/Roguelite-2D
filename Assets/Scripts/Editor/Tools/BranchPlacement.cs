@@ -46,7 +46,7 @@ namespace RogueliteAutoBattler.Editor.Tools
             return NormalizeDegrees(2f * NormalizeDegrees(axisAngleDegrees) - NormalizeDegrees(angleDegrees));
         }
 
-        internal static (Vector2 parentPos, float resolvedAngle, float mirrorBranchAngle) ResolveBranchPlan(
+        internal static (Vector2 parentPos, float mirrorBranchAngle) ResolveBranchPlan(
             IReadOnlyList<SkillTreeData.SkillNodeEntry> nodes,
             int parentIndex,
             float angleDegrees,
@@ -54,12 +54,11 @@ namespace RogueliteAutoBattler.Editor.Tools
             bool mirrorEnabled)
         {
             if (nodes == null || parentIndex < 0 || parentIndex >= nodes.Count)
-                return (Vector2.zero, 0f, 0f);
+                return (Vector2.zero, 0f);
 
             Vector2 parentPos = nodes[parentIndex].position;
-            float resolvedAngle = angleDegrees;
             float mirrorBranchAngle = mirrorEnabled ? MirrorAngle(angleDegrees, mirrorAxisDegrees) : angleDegrees;
-            return (parentPos, resolvedAngle, mirrorBranchAngle);
+            return (parentPos, mirrorBranchAngle);
         }
 
         private static float NormalizeDegrees(float angleDegrees)
