@@ -182,8 +182,8 @@ namespace RogueliteAutoBattler.Editor.Windows
             var initialEntry = ResolveInitialTreeEntry();
             BindAsset(initialEntry);
             RefreshActivePointerCache();
-            MirrorAxisPersistence.ApplyTo(ref _branchPreviewSettings);
-            MirrorAxisPersistence.ApplyTo(ref _lastBranchPreviewSettings);
+            BranchPreviewPersistence.ApplyTo(ref _branchPreviewSettings);
+            BranchPreviewPersistence.ApplyTo(ref _lastBranchPreviewSettings);
         }
 
         private void RefreshTreeList()
@@ -1010,7 +1010,7 @@ namespace RogueliteAutoBattler.Editor.Windows
             _branchPreviewActive = true;
             _branchPreviewParentIndex = parentIndex;
             _branchPreviewSettings = _lastBranchPreviewSettings;
-            if (_data != null && parentIndex >= 0 && parentIndex < _data.Nodes.Count)
+            if (_data != null && parentIndex >= 0 && parentIndex < _data.Nodes.Count && !BranchPreviewPersistence.HasAngle())
                 _branchPreviewSettings.angleDegrees = BranchPlacement.ComputeDefaultAngle(_data.Nodes[parentIndex].position);
             _mirrorSourceNodeIndex = BranchPlacement.NoMirrorSourceOverride;
             _angleIsRelativeToMirrorAxis = false;
@@ -1085,6 +1085,8 @@ namespace RogueliteAutoBattler.Editor.Windows
             set => _mirrorSourceNodeIndex = value;
         }
 
+        internal BranchPreviewSettings BranchPreviewSettingsForTests => _branchPreviewSettings;
+
         internal bool AngleIsRelativeToMirrorAxisForTests
         {
             get => _angleIsRelativeToMirrorAxis;
@@ -1139,6 +1141,9 @@ namespace RogueliteAutoBattler.Editor.Windows
 
             _lastMirrorWarning = result.WarningMessage;
             _lastBranchPreviewSettings = _branchPreviewSettings;
+            BranchPreviewPersistence.SaveDistance(_branchPreviewSettings.distance);
+            BranchPreviewPersistence.SaveAngle(_branchPreviewSettings.angleDegrees);
+            BranchPreviewPersistence.SaveMirrorEnabled(_branchPreviewSettings.mirrorEnabled);
             _selectedNodeIndex = _data.Nodes.Count - 1;
             EndBranchPreview();
             InvalidateMirrorSourceIfOutOfRange();
