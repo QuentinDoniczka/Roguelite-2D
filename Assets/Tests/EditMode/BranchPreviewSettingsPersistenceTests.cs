@@ -116,5 +116,18 @@ namespace RogueliteAutoBattler.Tests.EditMode
             float mirrorAxis = EditorPrefs.GetFloat(MirrorAxisPersistence.EditorPrefKey);
             Assert.That(mirrorAxis, Is.EqualTo(99f).Within(Tolerance));
         }
+
+        [Test]
+        public void Save_RoundTrips_DoesNotMutateDefaults()
+        {
+            BranchPreviewSettings before = BranchPreviewSettings.Defaults;
+            BranchPreviewSettings toSave = new BranchPreviewSettings { distance = 13f, angleDegrees = 91f, mirrorEnabled = true, mirrorAxisDegrees = before.mirrorAxisDegrees };
+            BranchPreviewSettingsPersistence.Save(toSave);
+            BranchPreviewSettings after = BranchPreviewSettings.Defaults;
+            Assert.AreEqual(before.distance, after.distance);
+            Assert.AreEqual(before.angleDegrees, after.angleDegrees);
+            Assert.AreEqual(before.mirrorEnabled, after.mirrorEnabled);
+            Assert.AreEqual(before.mirrorAxisDegrees, after.mirrorAxisDegrees);
+        }
     }
 }
