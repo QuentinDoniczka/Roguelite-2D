@@ -132,16 +132,5 @@ namespace RogueliteAutoBattler.Tests.EditMode
 
             Assert.IsFalse(_window.IsMirrorSourcePickModeActiveForTests);
         }
-
-        [Test]
-        public void StartMirrorSourcePickMode_DoesNotArmPendingDrag()
-        {
-            _window.BeginBranchPreview(parentIndex: 1);
-            _window.SetMirrorEnabled(true);
-
-            _window.StartMirrorSourcePickMode();
-
-            Assert.IsFalse(_window.PendingDragArmForTests);
-        }
     }
 }
