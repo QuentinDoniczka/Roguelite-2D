@@ -41,152 +41,88 @@ namespace RogueliteAutoBattler.Tests.EditMode
         }
 
         [Test]
-        public void ResolveBranchPlan_MirrorDisabled_RelativeFlagIgnored()
+        public void ResolveBranchPlan_NullNodes_ReturnsZeroParentPos()
+        {
+            var (parentPos, resolvedAngle, mirrorBranchAngle) = BranchPlacement.ResolveBranchPlan(
+                nodes: null,
+                parentIndex: 0,
+                angleDegrees: 30f,
+                mirrorAxisDegrees: 45f,
+                mirrorEnabled: true);
+
+            Assert.That(parentPos, Is.EqualTo(Vector2.zero));
+            Assert.That(resolvedAngle, Is.EqualTo(0f).Within(Tolerance));
+            Assert.That(mirrorBranchAngle, Is.EqualTo(0f).Within(Tolerance));
+        }
+
+        [Test]
+        public void ResolveBranchPlan_ParentIndexOutOfRange_ReturnsZeroParentPos()
         {
             var nodes = MakeStandardNodes();
 
-            var (parentPos, mirrorSourcePos, resolvedAngle, mirrorBranchAngle) = BranchPlacement.ResolveBranchPlan(
+            var (parentPos, resolvedAngle, mirrorBranchAngle) = BranchPlacement.ResolveBranchPlan(
                 nodes,
-                parentIndex: 1,
-                mirrorSourceOverrideIndex: 2,
+                parentIndex: 99,
                 angleDegrees: 30f,
                 mirrorAxisDegrees: 45f,
-                angleIsRelativeToMirrorAxis: true,
+                mirrorEnabled: true);
+
+            Assert.That(parentPos, Is.EqualTo(Vector2.zero));
+            Assert.That(resolvedAngle, Is.EqualTo(0f).Within(Tolerance));
+            Assert.That(mirrorBranchAngle, Is.EqualTo(0f).Within(Tolerance));
+        }
+
+        [Test]
+        public void ResolveBranchPlan_EmptyNodes_ReturnsZeroParentPos()
+        {
+            var emptyNodes = new List<SkillTreeData.SkillNodeEntry>();
+
+            var (parentPos, resolvedAngle, mirrorBranchAngle) = BranchPlacement.ResolveBranchPlan(
+                emptyNodes,
+                parentIndex: 0,
+                angleDegrees: 30f,
+                mirrorAxisDegrees: 45f,
+                mirrorEnabled: false);
+
+            Assert.That(parentPos, Is.EqualTo(Vector2.zero));
+            Assert.That(resolvedAngle, Is.EqualTo(0f).Within(Tolerance));
+            Assert.That(mirrorBranchAngle, Is.EqualTo(0f).Within(Tolerance));
+        }
+
+        [Test]
+        public void ResolveBranchPlan_MirrorDisabled_ProducesParentPosAndAngles()
+        {
+            var nodes = MakeStandardNodes();
+
+            var (parentPos, resolvedAngle, mirrorBranchAngle) = BranchPlacement.ResolveBranchPlan(
+                nodes,
+                parentIndex: 1,
+                angleDegrees: 30f,
+                mirrorAxisDegrees: 45f,
                 mirrorEnabled: false);
 
             Assert.That(parentPos.x, Is.EqualTo(2f).Within(Tolerance));
             Assert.That(parentPos.y, Is.EqualTo(0f).Within(Tolerance));
             Assert.That(resolvedAngle, Is.EqualTo(30f).Within(Tolerance));
             Assert.That(mirrorBranchAngle, Is.EqualTo(30f).Within(Tolerance));
-            Assert.That(mirrorSourcePos.x, Is.EqualTo(0f).Within(Tolerance));
-            Assert.That(mirrorSourcePos.y, Is.EqualTo(3f).Within(Tolerance));
         }
 
         [Test]
-        public void ResolveBranchPlan_MirrorEnabled_RelativeFalse_UsesAngleDirectly()
+        public void ResolveBranchPlan_MirrorEnabled_ProducesMirroredAngle()
         {
             var nodes = MakeStandardNodes();
 
-            var (_, _, resolvedAngle, mirrorBranchAngle) = BranchPlacement.ResolveBranchPlan(
+            var (parentPos, resolvedAngle, mirrorBranchAngle) = BranchPlacement.ResolveBranchPlan(
                 nodes,
                 parentIndex: 1,
-                mirrorSourceOverrideIndex: BranchPlacement.NoMirrorSourceOverride,
-                angleDegrees: 60f,
-                mirrorAxisDegrees: 90f,
-                angleIsRelativeToMirrorAxis: false,
-                mirrorEnabled: true);
-
-            Assert.That(resolvedAngle, Is.EqualTo(60f).Within(Tolerance));
-            Assert.That(mirrorBranchAngle, Is.EqualTo(BranchPlacement.MirrorAngle(60f, 90f)).Within(Tolerance));
-        }
-
-        [Test]
-        public void ResolveBranchPlan_MirrorEnabled_RelativeTrue_AddsAxisToAngle()
-        {
-            var nodes = MakeStandardNodes();
-
-            var (_, _, resolvedAngle, mirrorBranchAngle) = BranchPlacement.ResolveBranchPlan(
-                nodes,
-                parentIndex: 1,
-                mirrorSourceOverrideIndex: BranchPlacement.NoMirrorSourceOverride,
                 angleDegrees: 30f,
-                mirrorAxisDegrees: 45f,
-                angleIsRelativeToMirrorAxis: true,
-                mirrorEnabled: true);
-
-            Assert.That(resolvedAngle, Is.EqualTo(75f).Within(Tolerance));
-            Assert.That(mirrorBranchAngle, Is.EqualTo(BranchPlacement.MirrorAngle(75f, 45f)).Within(Tolerance));
-        }
-
-        [Test]
-        public void ResolveBranchPlan_OverrideValid_UsesOverrideForMirrorSource()
-        {
-            var nodes = MakeStandardNodes();
-
-            var (parentPos, mirrorSourcePos, _, _) = BranchPlacement.ResolveBranchPlan(
-                nodes,
-                parentIndex: 1,
-                mirrorSourceOverrideIndex: 2,
-                angleDegrees: 0f,
-                mirrorAxisDegrees: 0f,
-                angleIsRelativeToMirrorAxis: false,
+                mirrorAxisDegrees: 90f,
                 mirrorEnabled: true);
 
             Assert.That(parentPos.x, Is.EqualTo(2f).Within(Tolerance));
             Assert.That(parentPos.y, Is.EqualTo(0f).Within(Tolerance));
-            Assert.That(mirrorSourcePos.x, Is.EqualTo(0f).Within(Tolerance));
-            Assert.That(mirrorSourcePos.y, Is.EqualTo(3f).Within(Tolerance));
-        }
-
-        [Test]
-        public void ResolveBranchPlan_OverrideOutOfRange_FallsBackToParentPos()
-        {
-            var nodes = MakeStandardNodes();
-
-            var (parentPos, mirrorSourcePos, _, _) = BranchPlacement.ResolveBranchPlan(
-                nodes,
-                parentIndex: 1,
-                mirrorSourceOverrideIndex: 99,
-                angleDegrees: 0f,
-                mirrorAxisDegrees: 0f,
-                angleIsRelativeToMirrorAxis: false,
-                mirrorEnabled: true);
-
-            Assert.That(mirrorSourcePos.x, Is.EqualTo(parentPos.x).Within(Tolerance));
-            Assert.That(mirrorSourcePos.y, Is.EqualTo(parentPos.y).Within(Tolerance));
-        }
-
-        [Test]
-        public void ResolveBranchPlan_OverrideNoOverrideSentinel_FallsBackToParentPos()
-        {
-            var nodes = MakeStandardNodes();
-
-            var (parentPos, mirrorSourcePos, _, _) = BranchPlacement.ResolveBranchPlan(
-                nodes,
-                parentIndex: 1,
-                mirrorSourceOverrideIndex: BranchPlacement.NoMirrorSourceOverride,
-                angleDegrees: 0f,
-                mirrorAxisDegrees: 0f,
-                angleIsRelativeToMirrorAxis: false,
-                mirrorEnabled: true);
-
-            Assert.That(mirrorSourcePos.x, Is.EqualTo(parentPos.x).Within(Tolerance));
-            Assert.That(mirrorSourcePos.y, Is.EqualTo(parentPos.y).Within(Tolerance));
-        }
-
-        [Test]
-        public void ResolveBranchPlan_RelativePlusAxis_WrapsAround360()
-        {
-            var nodes = MakeStandardNodes();
-
-            var (_, _, resolvedAngle, _) = BranchPlacement.ResolveBranchPlan(
-                nodes,
-                parentIndex: 1,
-                mirrorSourceOverrideIndex: BranchPlacement.NoMirrorSourceOverride,
-                angleDegrees: 90f,
-                mirrorAxisDegrees: 270f,
-                angleIsRelativeToMirrorAxis: true,
-                mirrorEnabled: true);
-
-            Assert.That(resolvedAngle, Is.EqualTo(0f).Within(Tolerance));
-        }
-
-        [Test]
-        public void ResolveBranchPlan_NullNodes_ReturnsZeroPositions()
-        {
-            var (parentPos, mirrorSourcePos, resolvedAngle, mirrorBranchAngle) = BranchPlacement.ResolveBranchPlan(
-                nodes: null,
-                parentIndex: 0,
-                mirrorSourceOverrideIndex: BranchPlacement.NoMirrorSourceOverride,
-                angleDegrees: 30f,
-                mirrorAxisDegrees: 45f,
-                angleIsRelativeToMirrorAxis: false,
-                mirrorEnabled: true);
-
-            Assert.That(parentPos, Is.EqualTo(Vector2.zero));
-            Assert.That(mirrorSourcePos, Is.EqualTo(Vector2.zero));
             Assert.That(resolvedAngle, Is.EqualTo(30f).Within(Tolerance));
-            Assert.That(mirrorBranchAngle, Is.EqualTo(BranchPlacement.MirrorAngle(30f, 45f)).Within(Tolerance));
+            Assert.That(mirrorBranchAngle, Is.EqualTo(BranchPlacement.MirrorAngle(30f, 90f)).Within(Tolerance));
         }
     }
 }

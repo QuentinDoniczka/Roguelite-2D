@@ -65,7 +65,6 @@ namespace RogueliteAutoBattler.Tests.EditMode
                 distance: 2f,
                 resolvedAngleDegrees: 90f,
                 mirrorEnabled: false,
-                mirrorSourcePosition: parent.position,
                 mirrorBranchAngleDegrees: 90f);
 
             Assert.IsTrue(result.OriginalCreated);
@@ -91,7 +90,6 @@ namespace RogueliteAutoBattler.Tests.EditMode
                 distance: 2f,
                 resolvedAngleDegrees: 60f,
                 mirrorEnabled: true,
-                mirrorSourcePosition: parent.position,
                 mirrorBranchAngleDegrees: mirrorAngle);
 
             Assert.IsTrue(result.OriginalCreated);
@@ -134,7 +132,6 @@ namespace RogueliteAutoBattler.Tests.EditMode
                 distance: 2f,
                 resolvedAngleDegrees: 60f,
                 mirrorEnabled: true,
-                mirrorSourcePosition: parent.position,
                 mirrorBranchAngleDegrees: mirrorAngle);
 
             Assert.IsTrue(result.OriginalCreated);
@@ -165,7 +162,6 @@ namespace RogueliteAutoBattler.Tests.EditMode
                 distance: 2f,
                 resolvedAngleDegrees: 60f,
                 mirrorEnabled: true,
-                mirrorSourcePosition: parent.position,
                 mirrorBranchAngleDegrees: mirrorAngle);
 
             Assert.IsTrue(result.OriginalCreated);
@@ -194,7 +190,6 @@ namespace RogueliteAutoBattler.Tests.EditMode
                 distance: 2f,
                 resolvedAngleDegrees: 60f,
                 mirrorEnabled: true,
-                mirrorSourcePosition: parent.position,
                 mirrorBranchAngleDegrees: mirrorAngle);
 
             Assert.IsTrue(result.OriginalCreated);
@@ -218,7 +213,6 @@ namespace RogueliteAutoBattler.Tests.EditMode
                 distance: 2f,
                 resolvedAngleDegrees: 0f,
                 mirrorEnabled: true,
-                mirrorSourcePosition: parent.position,
                 mirrorBranchAngleDegrees: mirrorAngle);
 
             Assert.IsTrue(result.OriginalCreated);
@@ -243,7 +237,6 @@ namespace RogueliteAutoBattler.Tests.EditMode
                 distance: 2f,
                 resolvedAngleDegrees: 60f,
                 mirrorEnabled: true,
-                mirrorSourcePosition: parent.position,
                 mirrorBranchAngleDegrees: mirrorAngle);
 
             Assert.AreEqual(6, result.OriginalNewId);
@@ -259,7 +252,6 @@ namespace RogueliteAutoBattler.Tests.EditMode
                 distance: 1f,
                 resolvedAngleDegrees: 0f,
                 mirrorEnabled: false,
-                mirrorSourcePosition: Vector2.zero,
                 mirrorBranchAngleDegrees: 0f);
 
             Assert.IsFalse(result.OriginalCreated);
@@ -279,7 +271,6 @@ namespace RogueliteAutoBattler.Tests.EditMode
                 distance: 1f,
                 resolvedAngleDegrees: 0f,
                 mirrorEnabled: false,
-                mirrorSourcePosition: Vector2.zero,
                 mirrorBranchAngleDegrees: 0f);
 
             Assert.IsFalse(result.OriginalCreated);

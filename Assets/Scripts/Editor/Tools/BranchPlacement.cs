@@ -11,7 +11,6 @@ namespace RogueliteAutoBattler.Editor.Tools
         private const float DefaultAngleForOriginParent = 0f;
 
         public const float PositionTolerance = 1f;
-        internal const int NoMirrorSourceOverride = -1;
 
         public static Vector2 ComputeBranchPosition(Vector2 parentPosition, float distance)
         {
@@ -47,41 +46,20 @@ namespace RogueliteAutoBattler.Editor.Tools
             return NormalizeDegrees(2f * NormalizeDegrees(axisAngleDegrees) - NormalizeDegrees(angleDegrees));
         }
 
-        internal static float ResolveAbsoluteAngle(float relative, float axis, bool isRelative)
-        {
-            if (!isRelative) return relative;
-            return NormalizeDegrees(relative + axis);
-        }
-
-        internal static Vector2 ResolveMirrorSourcePosition(
+        internal static (Vector2 parentPos, float resolvedAngle, float mirrorBranchAngle) ResolveBranchPlan(
             IReadOnlyList<SkillTreeData.SkillNodeEntry> nodes,
             int parentIndex,
-            int sourceOverrideIndex)
-        {
-            if (nodes == null) return Vector2.zero;
-            if (sourceOverrideIndex >= 0 && sourceOverrideIndex < nodes.Count)
-                return nodes[sourceOverrideIndex].position;
-            if (parentIndex >= 0 && parentIndex < nodes.Count)
-                return nodes[parentIndex].position;
-            return Vector2.zero;
-        }
-
-        internal static (Vector2 parentPos, Vector2 mirrorSourcePos, float resolvedAngle, float mirrorBranchAngle) ResolveBranchPlan(
-            IReadOnlyList<SkillTreeData.SkillNodeEntry> nodes,
-            int parentIndex,
-            int mirrorSourceOverrideIndex,
             float angleDegrees,
             float mirrorAxisDegrees,
-            bool angleIsRelativeToMirrorAxis,
             bool mirrorEnabled)
         {
-            Vector2 parentPos = (nodes != null && parentIndex >= 0 && parentIndex < nodes.Count)
-                ? nodes[parentIndex].position
-                : Vector2.zero;
-            Vector2 mirrorSourcePos = ResolveMirrorSourcePosition(nodes, parentIndex, mirrorSourceOverrideIndex);
-            float resolvedAngle = ResolveAbsoluteAngle(angleDegrees, mirrorAxisDegrees, angleIsRelativeToMirrorAxis && mirrorEnabled);
-            float mirrorBranchAngle = mirrorEnabled ? MirrorAngle(resolvedAngle, mirrorAxisDegrees) : resolvedAngle;
-            return (parentPos, mirrorSourcePos, resolvedAngle, mirrorBranchAngle);
+            if (nodes == null || parentIndex < 0 || parentIndex >= nodes.Count)
+                return (Vector2.zero, 0f, 0f);
+
+            Vector2 parentPos = nodes[parentIndex].position;
+            float resolvedAngle = angleDegrees;
+            float mirrorBranchAngle = mirrorEnabled ? MirrorAngle(angleDegrees, mirrorAxisDegrees) : angleDegrees;
+            return (parentPos, resolvedAngle, mirrorBranchAngle);
         }
 
         private static float NormalizeDegrees(float angleDegrees)

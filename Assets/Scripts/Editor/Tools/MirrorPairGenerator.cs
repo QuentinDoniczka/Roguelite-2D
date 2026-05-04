@@ -43,7 +43,6 @@ namespace RogueliteAutoBattler.Editor.Tools
             float distance,
             float resolvedAngleDegrees,
             bool mirrorEnabled,
-            Vector2 mirrorSourcePosition,
             float mirrorBranchAngleDegrees)
         {
             if (data == null)
@@ -64,7 +63,7 @@ namespace RogueliteAutoBattler.Editor.Tools
             if (!mirrorEnabled)
                 return MirrorPairResult.OriginalOnly(originalNewId);
 
-            Vector2 mirrorPos = BranchPlacement.ComputeBranchPosition(mirrorSourcePosition, distance, mirrorBranchAngleDegrees);
+            Vector2 mirrorPos = BranchPlacement.ComputeBranchPosition(parentPosition, distance, mirrorBranchAngleDegrees);
 
             if (HasCollisionAt(data.Nodes, mirrorPos, BranchPlacement.PositionTolerance))
             {
