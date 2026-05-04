@@ -59,42 +59,51 @@ namespace RogueliteAutoBattler.Tests.EditMode
         public void BeginBranchPreview_ProducesDefaultMirrorSourceAndRelativeFlag()
         {
             _window.MirrorSourceNodeIndexForTests = 2;
+            _window.AngleIsRelativeToMirrorAxisForTests = true;
 
             _window.BeginBranchPreview(parentIndex: 1);
 
-            Assert.AreEqual(-1, _window.MirrorSourceNodeIndexForTests);
-            Assert.IsFalse(_window.AngleRelativeToAxisForTests);
+            Assert.AreEqual(BranchPlacement.NoMirrorSourceOverride, _window.MirrorSourceNodeIndexForTests);
+            Assert.IsFalse(_window.AngleIsRelativeToMirrorAxisForTests);
         }
 
         [Test]
         public void SetMirrorEnabled_FalseToTrue_ResetsAngleRelativeToAxis()
         {
             _window.BeginBranchPreview(parentIndex: 1);
-            _window.AngleRelativeToAxisForTests = true;
+            _window.AngleIsRelativeToMirrorAxisForTests = true;
 
             _window.SetMirrorEnabled(false);
             _window.SetMirrorEnabled(true);
 
-            Assert.IsFalse(_window.AngleRelativeToAxisForTests);
+            Assert.IsFalse(_window.AngleIsRelativeToMirrorAxisForTests);
         }
 
         [Test]
-        public void ComputeResolvedPreview_WithOverrideAndRelative_ProducesExpectedValues()
+        public void ResolveBranchPlan_WithOverrideAndRelative_ProducesExpectedValues()
         {
-            _window.BeginBranchPreview(parentIndex: 1);
-            _window.MirrorSourceNodeIndexForTests = 2;
-            _window.BranchPreviewSettingsForTests.angleDegrees = 30f;
-            _window.BranchPreviewSettingsForTests.mirrorAxisDegrees = 45f;
-            _window.AngleRelativeToAxisForTests = true;
+            var nodes = new List<SkillTreeData.SkillNodeEntry>
+            {
+                MakeNode(0, Vector2.zero),
+                MakeNode(1, new Vector2(2f, 0f)),
+                MakeNode(2, new Vector2(0f, 3f))
+            };
 
-            var (workingPos, mirrorSourcePos, resolvedAngle, mirrorAngle) = _window.ComputeResolvedPreview();
+            var (parentPos, mirrorSourcePos, resolvedAngle, mirrorBranchAngle) = BranchPlacement.ResolveBranchPlan(
+                nodes,
+                parentIndex: 1,
+                mirrorSourceOverrideIndex: 2,
+                angleDegrees: 30f,
+                mirrorAxisDegrees: 45f,
+                angleIsRelativeToMirrorAxis: true,
+                mirrorEnabled: true);
 
-            Assert.That(workingPos.x, Is.EqualTo(2f).Within(Tolerance));
-            Assert.That(workingPos.y, Is.EqualTo(0f).Within(Tolerance));
+            Assert.That(parentPos.x, Is.EqualTo(2f).Within(Tolerance));
+            Assert.That(parentPos.y, Is.EqualTo(0f).Within(Tolerance));
             Assert.That(mirrorSourcePos.x, Is.EqualTo(0f).Within(Tolerance));
             Assert.That(mirrorSourcePos.y, Is.EqualTo(3f).Within(Tolerance));
             Assert.That(resolvedAngle, Is.EqualTo(75f).Within(Tolerance));
-            Assert.That(mirrorAngle, Is.EqualTo(BranchPlacement.MirrorAngle(75f, 45f)).Within(Tolerance));
+            Assert.That(mirrorBranchAngle, Is.EqualTo(BranchPlacement.MirrorAngle(75f, 45f)).Within(Tolerance));
         }
 
         [Test]
@@ -105,11 +114,22 @@ namespace RogueliteAutoBattler.Tests.EditMode
 
             _window.EndBranchPreview();
 
-            Assert.AreEqual(-1, _window.MirrorSourceNodeIndexForTests);
+            Assert.AreEqual(BranchPlacement.NoMirrorSourceOverride, _window.MirrorSourceNodeIndexForTests);
         }
 
         [Test]
-        public void ClampMirrorSourceIndex_OutOfRangeAfterShrink_ResetsToMinusOne()
+        public void EndBranchPreview_ResetsAngleIsRelativeToMirrorAxis()
+        {
+            _window.BeginBranchPreview(parentIndex: 1);
+            _window.AngleIsRelativeToMirrorAxisForTests = true;
+
+            _window.EndBranchPreview();
+
+            Assert.IsFalse(_window.AngleIsRelativeToMirrorAxisForTests);
+        }
+
+        [Test]
+        public void InvalidateMirrorSourceIfOutOfRange_OutOfRangeAfterShrink_ResetsToNoOverride()
         {
             _window.BeginBranchPreview(parentIndex: 1);
             _window.MirrorSourceNodeIndexForTests = 2;
@@ -119,21 +139,21 @@ namespace RogueliteAutoBattler.Tests.EditMode
                 MakeNode(1, new Vector2(2f, 0f))
             });
 
-            _window.ClampMirrorSourceIndex();
+            _window.InvalidateMirrorSourceIfOutOfRange();
 
-            Assert.AreEqual(-1, _window.MirrorSourceNodeIndexForTests);
+            Assert.AreEqual(BranchPlacement.NoMirrorSourceOverride, _window.MirrorSourceNodeIndexForTests);
         }
 
         [Test]
-        public void ComputeResolvedPreview_OverrideOutOfRange_FallsBackToWorkingPos()
+        public void ComputeResolvedPreview_OverrideOutOfRange_FallsBackToParentPos()
         {
             _window.BeginBranchPreview(parentIndex: 1);
             _window.MirrorSourceNodeIndexForTests = 99;
 
-            var (workingPos, mirrorSourcePos, _, _) = _window.ComputeResolvedPreview();
+            var (parentPos, mirrorSourcePos, _, _) = _window.ComputeResolvedPreview();
 
-            Assert.That(mirrorSourcePos.x, Is.EqualTo(workingPos.x).Within(Tolerance));
-            Assert.That(mirrorSourcePos.y, Is.EqualTo(workingPos.y).Within(Tolerance));
+            Assert.That(mirrorSourcePos.x, Is.EqualTo(parentPos.x).Within(Tolerance));
+            Assert.That(mirrorSourcePos.y, Is.EqualTo(parentPos.y).Within(Tolerance));
         }
     }
 }
