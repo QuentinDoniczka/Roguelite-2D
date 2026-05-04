@@ -254,19 +254,19 @@ Si une section est vide (ex: aucun fichier supprime), ne pas l'afficher.
 
 **Apres le rapport** :
 a) Delegue a `git-unity` avec la tache "commit" pour commiter tous les changements avec un message Conventional Commits qui reference l'Issue (ex: `feat(combat): add auto-battle flow (#12)`).
-b) **TOUJOURS — Construire la section "A tester dans Unity" comme un safety net visuel.** Avant d'envoyer la checklist a l'utilisateur :
+b) **TOUJOURS — Construire la section "A tester dans Unity" comme un safety net visuel MINIMALISTE.** Avant d'envoyer la checklist a l'utilisateur :
    - Reprendre la liste des scenarios qu'on s'appretait a lui demander.
    - **Pour chaque scenario fonctionnel convertible en test** (scene-load, scripts manquants, build settings, navigation runtime, wiring, log wording, presence de GO/composant, valeurs numeriques de `resolvedStyle`, flux de jeu) → ce N'EST PAS un test manuel, c'est un test automatise manquant. Retourner a l'etape 4e, ecrire le test (refacto pour testabilite si besoin), le lancer, et NE PAS l'inclure dans la section utilisateur.
-   - **La section finale DOIT TOUJOURS contenir au moins 5 a 15 checks visuels actionnables**, groupes par zone (header, body, panel global, zones voisines/regressions). Elle sert de safety net humain contre les blind spots des tests automatises (les assertions `resolvedStyle` verifient des valeurs numeriques, pas le ressenti visuel — alignement, debordement, hierarchie, feel mobile/PC, regressions collaterales).
-   - **Interdit d'ecrire "Rien a tester manuellement"** ou equivalent. Meme quand tous les tests automatises passent, il faut toujours fournir des items visuels.
-   - **Format attendu des items** :
-     - "Ouvre la scene X, fais Y, verifie que Z est visuellement coherent"
-     - "Sur resolution 1080x1920 (Simulator mobile) : pas de debordement, pas de texte coupe, alignement correct"
-     - "Zones voisines (HUD Gold, Battle Indicator, ...) : **inchangees** visuellement — aucune regression collaterale"
-     - "Ressenti : <polish d'animation, mix audio, lisibilite UI, feel de gameplay>"
+   - **Cible : 2 a 4 items**, focalises **uniquement sur le comportement que le diff vient de changer**. Liste numerotee simple, une ligne par item = un repro precis + ce qu'on doit voir. Pas de groupement par zone, pas de categories.
+   - **Scope strict : ce que le diff a touche, rien d'autre.** Pas de balayage de zones voisines, pas de sweep zoom/pan/persistence, pas d'item "ressenti / feel / polish" par defaut. Ces angles ne sont inclus QUE s'ils ont ete directement modifies par la sous-tache (ex: si on a touche au pan-zoom, oui ; si on a touche a un calcul de couleur, non).
+   - **Minimum 2 items, jamais zero.** Interdit d'ecrire "Rien a tester manuellement" ou equivalent — meme un fix d'une ligne merite 2 verifications visuelles ciblees (le cas nominal + un edge case proche du diff).
+   - **Format attendu** : `1. <repro court> → <ce qu'on doit voir>`. Exemples :
+     - "1. Ouvre SkillTreeDesigner, active mirror mode, drag node A → l'axe miroir se redessine en temps reel"
+     - "2. Place un node sur la grille 0.01 → coordonnee affichee = valeur entiere x100 sans decimales"
+   - **Si tu te retrouves a lister > 4 items**, c'est un signal : soit le diff fait trop de choses (decouper en sous-PRs), soit certains items sont du fonctionnel automatisable (retour etape 4e), soit tu elargis hors-scope (couper).
 c) **STOP — Demande de validation a l'utilisateur.** Affiche :
    - "Changements commites. Tests automatises : <X passes>. Voici la checklist visuelle (safety net humain, en complement des tests, pas en remplacement). Teste dans Unity et confirme que tout fonctionne. Dis 'ok' pour push + PR + merge."
-   - La section "A tester dans Unity" construite a l'etape b (5 a 15 checks visuels, jamais vide).
+   - La section "A tester dans Unity" construite a l'etape b (2 a 4 checks visuels cibles sur le diff, jamais vide).
    - **Ne PAS push, creer de PR, ni merger avant la validation.**
 d) **Apres validation utilisateur ("ok")** — Enchainer automatiquement :
    1. Delegue a `git-unity` avec la tache "push" pour pusher la **branche feature** (sync auto avec dev avant de push). Le push cible toujours la branche feature courante, JAMAIS `dev` ni `main` directement. Si le sync detecte des conflits, delegue a `dev-unity` pour les resoudre, puis relance le push.
