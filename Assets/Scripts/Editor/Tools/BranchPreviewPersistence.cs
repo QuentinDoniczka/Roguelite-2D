@@ -8,8 +8,6 @@ namespace RogueliteAutoBattler.Editor.Tools
         internal const string AngleKey = "SkillTreeDesigner.Branch.AngleDegrees";
         internal const string MirrorEnabledKey = "SkillTreeDesigner.Branch.MirrorEnabled";
 
-        private const bool MirrorEnabledDefault = false;
-
         internal static float LoadDistance()
         {
             return EditorPrefs.GetFloat(DistanceKey, BranchPreviewSettings.Defaults.distance);
@@ -37,7 +35,7 @@ namespace RogueliteAutoBattler.Editor.Tools
 
         internal static bool LoadMirrorEnabled()
         {
-            return EditorPrefs.GetBool(MirrorEnabledKey, MirrorEnabledDefault);
+            return EditorPrefs.GetBool(MirrorEnabledKey, BranchPreviewSettings.Defaults.mirrorEnabled);
         }
 
         internal static void SaveMirrorEnabled(bool value)

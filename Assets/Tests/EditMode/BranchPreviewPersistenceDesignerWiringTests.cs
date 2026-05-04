@@ -36,8 +36,8 @@ namespace RogueliteAutoBattler.Tests.EditMode
         [TearDown]
         public void TearDown()
         {
-            Object.DestroyImmediate(_window);
-            Object.DestroyImmediate(_data);
+            UnityEngine.Object.DestroyImmediate(_window);
+            UnityEngine.Object.DestroyImmediate(_data);
             DeleteAllKeys();
         }
 
@@ -71,7 +71,7 @@ namespace RogueliteAutoBattler.Tests.EditMode
         [Test]
         public void BeginBranchPreview_StoredAngleKey_PreservesStoredAngle()
         {
-            Object.DestroyImmediate(_window);
+            UnityEngine.Object.DestroyImmediate(_window);
             BranchPreviewPersistence.SaveAngle(StoredAngleDegrees);
             _window = ScriptableObject.CreateInstance<SkillTreeDesignerWindow>();
             _window.SetDataForTests(_data);
