@@ -441,7 +441,7 @@ namespace RogueliteAutoBattler.Editor.Windows
                 if (_branchPreviewSettings.mirrorEnabled)
                 {
                     float halfSpan = Mathf.Max(canvasRect.width, canvasRect.height);
-                    MirrorAxisGeometry.ComputeAxisEndpoints(origin, _branchPreviewSettings.mirrorAxisDegrees, halfSpan, out var axisStart, out var axisEnd);
+                    MirrorAxisGeometry.ComputeAxisEndpoints(parentScreen, _branchPreviewSettings.mirrorAxisDegrees, halfSpan, out var axisStart, out var axisEnd);
                     Handles.color = MirrorAxisLineColor;
                     Handles.DrawDottedLine(new Vector3(axisStart.x, axisStart.y, 0f), new Vector3(axisEnd.x, axisEnd.y, 0f), BranchPreviewDottedSegmentSize);
 
