@@ -503,19 +503,11 @@ namespace RogueliteAutoBattler.Editor.Windows
                 Handles.color = SnapGuideLineColor;
                 if (_lastSnapResult.SnappedAxis == NodeSnapEngine.SnapAxis.X)
                 {
-                    float snapScreenX = origin.x + _data.Nodes[_lastSnapResult.TargetNodeIndex].position.x * scaledUnit;
-                    Handles.DrawDottedLine(
-                        new Vector3(snapScreenX, 0f, 0f),
-                        new Vector3(snapScreenX, canvasRect.height, 0f),
-                        BranchPreviewDottedSegmentSize);
+                    DrawVerticalSnapGuide(_data.Nodes[_lastSnapResult.TargetNodeIndex].position.x, origin, scaledUnit, canvasRect);
                 }
                 else if (_lastSnapResult.SnappedAxis == NodeSnapEngine.SnapAxis.Y)
                 {
-                    float snapScreenY = origin.y + _data.Nodes[_lastSnapResult.TargetNodeIndex].position.y * scaledUnit;
-                    Handles.DrawDottedLine(
-                        new Vector3(0f, snapScreenY, 0f),
-                        new Vector3(canvasRect.width, snapScreenY, 0f),
-                        BranchPreviewDottedSegmentSize);
+                    DrawHorizontalSnapGuide(_data.Nodes[_lastSnapResult.TargetNodeIndex].position.y, origin, scaledUnit, canvasRect);
                 }
                 else if (_lastSnapResult.SnappedAxis == NodeSnapEngine.SnapAxis.LineCardinal)
                 {
@@ -524,19 +516,11 @@ namespace RogueliteAutoBattler.Editor.Windows
                     bool alignedOnX = Mathf.Abs(targetPos.x - resolved.x) < Mathf.Abs(targetPos.y - resolved.y);
                     if (alignedOnX)
                     {
-                        float snapScreenX = origin.x + targetPos.x * scaledUnit;
-                        Handles.DrawDottedLine(
-                            new Vector3(snapScreenX, 0f, 0f),
-                            new Vector3(snapScreenX, canvasRect.height, 0f),
-                            BranchPreviewDottedSegmentSize);
+                        DrawVerticalSnapGuide(targetPos.x, origin, scaledUnit, canvasRect);
                     }
                     else
                     {
-                        float snapScreenY = origin.y + targetPos.y * scaledUnit;
-                        Handles.DrawDottedLine(
-                            new Vector3(0f, snapScreenY, 0f),
-                            new Vector3(canvasRect.width, snapScreenY, 0f),
-                            BranchPreviewDottedSegmentSize);
+                        DrawHorizontalSnapGuide(targetPos.y, origin, scaledUnit, canvasRect);
                     }
                 }
                 else if (_lastSnapResult.SnappedAxis == NodeSnapEngine.SnapAxis.LineCollinear
@@ -576,6 +560,24 @@ namespace RogueliteAutoBattler.Editor.Windows
             float startY = origin.y % spacing;
             for (float y = startY; y < canvasRect.height; y += spacing)
                 EditorGUI.DrawRect(new Rect(0, y, canvasRect.width, 1), GridLineColor);
+        }
+
+        private void DrawVerticalSnapGuide(float worldX, Vector2 origin, float scaledUnit, Rect canvasRect)
+        {
+            float snapScreenX = origin.x + worldX * scaledUnit;
+            Handles.DrawDottedLine(
+                new Vector3(snapScreenX, 0f, 0f),
+                new Vector3(snapScreenX, canvasRect.height, 0f),
+                BranchPreviewDottedSegmentSize);
+        }
+
+        private void DrawHorizontalSnapGuide(float worldY, Vector2 origin, float scaledUnit, Rect canvasRect)
+        {
+            float snapScreenY = origin.y + worldY * scaledUnit;
+            Handles.DrawDottedLine(
+                new Vector3(0f, snapScreenY, 0f),
+                new Vector3(canvasRect.width, snapScreenY, 0f),
+                BranchPreviewDottedSegmentSize);
         }
 
         // TODO #283 follow-up: extract NodeDragOrchestrator owning _dragState/_pendingDrag* /_lastSnapResult
@@ -800,7 +802,7 @@ namespace RogueliteAutoBattler.Editor.Windows
             EditorGUILayout.PropertyField(_propEdgeColor, LabelEdgeColor);
             EditorGUILayout.PropertyField(_propEdgeThickness, LabelEdgeThickness);
 
-            EditorGUILayout.Space();
+            EditorGUILayout.Space(SectionSpacingMedium);
             EditorGUILayout.LabelField("Multi-Node Alignment", EditorStyles.boldLabel);
 
             EditorGUI.BeginChangeCheck();
