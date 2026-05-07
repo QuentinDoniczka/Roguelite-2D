@@ -10,8 +10,6 @@ namespace RogueliteAutoBattler.Editor.Tools
         public enum SnapAxis { None, X, Y, LineCardinal, LineCollinear }
 
         private const int InRadiusBufferCapacity = 256;
-        private const float CardinalResidualRadiusFactor = 0.1f;
-        private const float MidpointPreferenceRadiusFactor = 0.5f;
 
         public readonly struct SnapResult
         {
@@ -84,15 +82,16 @@ namespace RogueliteAutoBattler.Editor.Tools
             if (legacyResult.SnappedAxis != SnapAxis.None) return legacyResult;
 
             if (nodes == null || alignmentRadiusUnits <= 0f) return SnapResult.NoSnap(candidate);
+            if (legacyThresholdUnits <= 0f) return SnapResult.NoSnap(candidate);
 
             Span<int> inRadiusIndices = stackalloc int[InRadiusBufferCapacity];
             int inRadiusCount = CollectInRadiusIndices(candidate, draggedNodeIndex, nodes, alignmentRadiusUnits, inRadiusIndices);
             if (inRadiusCount == 0) return SnapResult.NoSnap(candidate);
 
-            var tier1 = TryResolveCardinalAlignment(candidate, nodes, inRadiusIndices, inRadiusCount, alignmentRadiusUnits);
+            var tier1 = TryResolveCardinalAlignment(candidate, nodes, inRadiusIndices, inRadiusCount, legacyThresholdUnits);
             if (tier1.SnappedAxis != SnapAxis.None) return tier1;
 
-            return TryResolveCollinearAlignment(candidate, nodes, inRadiusIndices, inRadiusCount, alignmentRadiusUnits);
+            return TryResolveCollinearAlignment(candidate, nodes, inRadiusIndices, inRadiusCount, legacyThresholdUnits);
         }
 
         private static int CollectInRadiusIndices(
@@ -126,9 +125,8 @@ namespace RogueliteAutoBattler.Editor.Tools
             IReadOnlyList<SkillTreeData.SkillNodeEntry> nodes,
             ReadOnlySpan<int> inRadiusIndices,
             int inRadiusCount,
-            float alignmentRadiusUnits)
+            float legacyThresholdUnits)
         {
-            float cardinalResidualThreshold = alignmentRadiusUnits * CardinalResidualRadiusFactor;
             int qualifyingCount = 0;
             int winningNeighbor = -1;
             bool winningAxisIsX = false;
@@ -141,7 +139,7 @@ namespace RogueliteAutoBattler.Editor.Tools
                 float dx = Mathf.Abs(p.x - candidate.x);
                 float dy = Mathf.Abs(p.y - candidate.y);
                 float minResidual = Mathf.Min(dx, dy);
-                if (minResidual >= cardinalResidualThreshold) continue;
+                if (minResidual >= legacyThresholdUnits) continue;
 
                 qualifyingCount++;
                 if (minResidual < winningResidual)
@@ -167,7 +165,7 @@ namespace RogueliteAutoBattler.Editor.Tools
             IReadOnlyList<SkillTreeData.SkillNodeEntry> nodes,
             ReadOnlySpan<int> inRadiusIndices,
             int inRadiusCount,
-            float alignmentRadiusUnits)
+            float legacyThresholdUnits)
         {
             if (inRadiusCount < 2) return SnapResult.NoSnap(candidate);
 
@@ -206,10 +204,10 @@ namespace RogueliteAutoBattler.Editor.Tools
                 }
             }
 
-            if (bestI < 0 || bestPerpResidual > alignmentRadiusUnits) return SnapResult.NoSnap(candidate);
+            if (bestI < 0 || bestPerpResidual > legacyThresholdUnits) return SnapResult.NoSnap(candidate);
 
             float midpointDistance = Vector2.Distance(candidate, bestMidpoint);
-            Vector2 resolvedRaw = midpointDistance < alignmentRadiusUnits * MidpointPreferenceRadiusFactor
+            Vector2 resolvedRaw = midpointDistance < legacyThresholdUnits
                 ? bestMidpoint
                 : bestProjectedFoot;
             Vector2 resolvedQuantized = SkillTreeGrid.Quantize(resolvedRaw);
