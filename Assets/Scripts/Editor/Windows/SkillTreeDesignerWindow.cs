@@ -80,6 +80,10 @@ namespace RogueliteAutoBattler.Editor.Windows
         private static readonly Color SnapGuideLineColor = new Color(0.4f, 0.85f, 1f, 0.7f);
         private const string SnapEnabledLabel = "Snap to Nearby Node";
         private const string SnapThresholdLabel = "Snap Threshold (units)";
+        private const string AlignmentRadiusLabel = "Alignment Radius (units)";
+        private const string AlignmentRadiusVisibleLabel = "Show Radius During Drag";
+        private const float MinAlignmentRadiusUnits = 0f;
+        private const float MaxAlignmentRadiusUnits = 20f;
 
         private const string SelectedAssetGuidEditorPrefKey = "SkillTreeDesigner.SelectedAssetGuid";
         private const string ActiveLabelPrefix = "Active: ";
@@ -607,7 +611,7 @@ namespace RogueliteAutoBattler.Editor.Windows
                     var draggedNode = _data.Nodes[_dragState.NodeIndex];
                     bool snapAllowed = draggedNode.snapEnabled && !evt.shift;
                     _lastSnapResult = snapAllowed
-                        ? NodeSnapEngine.Resolve(rawNewPos, _dragState.NodeIndex, _data.Nodes, draggedNode.snapThresholdUnits)
+                        ? NodeSnapEngine.Resolve(rawNewPos, _dragState.NodeIndex, _data.Nodes, draggedNode.snapThresholdUnits, _branchPreviewSettings.alignmentRadiusUnits)
                         : NodeSnapEngine.SnapResult.NoSnap(rawNewPos);
 
                     var updated = _data.Nodes[_dragState.NodeIndex];
@@ -739,6 +743,26 @@ namespace RogueliteAutoBattler.Editor.Windows
             EditorGUILayout.LabelField("Edge Settings", EditorStyles.boldLabel);
             EditorGUILayout.PropertyField(_propEdgeColor, LabelEdgeColor);
             EditorGUILayout.PropertyField(_propEdgeThickness, LabelEdgeThickness);
+
+            EditorGUILayout.Space();
+            EditorGUILayout.LabelField("Multi-Node Alignment", EditorStyles.boldLabel);
+
+            EditorGUI.BeginChangeCheck();
+            float newRadius = EditorGUILayout.Slider(
+                AlignmentRadiusLabel,
+                _branchPreviewSettings.alignmentRadiusUnits,
+                MinAlignmentRadiusUnits,
+                MaxAlignmentRadiusUnits);
+            bool newVisible = EditorGUILayout.Toggle(
+                AlignmentRadiusVisibleLabel,
+                _branchPreviewSettings.alignmentRadiusVisible);
+            if (EditorGUI.EndChangeCheck())
+            {
+                _branchPreviewSettings.alignmentRadiusUnits = newRadius;
+                _branchPreviewSettings.alignmentRadiusVisible = newVisible;
+                BranchPreviewSettingsPersistence.Save(_branchPreviewSettings);
+                Repaint();
+            }
 
             EditorGUILayout.Space(SectionSpacingLarge);
 
