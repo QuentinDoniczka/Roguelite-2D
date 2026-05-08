@@ -20,7 +20,9 @@ namespace RogueliteAutoBattler.UI.Toolkit.SkillTree
         private const string PurchasedClassName = "skill-tree-node--purchased";
         private const string MaxClassName = "skill-tree-node--max";
         private const string SelectedClassName = "skill-tree-node--selected";
+        private const string PulseOnClass = "skill-tree-node--pulse-on";
         private const float NodeHalfSize = 32f;
+        private const long PulseIntervalMs = 800;
 
         private Color _currentColor = Color.white;
 
@@ -44,6 +46,8 @@ namespace RogueliteAutoBattler.UI.Toolkit.SkillTree
             }
 
             SetState(SkillTreeNodeVisualState.Locked);
+
+            schedule.Execute(TogglePulseIfAvailable).Every(PulseIntervalMs);
         }
 
         public void SetState(SkillTreeNodeVisualState newState)
@@ -65,6 +69,9 @@ namespace RogueliteAutoBattler.UI.Toolkit.SkillTree
             };
 
             AddToClassList(stateClassName);
+
+            if (!ClassListContains(AvailableClassName))
+                RemoveFromClassList(PulseOnClass);
         }
 
         public void SetSelected(bool selected)
@@ -92,6 +99,14 @@ namespace RogueliteAutoBattler.UI.Toolkit.SkillTree
         {
             style.left = new StyleLength(new Length(dataPosition.x * unitToPixelScale - NodeHalfSize, LengthUnit.Pixel));
             style.top = new StyleLength(new Length(dataPosition.y * unitToPixelScale - NodeHalfSize, LengthUnit.Pixel));
+        }
+
+        private void TogglePulseIfAvailable()
+        {
+            if (ClassListContains(AvailableClassName))
+                ToggleInClassList(PulseOnClass);
+            else if (ClassListContains(PulseOnClass))
+                RemoveFromClassList(PulseOnClass);
         }
 
         private void OnClick(ClickEvent _) => Clicked?.Invoke(NodeIndex);
