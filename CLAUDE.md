@@ -153,7 +153,6 @@ Assets/
         BranchPlacement.cs
         BranchPreviewSettings.cs
         BranchPreviewSettingsPersistence.cs
-        DefaultNodePaletteCreator.cs
         EditorAssetFolders.cs
         HudIconsImporter.cs
         LevelDatabaseBackgroundMigrator.cs

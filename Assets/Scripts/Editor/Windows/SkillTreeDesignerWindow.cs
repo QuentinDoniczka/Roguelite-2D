@@ -427,7 +427,9 @@ namespace RogueliteAutoBattler.Editor.Windows
                 Handles.color = (i == _selectedNodeIndex) ? _data.BorderSelectedColor : _data.BorderNormalColor;
                 Handles.DrawSolidDisc(center3D, Vector3.forward, halfNode + scaledBorder);
 
-                Handles.color = _data.NodeColor;
+                Handles.color = _cachedNodePalette != null
+                    ? _cachedNodePalette.GetColor(entry.colorTag)
+                    : _data.NodeColor;
                 Handles.DrawSolidDisc(center3D, Vector3.forward, halfNode);
 
                 string label = _nodeLabels != null && i < _nodeLabels.Length ? _nodeLabels[i] : entry.id.ToString();
