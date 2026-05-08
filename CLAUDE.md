@@ -25,7 +25,7 @@
 Doc detaille : `Assets/doc/premier-jet-roguelite.html`
 
 # Project Structure
-Generated: 2026-05-04
+Generated: 2026-05-08
 
 .github/
   workflows/
@@ -42,6 +42,7 @@ Assets/
     LootTables/  (empty)
     SkillTrees/
       Default.asset
+      DefaultNodePalette.asset
     DamageNumberConfig.asset
     LevelDatabase.asset
     SkillTreeProgress.asset
@@ -72,6 +73,7 @@ Assets/
     Effects/  (empty)
     UI/  (empty)
   Resources/
+    ActiveSkillNodePalette.asset
     ActiveSkillTree.asset
   Scenes/
     NewGameScene.unity
@@ -151,6 +153,7 @@ Assets/
         BranchPlacement.cs
         BranchPreviewSettings.cs
         BranchPreviewSettingsPersistence.cs
+        DefaultNodePaletteCreator.cs
         EditorAssetFolders.cs
         HudIconsImporter.cs
         LevelDatabaseBackgroundMigrator.cs
@@ -178,11 +181,15 @@ Assets/
         TeamBuilderTab.cs
     Items/  (empty)
     Data/
+      ActiveSkillNodePalettePointer.cs
+      ActiveSkillNodePaletteResolver.cs
       ActiveSkillTreePointer.cs
       ActiveSkillTreeResolver.cs
       DamageNumberConfig.cs
       LevelDataTypes.cs
       LevelDatabase.cs
+      NodeColorTag.cs
+      SkillNodePalette.cs
       SkillTreeData.cs
       SkillTreeGrid.cs
       SkillTreeProgress.cs
@@ -281,9 +288,11 @@ Assets/
       NewGameSceneBuilderTests.cs
       RecalculateFormationTests.cs
       ResetPlayerProgressMenuTests.cs
+      SkillNodePaletteTests.cs
       SkillTreeAssetIntegrityTests.cs
       SkillTreeDataAddNodeAddEdgeTests.cs
       SkillTreeDataCentralNodeTests.cs
+      SkillTreeDesignerColorTagTests.cs
       SkillTreeProgressTests.cs
       SkillTreeScreenBuilderTests.cs
       SkillTreeStateEvaluatorLockedTests.cs
@@ -346,9 +355,11 @@ Assets/
       SkillTreeDetailPanelControllerTests.cs
       SkillTreeEdgeLayerTests.cs
       SkillTreeLayoutTests.cs
+      SkillTreeNodeElementColorTagTests.cs
       SkillTreeNodeElementTests.cs
       SkillTreeNodeStateStylesTests.cs
       SkillTreePanZoomManipulatorTests.cs
+      SkillTreeScreenControllerColorTagTests.cs
       SkillTreeScreenControllerTests.cs
       StepProgressBarControllerTests.cs
       TeamRosterTests.cs
