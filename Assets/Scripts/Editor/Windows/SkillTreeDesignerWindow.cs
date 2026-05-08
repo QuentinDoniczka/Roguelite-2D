@@ -45,6 +45,7 @@ namespace RogueliteAutoBattler.Editor.Windows
         private static readonly Color MirrorPreviewTintColor = new Color(0f, 1f, 1f, 0.4f);
         private static readonly Color MirrorSourceRingColor = new Color(MirrorAccentRgb.r, MirrorAccentRgb.g, MirrorAccentRgb.b, 0.5f);
         private const float MirrorSourceRingThicknessMultiplier = 1.5f;
+        private static readonly Color AlignmentRadiusCircleColor = new Color(0.5f, 0.7f, 1f, 0.3f);
 
         private static readonly GUIContent LabelUnitSize = new GUIContent("Unit Size");
         private static readonly GUIContent LabelNodeSize = new GUIContent("Node Size");
@@ -80,6 +81,10 @@ namespace RogueliteAutoBattler.Editor.Windows
         private static readonly Color SnapGuideLineColor = new Color(0.4f, 0.85f, 1f, 0.7f);
         private const string SnapEnabledLabel = "Snap to Nearby Node";
         private const string SnapThresholdLabel = "Snap Threshold (units)";
+        private const string AlignmentRadiusLabel = "Alignment Radius (units)";
+        private const string AlignmentRadiusVisibleLabel = "Show Radius During Drag";
+        private const float MinAlignmentRadiusUnits = 0f;
+        private const float MaxAlignmentRadiusUnits = 20f;
 
         private const string SelectedAssetGuidEditorPrefKey = "SkillTreeDesigner.SelectedAssetGuid";
         private const string ActiveLabelPrefix = "Active: ";
@@ -475,25 +480,78 @@ namespace RogueliteAutoBattler.Editor.Windows
                     Handles.DrawWireDisc(new Vector3(mirrorScreen.x, mirrorScreen.y, 0f), Vector3.forward, halfNode);
                 }
             }
+            if (_dragState.IsActive
+                && _branchPreviewSettings.alignmentRadiusVisible
+                && _branchPreviewSettings.alignmentRadiusUnits > 0f
+                && _dragState.NodeIndex >= 0
+                && _dragState.NodeIndex < _data.Nodes.Count)
+            {
+                Vector2 nodePos = _data.Nodes[_dragState.NodeIndex].position;
+                Vector2 centerScreen = AlignmentOverlayGeometry.ComputeRadiusCircleCenterScreen(
+                    nodePos, origin, scaledUnit);
+                float radiusScreen = AlignmentOverlayGeometry.ComputeRadiusCircleScreenRadius(
+                    _branchPreviewSettings.alignmentRadiusUnits, _data.UnitSize, _canvasZoom);
+                Color prevCircleColor = Handles.color;
+                Handles.color = AlignmentRadiusCircleColor;
+                Handles.DrawWireDisc(centerScreen, Vector3.forward, radiusScreen);
+                Handles.color = prevCircleColor;
+            }
+
             if (_dragState.IsActive && _lastSnapResult.SnappedAxis != NodeSnapEngine.SnapAxis.None)
             {
                 Color prevColor = Handles.color;
                 Handles.color = SnapGuideLineColor;
-                if (_lastSnapResult.SnappedAxis == NodeSnapEngine.SnapAxis.X)
+                if (_lastSnapResult.SnappedAxis == NodeSnapEngine.SnapAxis.X
+                    || _lastSnapResult.SnappedAxis == NodeSnapEngine.SnapAxis.Y)
                 {
-                    float snapScreenX = origin.x + _data.Nodes[_lastSnapResult.TargetNodeIndex].position.x * scaledUnit;
+                    DrawAxisAlignedSnapGuide(
+                        _lastSnapResult.SnappedAxis,
+                        _data.Nodes[_lastSnapResult.TargetNodeIndex].position,
+                        origin,
+                        scaledUnit,
+                        canvasRect);
+                }
+                else if (_lastSnapResult.SnappedAxis == NodeSnapEngine.SnapAxis.LineCardinal)
+                {
+                    Vector2 targetPos = _data.Nodes[_lastSnapResult.TargetNodeIndex].position;
+                    Vector2 resolved = _lastSnapResult.ResolvedPosition;
+                    bool alignedOnX = Mathf.Abs(targetPos.x - resolved.x) < Mathf.Abs(targetPos.y - resolved.y);
+                    if (alignedOnX)
+                    {
+                        DrawVerticalSnapGuide(targetPos.x, origin, scaledUnit, canvasRect);
+                    }
+                    else
+                    {
+                        DrawHorizontalSnapGuide(targetPos.y, origin, scaledUnit, canvasRect);
+                    }
+                }
+                else if (_lastSnapResult.SnappedAxis == NodeSnapEngine.SnapAxis.LineCollinear
+                    && _lastSnapResult.SecondaryTargetNodeIndex >= 0)
+                {
+                    Vector2 primaryPos = _data.Nodes[_lastSnapResult.TargetNodeIndex].position;
+                    Vector2 secondaryPos = _data.Nodes[_lastSnapResult.SecondaryTargetNodeIndex].position;
+                    Vector2 primaryScreen = origin + primaryPos * scaledUnit;
+                    Vector2 secondaryScreen = origin + secondaryPos * scaledUnit;
+                    Vector2 lineDir = (secondaryScreen - primaryScreen).normalized;
+                    float halfSpan = Mathf.Max(canvasRect.width, canvasRect.height);
+                    Vector2 lineStart = primaryScreen - lineDir * halfSpan;
+                    Vector2 lineEnd = primaryScreen + lineDir * halfSpan;
                     Handles.DrawDottedLine(
-                        new Vector3(snapScreenX, 0f, 0f),
-                        new Vector3(snapScreenX, canvasRect.height, 0f),
+                        new Vector3(lineStart.x, lineStart.y, 0f),
+                        new Vector3(lineEnd.x, lineEnd.y, 0f),
                         BranchPreviewDottedSegmentSize);
                 }
-                else
+
+                if (_lastSnapResult.CrossAxis != NodeSnapEngine.SnapAxis.None
+                    && _lastSnapResult.CrossTargetNodeIndex >= 0
+                    && _lastSnapResult.CrossTargetNodeIndex < _data.Nodes.Count)
                 {
-                    float snapScreenY = origin.y + _data.Nodes[_lastSnapResult.TargetNodeIndex].position.y * scaledUnit;
-                    Handles.DrawDottedLine(
-                        new Vector3(0f, snapScreenY, 0f),
-                        new Vector3(canvasRect.width, snapScreenY, 0f),
-                        BranchPreviewDottedSegmentSize);
+                    DrawAxisAlignedSnapGuide(
+                        _lastSnapResult.CrossAxis,
+                        _data.Nodes[_lastSnapResult.CrossTargetNodeIndex].position,
+                        origin,
+                        scaledUnit,
+                        canvasRect);
                 }
                 Handles.color = prevColor;
             }
@@ -516,6 +574,32 @@ namespace RogueliteAutoBattler.Editor.Windows
             float startY = origin.y % spacing;
             for (float y = startY; y < canvasRect.height; y += spacing)
                 EditorGUI.DrawRect(new Rect(0, y, canvasRect.width, 1), GridLineColor);
+        }
+
+        private void DrawAxisAlignedSnapGuide(NodeSnapEngine.SnapAxis axis, Vector2 nodePos, Vector2 origin, float scaledUnit, Rect canvasRect)
+        {
+            if (axis == NodeSnapEngine.SnapAxis.X)
+                DrawVerticalSnapGuide(nodePos.x, origin, scaledUnit, canvasRect);
+            else if (axis == NodeSnapEngine.SnapAxis.Y)
+                DrawHorizontalSnapGuide(nodePos.y, origin, scaledUnit, canvasRect);
+        }
+
+        private void DrawVerticalSnapGuide(float worldX, Vector2 origin, float scaledUnit, Rect canvasRect)
+        {
+            float snapScreenX = origin.x + worldX * scaledUnit;
+            Handles.DrawDottedLine(
+                new Vector3(snapScreenX, 0f, 0f),
+                new Vector3(snapScreenX, canvasRect.height, 0f),
+                BranchPreviewDottedSegmentSize);
+        }
+
+        private void DrawHorizontalSnapGuide(float worldY, Vector2 origin, float scaledUnit, Rect canvasRect)
+        {
+            float snapScreenY = origin.y + worldY * scaledUnit;
+            Handles.DrawDottedLine(
+                new Vector3(0f, snapScreenY, 0f),
+                new Vector3(canvasRect.width, snapScreenY, 0f),
+                BranchPreviewDottedSegmentSize);
         }
 
         // TODO #283 follow-up: extract NodeDragOrchestrator owning _dragState/_pendingDrag* /_lastSnapResult
@@ -607,7 +691,7 @@ namespace RogueliteAutoBattler.Editor.Windows
                     var draggedNode = _data.Nodes[_dragState.NodeIndex];
                     bool snapAllowed = draggedNode.snapEnabled && !evt.shift;
                     _lastSnapResult = snapAllowed
-                        ? NodeSnapEngine.Resolve(rawNewPos, _dragState.NodeIndex, _data.Nodes, draggedNode.snapThresholdUnits)
+                        ? NodeSnapEngine.Resolve(rawNewPos, _dragState.NodeIndex, _data.Nodes, draggedNode.snapThresholdUnits, _branchPreviewSettings.alignmentRadiusUnits, _lastSnapResult)
                         : NodeSnapEngine.SnapResult.NoSnap(rawNewPos);
 
                     var updated = _data.Nodes[_dragState.NodeIndex];
@@ -739,6 +823,26 @@ namespace RogueliteAutoBattler.Editor.Windows
             EditorGUILayout.LabelField("Edge Settings", EditorStyles.boldLabel);
             EditorGUILayout.PropertyField(_propEdgeColor, LabelEdgeColor);
             EditorGUILayout.PropertyField(_propEdgeThickness, LabelEdgeThickness);
+
+            EditorGUILayout.Space(SectionSpacingMedium);
+            EditorGUILayout.LabelField("Multi-Node Alignment", EditorStyles.boldLabel);
+
+            EditorGUI.BeginChangeCheck();
+            float newRadius = EditorGUILayout.Slider(
+                AlignmentRadiusLabel,
+                _branchPreviewSettings.alignmentRadiusUnits,
+                MinAlignmentRadiusUnits,
+                MaxAlignmentRadiusUnits);
+            bool newVisible = EditorGUILayout.Toggle(
+                AlignmentRadiusVisibleLabel,
+                _branchPreviewSettings.alignmentRadiusVisible);
+            if (EditorGUI.EndChangeCheck())
+            {
+                _branchPreviewSettings.alignmentRadiusUnits = newRadius;
+                _branchPreviewSettings.alignmentRadiusVisible = newVisible;
+                BranchPreviewSettingsPersistence.Save(_branchPreviewSettings);
+                Repaint();
+            }
 
             EditorGUILayout.Space(SectionSpacingLarge);
 

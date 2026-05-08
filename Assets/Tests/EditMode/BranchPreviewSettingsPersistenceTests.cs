@@ -37,6 +37,8 @@ namespace RogueliteAutoBattler.Tests.EditMode
             EditorPrefs.DeleteKey(BranchPreviewSettingsPersistence.DistanceKey);
             EditorPrefs.DeleteKey(BranchPreviewSettingsPersistence.AngleKey);
             EditorPrefs.DeleteKey(BranchPreviewSettingsPersistence.MirrorEnabledKey);
+            EditorPrefs.DeleteKey(BranchPreviewSettingsPersistence.AlignmentRadiusKey);
+            EditorPrefs.DeleteKey(BranchPreviewSettingsPersistence.AlignmentRadiusVisibleKey);
             EditorPrefs.DeleteKey(MirrorAxisPersistence.EditorPrefKey);
         }
 
@@ -128,6 +130,32 @@ namespace RogueliteAutoBattler.Tests.EditMode
 
             float mirrorAxis = EditorPrefs.GetFloat(MirrorAxisPersistence.EditorPrefKey);
             Assert.That(mirrorAxis, Is.EqualTo(SentinelMirrorAxisDegrees).Within(Tolerance));
+        }
+
+        [Test]
+        public void SaveThenLoad_AlignmentRadiusFields_RoundTrip()
+        {
+            var settings = BranchPreviewSettings.Defaults;
+            settings.alignmentRadiusUnits = 3.5f;
+            settings.alignmentRadiusVisible = true;
+
+            BranchPreviewSettingsPersistence.Save(settings);
+            BranchPreviewSettings result = BranchPreviewSettingsPersistence.Load();
+
+            Assert.That(result.alignmentRadiusUnits, Is.EqualTo(3.5f).Within(Tolerance));
+            Assert.That(result.alignmentRadiusVisible, Is.True);
+        }
+
+        [Test]
+        public void Load_KeysAbsent_ReturnsAlignmentDefaults()
+        {
+            EditorPrefs.DeleteKey(BranchPreviewSettingsPersistence.AlignmentRadiusKey);
+            EditorPrefs.DeleteKey(BranchPreviewSettingsPersistence.AlignmentRadiusVisibleKey);
+
+            BranchPreviewSettings result = BranchPreviewSettingsPersistence.Load();
+
+            Assert.That(result.alignmentRadiusUnits, Is.EqualTo(6f).Within(Tolerance));
+            Assert.That(result.alignmentRadiusVisible, Is.False);
         }
 
         [Test]

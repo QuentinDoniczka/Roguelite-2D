@@ -147,6 +147,7 @@ Assets/
         SkillTreeScreenBuilder.cs
         WalletsBuilder.cs
       Tools/
+        AlignmentOverlayGeometry.cs
         BranchPlacement.cs
         BranchPreviewSettings.cs
         BranchPreviewSettingsPersistence.cs
@@ -235,6 +236,7 @@ Assets/
       Tests.EditMode.asmdef
       TestUtils/
         StubScreen.cs
+      AlignmentOverlayGeometryTests.cs
       AllyStatBonusServiceResolverTests.cs
       AttackSlotRegistryTests.cs
       BranchPlacementDefaultAngleTests.cs
@@ -251,6 +253,7 @@ Assets/
       NavBarIconsTests.cs
       NodeConnectionsInspectorTests.cs
       NodeDragControllerTests.cs
+      NodeSnapEngineAlignmentTests.cs
       NodeSnapEngineTests.cs
       SkillTreeDataSnapNormalizationTests.cs
       SkillTreeDesignerBranchTests.cs
