@@ -78,6 +78,8 @@ namespace RogueliteAutoBattler.Editor.Windows
         private const float CoordLabelOffsetYPixels = 8f;
         private const float CoordLabelWidthPixels = 120f;
         private const float CoordLabelHeightPixels = 16f;
+        private const float ColorSwatchWidth = 24f;
+        private const float ColorSwatchHeight = 18f;
         private static readonly Color SnapGuideLineColor = new Color(0.4f, 0.85f, 1f, 0.7f);
         private const string SnapEnabledLabel = "Snap to Nearby Node";
         private const string SnapThresholdLabel = "Snap Threshold (units)";
@@ -946,7 +948,7 @@ namespace RogueliteAutoBattler.Editor.Windows
             using (new EditorGUILayout.HorizontalScope())
             {
                 newColorTag = (NodeColorTag)EditorGUILayout.EnumPopup("Tag", node.colorTag);
-                var swatchRect = GUILayoutUtility.GetRect(24f, 18f, GUILayout.Width(24f));
+                var swatchRect = GUILayoutUtility.GetRect(ColorSwatchWidth, ColorSwatchHeight, GUILayout.Width(ColorSwatchWidth));
                 var swatchColor = palette != null ? palette.GetColor(newColorTag) : Color.white;
                 EditorGUI.DrawRect(swatchRect, swatchColor);
             }
