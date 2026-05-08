@@ -911,6 +911,7 @@ namespace RogueliteAutoBattler.Editor.Windows
             EditorGUILayout.Space(SectionSpacingSmall);
 
             var node = _data.Nodes[_selectedNodeIndex];
+            var palette = ActiveSkillNodePaletteResolver.GetActive();
 
             EditorGUI.BeginChangeCheck();
 
@@ -935,6 +936,17 @@ namespace RogueliteAutoBattler.Editor.Windows
             if (newStatModMode == SkillTreeData.StatModifierMode.Percent)
                 EditorGUILayout.HelpBox("Stored as percent (5 = +5%)", MessageType.Info);
 
+            EditorGUILayout.Space(SectionSpacingSmall);
+            EditorGUILayout.LabelField("Color Tag", EditorStyles.boldLabel);
+            NodeColorTag newColorTag;
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                newColorTag = (NodeColorTag)EditorGUILayout.EnumPopup("Tag", node.colorTag);
+                var swatchRect = GUILayoutUtility.GetRect(24f, 18f, GUILayout.Width(24f));
+                var swatchColor = palette != null ? palette.GetColor(newColorTag) : Color.white;
+                EditorGUI.DrawRect(swatchRect, swatchColor);
+            }
+
             if (EditorGUI.EndChangeCheck())
             {
                 var updated = node;
@@ -947,6 +959,7 @@ namespace RogueliteAutoBattler.Editor.Windows
                 updated.statModifierType = newStatModType;
                 updated.statModifierMode = newStatModMode;
                 updated.statModifierValuePerLevel = newStatModValue;
+                updated.colorTag = newColorTag;
 
                 _data.SetNode(_selectedNodeIndex, updated);
                 EditorUtility.SetDirty(_data);
