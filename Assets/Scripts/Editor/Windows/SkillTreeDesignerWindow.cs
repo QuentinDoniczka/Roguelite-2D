@@ -157,6 +157,7 @@ namespace RogueliteAutoBattler.Editor.Windows
         private string _lastMirrorWarning;
         private bool _connectionsFoldoutOpen = true;
         private readonly List<NodeConnectionsInspector.ConnectionRow> _connectionsBuffer = new List<NodeConnectionsInspector.ConnectionRow>();
+        private SkillNodePalette _cachedNodePalette;
 
         private static void LogError(string message)
         {
@@ -190,6 +191,7 @@ namespace RogueliteAutoBattler.Editor.Windows
             _lastBranchPreviewSettings = BranchPreviewSettingsPersistence.Load();
             MirrorAxisPersistence.ApplyTo(ref _lastBranchPreviewSettings);
             _branchPreviewSettings = _lastBranchPreviewSettings;
+            _cachedNodePalette = ActiveSkillNodePaletteResolver.GetActive();
         }
 
         private void RefreshTreeList()
@@ -911,7 +913,9 @@ namespace RogueliteAutoBattler.Editor.Windows
             EditorGUILayout.Space(SectionSpacingSmall);
 
             var node = _data.Nodes[_selectedNodeIndex];
-            var palette = ActiveSkillNodePaletteResolver.GetActive();
+            if (_cachedNodePalette == null)
+                _cachedNodePalette = ActiveSkillNodePaletteResolver.GetActive();
+            var palette = _cachedNodePalette;
 
             EditorGUI.BeginChangeCheck();
 

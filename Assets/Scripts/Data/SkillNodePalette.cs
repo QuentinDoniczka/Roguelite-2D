@@ -9,7 +9,7 @@ namespace RogueliteAutoBattler.Data
     {
         internal static class FieldNames
         {
-            public const string Entries = nameof(entries);
+            internal const string Entries = nameof(entries);
         }
 
         [Serializable]

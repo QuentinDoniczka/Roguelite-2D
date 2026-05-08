@@ -26,7 +26,6 @@ namespace RogueliteAutoBattler.Editor.Tools
             {
                 Debug.LogWarning($"{LogTag} Palette already exists at {PalettePath}; selecting existing asset.");
                 palette = existingPalette;
-                Selection.activeObject = palette;
             }
             else
             {

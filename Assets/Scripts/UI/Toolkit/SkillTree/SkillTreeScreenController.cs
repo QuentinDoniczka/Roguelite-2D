@@ -149,12 +149,13 @@ namespace RogueliteAutoBattler.UI.Toolkit.SkillTree
         {
             nodesLayer.Clear();
             _nodeElements.Clear();
+            bool hasPalette = _palette != null;
             for (var i = 0; i < _data.Nodes.Count; i++)
             {
                 var node = _data.Nodes[i];
                 var nodeElement = new SkillTreeNodeElement(i);
                 nodeElement.SetDataPosition(node.position, UnitToPixelScale);
-                var color = _palette != null ? _palette.GetColor(node.colorTag) : Color.white;
+                var color = hasPalette ? _palette.GetColor(node.colorTag) : Color.white;
                 nodeElement.SetColorTag(color);
                 nodeElement.Clicked += HandleNodeClicked;
                 nodesLayer.Add(nodeElement);
