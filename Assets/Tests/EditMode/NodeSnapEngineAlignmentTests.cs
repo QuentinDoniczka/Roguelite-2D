@@ -344,5 +344,80 @@ namespace RogueliteAutoBattler.Tests.EditMode
             Assert.That(result.CrossAxis, Is.EqualTo(NodeSnapEngine.SnapAxis.None));
             Assert.That(result.CrossTargetNodeIndex, Is.EqualTo(-1));
         }
+
+        [Test]
+        public void Resolve_6Arg_CrossSnap_HeldAxisYAndCardinalX_LocksToIntersection()
+        {
+            var nodes = new List<SkillTreeData.SkillNodeEntry>
+            {
+                MakeNode(0, new Vector2(50f, 50f)),
+                MakeNode(1, new Vector2(0f, 3f)),
+                MakeNode(2, new Vector2(5f, 8f))
+            };
+            Vector2 previousResolvedOnYAxisOfNodeA = new Vector2(3f, 3f);
+            var previousSnap = new NodeSnapEngine.SnapResult(
+                previousResolvedOnYAxisOfNodeA, NodeSnapEngine.SnapAxis.Y, 1);
+            Vector2 candidate = new Vector2(4.96f, 3.05f);
+
+            var result = NodeSnapEngine.Resolve(candidate, 0, nodes, 0.25f, 6f, previousSnap);
+
+            Assert.That(result.SnappedAxis, Is.EqualTo(NodeSnapEngine.SnapAxis.Y));
+            Assert.That(result.TargetNodeIndex, Is.EqualTo(1));
+            Assert.That(result.CrossAxis, Is.EqualTo(NodeSnapEngine.SnapAxis.X));
+            Assert.That(result.CrossTargetNodeIndex, Is.EqualTo(2));
+            Assert.That(result.ResolvedPosition.x, Is.EqualTo(5f).Within(Tolerance));
+            Assert.That(result.ResolvedPosition.y, Is.EqualTo(3f).Within(Tolerance));
+        }
+
+        [Test]
+        public void Resolve_6Arg_CrossSnap_HeldLineCardinalAndCrossY_LocksToIntersection()
+        {
+            var nodes = new List<SkillTreeData.SkillNodeEntry>
+            {
+                MakeNode(0, new Vector2(50f, 50f)),
+                MakeNode(1, new Vector2(2f, 0f)),
+                MakeNode(2, new Vector2(2f, 4f)),
+                MakeNode(3, new Vector2(8f, 5f))
+            };
+            Vector2 previousResolvedOnVerticalLineOfNodeA = new Vector2(2f, 3f);
+            var previousSnap = new NodeSnapEngine.SnapResult(
+                previousResolvedOnVerticalLineOfNodeA, NodeSnapEngine.SnapAxis.LineCardinal, 1);
+            Vector2 candidate = new Vector2(2.05f, 4.96f);
+
+            var result = NodeSnapEngine.Resolve(candidate, 0, nodes, 0.25f, 6f, previousSnap);
+
+            Assert.That(result.SnappedAxis, Is.EqualTo(NodeSnapEngine.SnapAxis.LineCardinal));
+            Assert.That(result.TargetNodeIndex, Is.EqualTo(1));
+            Assert.That(result.CrossAxis, Is.EqualTo(NodeSnapEngine.SnapAxis.Y));
+            Assert.That(result.CrossTargetNodeIndex, Is.EqualTo(3));
+            Assert.That(result.ResolvedPosition.x, Is.EqualTo(2f).Within(Tolerance));
+            Assert.That(result.ResolvedPosition.y, Is.EqualTo(5f).Within(Tolerance));
+        }
+
+        [Test]
+        public void Resolve_6Arg_CrossSnap_HeldLineCollinearDiagonalAndCardinalY_LocksToIntersection()
+        {
+            var nodes = new List<SkillTreeData.SkillNodeEntry>
+            {
+                MakeNode(0, new Vector2(50f, 50f)),
+                MakeNode(1, new Vector2(0f, 0f)),
+                MakeNode(2, new Vector2(4f, 4f)),
+                MakeNode(3, new Vector2(7f, 2f))
+            };
+            Vector2 previousResolvedOnDiagonalNearMidpoint = new Vector2(1.95f, 1.95f);
+            var previousSnap = new NodeSnapEngine.SnapResult(
+                previousResolvedOnDiagonalNearMidpoint, NodeSnapEngine.SnapAxis.LineCollinear, 1, 2);
+            Vector2 candidate = new Vector2(1.96f, 2.04f);
+
+            var result = NodeSnapEngine.Resolve(candidate, 0, nodes, 0.25f, 6f, previousSnap);
+
+            Assert.That(result.SnappedAxis, Is.EqualTo(NodeSnapEngine.SnapAxis.LineCollinear));
+            Assert.That(result.TargetNodeIndex, Is.EqualTo(1));
+            Assert.That(result.SecondaryTargetNodeIndex, Is.EqualTo(2));
+            Assert.That(result.CrossAxis, Is.EqualTo(NodeSnapEngine.SnapAxis.Y));
+            Assert.That(result.CrossTargetNodeIndex, Is.EqualTo(3));
+            Assert.That(result.ResolvedPosition.x, Is.EqualTo(2f).Within(Tolerance));
+            Assert.That(result.ResolvedPosition.y, Is.EqualTo(2f).Within(Tolerance));
+        }
     }
 }

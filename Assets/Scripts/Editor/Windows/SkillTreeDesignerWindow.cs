@@ -501,13 +501,15 @@ namespace RogueliteAutoBattler.Editor.Windows
             {
                 Color prevColor = Handles.color;
                 Handles.color = SnapGuideLineColor;
-                if (_lastSnapResult.SnappedAxis == NodeSnapEngine.SnapAxis.X)
+                if (_lastSnapResult.SnappedAxis == NodeSnapEngine.SnapAxis.X
+                    || _lastSnapResult.SnappedAxis == NodeSnapEngine.SnapAxis.Y)
                 {
-                    DrawVerticalSnapGuide(_data.Nodes[_lastSnapResult.TargetNodeIndex].position.x, origin, scaledUnit, canvasRect);
-                }
-                else if (_lastSnapResult.SnappedAxis == NodeSnapEngine.SnapAxis.Y)
-                {
-                    DrawHorizontalSnapGuide(_data.Nodes[_lastSnapResult.TargetNodeIndex].position.y, origin, scaledUnit, canvasRect);
+                    DrawAxisAlignedSnapGuide(
+                        _lastSnapResult.SnappedAxis,
+                        _data.Nodes[_lastSnapResult.TargetNodeIndex].position,
+                        origin,
+                        scaledUnit,
+                        canvasRect);
                 }
                 else if (_lastSnapResult.SnappedAxis == NodeSnapEngine.SnapAxis.LineCardinal)
                 {
@@ -544,11 +546,12 @@ namespace RogueliteAutoBattler.Editor.Windows
                     && _lastSnapResult.CrossTargetNodeIndex >= 0
                     && _lastSnapResult.CrossTargetNodeIndex < _data.Nodes.Count)
                 {
-                    Vector2 crossPos = _data.Nodes[_lastSnapResult.CrossTargetNodeIndex].position;
-                    if (_lastSnapResult.CrossAxis == NodeSnapEngine.SnapAxis.X)
-                        DrawVerticalSnapGuide(crossPos.x, origin, scaledUnit, canvasRect);
-                    else if (_lastSnapResult.CrossAxis == NodeSnapEngine.SnapAxis.Y)
-                        DrawHorizontalSnapGuide(crossPos.y, origin, scaledUnit, canvasRect);
+                    DrawAxisAlignedSnapGuide(
+                        _lastSnapResult.CrossAxis,
+                        _data.Nodes[_lastSnapResult.CrossTargetNodeIndex].position,
+                        origin,
+                        scaledUnit,
+                        canvasRect);
                 }
                 Handles.color = prevColor;
             }
@@ -571,6 +574,14 @@ namespace RogueliteAutoBattler.Editor.Windows
             float startY = origin.y % spacing;
             for (float y = startY; y < canvasRect.height; y += spacing)
                 EditorGUI.DrawRect(new Rect(0, y, canvasRect.width, 1), GridLineColor);
+        }
+
+        private void DrawAxisAlignedSnapGuide(NodeSnapEngine.SnapAxis axis, Vector2 nodePos, Vector2 origin, float scaledUnit, Rect canvasRect)
+        {
+            if (axis == NodeSnapEngine.SnapAxis.X)
+                DrawVerticalSnapGuide(nodePos.x, origin, scaledUnit, canvasRect);
+            else if (axis == NodeSnapEngine.SnapAxis.Y)
+                DrawHorizontalSnapGuide(nodePos.y, origin, scaledUnit, canvasRect);
         }
 
         private void DrawVerticalSnapGuide(float worldX, Vector2 origin, float scaledUnit, Rect canvasRect)
