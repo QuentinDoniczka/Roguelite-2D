@@ -40,7 +40,7 @@ MonoBehaviour:
     statModifierValuePerLevel: 0
     snapEnabled: 1
     snapThresholdUnits: 0.25
-    colorTag: 8
+    colorTag: 1
   - id: 1
     position: {x: 0, y: -5.71}
     connectedNodeIds: 02000000
