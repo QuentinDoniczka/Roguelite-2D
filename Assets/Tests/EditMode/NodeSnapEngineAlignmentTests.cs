@@ -123,8 +123,9 @@ namespace RogueliteAutoBattler.Tests.EditMode
                 MakeNode(1, new Vector2(3f, 0f)),
                 MakeNode(2, new Vector2(3.05f, 5f))
             };
+            Vector2 previousResolvedOnXAxisOfNodeA = new Vector2(3f, 2f);
             var previousSnap = new NodeSnapEngine.SnapResult(
-                new Vector2(3f, 2f), NodeSnapEngine.SnapAxis.X, 1);
+                previousResolvedOnXAxisOfNodeA, NodeSnapEngine.SnapAxis.X, 1);
             Vector2 candidate = new Vector2(3.06f, 4f);
 
             var result = NodeSnapEngine.Resolve(candidate, 0, nodes, 0.25f, 6f, previousSnap);
@@ -143,8 +144,9 @@ namespace RogueliteAutoBattler.Tests.EditMode
                 MakeNode(0, new Vector2(50f, 50f)),
                 MakeNode(1, new Vector2(3f, 0f))
             };
+            Vector2 previousResolvedOnXAxisOfNodeA = new Vector2(3f, 2f);
             var previousSnap = new NodeSnapEngine.SnapResult(
-                new Vector2(3f, 2f), NodeSnapEngine.SnapAxis.X, 1);
+                previousResolvedOnXAxisOfNodeA, NodeSnapEngine.SnapAxis.X, 1);
             Vector2 candidate = new Vector2(3.5f, 2f);
 
             var result = NodeSnapEngine.Resolve(candidate, 0, nodes, 0.25f, 6f, previousSnap);
@@ -162,8 +164,9 @@ namespace RogueliteAutoBattler.Tests.EditMode
                 MakeNode(2, new Vector2(4f, 4f)),
                 MakeNode(3, new Vector2(2.05f, 5f))
             };
+            Vector2 previousResolvedOnSegmentOfNodesAandB = new Vector2(2f, 2f);
             var previousSnap = new NodeSnapEngine.SnapResult(
-                new Vector2(2f, 2f), NodeSnapEngine.SnapAxis.LineCollinear, 1, 2);
+                previousResolvedOnSegmentOfNodesAandB, NodeSnapEngine.SnapAxis.LineCollinear, 1, 2);
             Vector2 candidate = new Vector2(2.05f, 1.95f);
 
             var result = NodeSnapEngine.Resolve(candidate, 0, nodes, 0.25f, 6f, previousSnap);
@@ -188,6 +191,68 @@ namespace RogueliteAutoBattler.Tests.EditMode
 
             Assert.That(result.SnappedAxis, Is.EqualTo(NodeSnapEngine.SnapAxis.X));
             Assert.That(result.ResolvedPosition.x, Is.EqualTo(3.05f).Within(Tolerance));
+        }
+
+        [Test]
+        public void Resolve_6Arg_HoldsPreviousAxisY_WhenSlidingAlongAndAnotherNodeIsCloserOnY()
+        {
+            var nodes = new List<SkillTreeData.SkillNodeEntry>
+            {
+                MakeNode(0, new Vector2(50f, 50f)),
+                MakeNode(1, new Vector2(0f, 3f)),
+                MakeNode(2, new Vector2(5f, 3.05f))
+            };
+            Vector2 previousResolvedOnYAxisOfNodeA = new Vector2(2f, 3f);
+            var previousSnap = new NodeSnapEngine.SnapResult(
+                previousResolvedOnYAxisOfNodeA, NodeSnapEngine.SnapAxis.Y, 1);
+            Vector2 candidate = new Vector2(4f, 3.06f);
+
+            var result = NodeSnapEngine.Resolve(candidate, 0, nodes, 0.25f, 6f, previousSnap);
+
+            Assert.That(result.SnappedAxis, Is.EqualTo(NodeSnapEngine.SnapAxis.Y));
+            Assert.That(result.TargetNodeIndex, Is.EqualTo(1));
+            Assert.That(result.ResolvedPosition.x, Is.EqualTo(4f).Within(Tolerance));
+            Assert.That(result.ResolvedPosition.y, Is.EqualTo(3f).Within(Tolerance));
+        }
+
+        [Test]
+        public void Resolve_6Arg_HoldsPreviousLineCardinal_WhenAnotherTier1IsCloser()
+        {
+            var nodes = new List<SkillTreeData.SkillNodeEntry>
+            {
+                MakeNode(0, new Vector2(50f, 50f)),
+                MakeNode(1, new Vector2(3f, 0f)),
+                MakeNode(2, new Vector2(3.02f, 5f))
+            };
+            Vector2 previousResolvedOnHorizontalLineOfNodeA = new Vector2(3f, 4f);
+            var previousSnap = new NodeSnapEngine.SnapResult(
+                previousResolvedOnHorizontalLineOfNodeA, NodeSnapEngine.SnapAxis.LineCardinal, 1);
+            Vector2 candidate = new Vector2(3.05f, 4.5f);
+
+            var result = NodeSnapEngine.Resolve(candidate, 0, nodes, 0.25f, 6f, previousSnap);
+
+            Assert.That(result.SnappedAxis, Is.EqualTo(NodeSnapEngine.SnapAxis.LineCardinal));
+            Assert.That(result.TargetNodeIndex, Is.EqualTo(1));
+            Assert.That(result.ResolvedPosition.x, Is.EqualTo(3f).Within(Tolerance));
+        }
+
+        [Test]
+        public void Resolve_6Arg_ReleasesLineCollinear_WhenPerpResidualLeavesThreshold()
+        {
+            var nodes = new List<SkillTreeData.SkillNodeEntry>
+            {
+                MakeNode(0, new Vector2(50f, 50f)),
+                MakeNode(1, new Vector2(0f, 0f)),
+                MakeNode(2, new Vector2(4f, 4f))
+            };
+            Vector2 previousResolvedOnSegmentOfNodesAandB = new Vector2(2f, 2f);
+            var previousSnap = new NodeSnapEngine.SnapResult(
+                previousResolvedOnSegmentOfNodesAandB, NodeSnapEngine.SnapAxis.LineCollinear, 1, 2);
+            Vector2 candidate = new Vector2(2.5f, 1.5f);
+
+            var result = NodeSnapEngine.Resolve(candidate, 0, nodes, 0.25f, 6f, previousSnap);
+
+            Assert.That(result.SnappedAxis, Is.Not.EqualTo(NodeSnapEngine.SnapAxis.LineCollinear));
         }
     }
 }

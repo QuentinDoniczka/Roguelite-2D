@@ -108,6 +108,8 @@ namespace RogueliteAutoBattler.Editor.Tools
             return Resolve(candidate, draggedNodeIndex, nodes, legacyThresholdUnits, alignmentRadiusUnits);
         }
 
+        private static bool IsWithinThreshold(float residual, float threshold) => residual < threshold;
+
         private static bool TryHoldPreviousSnap(
             Vector2 candidate,
             int draggedNodeIndex,
@@ -131,65 +133,129 @@ namespace RogueliteAutoBattler.Editor.Tools
                 if (secondaryIndex == draggedNodeIndex) return false;
             }
 
-            Vector2 targetPos = nodes[targetIndex].position;
-
             switch (previousSnap.SnappedAxis)
             {
                 case SnapAxis.X:
-                {
-                    if (Mathf.Abs(candidate.x - targetPos.x) >= legacyThresholdUnits) return false;
-                    heldResult = new SnapResult(new Vector2(targetPos.x, candidate.y), SnapAxis.X, targetIndex);
-                    return true;
-                }
+                    return TryHoldAxisX(candidate, nodes, legacyThresholdUnits, previousSnap, out heldResult);
                 case SnapAxis.Y:
-                {
-                    if (Mathf.Abs(candidate.y - targetPos.y) >= legacyThresholdUnits) return false;
-                    heldResult = new SnapResult(new Vector2(candidate.x, targetPos.y), SnapAxis.Y, targetIndex);
-                    return true;
-                }
+                    return TryHoldAxisY(candidate, nodes, legacyThresholdUnits, previousSnap, out heldResult);
                 case SnapAxis.LineCardinal:
-                {
-                    bool previousAxisIsX = Mathf.Abs(targetPos.x - previousSnap.ResolvedPosition.x)
-                                           <= Mathf.Abs(targetPos.y - previousSnap.ResolvedPosition.y);
-                    float residual = previousAxisIsX
-                        ? Mathf.Abs(candidate.x - targetPos.x)
-                        : Mathf.Abs(candidate.y - targetPos.y);
-                    if (residual >= legacyThresholdUnits) return false;
-                    Vector2 resolvedRaw = previousAxisIsX
-                        ? new Vector2(targetPos.x, candidate.y)
-                        : new Vector2(candidate.x, targetPos.y);
-                    heldResult = new SnapResult(SkillTreeGrid.Quantize(resolvedRaw), SnapAxis.LineCardinal, targetIndex, -1);
-                    return true;
-                }
+                    return TryHoldLineCardinal(candidate, nodes, legacyThresholdUnits, previousSnap, out heldResult);
                 case SnapAxis.LineCollinear:
-                {
-                    Vector2 pa = targetPos;
-                    Vector2 pb = nodes[previousSnap.SecondaryTargetNodeIndex].position;
-                    Vector2 ab = pb - pa;
-                    float abLengthSqr = ab.x * ab.x + ab.y * ab.y;
-                    if (abLengthSqr <= Mathf.Epsilon) return false;
-
-                    Vector2 ac = candidate - pa;
-                    float t = (ac.x * ab.x + ac.y * ab.y) / abLengthSqr;
-                    Vector2 foot = pa + ab * t;
-                    float fx = candidate.x - foot.x;
-                    float fy = candidate.y - foot.y;
-                    float perpResidual = Mathf.Sqrt(fx * fx + fy * fy);
-                    if (perpResidual >= legacyThresholdUnits) return false;
-
-                    Vector2 midpoint = (pa + pb) * 0.5f;
-                    float midpointDistance = Vector2.Distance(candidate, midpoint);
-                    Vector2 resolvedRaw = midpointDistance < legacyThresholdUnits ? midpoint : foot;
-                    heldResult = new SnapResult(
-                        SkillTreeGrid.Quantize(resolvedRaw),
-                        SnapAxis.LineCollinear,
-                        targetIndex,
-                        previousSnap.SecondaryTargetNodeIndex);
-                    return true;
-                }
+                    return TryHoldLineCollinear(candidate, nodes, legacyThresholdUnits, previousSnap, out heldResult);
                 default:
                     return false;
             }
+        }
+
+        private static bool TryHoldAxisX(
+            Vector2 candidate,
+            IReadOnlyList<SkillTreeData.SkillNodeEntry> nodes,
+            float legacyThresholdUnits,
+            SnapResult previousSnap,
+            out SnapResult heldResult)
+        {
+            heldResult = SnapResult.NoSnap(candidate);
+            int targetIndex = previousSnap.TargetNodeIndex;
+            Vector2 targetPos = nodes[targetIndex].position;
+            if (!IsWithinThreshold(Mathf.Abs(candidate.x - targetPos.x), legacyThresholdUnits)) return false;
+            heldResult = new SnapResult(new Vector2(targetPos.x, candidate.y), SnapAxis.X, targetIndex);
+            return true;
+        }
+
+        private static bool TryHoldAxisY(
+            Vector2 candidate,
+            IReadOnlyList<SkillTreeData.SkillNodeEntry> nodes,
+            float legacyThresholdUnits,
+            SnapResult previousSnap,
+            out SnapResult heldResult)
+        {
+            heldResult = SnapResult.NoSnap(candidate);
+            int targetIndex = previousSnap.TargetNodeIndex;
+            Vector2 targetPos = nodes[targetIndex].position;
+            if (!IsWithinThreshold(Mathf.Abs(candidate.y - targetPos.y), legacyThresholdUnits)) return false;
+            heldResult = new SnapResult(new Vector2(candidate.x, targetPos.y), SnapAxis.Y, targetIndex);
+            return true;
+        }
+
+        private static bool TryHoldLineCardinal(
+            Vector2 candidate,
+            IReadOnlyList<SkillTreeData.SkillNodeEntry> nodes,
+            float legacyThresholdUnits,
+            SnapResult previousSnap,
+            out SnapResult heldResult)
+        {
+            heldResult = SnapResult.NoSnap(candidate);
+            int targetIndex = previousSnap.TargetNodeIndex;
+            Vector2 targetPos = nodes[targetIndex].position;
+
+            float horizontalDelta = Mathf.Abs(targetPos.x - previousSnap.ResolvedPosition.x);
+            float verticalDelta = Mathf.Abs(targetPos.y - previousSnap.ResolvedPosition.y);
+            bool previousLockedHorizontalAxis = horizontalDelta <= verticalDelta;
+
+            float residual = previousLockedHorizontalAxis
+                ? Mathf.Abs(candidate.x - targetPos.x)
+                : Mathf.Abs(candidate.y - targetPos.y);
+            if (!IsWithinThreshold(residual, legacyThresholdUnits)) return false;
+
+            Vector2 resolvedRaw = previousLockedHorizontalAxis
+                ? new Vector2(targetPos.x, candidate.y)
+                : new Vector2(candidate.x, targetPos.y);
+            heldResult = new SnapResult(SkillTreeGrid.Quantize(resolvedRaw), SnapAxis.LineCardinal, targetIndex, -1);
+            return true;
+        }
+
+        private static bool TryHoldLineCollinear(
+            Vector2 candidate,
+            IReadOnlyList<SkillTreeData.SkillNodeEntry> nodes,
+            float legacyThresholdUnits,
+            SnapResult previousSnap,
+            out SnapResult heldResult)
+        {
+            heldResult = SnapResult.NoSnap(candidate);
+            int targetIndex = previousSnap.TargetNodeIndex;
+            int secondaryIndex = previousSnap.SecondaryTargetNodeIndex;
+            Vector2 pa = nodes[targetIndex].position;
+            Vector2 pb = nodes[secondaryIndex].position;
+
+            if (!TryProjectCandidateOntoSegment(candidate, pa, pb, legacyThresholdUnits, out var resolvedRaw, out float perpResidual))
+                return false;
+            if (!IsWithinThreshold(perpResidual, legacyThresholdUnits)) return false;
+
+            heldResult = new SnapResult(
+                SkillTreeGrid.Quantize(resolvedRaw),
+                SnapAxis.LineCollinear,
+                targetIndex,
+                secondaryIndex);
+            return true;
+        }
+
+        private static bool TryProjectCandidateOntoSegment(
+            Vector2 candidate,
+            Vector2 pa,
+            Vector2 pb,
+            float legacyThresholdUnits,
+            out Vector2 resolvedRaw,
+            out float perpResidual)
+        {
+            resolvedRaw = Vector2.zero;
+            perpResidual = float.PositiveInfinity;
+
+            Vector2 ab = pb - pa;
+            float abLengthSqr = ab.x * ab.x + ab.y * ab.y;
+            if (abLengthSqr <= Mathf.Epsilon) return false;
+
+            Vector2 ac = candidate - pa;
+            float t = (ac.x * ab.x + ac.y * ab.y) / abLengthSqr;
+            Vector2 foot = pa + ab * t;
+            float fx = candidate.x - foot.x;
+            float fy = candidate.y - foot.y;
+            perpResidual = Mathf.Sqrt(fx * fx + fy * fy);
+
+            Vector2 midpoint = (pa + pb) * 0.5f;
+            float midpointDistance = Vector2.Distance(candidate, midpoint);
+            resolvedRaw = IsWithinThreshold(midpointDistance, legacyThresholdUnits) ? midpoint : foot;
+            return true;
         }
 
         private static int CollectInRadiusIndices(
@@ -237,7 +303,7 @@ namespace RogueliteAutoBattler.Editor.Tools
                 float dx = Mathf.Abs(p.x - candidate.x);
                 float dy = Mathf.Abs(p.y - candidate.y);
                 float minResidual = Mathf.Min(dx, dy);
-                if (minResidual >= legacyThresholdUnits) continue;
+                if (!IsWithinThreshold(minResidual, legacyThresholdUnits)) continue;
 
                 qualifyingCount++;
                 if (minResidual < winningResidual)
@@ -269,8 +335,7 @@ namespace RogueliteAutoBattler.Editor.Tools
 
             int bestI = -1, bestJ = -1;
             float bestPerpResidual = float.PositiveInfinity;
-            Vector2 bestProjectedFoot = Vector2.zero;
-            Vector2 bestMidpoint = Vector2.zero;
+            Vector2 bestResolvedRaw = Vector2.zero;
 
             for (int a = 0; a < inRadiusCount; a++)
             {
@@ -280,35 +345,22 @@ namespace RogueliteAutoBattler.Editor.Tools
                 {
                     int indexB = inRadiusIndices[b];
                     Vector2 pb = nodes[indexB].position;
-                    Vector2 ab = pb - pa;
-                    float abLengthSqr = ab.x * ab.x + ab.y * ab.y;
-                    if (abLengthSqr <= Mathf.Epsilon) continue;
-
-                    Vector2 ac = candidate - pa;
-                    float t = (ac.x * ab.x + ac.y * ab.y) / abLengthSqr;
-                    Vector2 foot = pa + ab * t;
-                    float fx = candidate.x - foot.x;
-                    float fy = candidate.y - foot.y;
-                    float perpResidual = Mathf.Sqrt(fx * fx + fy * fy);
+                    if (!TryProjectCandidateOntoSegment(candidate, pa, pb, legacyThresholdUnits, out var resolvedRaw, out float perpResidual))
+                        continue;
 
                     if (perpResidual < bestPerpResidual)
                     {
                         bestPerpResidual = perpResidual;
                         bestI = indexA;
                         bestJ = indexB;
-                        bestProjectedFoot = foot;
-                        bestMidpoint = (pa + pb) * 0.5f;
+                        bestResolvedRaw = resolvedRaw;
                     }
                 }
             }
 
-            if (bestI < 0 || bestPerpResidual > legacyThresholdUnits) return SnapResult.NoSnap(candidate);
+            if (bestI < 0 || !IsWithinThreshold(bestPerpResidual, legacyThresholdUnits)) return SnapResult.NoSnap(candidate);
 
-            float midpointDistance = Vector2.Distance(candidate, bestMidpoint);
-            Vector2 resolvedRaw = midpointDistance < legacyThresholdUnits
-                ? bestMidpoint
-                : bestProjectedFoot;
-            Vector2 resolvedQuantized = SkillTreeGrid.Quantize(resolvedRaw);
+            Vector2 resolvedQuantized = SkillTreeGrid.Quantize(bestResolvedRaw);
             return new SnapResult(resolvedQuantized, SnapAxis.LineCollinear, bestI, bestJ);
         }
     }
