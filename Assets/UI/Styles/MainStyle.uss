@@ -608,7 +608,6 @@
     border-right-color: rgb(80, 80, 80);
     border-top-color: rgb(80, 80, 80);
     border-bottom-color: rgb(80, 80, 80);
-    background-color: rgb(40, 40, 40);
     justify-content: center;
     align-items: center;
     transition: background-color 0.15s ease, border-left-color 0.15s ease, border-right-color 0.15s ease, border-top-color 0.15s ease, border-bottom-color 0.15s ease;

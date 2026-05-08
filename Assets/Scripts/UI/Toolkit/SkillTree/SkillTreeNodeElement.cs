@@ -36,6 +36,13 @@ namespace RogueliteAutoBattler.UI.Toolkit.SkillTree
             NodeIndex = nodeIndex;
             AddToClassList(BaseClassName);
             RegisterCallback<ClickEvent>(OnClick);
+
+            var orb = SkillTreeNodeOrbResolver.Get();
+            if (orb != null)
+            {
+                style.backgroundImage = new StyleBackground(orb);
+            }
+
             SetState(SkillTreeNodeVisualState.Locked);
         }
 
@@ -78,6 +85,7 @@ namespace RogueliteAutoBattler.UI.Toolkit.SkillTree
             style.borderRightColor = new StyleColor(color);
             style.borderTopColor = new StyleColor(color);
             style.borderBottomColor = new StyleColor(color);
+            style.unityBackgroundImageTintColor = new StyleColor(color);
         }
 
         public void SetDataPosition(Vector2 dataPosition, float unitToPixelScale)
