@@ -94,6 +94,104 @@ namespace RogueliteAutoBattler.Editor.Tools
             return TryResolveCollinearAlignment(candidate, nodes, inRadiusIndices, inRadiusCount, legacyThresholdUnits);
         }
 
+        public static SnapResult Resolve(
+            Vector2 candidate,
+            int draggedNodeIndex,
+            IReadOnlyList<SkillTreeData.SkillNodeEntry> nodes,
+            float legacyThresholdUnits,
+            float alignmentRadiusUnits,
+            SnapResult previousSnap)
+        {
+            if (TryHoldPreviousSnap(candidate, draggedNodeIndex, nodes, legacyThresholdUnits, previousSnap, out var heldResult))
+                return heldResult;
+
+            return Resolve(candidate, draggedNodeIndex, nodes, legacyThresholdUnits, alignmentRadiusUnits);
+        }
+
+        private static bool TryHoldPreviousSnap(
+            Vector2 candidate,
+            int draggedNodeIndex,
+            IReadOnlyList<SkillTreeData.SkillNodeEntry> nodes,
+            float legacyThresholdUnits,
+            SnapResult previousSnap,
+            out SnapResult heldResult)
+        {
+            heldResult = SnapResult.NoSnap(candidate);
+            if (previousSnap.SnappedAxis == SnapAxis.None) return false;
+            if (nodes == null || legacyThresholdUnits <= 0f) return false;
+
+            int targetIndex = previousSnap.TargetNodeIndex;
+            if (targetIndex < 0 || targetIndex >= nodes.Count) return false;
+            if (targetIndex == draggedNodeIndex) return false;
+
+            if (previousSnap.SnappedAxis == SnapAxis.LineCollinear)
+            {
+                int secondaryIndex = previousSnap.SecondaryTargetNodeIndex;
+                if (secondaryIndex < 0 || secondaryIndex >= nodes.Count) return false;
+                if (secondaryIndex == draggedNodeIndex) return false;
+            }
+
+            Vector2 targetPos = nodes[targetIndex].position;
+
+            switch (previousSnap.SnappedAxis)
+            {
+                case SnapAxis.X:
+                {
+                    if (Mathf.Abs(candidate.x - targetPos.x) >= legacyThresholdUnits) return false;
+                    heldResult = new SnapResult(new Vector2(targetPos.x, candidate.y), SnapAxis.X, targetIndex);
+                    return true;
+                }
+                case SnapAxis.Y:
+                {
+                    if (Mathf.Abs(candidate.y - targetPos.y) >= legacyThresholdUnits) return false;
+                    heldResult = new SnapResult(new Vector2(candidate.x, targetPos.y), SnapAxis.Y, targetIndex);
+                    return true;
+                }
+                case SnapAxis.LineCardinal:
+                {
+                    bool previousAxisIsX = Mathf.Abs(targetPos.x - previousSnap.ResolvedPosition.x)
+                                           <= Mathf.Abs(targetPos.y - previousSnap.ResolvedPosition.y);
+                    float residual = previousAxisIsX
+                        ? Mathf.Abs(candidate.x - targetPos.x)
+                        : Mathf.Abs(candidate.y - targetPos.y);
+                    if (residual >= legacyThresholdUnits) return false;
+                    Vector2 resolvedRaw = previousAxisIsX
+                        ? new Vector2(targetPos.x, candidate.y)
+                        : new Vector2(candidate.x, targetPos.y);
+                    heldResult = new SnapResult(SkillTreeGrid.Quantize(resolvedRaw), SnapAxis.LineCardinal, targetIndex, -1);
+                    return true;
+                }
+                case SnapAxis.LineCollinear:
+                {
+                    Vector2 pa = targetPos;
+                    Vector2 pb = nodes[previousSnap.SecondaryTargetNodeIndex].position;
+                    Vector2 ab = pb - pa;
+                    float abLengthSqr = ab.x * ab.x + ab.y * ab.y;
+                    if (abLengthSqr <= Mathf.Epsilon) return false;
+
+                    Vector2 ac = candidate - pa;
+                    float t = (ac.x * ab.x + ac.y * ab.y) / abLengthSqr;
+                    Vector2 foot = pa + ab * t;
+                    float fx = candidate.x - foot.x;
+                    float fy = candidate.y - foot.y;
+                    float perpResidual = Mathf.Sqrt(fx * fx + fy * fy);
+                    if (perpResidual >= legacyThresholdUnits) return false;
+
+                    Vector2 midpoint = (pa + pb) * 0.5f;
+                    float midpointDistance = Vector2.Distance(candidate, midpoint);
+                    Vector2 resolvedRaw = midpointDistance < legacyThresholdUnits ? midpoint : foot;
+                    heldResult = new SnapResult(
+                        SkillTreeGrid.Quantize(resolvedRaw),
+                        SnapAxis.LineCollinear,
+                        targetIndex,
+                        previousSnap.SecondaryTargetNodeIndex);
+                    return true;
+                }
+                default:
+                    return false;
+            }
+        }
+
         private static int CollectInRadiusIndices(
             Vector2 candidate,
             int draggedNodeIndex,

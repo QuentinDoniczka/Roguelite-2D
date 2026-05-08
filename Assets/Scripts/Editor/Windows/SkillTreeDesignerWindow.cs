@@ -669,7 +669,7 @@ namespace RogueliteAutoBattler.Editor.Windows
                     var draggedNode = _data.Nodes[_dragState.NodeIndex];
                     bool snapAllowed = draggedNode.snapEnabled && !evt.shift;
                     _lastSnapResult = snapAllowed
-                        ? NodeSnapEngine.Resolve(rawNewPos, _dragState.NodeIndex, _data.Nodes, draggedNode.snapThresholdUnits, _branchPreviewSettings.alignmentRadiusUnits)
+                        ? NodeSnapEngine.Resolve(rawNewPos, _dragState.NodeIndex, _data.Nodes, draggedNode.snapThresholdUnits, _branchPreviewSettings.alignmentRadiusUnits, _lastSnapResult)
                         : NodeSnapEngine.SnapResult.NoSnap(rawNewPos);
 
                     var updated = _data.Nodes[_dragState.NodeIndex];
