@@ -71,6 +71,7 @@ namespace RogueliteAutoBattler.Data
             public float statModifierValuePerLevel;
             public bool snapEnabled;
             public float snapThresholdUnits;
+            public NodeColorTag colorTag;
         }
 
         [Header("Visual")]
@@ -152,6 +153,7 @@ namespace RogueliteAutoBattler.Data
                   .Append((int)node.statModifierMode).Append('|')
                   .Append(node.statModifierValuePerLevel.ToString(CultureInfo.InvariantCulture))
                   .Append('\n');
+                // colorTag is intentionally excluded — cosmetic only
             }
 
             var edges = data.GetEdges();
@@ -355,7 +357,8 @@ namespace RogueliteAutoBattler.Data
                 costAdditivePerLevel = 0,
                 statModifierType = StatType.None,
                 statModifierMode = StatModifierMode.Flat,
-                statModifierValuePerLevel = 0f
+                statModifierValuePerLevel = 0f,
+                colorTag = NodeColorTag.Default
             };
 
             if (existingIndex >= 0)

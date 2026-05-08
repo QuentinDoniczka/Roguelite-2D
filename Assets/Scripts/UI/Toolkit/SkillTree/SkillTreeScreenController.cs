@@ -32,9 +32,11 @@ namespace RogueliteAutoBattler.UI.Toolkit.SkillTree
         [SerializeField] private SkillTreeProgress _progress;
         [SerializeField] private GoldWallet _goldWallet;
         [SerializeField] private SkillPointWallet _skillPointWallet;
+        [SerializeField] private SkillNodePalette _palette;
 
         internal SkillTreeData Data => _data;
         internal SkillTreeProgress Progress => _progress;
+        internal SkillNodePalette Palette { get => _palette; set => _palette = value; }
 
         private readonly List<SkillTreeNodeElement> _nodeElements = new();
         private readonly List<Vector2> _positionsCache = new();
@@ -69,6 +71,12 @@ namespace RogueliteAutoBattler.UI.Toolkit.SkillTree
             {
                 Debug.LogError($"{nameof(SkillTreeScreenController)} could not locate GoldWallet or SkillPointWallet.");
                 return;
+            }
+
+            if (_palette == null) _palette = ActiveSkillNodePaletteResolver.GetActive();
+            if (_palette == null)
+            {
+                Debug.LogError($"{nameof(SkillTreeScreenController)} could not resolve an active SkillNodePalette; nodes will fall back to Color.white.");
             }
 
             var root = _uiDocument.rootVisualElement;
@@ -141,10 +149,14 @@ namespace RogueliteAutoBattler.UI.Toolkit.SkillTree
         {
             nodesLayer.Clear();
             _nodeElements.Clear();
+            bool hasPalette = _palette != null;
             for (var i = 0; i < _data.Nodes.Count; i++)
             {
+                var node = _data.Nodes[i];
                 var nodeElement = new SkillTreeNodeElement(i);
-                nodeElement.SetDataPosition(_data.Nodes[i].position, UnitToPixelScale);
+                nodeElement.SetDataPosition(node.position, UnitToPixelScale);
+                var color = hasPalette ? _palette.GetColor(node.colorTag) : Color.white;
+                nodeElement.SetColorTag(color);
                 nodeElement.Clicked += HandleNodeClicked;
                 nodesLayer.Add(nodeElement);
                 _nodeElements.Add(nodeElement);

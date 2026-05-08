@@ -615,36 +615,19 @@
 }
 
 .skill-tree-node--locked {
-    background-color: rgb(40, 40, 40);
-    border-left-color: rgb(80, 80, 80);
-    border-right-color: rgb(80, 80, 80);
-    border-top-color: rgb(80, 80, 80);
-    border-bottom-color: rgb(80, 80, 80);
-    opacity: 0.5;
+    opacity: 0.4;
 }
 
 .skill-tree-node--available {
-    background-color: rgb(60, 60, 30);
-    border-left-color: rgb(255, 200, 60);
-    border-right-color: rgb(255, 200, 60);
-    border-top-color: rgb(255, 200, 60);
-    border-bottom-color: rgb(255, 200, 60);
+    opacity: 1;
 }
 
 .skill-tree-node--purchased {
-    background-color: rgb(30, 70, 30);
-    border-left-color: rgb(100, 220, 100);
-    border-right-color: rgb(100, 220, 100);
-    border-top-color: rgb(100, 220, 100);
-    border-bottom-color: rgb(100, 220, 100);
+    opacity: 1;
 }
 
 .skill-tree-node--max {
-    background-color: rgb(70, 60, 20);
-    border-left-color: rgb(255, 220, 80);
-    border-right-color: rgb(255, 220, 80);
-    border-top-color: rgb(255, 220, 80);
-    border-bottom-color: rgb(255, 220, 80);
+    opacity: 1;
 }
 
 .skill-tree-node--selected {

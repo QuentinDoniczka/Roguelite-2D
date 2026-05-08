@@ -22,9 +22,12 @@ namespace RogueliteAutoBattler.UI.Toolkit.SkillTree
         private const string SelectedClassName = "skill-tree-node--selected";
         private const float NodeHalfSize = 32f;
 
+        private Color _currentColor = Color.white;
+
         public int NodeIndex { get; }
         public SkillTreeNodeVisualState CurrentState { get; private set; }
         public bool IsSelected { get; private set; }
+        public Color CurrentColor => _currentColor;
 
         public event Action<int> Clicked;
 
@@ -65,6 +68,16 @@ namespace RogueliteAutoBattler.UI.Toolkit.SkillTree
                 AddToClassList(SelectedClassName);
             else
                 RemoveFromClassList(SelectedClassName);
+        }
+
+        public void SetColorTag(Color color)
+        {
+            _currentColor = color;
+            style.backgroundColor = new StyleColor(color);
+            style.borderLeftColor = new StyleColor(color);
+            style.borderRightColor = new StyleColor(color);
+            style.borderTopColor = new StyleColor(color);
+            style.borderBottomColor = new StyleColor(color);
         }
 
         public void SetDataPosition(Vector2 dataPosition, float unitToPixelScale)

@@ -78,6 +78,8 @@ namespace RogueliteAutoBattler.Editor.Windows
         private const float CoordLabelOffsetYPixels = 8f;
         private const float CoordLabelWidthPixels = 120f;
         private const float CoordLabelHeightPixels = 16f;
+        private const float ColorSwatchWidth = 24f;
+        private const float ColorSwatchHeight = 18f;
         private static readonly Color SnapGuideLineColor = new Color(0.4f, 0.85f, 1f, 0.7f);
         private const string SnapEnabledLabel = "Snap to Nearby Node";
         private const string SnapThresholdLabel = "Snap Threshold (units)";
@@ -157,6 +159,7 @@ namespace RogueliteAutoBattler.Editor.Windows
         private string _lastMirrorWarning;
         private bool _connectionsFoldoutOpen = true;
         private readonly List<NodeConnectionsInspector.ConnectionRow> _connectionsBuffer = new List<NodeConnectionsInspector.ConnectionRow>();
+        private SkillNodePalette _cachedNodePalette;
 
         private static void LogError(string message)
         {
@@ -190,6 +193,7 @@ namespace RogueliteAutoBattler.Editor.Windows
             _lastBranchPreviewSettings = BranchPreviewSettingsPersistence.Load();
             MirrorAxisPersistence.ApplyTo(ref _lastBranchPreviewSettings);
             _branchPreviewSettings = _lastBranchPreviewSettings;
+            _cachedNodePalette = ActiveSkillNodePaletteResolver.GetActive();
         }
 
         private void RefreshTreeList()
@@ -423,7 +427,9 @@ namespace RogueliteAutoBattler.Editor.Windows
                 Handles.color = (i == _selectedNodeIndex) ? _data.BorderSelectedColor : _data.BorderNormalColor;
                 Handles.DrawSolidDisc(center3D, Vector3.forward, halfNode + scaledBorder);
 
-                Handles.color = _data.NodeColor;
+                Handles.color = _cachedNodePalette != null
+                    ? _cachedNodePalette.GetColor(entry.colorTag)
+                    : _data.NodeColor;
                 Handles.DrawSolidDisc(center3D, Vector3.forward, halfNode);
 
                 string label = _nodeLabels != null && i < _nodeLabels.Length ? _nodeLabels[i] : entry.id.ToString();
@@ -911,6 +917,9 @@ namespace RogueliteAutoBattler.Editor.Windows
             EditorGUILayout.Space(SectionSpacingSmall);
 
             var node = _data.Nodes[_selectedNodeIndex];
+            if (_cachedNodePalette == null)
+                _cachedNodePalette = ActiveSkillNodePaletteResolver.GetActive();
+            var palette = _cachedNodePalette;
 
             EditorGUI.BeginChangeCheck();
 
@@ -935,6 +944,17 @@ namespace RogueliteAutoBattler.Editor.Windows
             if (newStatModMode == SkillTreeData.StatModifierMode.Percent)
                 EditorGUILayout.HelpBox("Stored as percent (5 = +5%)", MessageType.Info);
 
+            EditorGUILayout.Space(SectionSpacingSmall);
+            EditorGUILayout.LabelField("Color Tag", EditorStyles.boldLabel);
+            NodeColorTag newColorTag;
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                newColorTag = (NodeColorTag)EditorGUILayout.EnumPopup("Tag", node.colorTag);
+                var swatchRect = GUILayoutUtility.GetRect(ColorSwatchWidth, ColorSwatchHeight, GUILayout.Width(ColorSwatchWidth));
+                var swatchColor = palette != null ? palette.GetColor(newColorTag) : Color.white;
+                EditorGUI.DrawRect(swatchRect, swatchColor);
+            }
+
             if (EditorGUI.EndChangeCheck())
             {
                 var updated = node;
@@ -947,6 +967,7 @@ namespace RogueliteAutoBattler.Editor.Windows
                 updated.statModifierType = newStatModType;
                 updated.statModifierMode = newStatModMode;
                 updated.statModifierValuePerLevel = newStatModValue;
+                updated.colorTag = newColorTag;
 
                 _data.SetNode(_selectedNodeIndex, updated);
                 EditorUtility.SetDirty(_data);
