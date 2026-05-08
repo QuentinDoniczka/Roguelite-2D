@@ -47,7 +47,7 @@ namespace RogueliteAutoBattler.UI.Toolkit.SkillTree
 
             SetState(SkillTreeNodeVisualState.Locked);
 
-            schedule.Execute(TogglePulseIfAvailable).Every(PulseIntervalMs);
+            schedule.Execute(TogglePulseIfAvailable).StartingIn(PulseIntervalMs).Every(PulseIntervalMs);
         }
 
         public void SetState(SkillTreeNodeVisualState newState)
