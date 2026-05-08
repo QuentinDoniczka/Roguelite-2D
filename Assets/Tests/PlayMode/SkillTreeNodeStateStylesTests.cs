@@ -94,7 +94,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
         }
 
         [UnityTest]
-        public IEnumerator Locked_And_Available_BackgroundColorsDiffer()
+        public IEnumerator Locked_And_Available_OpacitiesDiffer()
         {
             VisualElement lockedNode = null;
             VisualElement availableNode = null;
@@ -104,23 +104,10 @@ namespace RogueliteAutoBattler.Tests.PlayMode
                     lockedNode = CreateNodeWithClasses(root, NodeBaseClass, NodeLockedClass);
                     availableNode = CreateNodeWithClasses(root, NodeBaseClass, NodeAvailableClass);
                 },
-                _ => Assert.AreNotEqual(lockedNode.resolvedStyle.backgroundColor, availableNode.resolvedStyle.backgroundColor,
-                    $".{NodeLockedClass} and .{NodeAvailableClass} must resolve to different background-colors"));
-        }
-
-        [UnityTest]
-        public IEnumerator Purchased_And_Max_BackgroundColorsDiffer()
-        {
-            VisualElement purchasedNode = null;
-            VisualElement maxNode = null;
-            yield return BuildPanelWithRoot(
-                root =>
-                {
-                    purchasedNode = CreateNodeWithClasses(root, NodeBaseClass, NodePurchasedClass);
-                    maxNode = CreateNodeWithClasses(root, NodeBaseClass, NodeMaxClass);
-                },
-                _ => Assert.AreNotEqual(purchasedNode.resolvedStyle.backgroundColor, maxNode.resolvedStyle.backgroundColor,
-                    $".{NodePurchasedClass} and .{NodeMaxClass} must resolve to different background-colors"));
+                _ => Assert.Less(
+                    lockedNode.resolvedStyle.opacity + OpacityTolerance,
+                    availableNode.resolvedStyle.opacity,
+                    $".{NodeLockedClass} must resolve to strictly lower opacity than .{NodeAvailableClass}; state distinction is opacity-driven post-#303"));
         }
 
         [UnityTest]
