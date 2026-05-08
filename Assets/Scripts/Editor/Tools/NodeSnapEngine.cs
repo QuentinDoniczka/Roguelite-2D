@@ -17,6 +17,8 @@ namespace RogueliteAutoBattler.Editor.Tools
             public readonly SnapAxis SnappedAxis;
             public readonly int TargetNodeIndex;
             public readonly int SecondaryTargetNodeIndex;
+            public readonly SnapAxis CrossAxis;
+            public readonly int CrossTargetNodeIndex;
 
             public SnapResult(Vector2 resolved, SnapAxis axis, int targetIndex)
             {
@@ -24,6 +26,8 @@ namespace RogueliteAutoBattler.Editor.Tools
                 SnappedAxis = axis;
                 TargetNodeIndex = targetIndex;
                 SecondaryTargetNodeIndex = -1;
+                CrossAxis = SnapAxis.None;
+                CrossTargetNodeIndex = -1;
             }
 
             public SnapResult(Vector2 resolved, SnapAxis axis, int targetIndex, int secondaryTargetIndex)
@@ -32,6 +36,18 @@ namespace RogueliteAutoBattler.Editor.Tools
                 SnappedAxis = axis;
                 TargetNodeIndex = targetIndex;
                 SecondaryTargetNodeIndex = secondaryTargetIndex;
+                CrossAxis = SnapAxis.None;
+                CrossTargetNodeIndex = -1;
+            }
+
+            public SnapResult(Vector2 resolved, SnapAxis axis, int targetIndex, int secondaryTargetIndex, SnapAxis crossAxis, int crossTargetIndex)
+            {
+                ResolvedPosition = resolved;
+                SnappedAxis = axis;
+                TargetNodeIndex = targetIndex;
+                SecondaryTargetNodeIndex = secondaryTargetIndex;
+                CrossAxis = crossAxis;
+                CrossTargetNodeIndex = crossTargetIndex;
             }
 
             public static SnapResult NoSnap(Vector2 position) => new SnapResult(position, SnapAxis.None, -1);
@@ -102,13 +118,179 @@ namespace RogueliteAutoBattler.Editor.Tools
             float alignmentRadiusUnits,
             SnapResult previousSnap)
         {
-            if (TryHoldPreviousSnap(candidate, draggedNodeIndex, nodes, legacyThresholdUnits, previousSnap, out var heldResult))
-                return heldResult;
+            SnapResult primary = TryHoldPreviousSnap(candidate, draggedNodeIndex, nodes, legacyThresholdUnits, previousSnap, out var heldResult)
+                ? heldResult
+                : Resolve(candidate, draggedNodeIndex, nodes, legacyThresholdUnits, alignmentRadiusUnits);
 
-            return Resolve(candidate, draggedNodeIndex, nodes, legacyThresholdUnits, alignmentRadiusUnits);
+            if (primary.SnappedAxis == SnapAxis.None) return primary;
+            return TryAugmentWithCrossAxis(primary, candidate, draggedNodeIndex, nodes, legacyThresholdUnits);
         }
 
         private static bool IsWithinThreshold(float residual, float threshold) => residual < threshold;
+
+        private static SnapResult TryAugmentWithCrossAxis(
+            SnapResult primary,
+            Vector2 candidate,
+            int draggedNodeIndex,
+            IReadOnlyList<SkillTreeData.SkillNodeEntry> nodes,
+            float legacyThresholdUnits)
+        {
+            if (primary.SnappedAxis == SnapAxis.None) return primary;
+            if (nodes == null || legacyThresholdUnits <= 0f) return primary;
+            if (primary.TargetNodeIndex < 0 || primary.TargetNodeIndex >= nodes.Count) return primary;
+
+            bool primaryIsVerticalLine;
+            bool primaryIsHorizontalLine;
+            bool primaryIsDiagonal;
+            Vector2 pa = Vector2.zero;
+            Vector2 pb = Vector2.zero;
+
+            switch (primary.SnappedAxis)
+            {
+                case SnapAxis.X:
+                    primaryIsVerticalLine = true;
+                    primaryIsHorizontalLine = false;
+                    primaryIsDiagonal = false;
+                    pa = nodes[primary.TargetNodeIndex].position;
+                    break;
+                case SnapAxis.Y:
+                    primaryIsVerticalLine = false;
+                    primaryIsHorizontalLine = true;
+                    primaryIsDiagonal = false;
+                    pa = nodes[primary.TargetNodeIndex].position;
+                    break;
+                case SnapAxis.LineCardinal:
+                {
+                    Vector2 targetPos = nodes[primary.TargetNodeIndex].position;
+                    float horizontalDelta = Mathf.Abs(targetPos.x - primary.ResolvedPosition.x);
+                    float verticalDelta = Mathf.Abs(targetPos.y - primary.ResolvedPosition.y);
+                    bool lockedHorizontalAxis = horizontalDelta <= verticalDelta;
+                    primaryIsVerticalLine = lockedHorizontalAxis;
+                    primaryIsHorizontalLine = !lockedHorizontalAxis;
+                    primaryIsDiagonal = false;
+                    pa = targetPos;
+                    break;
+                }
+                case SnapAxis.LineCollinear:
+                    if (primary.SecondaryTargetNodeIndex < 0 || primary.SecondaryTargetNodeIndex >= nodes.Count) return primary;
+                    primaryIsVerticalLine = false;
+                    primaryIsHorizontalLine = false;
+                    primaryIsDiagonal = true;
+                    pa = nodes[primary.TargetNodeIndex].position;
+                    pb = nodes[primary.SecondaryTargetNodeIndex].position;
+                    break;
+                default:
+                    return primary;
+            }
+
+            int bestCrossIndex = -1;
+            SnapAxis bestCrossAxis = SnapAxis.None;
+            Vector2 bestIntersection = Vector2.zero;
+            float bestResidual = legacyThresholdUnits;
+
+            for (int i = 0; i < nodes.Count; i++)
+            {
+                if (i == draggedNodeIndex) continue;
+                if (i == primary.TargetNodeIndex) continue;
+                if (i == primary.SecondaryTargetNodeIndex) continue;
+
+                Vector2 nPos = nodes[i].position;
+
+                float residualX = Mathf.Abs(candidate.x - nPos.x);
+                if (IsWithinThreshold(residualX, legacyThresholdUnits))
+                {
+                    if (TryComputeIntersectionWithVerticalLine(primaryIsVerticalLine, primaryIsHorizontalLine, primaryIsDiagonal, pa, pb, nPos.x, out var intersectionX))
+                    {
+                        if (residualX < bestResidual)
+                        {
+                            bestResidual = residualX;
+                            bestCrossIndex = i;
+                            bestCrossAxis = SnapAxis.X;
+                            bestIntersection = intersectionX;
+                        }
+                    }
+                }
+
+                float residualY = Mathf.Abs(candidate.y - nPos.y);
+                if (IsWithinThreshold(residualY, legacyThresholdUnits))
+                {
+                    if (TryComputeIntersectionWithHorizontalLine(primaryIsVerticalLine, primaryIsHorizontalLine, primaryIsDiagonal, pa, pb, nPos.y, out var intersectionY))
+                    {
+                        if (residualY < bestResidual)
+                        {
+                            bestResidual = residualY;
+                            bestCrossIndex = i;
+                            bestCrossAxis = SnapAxis.Y;
+                            bestIntersection = intersectionY;
+                        }
+                    }
+                }
+            }
+
+            if (bestCrossIndex < 0) return primary;
+
+            return new SnapResult(
+                SkillTreeGrid.Quantize(bestIntersection),
+                primary.SnappedAxis,
+                primary.TargetNodeIndex,
+                primary.SecondaryTargetNodeIndex,
+                bestCrossAxis,
+                bestCrossIndex);
+        }
+
+        private static bool TryComputeIntersectionWithVerticalLine(
+            bool primaryIsVerticalLine,
+            bool primaryIsHorizontalLine,
+            bool primaryIsDiagonal,
+            Vector2 pa,
+            Vector2 pb,
+            float crossX,
+            out Vector2 intersection)
+        {
+            intersection = Vector2.zero;
+            if (primaryIsVerticalLine) return false;
+            if (primaryIsHorizontalLine)
+            {
+                intersection = new Vector2(crossX, pa.y);
+                return true;
+            }
+            if (primaryIsDiagonal)
+            {
+                float dx = pb.x - pa.x;
+                if (Mathf.Abs(dx) < Mathf.Epsilon) return false;
+                float t = (crossX - pa.x) / dx;
+                intersection = new Vector2(crossX, pa.y + t * (pb.y - pa.y));
+                return true;
+            }
+            return false;
+        }
+
+        private static bool TryComputeIntersectionWithHorizontalLine(
+            bool primaryIsVerticalLine,
+            bool primaryIsHorizontalLine,
+            bool primaryIsDiagonal,
+            Vector2 pa,
+            Vector2 pb,
+            float crossY,
+            out Vector2 intersection)
+        {
+            intersection = Vector2.zero;
+            if (primaryIsHorizontalLine) return false;
+            if (primaryIsVerticalLine)
+            {
+                intersection = new Vector2(pa.x, crossY);
+                return true;
+            }
+            if (primaryIsDiagonal)
+            {
+                float dy = pb.y - pa.y;
+                if (Mathf.Abs(dy) < Mathf.Epsilon) return false;
+                float t = (crossY - pa.y) / dy;
+                intersection = new Vector2(pa.x + t * (pb.x - pa.x), crossY);
+                return true;
+            }
+            return false;
+        }
 
         private static bool TryHoldPreviousSnap(
             Vector2 candidate,

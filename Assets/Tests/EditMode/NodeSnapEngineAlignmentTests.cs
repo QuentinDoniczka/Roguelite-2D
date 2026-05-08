@@ -254,5 +254,95 @@ namespace RogueliteAutoBattler.Tests.EditMode
 
             Assert.That(result.SnappedAxis, Is.Not.EqualTo(NodeSnapEngine.SnapAxis.LineCollinear));
         }
+
+        [Test]
+        public void Resolve_6Arg_CrossSnap_HeldLineCollinearDiagonalAndCardinalX_LocksToIntersection()
+        {
+            var nodes = new List<SkillTreeData.SkillNodeEntry>
+            {
+                MakeNode(0, new Vector2(50f, 50f)),
+                MakeNode(1, new Vector2(0f, 0f)),
+                MakeNode(2, new Vector2(4f, 4f)),
+                MakeNode(3, new Vector2(2f, 5f))
+            };
+            Vector2 previousResolvedOnDiagonalNearMidpoint = new Vector2(1.95f, 1.95f);
+            var previousSnap = new NodeSnapEngine.SnapResult(
+                previousResolvedOnDiagonalNearMidpoint, NodeSnapEngine.SnapAxis.LineCollinear, 1, 2);
+            Vector2 candidate = new Vector2(2.04f, 1.96f);
+
+            var result = NodeSnapEngine.Resolve(candidate, 0, nodes, 0.25f, 6f, previousSnap);
+
+            Assert.That(result.SnappedAxis, Is.EqualTo(NodeSnapEngine.SnapAxis.LineCollinear));
+            Assert.That(result.TargetNodeIndex, Is.EqualTo(1));
+            Assert.That(result.SecondaryTargetNodeIndex, Is.EqualTo(2));
+            Assert.That(result.CrossAxis, Is.EqualTo(NodeSnapEngine.SnapAxis.X));
+            Assert.That(result.CrossTargetNodeIndex, Is.EqualTo(3));
+            Assert.That(result.ResolvedPosition.x, Is.EqualTo(2f).Within(Tolerance));
+            Assert.That(result.ResolvedPosition.y, Is.EqualTo(2f).Within(Tolerance));
+        }
+
+        [Test]
+        public void Resolve_6Arg_CrossSnap_HeldAxisXAndCardinalY_LocksToIntersection()
+        {
+            var nodes = new List<SkillTreeData.SkillNodeEntry>
+            {
+                MakeNode(0, new Vector2(50f, 50f)),
+                MakeNode(1, new Vector2(3f, 0f)),
+                MakeNode(2, new Vector2(8f, 5f))
+            };
+            Vector2 previousResolvedOnXAxisOfNodeA = new Vector2(3f, 3f);
+            var previousSnap = new NodeSnapEngine.SnapResult(
+                previousResolvedOnXAxisOfNodeA, NodeSnapEngine.SnapAxis.X, 1);
+            Vector2 candidate = new Vector2(3.05f, 4.96f);
+
+            var result = NodeSnapEngine.Resolve(candidate, 0, nodes, 0.25f, 6f, previousSnap);
+
+            Assert.That(result.SnappedAxis, Is.EqualTo(NodeSnapEngine.SnapAxis.X));
+            Assert.That(result.TargetNodeIndex, Is.EqualTo(1));
+            Assert.That(result.CrossAxis, Is.EqualTo(NodeSnapEngine.SnapAxis.Y));
+            Assert.That(result.CrossTargetNodeIndex, Is.EqualTo(2));
+            Assert.That(result.ResolvedPosition.x, Is.EqualTo(3f).Within(Tolerance));
+            Assert.That(result.ResolvedPosition.y, Is.EqualTo(5f).Within(Tolerance));
+        }
+
+        [Test]
+        public void Resolve_6Arg_NoCross_WhenAllSecondariesOutsideThreshold()
+        {
+            var nodes = new List<SkillTreeData.SkillNodeEntry>
+            {
+                MakeNode(0, new Vector2(50f, 50f)),
+                MakeNode(1, new Vector2(3f, 0f)),
+                MakeNode(2, new Vector2(8f, 5f))
+            };
+            Vector2 previousResolvedOnXAxisOfNodeA = new Vector2(3f, 2f);
+            var previousSnap = new NodeSnapEngine.SnapResult(
+                previousResolvedOnXAxisOfNodeA, NodeSnapEngine.SnapAxis.X, 1);
+            Vector2 candidate = new Vector2(3.05f, 2f);
+
+            var result = NodeSnapEngine.Resolve(candidate, 0, nodes, 0.25f, 6f, previousSnap);
+
+            Assert.That(result.SnappedAxis, Is.EqualTo(NodeSnapEngine.SnapAxis.X));
+            Assert.That(result.TargetNodeIndex, Is.EqualTo(1));
+            Assert.That(result.CrossAxis, Is.EqualTo(NodeSnapEngine.SnapAxis.None));
+            Assert.That(result.CrossTargetNodeIndex, Is.EqualTo(-1));
+        }
+
+        [Test]
+        public void Resolve_6Arg_NoCross_OnFreshNoSnap()
+        {
+            var nodes = new List<SkillTreeData.SkillNodeEntry>
+            {
+                MakeNode(0, new Vector2(0f, 0f)),
+                MakeNode(1, new Vector2(100f, 100f))
+            };
+            Vector2 candidate = new Vector2(0.5f, 0.5f);
+            var previousSnap = NodeSnapEngine.SnapResult.NoSnap(Vector2.zero);
+
+            var result = NodeSnapEngine.Resolve(candidate, 0, nodes, 0.25f, 2f, previousSnap);
+
+            Assert.That(result.SnappedAxis, Is.EqualTo(NodeSnapEngine.SnapAxis.None));
+            Assert.That(result.CrossAxis, Is.EqualTo(NodeSnapEngine.SnapAxis.None));
+            Assert.That(result.CrossTargetNodeIndex, Is.EqualTo(-1));
+        }
     }
 }

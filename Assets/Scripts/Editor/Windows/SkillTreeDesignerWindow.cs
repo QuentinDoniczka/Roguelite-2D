@@ -539,6 +539,17 @@ namespace RogueliteAutoBattler.Editor.Windows
                         new Vector3(lineEnd.x, lineEnd.y, 0f),
                         BranchPreviewDottedSegmentSize);
                 }
+
+                if (_lastSnapResult.CrossAxis != NodeSnapEngine.SnapAxis.None
+                    && _lastSnapResult.CrossTargetNodeIndex >= 0
+                    && _lastSnapResult.CrossTargetNodeIndex < _data.Nodes.Count)
+                {
+                    Vector2 crossPos = _data.Nodes[_lastSnapResult.CrossTargetNodeIndex].position;
+                    if (_lastSnapResult.CrossAxis == NodeSnapEngine.SnapAxis.X)
+                        DrawVerticalSnapGuide(crossPos.x, origin, scaledUnit, canvasRect);
+                    else if (_lastSnapResult.CrossAxis == NodeSnapEngine.SnapAxis.Y)
+                        DrawHorizontalSnapGuide(crossPos.y, origin, scaledUnit, canvasRect);
+                }
                 Handles.color = prevColor;
             }
 
