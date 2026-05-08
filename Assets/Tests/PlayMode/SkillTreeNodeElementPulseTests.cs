@@ -13,8 +13,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
     {
         private const string PanelSettingsPath = "Assets/UI/MainPanelSettings.asset";
         private const string PulseOnClass = "skill-tree-node--pulse-on";
-        private const string AvailableClass = "skill-tree-node--available";
-        private const string LockedClass = "skill-tree-node--locked";
+        private const float OnePulseTickPlusMarginSeconds = 1.2f;
 
         private UIDocument CreateDocument()
         {
@@ -40,7 +39,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             node.SetState(SkillTreeNodeVisualState.Locked);
             doc.rootVisualElement.Add(node);
 
-            yield return new WaitForSeconds(1.2f);
+            yield return new WaitForSeconds(OnePulseTickPlusMarginSeconds);
 
             Assert.IsFalse(node.ClassListContains(PulseOnClass),
                 $"A locked node must never receive {PulseOnClass}.");
@@ -57,7 +56,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             node.SetState(SkillTreeNodeVisualState.Available);
             doc.rootVisualElement.Add(node);
 
-            yield return new WaitForSeconds(1.2f);
+            yield return new WaitForSeconds(OnePulseTickPlusMarginSeconds);
 
             Assert.IsTrue(node.ClassListContains(PulseOnClass),
                 $"After ~1 tick (800 ms) an available node must have {PulseOnClass} toggled on (observed between tick 1 and tick 2).");
@@ -74,7 +73,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             node.SetState(SkillTreeNodeVisualState.Available);
             doc.rootVisualElement.Add(node);
 
-            yield return new WaitForSeconds(1.2f);
+            yield return new WaitForSeconds(OnePulseTickPlusMarginSeconds);
 
             Assert.IsTrue(node.ClassListContains(PulseOnClass),
                 $"Precondition: {PulseOnClass} must be present before transitioning away from Available.");

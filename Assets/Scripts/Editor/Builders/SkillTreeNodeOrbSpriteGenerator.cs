@@ -19,7 +19,7 @@ namespace RogueliteAutoBattler.Editor.Builders
             Texture2D texture = GenerateOrLoad(force: true);
             if (texture != null)
             {
-                Debug.Log($"[SkillTreeNodeOrbSpriteGenerator] Generated orb sprite at {AssetPath}");
+                Debug.Log($"[{nameof(SkillTreeNodeOrbSpriteGenerator)}] Generated orb sprite at {AssetPath}");
                 Selection.activeObject = texture;
                 EditorGUIUtility.PingObject(texture);
             }
@@ -97,9 +97,7 @@ namespace RogueliteAutoBattler.Editor.Builders
             if (!AssetDatabase.IsValidFolder("Assets/Resources/UI"))
                 AssetDatabase.CreateFolder("Assets/Resources", "UI");
 
-            string directory = Path.GetDirectoryName(AssetPath);
-            if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
-                Directory.CreateDirectory(directory);
+            EditorUIFactory.EnsureDirectoryExists(AssetPath);
         }
 
         private static void ApplyTextureImporterSettings(string assetPath)

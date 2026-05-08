@@ -20,7 +20,7 @@ namespace RogueliteAutoBattler.UI.Toolkit.SkillTree
         private const string PurchasedClassName = "skill-tree-node--purchased";
         private const string MaxClassName = "skill-tree-node--max";
         private const string SelectedClassName = "skill-tree-node--selected";
-        private const string PulseOnClass = "skill-tree-node--pulse-on";
+        private const string PulseOnClassName = "skill-tree-node--pulse-on";
         private const float NodeHalfSize = 32f;
         private const long PulseIntervalMs = 800;
 
@@ -71,7 +71,7 @@ namespace RogueliteAutoBattler.UI.Toolkit.SkillTree
             AddToClassList(stateClassName);
 
             if (!ClassListContains(AvailableClassName))
-                RemoveFromClassList(PulseOnClass);
+                RemoveFromClassList(PulseOnClassName);
         }
 
         public void SetSelected(bool selected)
@@ -104,9 +104,9 @@ namespace RogueliteAutoBattler.UI.Toolkit.SkillTree
         private void TogglePulseIfAvailable()
         {
             if (ClassListContains(AvailableClassName))
-                ToggleInClassList(PulseOnClass);
-            else if (ClassListContains(PulseOnClass))
-                RemoveFromClassList(PulseOnClass);
+                ToggleInClassList(PulseOnClassName);
+            else if (ClassListContains(PulseOnClassName))
+                RemoveFromClassList(PulseOnClassName);
         }
 
         private void OnClick(ClickEvent _) => Clicked?.Invoke(NodeIndex);

@@ -43,6 +43,7 @@ Assets/
     SkillTrees/
       Default.asset
       DefaultNodePalette.asset
+      NewSkillTree.asset
     DamageNumberConfig.asset
     LevelDatabase.asset
     SkillTreeProgress.asset
@@ -73,6 +74,8 @@ Assets/
     Effects/  (empty)
     UI/  (empty)
   Resources/
+    UI/
+      SkillTreeNodeOrb.png
     ActiveSkillNodePalette.asset
     ActiveSkillTree.asset
   Scenes/
@@ -146,6 +149,7 @@ Assets/
         NavigationHostBuilder.cs
         NewGameSceneBuilder.cs
         RoundedRectSpriteGenerator.cs
+        SkillTreeNodeOrbSpriteGenerator.cs
         SkillTreeScreenBuilder.cs
         WalletsBuilder.cs
       Tools/
@@ -215,6 +219,7 @@ Assets/
           SkillTreeDetailPanelController.cs
           SkillTreeEdgeLayer.cs
           SkillTreeNodeElement.cs
+          SkillTreeNodeOrbResolver.cs
           SkillTreePanZoomManipulator.cs
           SkillTreeScreenController.cs
           SkillTreeStateEvaluator.cs
@@ -267,6 +272,7 @@ Assets/
       SkillTreeNodeFactorySnapDefaultsTests.cs
       SkillTreeNodeFactoryTests.cs
       SkillTreeNodeIdAllocatorTests.cs
+      SkillTreeNodeOrbSpriteGeneratorTests.cs
       CombatStatsBreakdownAllStatsTests.cs
       CombatStatsBreakdownTests.cs
       CombatStatsDamageEventTests.cs
@@ -355,6 +361,8 @@ Assets/
       SkillTreeEdgeLayerTests.cs
       SkillTreeLayoutTests.cs
       SkillTreeNodeElementColorTagTests.cs
+      SkillTreeNodeElementOrbVisualTests.cs
+      SkillTreeNodeElementPulseTests.cs
       SkillTreeNodeElementTests.cs
       SkillTreeNodeStateStylesTests.cs
       SkillTreePanZoomManipulatorTests.cs
