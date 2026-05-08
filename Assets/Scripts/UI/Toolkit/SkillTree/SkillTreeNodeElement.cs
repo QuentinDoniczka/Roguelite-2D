@@ -21,10 +21,12 @@ namespace RogueliteAutoBattler.UI.Toolkit.SkillTree
         private const string MaxClassName = "skill-tree-node--max";
         private const string SelectedClassName = "skill-tree-node--selected";
         private const string PulseOnClassName = "skill-tree-node--pulse-on";
+        private const string HaloClassName = "skill-tree-node__halo";
         private const float NodeHalfSize = 32f;
         private const long PulseIntervalMs = 800;
 
         private Color _currentColor = Color.white;
+        private readonly VisualElement _halo;
 
         public int NodeIndex { get; }
         public SkillTreeNodeVisualState CurrentState { get; private set; }
@@ -39,10 +41,16 @@ namespace RogueliteAutoBattler.UI.Toolkit.SkillTree
             AddToClassList(BaseClassName);
             RegisterCallback<ClickEvent>(OnClick);
 
+            _halo = new VisualElement { name = "node-halo", pickingMode = PickingMode.Ignore };
+            _halo.AddToClassList(HaloClassName);
+            Add(_halo);
+
             var orb = SkillTreeNodeOrbResolver.Get();
             if (orb != null)
             {
-                style.backgroundImage = new StyleBackground(orb);
+                var background = new StyleBackground(orb);
+                style.backgroundImage = background;
+                _halo.style.backgroundImage = background;
             }
 
             SetState(SkillTreeNodeVisualState.Locked);
@@ -93,6 +101,7 @@ namespace RogueliteAutoBattler.UI.Toolkit.SkillTree
             style.borderTopColor = new StyleColor(color);
             style.borderBottomColor = new StyleColor(color);
             style.unityBackgroundImageTintColor = new StyleColor(color);
+            _halo.style.unityBackgroundImageTintColor = new StyleColor(color);
         }
 
         public void SetDataPosition(Vector2 dataPosition, float unitToPixelScale)

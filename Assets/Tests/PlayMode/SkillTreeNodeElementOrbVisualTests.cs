@@ -59,6 +59,37 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             Assert.AreEqual(Color.blue, node.style.borderBottomColor.value,
                 "borderBottomColor must still equal the color passed to SetColorTag (regression #303).");
         }
+
+        [Test]
+        public void Constructor_CreatesHaloChild()
+        {
+            var node = new SkillTreeNodeElement(0);
+
+            var halo = node.Q(className: "skill-tree-node__halo");
+
+            Assert.IsNotNull(halo, "Constructor must create a halo child VisualElement.");
+            Assert.AreEqual(PickingMode.Ignore, halo.pickingMode,
+                "Halo must not intercept pointer events.");
+            Assert.IsTrue(
+                halo.style.backgroundImage.keyword == StyleKeyword.Undefined &&
+                halo.style.backgroundImage.value.texture != null,
+                "Halo must receive the orb texture as background-image.");
+        }
+
+        [Test]
+        public void SetColorTag_AppliesTintColor_ToHalo()
+        {
+            var node = new SkillTreeNodeElement(0);
+
+            node.SetColorTag(Color.green);
+
+            var halo = node.Q(className: "skill-tree-node__halo");
+            Assert.IsNotNull(halo, "Halo must exist before tinting.");
+            Assert.AreEqual(Color.green.r, halo.style.unityBackgroundImageTintColor.value.r, 0.01f);
+            Assert.AreEqual(Color.green.g, halo.style.unityBackgroundImageTintColor.value.g, 0.01f);
+            Assert.AreEqual(Color.green.b, halo.style.unityBackgroundImageTintColor.value.b, 0.01f);
+            Assert.AreEqual(Color.green.a, halo.style.unityBackgroundImageTintColor.value.a, 0.01f);
+        }
     }
 }
 #endif
