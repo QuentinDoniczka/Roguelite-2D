@@ -2,8 +2,10 @@ using System.Collections.Generic;
 using RogueliteAutoBattler.Combat.Core;
 using RogueliteAutoBattler.Data;
 using RogueliteAutoBattler.Editor.Tools;
+using RogueliteAutoBattler.UI.Toolkit.SkillTree;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 namespace RogueliteAutoBattler.Editor.Windows
 {
@@ -29,6 +31,8 @@ namespace RogueliteAutoBattler.Editor.Windows
         private const int TabIndexSkillTree = 0;
         private const int TabIndexNode = 1;
         private const int TabIndexBranch = 2;
+        private const int TabIndexPreviewWithoutBranch = 2;
+        private const int TabIndexPreviewWithBranch = 3;
         private const float SectionSpacingSmall = 8f;
         private const float SectionSpacingMedium = 12f;
         private const float SectionSpacingLarge = 16f;
@@ -111,8 +115,8 @@ namespace RogueliteAutoBattler.Editor.Windows
         private const string DisabledTooltipDeleteEnabled = "Delete this skill tree.";
         private const int MinimumRetainedTreeCount = 1;
 
-        private static readonly string[] TabLabelsWithoutBranch = { "Skill Tree", "Node" };
-        private static readonly string[] TabLabelsWithBranch = { "Skill Tree", "Node", "Branch" };
+        private static readonly string[] TabLabelsWithoutBranch = { "Skill Tree", "Node", "Preview" };
+        private static readonly string[] TabLabelsWithBranch = { "Skill Tree", "Node", "Branch", "Preview" };
 
         private IReadOnlyList<SkillTreesEnumerator.TreeEntry> _treeEntries;
         private string[] _treeDisplayNames;
@@ -161,6 +165,10 @@ namespace RogueliteAutoBattler.Editor.Windows
         private readonly List<NodeConnectionsInspector.ConnectionRow> _connectionsBuffer = new List<NodeConnectionsInspector.ConnectionRow>();
         private SkillNodePalette _cachedNodePalette;
 
+        private SkillTreePreviewPanel _previewPanel;
+        private SkillTreePreviewToolbar _previewToolbar;
+        private VisualElement _previewRoot;
+
         private static void LogError(string message)
         {
             Debug.LogError($"[{nameof(SkillTreeDesignerWindow)}] {message}");
@@ -194,6 +202,43 @@ namespace RogueliteAutoBattler.Editor.Windows
             MirrorAxisPersistence.ApplyTo(ref _lastBranchPreviewSettings);
             _branchPreviewSettings = _lastBranchPreviewSettings;
             _cachedNodePalette = ActiveSkillNodePaletteResolver.GetActive();
+            InitializePreviewPanel();
+        }
+
+        private void InitializePreviewPanel()
+        {
+            _previewRoot = new VisualElement();
+            _previewRoot.style.flexGrow = 1;
+            _previewRoot.style.display = DisplayStyle.None;
+            _previewRoot.style.position = Position.Absolute;
+            _previewRoot.style.top = 30f;
+            _previewRoot.style.left = 0f;
+            _previewRoot.style.right = 0f;
+            _previewRoot.style.bottom = 0f;
+            _previewRoot.style.flexDirection = FlexDirection.Column;
+            rootVisualElement.Add(_previewRoot);
+
+            var settings = SkillTreeVisualSettingsResolver.Get();
+            _previewToolbar = new SkillTreePreviewToolbar(settings, OnPreviewSettingsChanged);
+            _previewRoot.Add(_previewToolbar.BuildToolbar());
+
+            _previewPanel = new SkillTreePreviewPanel(_data, _cachedNodePalette);
+            _previewRoot.Add(_previewPanel.BuildRoot());
+        }
+
+        private void OnPreviewSettingsChanged()
+        {
+            SkillTreeVisualSettingsResolver.ResetCache();
+            _previewPanel?.Rebuild();
+        }
+
+        private void OnDisable()
+        {
+            if (_previewRoot != null && _previewRoot.parent != null)
+                _previewRoot.RemoveFromHierarchy();
+            _previewRoot = null;
+            _previewPanel = null;
+            _previewToolbar = null;
         }
 
         private void RefreshTreeList()
@@ -252,6 +297,20 @@ namespace RogueliteAutoBattler.Editor.Windows
             CacheSerializedProperties();
             RebuildNodeLabels();
             EditorPrefs.SetString(SelectedAssetGuidEditorPrefKey, resolvedEntry.Guid);
+            RebuildPreviewPanelForCurrentTree();
+        }
+
+        private void RebuildPreviewPanelForCurrentTree()
+        {
+            if (_previewRoot == null) return;
+            if (_previewPanel != null)
+            {
+                var oldPanelRoot = _previewRoot.childCount > 1 ? _previewRoot[1] : null;
+                if (oldPanelRoot != null)
+                    _previewRoot.Remove(oldPanelRoot);
+            }
+            _previewPanel = new SkillTreePreviewPanel(_data, _cachedNodePalette);
+            _previewRoot.Add(_previewPanel.BuildRoot());
         }
 
         private void RefreshActivePointerCache()
@@ -347,6 +406,12 @@ namespace RogueliteAutoBattler.Editor.Windows
             _propEdgeThickness = _serializedData.FindProperty(SkillTreeData.FieldNames.EdgeThickness);
         }
 
+        private bool IsPreviewTabActive()
+        {
+            int previewIdx = _branchPreviewActive ? TabIndexPreviewWithBranch : TabIndexPreviewWithoutBranch;
+            return _activeTab == previewIdx;
+        }
+
         private void OnGUI()
         {
             if (_data == null)
@@ -354,6 +419,17 @@ namespace RogueliteAutoBattler.Editor.Windows
                 EditorGUILayout.HelpBox("No SkillTreeData asset found.", MessageType.Warning);
                 return;
             }
+
+            if (IsPreviewTabActive())
+            {
+                if (_previewRoot != null)
+                    _previewRoot.style.display = DisplayStyle.Flex;
+                DrawPreviewTabBar();
+                return;
+            }
+
+            if (_previewRoot != null)
+                _previewRoot.style.display = DisplayStyle.None;
 
             EditorGUILayout.BeginHorizontal();
 
@@ -369,6 +445,15 @@ namespace RogueliteAutoBattler.Editor.Windows
             GUILayout.EndArea();
 
             EditorGUILayout.EndHorizontal();
+        }
+
+        private void DrawPreviewTabBar()
+        {
+            if (_data == null) return;
+            _serializedData.Update();
+            string[] tabLabels = _branchPreviewActive ? TabLabelsWithBranch : TabLabelsWithoutBranch;
+            _activeTab = GUILayout.Toolbar(_activeTab, tabLabels);
+            _serializedData.ApplyModifiedProperties();
         }
 
         private void DrawCanvas(Rect canvasRect)
