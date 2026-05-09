@@ -6,15 +6,10 @@ namespace RogueliteAutoBattler.UI.Toolkit.SkillTree
 {
     internal static class SkillTreeVisualSettingsResolver
     {
-        internal const string ResourcesLoadPath = "UI/SkillTreeVisualSettings";
-
-        private const float DefaultHaloSize = 120f;
-        private const float DefaultOpacityLocked = 0f;
-        private const float DefaultOpacityAvailable = 0.6f;
-        private const float DefaultOpacityPurchased = 0.85f;
-        private const float DefaultOpacityMax = 1f;
+        internal const string ResourcesLoadPath = "Data/SkillTreeVisualSettings";
 
         private static SkillTreeVisualSettings _cache;
+        private static SkillTreeVisualSettings _defaultsCache;
 
         internal static Func<SkillTreeVisualSettings> Provider =
             () => Resources.Load<SkillTreeVisualSettings>(ResourcesLoadPath);
@@ -29,17 +24,7 @@ namespace RogueliteAutoBattler.UI.Toolkit.SkillTree
         internal static float GetOpacityForState(SkillTreeNodeVisualState state)
         {
             var settings = Get();
-            if (settings == null)
-            {
-                return state switch
-                {
-                    SkillTreeNodeVisualState.Locked => DefaultOpacityLocked,
-                    SkillTreeNodeVisualState.Available => DefaultOpacityAvailable,
-                    SkillTreeNodeVisualState.Purchased => DefaultOpacityPurchased,
-                    SkillTreeNodeVisualState.Max => DefaultOpacityMax,
-                    _ => DefaultOpacityLocked
-                };
-            }
+            if (settings == null) settings = GetDefaults();
             return state switch
             {
                 SkillTreeNodeVisualState.Locked => settings.HaloOpacityLocked,
@@ -53,18 +38,28 @@ namespace RogueliteAutoBattler.UI.Toolkit.SkillTree
         internal static float GetHaloSize()
         {
             var settings = Get();
-            return settings != null ? settings.HaloSize : DefaultHaloSize;
+            if (settings == null) settings = GetDefaults();
+            return settings.HaloSize;
+        }
+
+        private static SkillTreeVisualSettings GetDefaults()
+        {
+            if (_defaultsCache == null)
+                _defaultsCache = SkillTreeVisualSettings.CreateDefaults();
+            return _defaultsCache;
         }
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         private static void InvalidateCacheOnRuntimeLoad()
         {
             _cache = null;
+            _defaultsCache = null;
         }
 
         internal static void ResetCache()
         {
             _cache = null;
+            _defaultsCache = null;
         }
     }
 }

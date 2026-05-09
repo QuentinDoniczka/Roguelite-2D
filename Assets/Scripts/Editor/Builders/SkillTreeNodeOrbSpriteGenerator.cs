@@ -1,19 +1,17 @@
 using System;
 using System.IO;
+using RogueliteAutoBattler.UI.Toolkit.SkillTree;
 using UnityEditor;
 using UnityEngine;
 
 namespace RogueliteAutoBattler.Editor.Builders
 {
-    internal enum OrbLayerKind { Core, Halo, Rays }
-
     internal static class SkillTreeNodeOrbSpriteGenerator
     {
         internal const string AssetPath = "Assets/Resources/UI/SkillTreeNodeOrb.png";
         private const string AssetPathFormat = "Assets/Resources/UI/SkillTreeNodeOrb_{0}.png";
 
         private const int TextureSize = 128;
-        private const int LayerCount = 3;
 
         private const float CoreRadiusRatio = 0.18f;
         private const float FalloffExponent = 2.2f;
@@ -45,7 +43,6 @@ namespace RogueliteAutoBattler.Editor.Builders
                 GenerateOrLoad(kind, force: true);
 
             AssetDatabase.Refresh();
-            Debug.Log($"[SkillTreeOrb] Generated {LayerCount} layer PNGs.");
         }
 
         internal static Texture2D EnsureExists(OrbLayerKind kind = OrbLayerKind.Core)

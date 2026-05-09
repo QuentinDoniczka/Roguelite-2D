@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using RogueliteAutoBattler.Data;
+using RogueliteAutoBattler.UI.Toolkit;
 using RogueliteAutoBattler.UI.Toolkit.SkillTree;
 using UnityEditor;
 using UnityEngine;
@@ -19,7 +20,6 @@ namespace RogueliteAutoBattler.Editor.Windows
         private const float HeaderPaddingLeft = 8f;
         private const float RowBorderThickness = 1f;
         private static readonly Color RowBorderColor = new Color(0.3f, 0.3f, 0.3f, 1f);
-        private const string MainStylePath = "Assets/UI/Styles/MainStyle.uss";
 
         private static readonly SkillTreeNodeVisualState[] AllStates =
         {
@@ -72,34 +72,22 @@ namespace RogueliteAutoBattler.Editor.Windows
             _scrollView.style.flexGrow = 1;
             _root.Add(_scrollView);
 
-            BuildRows();
+            BuildStateComparisonRows();
         }
 
         private void AttachMainStyleSheet()
         {
-            var styleSheet = AssetDatabase.LoadAssetAtPath<StyleSheet>(MainStylePath);
+            var styleSheet = AssetDatabase.LoadAssetAtPath<StyleSheet>(UIStylePaths.MainStyleSheet);
             if (styleSheet != null)
                 _root.styleSheets.Add(styleSheet);
         }
 
-        private void BuildRows()
+        private void BuildStateComparisonRows()
         {
             if (_data == null) return;
 
             var nodes = _data.Nodes;
-            Vector2 boundsMin = Vector2.zero;
-            Vector2 boundsMax = Vector2.zero;
-
-            if (nodes.Count > 0)
-            {
-                boundsMin = nodes[0].position;
-                boundsMax = nodes[0].position;
-                for (int i = 1; i < nodes.Count; i++)
-                {
-                    boundsMin = Vector2.Min(boundsMin, nodes[i].position);
-                    boundsMax = Vector2.Max(boundsMax, nodes[i].position);
-                }
-            }
+            var (boundsMin, boundsMax) = ComputeNodeBounds(nodes);
 
             float containerWidth = Mathf.Max(MinContainerWidth, (boundsMax.x - boundsMin.x) * ScaleFactor + ContainerPadding);
             float containerHeight = Mathf.Max(MinRowHeight, (boundsMax.y - boundsMin.y) * ScaleFactor + ContainerPadding);
@@ -109,6 +97,21 @@ namespace RogueliteAutoBattler.Editor.Windows
                 var row = BuildRow(state, nodes, boundsMin, containerWidth, containerHeight);
                 _scrollView.Add(row);
             }
+        }
+
+        private static (Vector2 min, Vector2 max) ComputeNodeBounds(IReadOnlyList<SkillTreeData.SkillNodeEntry> nodes)
+        {
+            if (nodes == null || nodes.Count == 0)
+                return (Vector2.zero, Vector2.zero);
+
+            Vector2 boundsMin = nodes[0].position;
+            Vector2 boundsMax = nodes[0].position;
+            for (int i = 1; i < nodes.Count; i++)
+            {
+                boundsMin = Vector2.Min(boundsMin, nodes[i].position);
+                boundsMax = Vector2.Max(boundsMax, nodes[i].position);
+            }
+            return (boundsMin, boundsMax);
         }
 
         private VisualElement BuildRow(

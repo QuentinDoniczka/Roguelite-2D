@@ -28,18 +28,31 @@ namespace RogueliteAutoBattler.Editor.Windows
         private const float MinWindowHeight = 500f;
         private const int LeftMouseButton = 0;
         private const int MiddleMouseButton = 2;
-        private const int TabIndexSkillTree = 0;
-        private const int TabIndexNode = 1;
-        private const int TabIndexBranch = 2;
-        private const int TabIndexPreviewWithoutBranch = 2;
-        private const int TabIndexPreviewWithBranch = 3;
         private const float SectionSpacingSmall = 8f;
         private const float SectionSpacingMedium = 12f;
         private const float SectionSpacingLarge = 16f;
         private const float CrosshairLineThickness = 1f;
         private const float CrosshairHalfPixelOffset = 0.5f;
         private const float DragStartThresholdPx = 4f;
-        private const float PreviewRootTopOffsetPixels = 30f;
+        private const float TabBarReservedHeightPixels = 30f;
+
+        private enum DesignerTab
+        {
+            SkillTree,
+            Node,
+            Branch,
+            Preview
+        }
+
+        private static readonly DesignerTab[] VisibleTabsWithoutBranch =
+        {
+            DesignerTab.SkillTree, DesignerTab.Node, DesignerTab.Preview
+        };
+
+        private static readonly DesignerTab[] VisibleTabsWithBranch =
+        {
+            DesignerTab.SkillTree, DesignerTab.Node, DesignerTab.Branch, DesignerTab.Preview
+        };
 
         private static readonly Color CanvasBackgroundColor = new Color(0.15f, 0.15f, 0.15f, 1f);
         private static readonly Color CrosshairColor = new Color(0.4f, 0.4f, 0.4f, 1f);
@@ -152,10 +165,10 @@ namespace RogueliteAutoBattler.Editor.Windows
         private int _pendingDragMirrorPartnerIndex = -1;
         private Vector2 _pendingDragMirrorPartnerStartPositionUnits;
         private static GUIStyle _coordLabelStyle;
-        private int _activeTab;
+        private DesignerTab _activeTab = DesignerTab.SkillTree;
         private bool _branchPreviewActive;
         private int _branchPreviewParentIndex = -1;
-        private int _branchPreviewPreviousTab;
+        private DesignerTab _branchPreviewPreviousTab = DesignerTab.SkillTree;
         private BranchPreviewSettings _branchPreviewSettings = BranchPreviewSettings.Defaults;
         private BranchPreviewSettings _lastBranchPreviewSettings = BranchPreviewSettings.Defaults;
         private int _mirrorSourceNodeIndex = BranchPlacement.NoMirrorSourceOverride;
@@ -213,7 +226,7 @@ namespace RogueliteAutoBattler.Editor.Windows
             _previewRoot.style.flexGrow = 1;
             _previewRoot.style.display = DisplayStyle.None;
             _previewRoot.style.position = Position.Absolute;
-            _previewRoot.style.top = PreviewRootTopOffsetPixels;
+            _previewRoot.style.top = TabBarReservedHeightPixels;
             _previewRoot.style.left = 0f;
             _previewRoot.style.right = 0f;
             _previewRoot.style.bottom = 0f;
@@ -410,8 +423,28 @@ namespace RogueliteAutoBattler.Editor.Windows
 
         private bool IsPreviewTabActive()
         {
-            int previewIdx = _branchPreviewActive ? TabIndexPreviewWithBranch : TabIndexPreviewWithoutBranch;
-            return _activeTab == previewIdx;
+            return _activeTab == DesignerTab.Preview;
+        }
+
+        private DesignerTab[] GetVisibleTabs()
+        {
+            return _branchPreviewActive ? VisibleTabsWithBranch : VisibleTabsWithoutBranch;
+        }
+
+        private int GetActiveTabSelectionIndex()
+        {
+            var visible = GetVisibleTabs();
+            for (int i = 0; i < visible.Length; i++)
+                if (visible[i] == _activeTab)
+                    return i;
+            return 0;
+        }
+
+        private void SetActiveTabFromSelectionIndex(int selectionIndex)
+        {
+            var visible = GetVisibleTabs();
+            if (selectionIndex < 0 || selectionIndex >= visible.Length) return;
+            _activeTab = visible[selectionIndex];
         }
 
         private void OnGUI()
@@ -454,7 +487,8 @@ namespace RogueliteAutoBattler.Editor.Windows
             if (_data == null) return;
             _serializedData.Update();
             string[] tabLabels = _branchPreviewActive ? TabLabelsWithBranch : TabLabelsWithoutBranch;
-            _activeTab = GUILayout.Toolbar(_activeTab, tabLabels);
+            int newSelection = GUILayout.Toolbar(GetActiveTabSelectionIndex(), tabLabels);
+            SetActiveTabFromSelectionIndex(newSelection);
             _serializedData.ApplyModifiedProperties();
         }
 
@@ -735,7 +769,7 @@ namespace RogueliteAutoBattler.Editor.Windows
                 int hitIndex = HitTestNodeAt(evt.mousePosition, canvasRect);
                 _selectedNodeIndex = hitIndex;
                 if (!_branchPreviewActive)
-                    _activeTab = hitIndex >= 0 ? TabIndexNode : TabIndexSkillTree;
+                    _activeTab = hitIndex >= 0 ? DesignerTab.Node : DesignerTab.SkillTree;
 
                 if (hitIndex >= 0 && _data.Nodes[hitIndex].id != SkillTreeData.CentralNodeId)
                 {
@@ -837,13 +871,14 @@ namespace RogueliteAutoBattler.Editor.Windows
             _serializedData.Update();
 
             string[] tabLabels = _branchPreviewActive ? TabLabelsWithBranch : TabLabelsWithoutBranch;
-            _activeTab = GUILayout.Toolbar(_activeTab, tabLabels);
+            int newSelection = GUILayout.Toolbar(GetActiveTabSelectionIndex(), tabLabels);
+            SetActiveTabFromSelectionIndex(newSelection);
 
             _configScrollPos = EditorGUILayout.BeginScrollView(_configScrollPos);
 
-            if (_activeTab == TabIndexSkillTree)
+            if (_activeTab == DesignerTab.SkillTree)
                 DrawSkillTreeTab();
-            else if (_activeTab == TabIndexNode)
+            else if (_activeTab == DesignerTab.Node)
                 DrawNodeTab();
             else
                 DrawBranchTab();
@@ -1113,7 +1148,7 @@ namespace RogueliteAutoBattler.Editor.Windows
                 EditorUtility.SetDirty(_data);
                 AssetDatabase.SaveAssets();
                 _selectedNodeIndex = -1;
-                _activeTab = TabIndexSkillTree;
+                _activeTab = DesignerTab.SkillTree;
                 RebuildNodeLabels();
                 _serializedData.Update();
                 Repaint();
@@ -1237,7 +1272,7 @@ namespace RogueliteAutoBattler.Editor.Windows
             _angleIsRelativeToMirrorAxis = false;
             _pickMirrorSourceMode = false;
             _lastMirrorWarning = null;
-            _activeTab = TabIndexBranch;
+            _activeTab = DesignerTab.Branch;
             Repaint();
         }
 
@@ -1364,7 +1399,7 @@ namespace RogueliteAutoBattler.Editor.Windows
             _selectedNodeIndex = _data.Nodes.Count - 1;
             EndBranchPreview();
             InvalidateMirrorSourceIfOutOfRange();
-            _activeTab = TabIndexNode;
+            _activeTab = DesignerTab.Node;
             Repaint();
         }
 

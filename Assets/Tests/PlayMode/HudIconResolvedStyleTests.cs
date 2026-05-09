@@ -1,5 +1,6 @@
 using System.Collections;
 using NUnit.Framework;
+using RogueliteAutoBattler.UI.Toolkit;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.TestTools;
@@ -11,7 +12,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
     public class HudIconResolvedStyleTests : PlayModeTestBase
     {
         private const string MainLayoutPath = "Assets/UI/Layouts/MainLayout.uxml";
-        private const string MainStylePath = "Assets/UI/Styles/MainStyle.uss";
+        private const string MainStylePath = UIStylePaths.MainStyleSheet;
         private const string PanelSettingsPath = "Assets/UI/MainPanelSettings.asset";
 
         private const float FloatTolerance = 2.5f;

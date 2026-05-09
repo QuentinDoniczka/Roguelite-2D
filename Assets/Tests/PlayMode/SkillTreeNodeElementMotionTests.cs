@@ -1,6 +1,7 @@
 #if UNITY_EDITOR
 using System.Collections;
 using NUnit.Framework;
+using RogueliteAutoBattler.UI.Toolkit;
 using RogueliteAutoBattler.UI.Toolkit.SkillTree;
 using UnityEditor;
 using UnityEngine;
@@ -12,7 +13,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
     public class SkillTreeNodeElementMotionTests : PlayModeTestBase
     {
         private const string PanelSettingsPath = "Assets/UI/MainPanelSettings.asset";
-        private const string MainStylePath = "Assets/UI/Styles/MainStyle.uss";
+        private const string MainStylePath = UIStylePaths.MainStyleSheet;
         private const float RaysObservationSeconds = 2.0f;
 
         private UIDocument CreateDocument()

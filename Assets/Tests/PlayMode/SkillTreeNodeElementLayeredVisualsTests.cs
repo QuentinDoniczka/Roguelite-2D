@@ -5,6 +5,7 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.TestTools;
 using UnityEngine.UIElements;
+using RogueliteAutoBattler.UI.Toolkit;
 using RogueliteAutoBattler.UI.Toolkit.SkillTree;
 
 namespace RogueliteAutoBattler.Tests.PlayMode
@@ -12,7 +13,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
     public class SkillTreeNodeElementLayeredVisualsTests : PlayModeTestBase
     {
         private const string PanelSettingsPath = "Assets/UI/MainPanelSettings.asset";
-        private const string MainStylePath = "Assets/UI/Styles/MainStyle.uss";
+        private const string MainStylePath = UIStylePaths.MainStyleSheet;
 
         [SetUp]
         public void SetUp()

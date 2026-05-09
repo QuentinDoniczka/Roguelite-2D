@@ -8,10 +8,6 @@ namespace RogueliteAutoBattler.Editor.Windows
 {
     internal sealed class SkillTreePreviewToolbar
     {
-        private const float MinHaloSize = 32f;
-        private const float MaxHaloSize = 200f;
-        private const float MinOpacity = 0f;
-        private const float MaxOpacity = 1f;
         private const float LabelWidth = 130f;
         private const float SliderWidth = 140f;
         private const float ToolbarPadding = 6f;
@@ -42,58 +38,30 @@ namespace RogueliteAutoBattler.Editor.Windows
 
             if (_settings == null) return toolbar;
 
-            toolbar.Add(BuildSlider(
-                "Halo Size",
-                SkillTreeVisualSettings.FieldNames.HaloSize,
-                _settings.HaloSize,
-                MinHaloSize,
-                MaxHaloSize));
-
-            toolbar.Add(BuildSlider(
-                "Opacity Locked",
-                SkillTreeVisualSettings.FieldNames.HaloOpacityLocked,
-                _settings.HaloOpacityLocked,
-                MinOpacity,
-                MaxOpacity));
-
-            toolbar.Add(BuildSlider(
-                "Opacity Available",
-                SkillTreeVisualSettings.FieldNames.HaloOpacityAvailable,
-                _settings.HaloOpacityAvailable,
-                MinOpacity,
-                MaxOpacity));
-
-            toolbar.Add(BuildSlider(
-                "Opacity Purchased",
-                SkillTreeVisualSettings.FieldNames.HaloOpacityPurchased,
-                _settings.HaloOpacityPurchased,
-                MinOpacity,
-                MaxOpacity));
-
-            toolbar.Add(BuildSlider(
-                "Opacity Max",
-                SkillTreeVisualSettings.FieldNames.HaloOpacityMax,
-                _settings.HaloOpacityMax,
-                MinOpacity,
-                MaxOpacity));
+            foreach (var descriptor in SkillTreeVisualSettings.Tunables)
+            {
+                toolbar.Add(BuildSlider(descriptor));
+            }
 
             return toolbar;
         }
 
-        private VisualElement BuildSlider(string labelText, string fieldName, float initialValue, float min, float max)
+        private VisualElement BuildSlider(SkillTreeVisualSettings.TunableDescriptor descriptor)
         {
             var container = new VisualElement();
             container.style.flexDirection = FlexDirection.Row;
             container.style.alignItems = Align.Center;
             container.style.marginRight = SliderContainerMarginRight;
 
-            var label = new Label(labelText);
+            var label = new Label(descriptor.DisplayLabel);
             label.style.width = LabelWidth;
             label.style.flexShrink = 0;
             container.Add(label);
 
-            var slider = new ChangeNotifyingSlider(min, max, initialValue);
+            float initialValue = descriptor.Getter(_settings);
+            var slider = new ChangeNotifyingSlider(descriptor.Min, descriptor.Max, initialValue);
             slider.style.width = SliderWidth;
+            string fieldName = descriptor.FieldName;
             slider.OnValueChanged = newValue => OnSliderChanged(fieldName, newValue);
 
             container.Add(slider);
@@ -109,6 +77,10 @@ namespace RogueliteAutoBattler.Editor.Windows
             _onChanged?.Invoke();
         }
 
+        // LSP intentionally bent: BaseField<T>.value setter does NOT dispatch ChangeEvent when panel == null
+        // (headless test mode), so RegisterValueChangedCallback never fires on a detached element. Overriding
+        // SetValueWithoutNotify lets the toolbar tests assign `slider.value = X` and observe the callback.
+        // See SkillTreePreviewToolbarTests.SliderChange_WritesToSettings_AndCallsOnChanged.
         private sealed class ChangeNotifyingSlider : Slider
         {
             internal Action<float> OnValueChanged;
