@@ -194,6 +194,13 @@ namespace RogueliteAutoBattler.Editor.Windows
         private VisualElement _previewRoot;
         private VisualElement _previewPanelHost;
 
+        private SkillTreeVisualSettings _visualSettings;
+        private SerializedObject _visualSettingsSerializedObject;
+        private VisualElement _visualTabRoot;
+        private VisualElement _visualTabCanvasHost;
+        private VisualElement _visualTabInspectorHost;
+        private SkillTreePreviewPanel _visualTabPreviewPanel;
+
         private static void LogError(string message)
         {
             Debug.LogError($"[{nameof(SkillTreeDesignerWindow)}] {message}");
@@ -228,6 +235,8 @@ namespace RogueliteAutoBattler.Editor.Windows
             _branchPreviewSettings = _lastBranchPreviewSettings;
             _cachedNodePalette = ActiveSkillNodePaletteResolver.GetActive();
             InitializePreviewPanel();
+            InitializeVisualTabRoot();
+            Undo.undoRedoPerformed += OnUndoRedoPerformed;
             LoadTopLevelTabFromPrefs();
         }
 
@@ -269,8 +278,97 @@ namespace RogueliteAutoBattler.Editor.Windows
             _previewPanel?.Rebuild();
         }
 
+        private void InitializeVisualTabRoot()
+        {
+            _visualSettings = SkillTreeVisualSettingsResolver.Get();
+
+            _visualTabRoot = new VisualElement();
+            _visualTabRoot.style.position = Position.Absolute;
+            _visualTabRoot.style.top = TopAndSubTabBarReservedHeightPixels;
+            _visualTabRoot.style.left = 0;
+            _visualTabRoot.style.right = 0;
+            _visualTabRoot.style.bottom = 0;
+            _visualTabRoot.style.flexDirection = FlexDirection.Row;
+            _visualTabRoot.style.display = DisplayStyle.None;
+            rootVisualElement.Add(_visualTabRoot);
+
+            _visualTabCanvasHost = new VisualElement();
+            _visualTabCanvasHost.style.flexGrow = 0.6f;
+            _visualTabCanvasHost.style.minWidth = 0;
+            _visualTabRoot.Add(_visualTabCanvasHost);
+
+            _visualTabInspectorHost = new VisualElement();
+            _visualTabInspectorHost.style.flexGrow = 0.4f;
+            _visualTabInspectorHost.style.minWidth = 280;
+            _visualTabInspectorHost.style.paddingLeft = 8;
+            _visualTabInspectorHost.style.paddingRight = 8;
+            _visualTabInspectorHost.style.paddingTop = 8;
+            _visualTabInspectorHost.style.paddingBottom = 8;
+            _visualTabRoot.Add(_visualTabInspectorHost);
+
+            if (_visualSettings == null)
+            {
+                var error = new IMGUIContainer(() =>
+                    EditorGUILayout.HelpBox("SkillTreeVisualSettings asset not found at Resources/Data/SkillTreeVisualSettings.asset.", MessageType.Error));
+                _visualTabInspectorHost.Add(error);
+                return;
+            }
+
+            _visualSettingsSerializedObject = new SerializedObject(_visualSettings);
+
+            _visualTabPreviewPanel = new SkillTreePreviewPanel(_data, _cachedNodePalette);
+            _visualTabCanvasHost.Add(_visualTabPreviewPanel.BuildRoot());
+
+            var inspector = new IMGUIContainer(DrawVisualTabInspector);
+            inspector.style.flexGrow = 1;
+            _visualTabInspectorHost.Add(inspector);
+        }
+
+        private void DrawVisualTabInspector()
+        {
+            if (_visualSettingsSerializedObject == null) return;
+
+            _visualSettingsSerializedObject.Update();
+
+            EditorGUI.BeginChangeCheck();
+
+            var iterator = _visualSettingsSerializedObject.GetIterator();
+            iterator.NextVisible(true);
+            while (iterator.NextVisible(false))
+            {
+                EditorGUILayout.PropertyField(iterator, true);
+            }
+
+            bool changed = EditorGUI.EndChangeCheck();
+
+            _visualSettingsSerializedObject.ApplyModifiedProperties();
+
+            if (changed)
+                OnVisualSettingsChanged();
+        }
+
+        private void OnVisualSettingsChanged()
+        {
+            if (_visualSettings == null) return;
+
+            EditorUtility.SetDirty(_visualSettings);
+            AssetDatabase.SaveAssets();
+            SkillTreeVisualSettingsResolver.ResetCache();
+            _visualTabPreviewPanel?.Rebuild();
+            _previewPanel?.Rebuild();
+        }
+
+        private void OnUndoRedoPerformed()
+        {
+            _visualSettingsSerializedObject?.Update();
+            _visualTabPreviewPanel?.Rebuild();
+            _previewPanel?.Rebuild();
+            Repaint();
+        }
+
         private void OnDisable()
         {
+            Undo.undoRedoPerformed -= OnUndoRedoPerformed;
             SaveTopLevelTabToPrefs();
             if (_previewRoot != null && _previewRoot.parent != null)
                 _previewRoot.RemoveFromHierarchy();
@@ -278,6 +376,15 @@ namespace RogueliteAutoBattler.Editor.Windows
             _previewPanel = null;
             _previewPanelHost = null;
             _previewToolbar = null;
+            if (_visualTabRoot != null && _visualTabRoot.parent != null)
+                _visualTabRoot.RemoveFromHierarchy();
+            _visualTabRoot = null;
+            _visualTabCanvasHost = null;
+            _visualTabInspectorHost = null;
+            _visualTabPreviewPanel = null;
+            _visualSettingsSerializedObject?.Dispose();
+            _visualSettingsSerializedObject = null;
+            _visualSettings = null;
         }
 
         private void RefreshTreeList()
@@ -341,13 +448,27 @@ namespace RogueliteAutoBattler.Editor.Windows
 
         private void RebuildPreviewPanelForCurrentTree()
         {
-            if (_previewRoot == null) return;
-            if (_previewPanelHost != null && _previewPanelHost.parent != null)
-                _previewPanelHost.RemoveFromHierarchy();
+            RebuildPanel(ref _previewPanel, _previewRoot, _previewPanelHost, (host, panel) =>
+            {
+                _previewPanelHost = panel.BuildRoot();
+                host.Add(_previewPanelHost);
+            });
 
-            _previewPanel = new SkillTreePreviewPanel(_data, _cachedNodePalette);
-            _previewPanelHost = _previewPanel.BuildRoot();
-            _previewRoot.Add(_previewPanelHost);
+            if (_visualTabCanvasHost != null)
+            {
+                _visualTabCanvasHost.Clear();
+                _visualTabPreviewPanel = new SkillTreePreviewPanel(_data, _cachedNodePalette);
+                _visualTabCanvasHost.Add(_visualTabPreviewPanel.BuildRoot());
+            }
+        }
+
+        private void RebuildPanel(ref SkillTreePreviewPanel panel, VisualElement host, VisualElement oldHost, System.Action<VisualElement, SkillTreePreviewPanel> reseat)
+        {
+            if (host == null) return;
+            if (oldHost != null && oldHost.parent != null)
+                oldHost.RemoveFromHierarchy();
+            panel = new SkillTreePreviewPanel(_data, _cachedNodePalette);
+            reseat(host, panel);
         }
 
         private void RefreshActivePointerCache()
@@ -495,10 +616,12 @@ namespace RogueliteAutoBattler.Editor.Windows
 
             if (_topLevelTab == TopLevelTab.Visual)
             {
-                if (_previewRoot != null)
-                    _previewRoot.style.display = DisplayStyle.None;
+                if (_previewRoot != null) _previewRoot.style.display = DisplayStyle.None;
+                if (_visualTabRoot != null) _visualTabRoot.style.display = DisplayStyle.Flex;
                 return;
             }
+
+            if (_visualTabRoot != null) _visualTabRoot.style.display = DisplayStyle.None;
 
             if (IsPreviewTabActive())
             {
@@ -1505,5 +1628,12 @@ namespace RogueliteAutoBattler.Editor.Windows
         internal static string TopLevelTabEditorPrefKeyForTests => TopLevelTabEditorPrefKey;
         internal void InvokeLoadTopLevelTabFromPrefsForTests() => LoadTopLevelTabFromPrefs();
         internal void InvokeSaveTopLevelTabToPrefsForTests() => SaveTopLevelTabToPrefs();
+
+        internal SerializedObject VisualSettingsSerializedObjectForTests => _visualSettingsSerializedObject;
+        internal SkillTreeVisualSettings VisualSettingsForTests => _visualSettings;
+        internal SkillTreePreviewPanel VisualTabPreviewPanelForTests => _visualTabPreviewPanel;
+        internal VisualElement VisualTabRootForTests => _visualTabRoot;
+        internal void InvokeOnVisualSettingsChangedForTests() => OnVisualSettingsChanged();
+        internal void InvokeInitializeVisualTabRootForTests() => InitializeVisualTabRoot();
     }
 }
