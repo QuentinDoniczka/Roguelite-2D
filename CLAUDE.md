@@ -25,7 +25,7 @@
 Doc detaille : `Assets/doc/premier-jet-roguelite.html`
 
 # Project Structure
-Generated: 2026-05-08
+Generated: 2026-05-09
 
 .github/
   workflows/
@@ -187,7 +187,7 @@ Assets/
         SettingsWindow.cs
         SkillTreeDesignerWindow.cs
         SkillTreePreviewPanel.cs
-        SkillTreePreviewToolbar.cs
+        SkillTreeVisualTabPresenter.cs
         TeamBuilderTab.cs
     Items/  (empty)
     Data/
@@ -278,6 +278,7 @@ Assets/
       NodeSnapEngineTests.cs
       SkillTreeDataSnapNormalizationTests.cs
       SkillTreeDesignerBranchTests.cs
+      SkillTreeDesignerTopLevelTabTests.cs
       SkillTreeGridTests.cs
       SkillTreeNodeFactorySnapDefaultsTests.cs
       SkillTreeNodeFactoryTests.cs
@@ -326,6 +327,7 @@ Assets/
       Tests.PlayMode.asmdef
       TestUtils/
         PlayModeTestBase.cs
+        SkillTreeVisualSettingsProviderScope.cs
         TestCharacterFactory.cs
       AllyStatBonusServiceTests.cs
       AllyStatsPanelControllerTests.cs
