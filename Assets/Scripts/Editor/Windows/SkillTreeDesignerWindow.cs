@@ -190,7 +190,6 @@ namespace RogueliteAutoBattler.Editor.Windows
         private SkillNodePalette _cachedNodePalette;
 
         private SkillTreePreviewPanel _previewPanel;
-        private SkillTreePreviewToolbar _previewToolbar;
         private VisualElement _previewRoot;
         private VisualElement _previewPanelHost;
 
@@ -263,19 +262,9 @@ namespace RogueliteAutoBattler.Editor.Windows
             _previewRoot.style.flexDirection = FlexDirection.Column;
             rootVisualElement.Add(_previewRoot);
 
-            var settings = SkillTreeVisualSettingsResolver.Get();
-            _previewToolbar = new SkillTreePreviewToolbar(settings, OnPreviewSettingsChanged);
-            _previewRoot.Add(_previewToolbar.BuildToolbar());
-
             _previewPanel = new SkillTreePreviewPanel(_data, _cachedNodePalette);
             _previewPanelHost = _previewPanel.BuildRoot();
             _previewRoot.Add(_previewPanelHost);
-        }
-
-        private void OnPreviewSettingsChanged()
-        {
-            SkillTreeVisualSettingsResolver.ResetCache();
-            _previewPanel?.Rebuild();
         }
 
         private void InitializeVisualTabRoot()
@@ -375,7 +364,6 @@ namespace RogueliteAutoBattler.Editor.Windows
             _previewRoot = null;
             _previewPanel = null;
             _previewPanelHost = null;
-            _previewToolbar = null;
             if (_visualTabRoot != null && _visualTabRoot.parent != null)
                 _visualTabRoot.RemoveFromHierarchy();
             _visualTabRoot = null;
