@@ -4,6 +4,7 @@ using NUnit.Framework;
 using RogueliteAutoBattler.Combat.Core;
 using RogueliteAutoBattler.Data;
 using RogueliteAutoBattler.Editor.Windows;
+using RogueliteAutoBattler.Tests.PlayMode;
 using RogueliteAutoBattler.UI.Toolkit.SkillTree;
 using UnityEditor;
 using UnityEngine;
@@ -69,7 +70,7 @@ namespace RogueliteAutoBattler.Tests.EditMode
         }
 
         [Test]
-        public void TopLevelTabLabels_ContainsDesignerThenVisual()
+        public void TopLevelTabLabels_WhenAccessed_ContainsDesignerThenVisualInOrder()
         {
             var labels = SkillTreeDesignerWindow.TopLevelTabLabelsForTests;
             Assert.IsNotNull(labels, "TopLevelTabLabels must not be null.");
@@ -199,93 +200,79 @@ namespace RogueliteAutoBattler.Tests.EditMode
                 "Round-trip step 2: saved value in EditorPrefs must be Designer.");
         }
 
-        private static SkillTreeVisualSettings InstallStubVisualSettings(out System.Func<SkillTreeVisualSettings> originalProvider)
-        {
-            var stubSettings = ScriptableObject.CreateInstance<SkillTreeVisualSettings>();
-            originalProvider = SkillTreeVisualSettingsResolver.Provider;
-            SkillTreeVisualSettingsResolver.Provider = () => stubSettings;
-            SkillTreeVisualSettingsResolver.ResetCache();
-            return stubSettings;
-        }
-
-        private static void RestoreVisualSettingsProvider(SkillTreeVisualSettings stubSettings, System.Func<SkillTreeVisualSettings> originalProvider)
-        {
-            SkillTreeVisualSettingsResolver.Provider = originalProvider;
-            SkillTreeVisualSettingsResolver.ResetCache();
-            Object.DestroyImmediate(stubSettings);
-        }
-
         [Test]
         public void VisualTab_Initialize_PopulatesSerializedObject()
         {
-            var stubSettings = InstallStubVisualSettings(out var originalProvider);
+            using var scope = new SkillTreeVisualSettingsProviderScope();
 
-            try
-            {
-                _window.InvokeInitializeVisualTabRootForTests();
+            var presenter = _window.VisualTabPresenterForTests;
+            presenter.InvokeInitializeForTests();
 
-                Assert.IsNotNull(
-                    _window.VisualSettingsSerializedObjectForTests,
-                    "SerializedObject must be populated after InitializeVisualTabRoot.");
-                Assert.AreEqual(
-                    _window.VisualSettingsForTests,
-                    _window.VisualSettingsSerializedObjectForTests.targetObject,
-                    "SerializedObject target must be the resolved SkillTreeVisualSettings asset.");
-            }
-            finally
-            {
-                RestoreVisualSettingsProvider(stubSettings, originalProvider);
-            }
+            Assert.IsNotNull(
+                presenter.SerializedObjectForTests,
+                "SerializedObject must be populated after Initialize.");
+            Assert.AreEqual(
+                presenter.SettingsForTests,
+                presenter.SerializedObjectForTests.targetObject,
+                "SerializedObject target must be the resolved SkillTreeVisualSettings asset.");
         }
 
         [Test]
         public void VisualTab_Initialize_PreviewPanelInstance_NotNull()
         {
-            var stubSettings = InstallStubVisualSettings(out var originalProvider);
+            using var scope = new SkillTreeVisualSettingsProviderScope();
 
-            try
-            {
-                _window.InvokeInitializeVisualTabRootForTests();
+            var presenter = _window.VisualTabPresenterForTests;
+            presenter.InvokeInitializeForTests();
 
-                Assert.IsNotNull(
-                    _window.VisualTabPreviewPanelForTests,
-                    "Visual tab preview panel must be non-null after InitializeVisualTabRoot.");
-            }
-            finally
-            {
-                RestoreVisualSettingsProvider(stubSettings, originalProvider);
-            }
+            Assert.IsNotNull(
+                presenter.PreviewPanelForTests,
+                "Visual tab preview panel must be non-null after Initialize.");
         }
 
         [Test]
-        public void VisualTab_OnVisualSettingsChanged_MarksAssetDirty_AndResetsCache()
+        public void VisualTab_OnSettingsChanged_MarksAssetDirty_AndResetsCache()
         {
-            var stubSettings = InstallStubVisualSettings(out var originalProvider);
+            using var scope = new SkillTreeVisualSettingsProviderScope();
+            var presenter = _window.VisualTabPresenterForTests;
+            presenter.InvokeInitializeForTests();
+
+            var so = presenter.SerializedObjectForTests;
+            var prop = so.FindProperty(SkillTreeVisualSettings.FieldNames.HaloSize);
+            float orig = prop.floatValue;
+
+            int providerCallCount = 0;
+            var stub = scope.Stub;
+            SkillTreeVisualSettingsResolver.Provider = () =>
+            {
+                providerCallCount++;
+                return stub;
+            };
+            SkillTreeVisualSettingsResolver.ResetCache();
 
             try
             {
-                _window.InvokeInitializeVisualTabRootForTests();
-
-                var so = _window.VisualSettingsSerializedObjectForTests;
-                var prop = so.FindProperty(SkillTreeVisualSettings.FieldNames.HaloSize);
-                float orig = prop.floatValue;
-
                 prop.floatValue = orig + 1f;
                 so.ApplyModifiedProperties();
 
-                _window.InvokeOnVisualSettingsChangedForTests();
+                presenter.InvokeOnSettingsChangedForTests();
 
                 Assert.IsTrue(
-                    EditorUtility.IsDirty(stubSettings),
-                    "SkillTreeVisualSettings must be marked dirty after OnVisualSettingsChanged.");
+                    EditorUtility.IsDirty(stub),
+                    "SkillTreeVisualSettings must be marked dirty after OnSettingsChanged.");
 
-                prop.floatValue = orig;
-                so.ApplyModifiedProperties();
-                EditorUtility.ClearDirty(stubSettings);
+                int callCountBeforeGet = providerCallCount;
+                SkillTreeVisualSettingsResolver.Get();
+                Assert.Greater(
+                    providerCallCount,
+                    callCountBeforeGet,
+                    "Resolver cache must be reset by OnSettingsChanged so the next Get re-invokes the provider.");
             }
             finally
             {
-                RestoreVisualSettingsProvider(stubSettings, originalProvider);
+                prop.floatValue = orig;
+                so.ApplyModifiedProperties();
+                EditorUtility.ClearDirty(stub);
             }
         }
     }

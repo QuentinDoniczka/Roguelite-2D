@@ -1,47 +1,33 @@
 #if UNITY_EDITOR
-using System;
 using NUnit.Framework;
 using RogueliteAutoBattler.Data;
 using RogueliteAutoBattler.UI.Toolkit.SkillTree;
-using UnityEngine;
-using UnityEngine.UIElements;
 
 namespace RogueliteAutoBattler.Tests.PlayMode
 {
     public class SkillTreeNodeElementHaloOpacityTests
     {
-        private Func<SkillTreeVisualSettings> _savedProvider;
-        private SkillTreeVisualSettings _testSettings;
-
-        [SetUp]
-        public void SetUp()
-        {
-            _savedProvider = SkillTreeVisualSettingsResolver.Provider;
-            SkillTreeVisualSettingsResolver.ResetCache();
-        }
+        private SkillTreeVisualSettingsProviderScope _scope;
 
         [TearDown]
         public void TearDown()
         {
-            SkillTreeVisualSettingsResolver.Provider = _savedProvider;
-            SkillTreeVisualSettingsResolver.ResetCache();
-            if (_testSettings != null)
-                ScriptableObject.DestroyImmediate(_testSettings);
+            _scope?.Dispose();
+            _scope = null;
         }
 
-        private SkillTreeVisualSettings CreateSettings(float size = 120f, float locked = 0f,
+        private SkillTreeVisualSettingsProviderScope InstallScope(float size = 120f, float locked = 0f,
             float available = 0.6f, float purchased = 0.85f, float max = 1f)
         {
-            var s = ScriptableObject.CreateInstance<SkillTreeVisualSettings>();
-            s.SetForTesting(size, locked, available, purchased, max);
-            return s;
+            _scope = new SkillTreeVisualSettingsProviderScope();
+            _scope.Stub.SetForTesting(size, locked, available, purchased, max);
+            return _scope;
         }
 
         [Test]
         public void SetState_AppliesOpacityForLocked()
         {
-            _testSettings = CreateSettings(locked: 0.1f);
-            SkillTreeVisualSettingsResolver.Provider = () => _testSettings;
+            InstallScope(locked: 0.1f);
 
             var node = new SkillTreeNodeElement(0);
             node.SetState(SkillTreeNodeVisualState.Locked);
@@ -54,8 +40,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
         [Test]
         public void SetState_AppliesOpacityForAvailable()
         {
-            _testSettings = CreateSettings(available: 0.2f);
-            SkillTreeVisualSettingsResolver.Provider = () => _testSettings;
+            InstallScope(available: 0.2f);
 
             var node = new SkillTreeNodeElement(0);
             node.SetState(SkillTreeNodeVisualState.Available);
@@ -68,8 +53,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
         [Test]
         public void SetState_AppliesOpacityForPurchased()
         {
-            _testSettings = CreateSettings(purchased: 0.3f);
-            SkillTreeVisualSettingsResolver.Provider = () => _testSettings;
+            InstallScope(purchased: 0.3f);
 
             var node = new SkillTreeNodeElement(0);
             node.SetState(SkillTreeNodeVisualState.Purchased);
@@ -82,8 +66,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
         [Test]
         public void SetState_AppliesOpacityForMax()
         {
-            _testSettings = CreateSettings(max: 0.4f);
-            SkillTreeVisualSettingsResolver.Provider = () => _testSettings;
+            InstallScope(max: 0.4f);
 
             var node = new SkillTreeNodeElement(0);
             node.SetState(SkillTreeNodeVisualState.Max);
@@ -96,7 +79,9 @@ namespace RogueliteAutoBattler.Tests.PlayMode
         [Test]
         public void Settings_Null_FallsBackToDefaults_Locked()
         {
+            InstallScope();
             SkillTreeVisualSettingsResolver.Provider = () => null;
+            SkillTreeVisualSettingsResolver.ResetCache();
 
             var node = new SkillTreeNodeElement(0);
             node.SetState(SkillTreeNodeVisualState.Locked);
@@ -109,7 +94,9 @@ namespace RogueliteAutoBattler.Tests.PlayMode
         [Test]
         public void Settings_Null_FallsBackToDefaults_Available()
         {
+            InstallScope();
             SkillTreeVisualSettingsResolver.Provider = () => null;
+            SkillTreeVisualSettingsResolver.ResetCache();
 
             var node = new SkillTreeNodeElement(0);
             node.SetState(SkillTreeNodeVisualState.Available);
@@ -122,8 +109,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
         [Test]
         public void Constructor_AppliesHaloSize_FromSettings()
         {
-            _testSettings = CreateSettings(size: 150f);
-            SkillTreeVisualSettingsResolver.Provider = () => _testSettings;
+            InstallScope(size: 150f);
 
             var node = new SkillTreeNodeElement(0);
 
