@@ -81,9 +81,7 @@ namespace RogueliteAutoBattler.UI.Toolkit.SkillTree
                 .StartingIn(HaloBreatheIntervalMs)
                 .Every(HaloBreatheIntervalMs);
 
-            schedule.Execute(RotateRaysIfMax)
-                .StartingIn(RaysRotationIntervalMs)
-                .Every(RaysRotationIntervalMs);
+            _rays.RegisterCallback<AttachToPanelEvent>(OnRaysAttached);
         }
 
         public void SetState(SkillTreeNodeVisualState newState)
@@ -120,7 +118,7 @@ namespace RogueliteAutoBattler.UI.Toolkit.SkillTree
             if (previousState == SkillTreeNodeVisualState.Max && newState != SkillTreeNodeVisualState.Max)
             {
                 _raysRotationDegrees = 0f;
-                _rays.style.rotate = new StyleRotate(new Rotate(new Angle(0f, AngleUnit.Degree)));
+                _rays.transform.rotation = Quaternion.identity;
             }
         }
 
@@ -189,12 +187,20 @@ namespace RogueliteAutoBattler.UI.Toolkit.SkillTree
             ToggleInClassList(HaloBreatheOnClassName);
         }
 
+        private void OnRaysAttached(AttachToPanelEvent _)
+        {
+            _rays.UnregisterCallback<AttachToPanelEvent>(OnRaysAttached);
+            _rays.schedule.Execute(RotateRaysIfMax)
+                .StartingIn(RaysRotationIntervalMs)
+                .Every(RaysRotationIntervalMs);
+        }
+
         private void RotateRaysIfMax()
         {
             if (CurrentState != SkillTreeNodeVisualState.Max)
                 return;
             _raysRotationDegrees = (_raysRotationDegrees + RaysDegreesPerTick) % 360f;
-            _rays.style.rotate = new StyleRotate(new Rotate(new Angle(_raysRotationDegrees, AngleUnit.Degree)));
+            _rays.transform.rotation = Quaternion.Euler(0f, 0f, _raysRotationDegrees);
         }
 
         private void OnClick(ClickEvent _) => Clicked?.Invoke(NodeIndex);
