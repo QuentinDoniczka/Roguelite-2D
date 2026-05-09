@@ -74,8 +74,12 @@ Assets/
     Effects/  (empty)
     UI/  (empty)
   Resources/
+    Data/
+      SkillTreeVisualSettings.asset
     UI/
       SkillTreeNodeOrb.png
+      SkillTreeNodeOrb_Halo.png
+      SkillTreeNodeOrb_Rays.png
     ActiveSkillNodePalette.asset
     ActiveSkillTree.asset
   Scenes/
@@ -174,6 +178,7 @@ Assets/
         SkillTreeAssetMigration.cs
         SkillTreeNodeFactory.cs
         SkillTreeNodeIdAllocator.cs
+        SkillTreeVisualSettingsAssetCreator.cs
         SkillTreesEnumerator.cs
         StatTypeValidator.cs
       Windows/
@@ -181,6 +186,8 @@ Assets/
         LevelDesignerTab.cs
         SettingsWindow.cs
         SkillTreeDesignerWindow.cs
+        SkillTreePreviewPanel.cs
+        SkillTreePreviewToolbar.cs
         TeamBuilderTab.cs
     Items/  (empty)
     Data/
@@ -197,6 +204,7 @@ Assets/
       SkillTreeGrid.cs
       SkillTreeProgress.cs
       SkillTreeRefundCalculator.cs
+      SkillTreeVisualSettings.cs
       TeamDatabase.cs
     ScriptableObjects/  (empty)
     Services/
@@ -215,6 +223,7 @@ Assets/
         ScreenStack.cs
         SkillPointBadgeController.cs
         StepProgressBarController.cs
+        UIStylePaths.cs
         SkillTree/
           SkillTreeDetailPanelController.cs
           SkillTreeEdgeLayer.cs
@@ -223,6 +232,7 @@ Assets/
           SkillTreePanZoomManipulator.cs
           SkillTreeScreenController.cs
           SkillTreeStateEvaluator.cs
+          SkillTreeVisualSettingsResolver.cs
     Village/  (empty)
   Settings/
     DefaultVolumeProfile.asset
