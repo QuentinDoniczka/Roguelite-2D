@@ -23,23 +23,21 @@ namespace RogueliteAutoBattler.UI.Toolkit.SkillTree
         private const string PulseOnClassName = "skill-tree-node--pulse-on";
         private const string HaloBreatheOnClassName = "skill-tree-node--halo-breathe-on";
         private const string HaloClassName = "skill-tree-node__halo";
-        private const string FrameClassName = "skill-tree-node__frame";
-        private const string RimClassName = "skill-tree-node__rim";
-        private const string InnerGlowClassName = "skill-tree-node__inner-glow";
-        private const string SparkleClassName = "skill-tree-node__sparkle";
+        private const string HaloOuterClassName = "skill-tree-node__halo-outer";
+        private const string HaloInnerClassName = "skill-tree-node__halo-inner";
+        private const string RaysClassName = "skill-tree-node__rays";
         private const float NodeHalfSize = 32f;
         private const long PulseIntervalMs = 800;
         private const long HaloBreatheIntervalMs = 1600;
-        private const long SparkleRotationIntervalMs = 50;
-        private const float SparkleDegreesPerTick = 1.5f;
+        private const long RaysRotationIntervalMs = 50;
+        private const float RaysDegreesPerTick = 0.3f;
 
         private Color _currentColor = Color.white;
-        private float _sparkleRotationDegrees;
+        private float _raysRotationDegrees;
         private readonly VisualElement _halo;
-        private readonly VisualElement _frame;
-        private readonly VisualElement _rim;
-        private readonly VisualElement _innerGlow;
-        private readonly VisualElement _sparkle;
+        private readonly VisualElement _haloOuter;
+        private readonly VisualElement _haloInner;
+        private readonly VisualElement _rays;
 
         public int NodeIndex { get; }
         public SkillTreeNodeVisualState CurrentState { get; private set; }
@@ -66,14 +64,14 @@ namespace RogueliteAutoBattler.UI.Toolkit.SkillTree
                 _halo.style.backgroundImage = background;
             }
 
-            _frame = CreateLayer(FrameClassName, OrbLayerKind.Frame);
-            Add(_frame);
-            _rim = CreateLayer(RimClassName, OrbLayerKind.Rim);
-            Add(_rim);
-            _innerGlow = CreateLayer(InnerGlowClassName, OrbLayerKind.InnerGlow);
-            Add(_innerGlow);
-            _sparkle = CreateLayer(SparkleClassName, OrbLayerKind.Sparkle);
-            Add(_sparkle);
+            _haloOuter = CreateLayer(HaloOuterClassName, OrbLayerKind.HaloOuter);
+            Insert(0, _haloOuter);
+
+            _haloInner = CreateLayer(HaloInnerClassName, OrbLayerKind.HaloInner);
+            Add(_haloInner);
+
+            _rays = CreateLayer(RaysClassName, OrbLayerKind.Rays);
+            Add(_rays);
 
             SetState(SkillTreeNodeVisualState.Locked);
 
@@ -83,9 +81,9 @@ namespace RogueliteAutoBattler.UI.Toolkit.SkillTree
                 .StartingIn(HaloBreatheIntervalMs)
                 .Every(HaloBreatheIntervalMs);
 
-            schedule.Execute(RotateSparkleIfMax)
-                .StartingIn(SparkleRotationIntervalMs)
-                .Every(SparkleRotationIntervalMs);
+            schedule.Execute(RotateRaysIfMax)
+                .StartingIn(RaysRotationIntervalMs)
+                .Every(RaysRotationIntervalMs);
         }
 
         public void SetState(SkillTreeNodeVisualState newState)
@@ -121,8 +119,8 @@ namespace RogueliteAutoBattler.UI.Toolkit.SkillTree
 
             if (previousState == SkillTreeNodeVisualState.Max && newState != SkillTreeNodeVisualState.Max)
             {
-                _sparkleRotationDegrees = 0f;
-                _sparkle.style.rotate = new StyleRotate(new Rotate(new Angle(0f, AngleUnit.Degree)));
+                _raysRotationDegrees = 0f;
+                _rays.style.rotate = new StyleRotate(new Rotate(new Angle(0f, AngleUnit.Degree)));
             }
         }
 
@@ -146,7 +144,8 @@ namespace RogueliteAutoBattler.UI.Toolkit.SkillTree
             style.borderBottomColor = new StyleColor(color);
             style.unityBackgroundImageTintColor = new StyleColor(color);
             _halo.style.unityBackgroundImageTintColor = new StyleColor(color);
-            _innerGlow.style.unityBackgroundImageTintColor = new StyleColor(color);
+            _haloOuter.style.unityBackgroundImageTintColor = new StyleColor(color);
+            _haloInner.style.unityBackgroundImageTintColor = new StyleColor(color);
         }
 
         public void SetDataPosition(Vector2 dataPosition, float unitToPixelScale)
@@ -190,12 +189,12 @@ namespace RogueliteAutoBattler.UI.Toolkit.SkillTree
             ToggleInClassList(HaloBreatheOnClassName);
         }
 
-        private void RotateSparkleIfMax()
+        private void RotateRaysIfMax()
         {
             if (CurrentState != SkillTreeNodeVisualState.Max)
                 return;
-            _sparkleRotationDegrees = (_sparkleRotationDegrees + SparkleDegreesPerTick) % 360f;
-            _sparkle.style.rotate = new StyleRotate(new Rotate(new Angle(_sparkleRotationDegrees, AngleUnit.Degree)));
+            _raysRotationDegrees = (_raysRotationDegrees + RaysDegreesPerTick) % 360f;
+            _rays.style.rotate = new StyleRotate(new Rotate(new Angle(_raysRotationDegrees, AngleUnit.Degree)));
         }
 
         private void OnClick(ClickEvent _) => Clicked?.Invoke(NodeIndex);

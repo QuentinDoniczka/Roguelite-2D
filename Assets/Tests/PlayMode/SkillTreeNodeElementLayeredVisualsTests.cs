@@ -41,112 +41,87 @@ namespace RogueliteAutoBattler.Tests.PlayMode
         }
 
         [Test]
-        public void Constructor_CreatesFrameChild()
+        public void Constructor_CreatesHaloOuterChild()
         {
             var node = new SkillTreeNodeElement(0);
 
-            var frame = node.Q(className: "skill-tree-node__frame");
+            var haloOuter = node.Q(className: "skill-tree-node__halo-outer");
 
-            Assert.IsNotNull(frame, "Constructor must create a frame child VisualElement.");
-            Assert.AreEqual(PickingMode.Ignore, frame.pickingMode,
-                "Frame must not intercept pointer events.");
-            Assert.IsNotNull(frame.style.backgroundImage.value.texture,
-                "Frame must receive the orb texture as background-image.");
+            Assert.IsNotNull(haloOuter, "Constructor must create a halo-outer child VisualElement.");
+            Assert.AreEqual(PickingMode.Ignore, haloOuter.pickingMode,
+                "HaloOuter must not intercept pointer events.");
+            Assert.IsNotNull(haloOuter.style.backgroundImage.value.texture,
+                "HaloOuter must receive the orb texture as background-image.");
         }
 
         [Test]
-        public void Constructor_CreatesRimChild()
+        public void Constructor_CreatesHaloInnerChild()
         {
             var node = new SkillTreeNodeElement(0);
 
-            var rim = node.Q(className: "skill-tree-node__rim");
+            var haloInner = node.Q(className: "skill-tree-node__halo-inner");
 
-            Assert.IsNotNull(rim, "Constructor must create a rim child VisualElement.");
-            Assert.AreEqual(PickingMode.Ignore, rim.pickingMode,
-                "Rim must not intercept pointer events.");
-            Assert.IsNotNull(rim.style.backgroundImage.value.texture,
-                "Rim must receive the orb texture as background-image.");
+            Assert.IsNotNull(haloInner, "Constructor must create a halo-inner child VisualElement.");
+            Assert.AreEqual(PickingMode.Ignore, haloInner.pickingMode,
+                "HaloInner must not intercept pointer events.");
+            Assert.IsNotNull(haloInner.style.backgroundImage.value.texture,
+                "HaloInner must receive the orb texture as background-image.");
         }
 
         [Test]
-        public void Constructor_CreatesInnerGlowChild()
+        public void Constructor_CreatesRaysChild()
         {
             var node = new SkillTreeNodeElement(0);
 
-            var glow = node.Q(className: "skill-tree-node__inner-glow");
+            var rays = node.Q(className: "skill-tree-node__rays");
 
-            Assert.IsNotNull(glow, "Constructor must create an inner-glow child VisualElement.");
-            Assert.AreEqual(PickingMode.Ignore, glow.pickingMode,
-                "InnerGlow must not intercept pointer events.");
-            Assert.IsNotNull(glow.style.backgroundImage.value.texture,
-                "InnerGlow must receive the orb texture as background-image.");
+            Assert.IsNotNull(rays, "Constructor must create a rays child VisualElement.");
+            Assert.AreEqual(PickingMode.Ignore, rays.pickingMode,
+                "Rays must not intercept pointer events.");
+            Assert.IsNotNull(rays.style.backgroundImage.value.texture,
+                "Rays must receive the orb texture as background-image.");
         }
 
         [Test]
-        public void Constructor_CreatesSparkleChild()
-        {
-            var node = new SkillTreeNodeElement(0);
-
-            var sparkle = node.Q(className: "skill-tree-node__sparkle");
-
-            Assert.IsNotNull(sparkle, "Constructor must create a sparkle child VisualElement.");
-            Assert.AreEqual(PickingMode.Ignore, sparkle.pickingMode,
-                "Sparkle must not intercept pointer events.");
-            Assert.IsNotNull(sparkle.style.backgroundImage.value.texture,
-                "Sparkle must receive the orb texture as background-image.");
-        }
-
-        [Test]
-        public void SetColorTag_AppliesTintColor_ToInnerGlow()
+        public void SetColorTag_AppliesTintColor_ToHaloOuter()
         {
             var node = new SkillTreeNodeElement(0);
             var color = new Color(0.8f, 0.2f, 0.2f, 1f);
 
             node.SetColorTag(color);
 
-            var glow = node.Q(className: "skill-tree-node__inner-glow");
-            Assert.AreEqual(color, glow.style.unityBackgroundImageTintColor.value,
-                "SetColorTag must apply the tint color as inline style to inner-glow.");
+            var haloOuter = node.Q(className: "skill-tree-node__halo-outer");
+            Assert.AreEqual(color, haloOuter.style.unityBackgroundImageTintColor.value,
+                "SetColorTag must apply the tint color as inline style to halo-outer.");
         }
 
         [Test]
-        public void SetColorTag_DoesNotSetInlineTint_OnFrame()
+        public void SetColorTag_AppliesTintColor_ToHaloInner()
+        {
+            var node = new SkillTreeNodeElement(0);
+            var color = new Color(0.8f, 0.2f, 0.2f, 1f);
+
+            node.SetColorTag(color);
+
+            var haloInner = node.Q(className: "skill-tree-node__halo-inner");
+            Assert.AreEqual(color, haloInner.style.unityBackgroundImageTintColor.value,
+                "SetColorTag must apply the tint color as inline style to halo-inner.");
+        }
+
+        [Test]
+        public void SetColorTag_DoesNotSetInlineTint_OnRays()
         {
             var node = new SkillTreeNodeElement(0);
 
             node.SetColorTag(new Color(0.8f, 0.2f, 0.2f, 1f));
 
-            var frame = node.Q(className: "skill-tree-node__frame");
-            Assert.AreEqual(StyleKeyword.Null, frame.style.unityBackgroundImageTintColor.keyword,
-                "SetColorTag must not set an inline tint on the frame layer.");
-        }
-
-        [Test]
-        public void SetColorTag_DoesNotSetInlineTint_OnRim()
-        {
-            var node = new SkillTreeNodeElement(0);
-
-            node.SetColorTag(new Color(0.8f, 0.2f, 0.2f, 1f));
-
-            var rim = node.Q(className: "skill-tree-node__rim");
-            Assert.AreEqual(StyleKeyword.Null, rim.style.unityBackgroundImageTintColor.keyword,
-                "SetColorTag must not set an inline tint on the rim layer.");
-        }
-
-        [Test]
-        public void SetColorTag_DoesNotSetInlineTint_OnSparkle()
-        {
-            var node = new SkillTreeNodeElement(0);
-
-            node.SetColorTag(new Color(0.8f, 0.2f, 0.2f, 1f));
-
-            var sparkle = node.Q(className: "skill-tree-node__sparkle");
-            Assert.AreEqual(StyleKeyword.Null, sparkle.style.unityBackgroundImageTintColor.keyword,
-                "SetColorTag must not set an inline tint on the sparkle layer.");
+            var rays = node.Q(className: "skill-tree-node__rays");
+            Assert.AreEqual(StyleKeyword.Null, rays.style.unityBackgroundImageTintColor.keyword,
+                "SetColorTag must not set an inline tint on the rays layer.");
         }
 
         [UnityTest]
-        public IEnumerator MaxState_ShowsSparkle()
+        public IEnumerator MaxState_ShowsRays()
         {
             var doc = CreateDocument();
             yield return null;
@@ -166,13 +141,13 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             yield return null;
             yield return null;
 
-            var sparkle = node.Q(className: "skill-tree-node__sparkle");
-            Assert.AreEqual(DisplayStyle.Flex, sparkle.resolvedStyle.display,
-                "Sparkle must be displayed when node is in Max state.");
+            var rays = node.Q(className: "skill-tree-node__rays");
+            Assert.AreEqual(DisplayStyle.Flex, rays.resolvedStyle.display,
+                "Rays must be displayed when node is in Max state.");
         }
 
         [UnityTest]
-        public IEnumerator LockedState_HidesRimAndInnerGlow()
+        public IEnumerator LockedState_HidesHaloOuterAndHaloInner()
         {
             var doc = CreateDocument();
             yield return null;
@@ -192,16 +167,16 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             yield return null;
             yield return null;
 
-            var rim = node.Q(className: "skill-tree-node__rim");
-            var glow = node.Q(className: "skill-tree-node__inner-glow");
-            Assert.AreEqual(DisplayStyle.None, rim.resolvedStyle.display,
-                "Rim must be hidden when node is in Locked state.");
-            Assert.AreEqual(DisplayStyle.None, glow.resolvedStyle.display,
-                "InnerGlow must be hidden when node is in Locked state.");
+            var haloOuter = node.Q(className: "skill-tree-node__halo-outer");
+            var haloInner = node.Q(className: "skill-tree-node__halo-inner");
+            Assert.AreEqual(DisplayStyle.None, haloOuter.resolvedStyle.display,
+                "HaloOuter must be hidden when node is in Locked state.");
+            Assert.AreEqual(DisplayStyle.None, haloInner.resolvedStyle.display,
+                "HaloInner must be hidden when node is in Locked state.");
         }
 
         [UnityTest]
-        public IEnumerator AvailableState_DoesNotShowSparkle()
+        public IEnumerator AvailableState_DoesNotShowRays()
         {
             var doc = CreateDocument();
             yield return null;
@@ -221,9 +196,9 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             yield return null;
             yield return null;
 
-            var sparkle = node.Q(className: "skill-tree-node__sparkle");
-            Assert.AreEqual(DisplayStyle.None, sparkle.resolvedStyle.display,
-                "Sparkle must not be displayed when node is in Available state.");
+            var rays = node.Q(className: "skill-tree-node__rays");
+            Assert.AreEqual(DisplayStyle.None, rays.resolvedStyle.display,
+                "Rays must not be displayed when node is in Available state.");
         }
     }
 }

@@ -73,7 +73,7 @@ namespace RogueliteAutoBattler.Tests.EditMode
         }
 
         [Test]
-        public void Generator_GenerateAllLayers_EmitsAllSixFiles_NonEmpty()
+        public void Generator_GenerateAllLayers_EmitsAllFiveFiles_NonEmpty()
         {
             SkillTreeNodeOrbSpriteGenerator.GenerateAllLayers();
 
@@ -88,58 +88,72 @@ namespace RogueliteAutoBattler.Tests.EditMode
         }
 
         [Test]
-        public void Generator_Frame_HasTransparentCenter()
+        public void Generator_HaloOuter_HasFullCenter_TransparentEdge()
         {
-            Texture2D tex = SkillTreeNodeOrbSpriteGenerator.GenerateOrLoad(OrbLayerKind.Frame, force: true);
+            Texture2D tex = SkillTreeNodeOrbSpriteGenerator.GenerateOrLoad(OrbLayerKind.HaloOuter, force: true);
 
-            Assert.Less(tex.GetPixel(64, 64).a, 0.05f, "Frame center must be fully transparent.");
+            Assert.Greater(tex.GetPixel(64, 64).a, 0.95f, "HaloOuter center must be near-opaque.");
+            Assert.Less(tex.GetPixel(0, 0).a, 0.05f, "HaloOuter corner must be near-transparent.");
         }
 
         [Test]
-        public void Generator_Frame_HasOpaqueOuterBand()
+        public void Generator_HaloInner_HasFullCenter_TransparentBeyondCutoff()
         {
-            Texture2D tex = SkillTreeNodeOrbSpriteGenerator.GenerateOrLoad(OrbLayerKind.Frame, force: true);
+            Texture2D tex = SkillTreeNodeOrbSpriteGenerator.GenerateOrLoad(OrbLayerKind.HaloInner, force: true);
 
-            Assert.Greater(tex.GetPixel(64 + 56, 64).a, 0.5f, "Frame outer band at r≈0.875 must be opaque.");
+            Assert.Greater(tex.GetPixel(64, 64).a, 0.95f, "HaloInner center must be near-opaque.");
+            int outerPixelY = 64 + 40;
+            Assert.Less(tex.GetPixel(64, outerPixelY).a, 0.05f, "HaloInner alpha at r~0.625 must be 0 (beyond cutoff 0.55).");
         }
 
         [Test]
-        public void Generator_Rim_HasTransparentCenterAndOutside()
+        public void Generator_Rays_HasTransparentCenter()
         {
-            Texture2D tex = SkillTreeNodeOrbSpriteGenerator.GenerateOrLoad(OrbLayerKind.Rim, force: true);
+            Texture2D tex = SkillTreeNodeOrbSpriteGenerator.GenerateOrLoad(OrbLayerKind.Rays, force: true);
 
-            Assert.Less(tex.GetPixel(64, 64).a, 0.05f, "Rim center must be transparent.");
-            Assert.Less(tex.GetPixel(0, 0).a, 0.05f, "Rim corner (0,0) must be transparent.");
-            Assert.Greater(tex.GetPixel(64 + 56, 64).a, 0.5f, "Rim band at r≈0.875 must be opaque.");
+            Assert.Less(tex.GetPixel(64, 64).a, 0.05f, "Rays center must be transparent (inner radius hole).");
         }
 
         [Test]
-        public void Generator_InnerGlow_PeaksOffCenterTopLeft()
+        public void Generator_Rays_HasTransparentOutside()
         {
-            Texture2D tex = SkillTreeNodeOrbSpriteGenerator.GenerateOrLoad(OrbLayerKind.InnerGlow, force: true);
+            Texture2D tex = SkillTreeNodeOrbSpriteGenerator.GenerateOrLoad(OrbLayerKind.Rays, force: true);
 
-            float alphaTopLeft = tex.GetPixel(45, 83).a;
-            float alphaCenter = tex.GetPixel(64, 64).a;
-
-            Assert.Greater(alphaTopLeft, alphaCenter, "InnerGlow top-left pixel must be brighter than center.");
+            Assert.Less(tex.GetPixel(0, 0).a, 0.05f, "Rays corner (0,0) must be transparent.");
         }
 
         [Test]
-        public void Generator_Sparkle_HasFourLobes_NotDiagonals()
+        public void Generator_Rays_HasTwelveLobes()
         {
-            Texture2D tex = SkillTreeNodeOrbSpriteGenerator.GenerateOrLoad(OrbLayerKind.Sparkle, force: true);
+            Texture2D tex = SkillTreeNodeOrbSpriteGenerator.GenerateOrLoad(OrbLayerKind.Rays, force: true);
 
-            Assert.Greater(tex.GetPixel(64, 64 + 26).a, 0.4f, "Sparkle top cardinal lobe must be bright.");
-            Assert.Greater(tex.GetPixel(64, 64 - 26).a, 0.4f, "Sparkle bottom cardinal lobe must be bright.");
-            Assert.Greater(tex.GetPixel(64 + 26, 64).a, 0.4f, "Sparkle right cardinal lobe must be bright.");
-            Assert.Greater(tex.GetPixel(64 - 26, 64).a, 0.4f, "Sparkle left cardinal lobe must be bright.");
+            float r = 0.6f;
+            int numRays = 12;
+            float angularStep = 360f / numRays;
 
-            Assert.Less(tex.GetPixel(64 + 18, 64 + 18).a, 0.15f, "Sparkle top-right diagonal must be dark.");
-            Assert.Less(tex.GetPixel(64 - 18, 64 - 18).a, 0.15f, "Sparkle bottom-left diagonal must be dark.");
-            Assert.Less(tex.GetPixel(64 + 18, 64 - 18).a, 0.15f, "Sparkle bottom-right diagonal must be dark.");
-            Assert.Less(tex.GetPixel(64 - 18, 64 + 18).a, 0.15f, "Sparkle top-left diagonal must be dark.");
+            for (int i = 0; i < numRays; i++)
+            {
+                float thetaDeg = i * angularStep;
+                float thetaRad = thetaDeg * Mathf.Deg2Rad;
+                int px = 64 + (int)(r * 0.5f * 128f * Mathf.Cos(thetaRad));
+                int py = 64 + (int)(r * 0.5f * 128f * Mathf.Sin(thetaRad));
+                px = Mathf.Clamp(px, 0, 127);
+                py = Mathf.Clamp(py, 0, 127);
+                Assert.Greater(tex.GetPixel(px, py).a, 0.4f,
+                    $"Streak at theta={thetaDeg}° (px={px},{py}) must be bright (streak peak).");
+            }
 
-            Assert.Greater(tex.GetPixel(64, 64).a, 0.9f, "Sparkle center must be near-opaque.");
+            for (int i = 0; i < numRays; i++)
+            {
+                float thetaDeg = i * angularStep + 15f;
+                float thetaRad = thetaDeg * Mathf.Deg2Rad;
+                int px = 64 + (int)(r * 0.5f * 128f * Mathf.Cos(thetaRad));
+                int py = 64 + (int)(r * 0.5f * 128f * Mathf.Sin(thetaRad));
+                px = Mathf.Clamp(px, 0, 127);
+                py = Mathf.Clamp(py, 0, 127);
+                Assert.Less(tex.GetPixel(px, py).a, 0.15f,
+                    $"Gap at theta={thetaDeg}° (px={px},{py}) must be dark (between streaks).");
+            }
         }
     }
 }

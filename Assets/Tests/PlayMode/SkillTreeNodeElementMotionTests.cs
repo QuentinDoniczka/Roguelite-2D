@@ -15,7 +15,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
         private const string MainStylePath = "Assets/UI/Styles/MainStyle.uss";
         private const string HaloBreatheOnClass = "skill-tree-node--halo-breathe-on";
         private const float OneBreathTickPlusMarginSeconds = 2.0f;
-        private const float SparkleObservationSeconds = 0.5f;
+        private const float RaysObservationSeconds = 2.0f;
 
         private UIDocument CreateDocument()
         {
@@ -128,7 +128,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
         }
 
         [UnityTest]
-        public IEnumerator MaxNode_SparkleRotates()
+        public IEnumerator MaxNode_RaysRotate()
         {
             var doc = CreateDocument();
             yield return null;
@@ -138,20 +138,20 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             node.SetState(SkillTreeNodeVisualState.Max);
             doc.rootVisualElement.Add(node);
 
-            yield return new WaitForSeconds(SparkleObservationSeconds);
+            yield return new WaitForSeconds(RaysObservationSeconds);
 
-            var sparkle = node.Q(className: "skill-tree-node__sparkle");
-            var rotateStyle = sparkle.style.rotate;
+            var rays = node.Q(className: "skill-tree-node__rays");
+            var rotateStyle = rays.style.rotate;
             float angle = rotateStyle.keyword == StyleKeyword.Null || rotateStyle.keyword == StyleKeyword.Undefined
                 ? 0f
                 : rotateStyle.value.angle.value;
 
             Assert.Greater(angle, 5f,
-                "After ~0.5s (~10 ticks at 1.5 deg/tick), sparkle rotation must exceed 5 degrees.");
+                "After ~2s (~40 ticks at 0.3 deg/tick = 12 deg), rays rotation must exceed 5 degrees.");
         }
 
         [UnityTest]
-        public IEnumerator AvailableNode_SparkleDoesNotRotate()
+        public IEnumerator AvailableNode_RaysDoNotRotate()
         {
             var doc = CreateDocument();
             yield return null;
@@ -161,20 +161,20 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             node.SetState(SkillTreeNodeVisualState.Available);
             doc.rootVisualElement.Add(node);
 
-            yield return new WaitForSeconds(SparkleObservationSeconds);
+            yield return new WaitForSeconds(RaysObservationSeconds);
 
-            var sparkle = node.Q(className: "skill-tree-node__sparkle");
-            var rotateStyle = sparkle.style.rotate;
+            var rays = node.Q(className: "skill-tree-node__rays");
+            var rotateStyle = rays.style.rotate;
             float angle = rotateStyle.keyword == StyleKeyword.Null || rotateStyle.keyword == StyleKeyword.Undefined
                 ? 0f
                 : rotateStyle.value.angle.value;
 
             Assert.Less(angle, 0.5f,
-                "An available node's sparkle must not rotate (angle must remain at 0).");
+                "An available node's rays must not rotate (angle must remain at 0).");
         }
 
         [UnityTest]
-        public IEnumerator Max_ThenAvailable_SparkleRotationResets()
+        public IEnumerator Max_ThenAvailable_RaysRotationResets()
         {
             var doc = CreateDocument();
             yield return null;
@@ -184,18 +184,18 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             node.SetState(SkillTreeNodeVisualState.Max);
             doc.rootVisualElement.Add(node);
 
-            yield return new WaitForSeconds(SparkleObservationSeconds);
+            yield return new WaitForSeconds(RaysObservationSeconds);
 
             node.SetState(SkillTreeNodeVisualState.Available);
 
-            var sparkle = node.Q(className: "skill-tree-node__sparkle");
-            var rotateStyle = sparkle.style.rotate;
+            var rays = node.Q(className: "skill-tree-node__rays");
+            var rotateStyle = rays.style.rotate;
             float angle = rotateStyle.keyword == StyleKeyword.Null || rotateStyle.keyword == StyleKeyword.Undefined
                 ? 0f
                 : rotateStyle.value.angle.value;
 
             Assert.AreEqual(0f, angle, 0.001f,
-                "SetState(Available) after Max must immediately reset sparkle rotation to 0.");
+                "SetState(Available) after Max must immediately reset rays rotation to 0.");
         }
     }
 }

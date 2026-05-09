@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace RogueliteAutoBattler.Editor.Builders
 {
-    internal enum OrbLayerKind { Core, Halo, Frame, Rim, InnerGlow, Sparkle }
+    internal enum OrbLayerKind { Core, Halo, HaloOuter, HaloInner, Rays }
 
     internal static class SkillTreeNodeOrbSpriteGenerator
     {
@@ -19,6 +19,19 @@ namespace RogueliteAutoBattler.Editor.Builders
 
         private const float HaloCoreRadiusRatio = 0.05f;
         private const float HaloFalloffExponent = 2.6f;
+
+        private const float HaloOuterFalloffExponent = 3.5f;
+
+        private const float HaloInnerCoreRadiusRatio = 0.30f;
+        private const float HaloInnerFalloffExponent = 2.0f;
+        private const float HaloInnerOuterCutoff = 0.55f;
+
+        private const int RaysCount = 12;
+        private const float RaysAngularExtent = 0.10f;
+        private const float RaysParallelExponent = 1.5f;
+        private const float RaysInnerRadius = 0.40f;
+        private const float RaysOuterRadius = 0.95f;
+        private const float RaysFeather = 0.05f;
 
         internal static string AssetPathFor(OrbLayerKind kind) =>
             kind == OrbLayerKind.Core
@@ -42,7 +55,7 @@ namespace RogueliteAutoBattler.Editor.Builders
                 GenerateOrLoad(kind, force: true);
 
             AssetDatabase.Refresh();
-            Debug.Log("[SkillTreeOrb] Generated 6 layer PNGs.");
+            Debug.Log("[SkillTreeOrb] Generated 5 layer PNGs.");
         }
 
         internal static Texture2D EnsureExists(OrbLayerKind kind = OrbLayerKind.Core)
@@ -116,10 +129,9 @@ namespace RogueliteAutoBattler.Editor.Builders
             {
                 OrbLayerKind.Core => ComputeAlphaCore(r),
                 OrbLayerKind.Halo => ComputeAlphaHalo(r),
-                OrbLayerKind.Frame => ComputeAlphaFrame(r),
-                OrbLayerKind.Rim => ComputeAlphaRim(r),
-                OrbLayerKind.InnerGlow => ComputeAlphaInnerGlow(nx, ny),
-                OrbLayerKind.Sparkle => ComputeAlphaSparkle(nx, ny),
+                OrbLayerKind.HaloOuter => ComputeAlphaHaloOuter(r),
+                OrbLayerKind.HaloInner => ComputeAlphaHaloInner(r),
+                OrbLayerKind.Rays => ComputeAlphaRays(nx, ny),
                 _ => ComputeAlphaCore(r)
             };
         }
@@ -143,41 +155,33 @@ namespace RogueliteAutoBattler.Editor.Builders
             return Mathf.Clamp01(Mathf.Pow(1f - (r - HaloCoreRadiusRatio) / (1f - HaloCoreRadiusRatio), HaloFalloffExponent));
         }
 
-        private static float ComputeAlphaFrame(float r)
+        private static float ComputeAlphaHaloOuter(float r)
         {
-            float band1 = Smoothstep(0.84f, 0.88f, r) * (1f - Smoothstep(0.95f, 0.99f, r));
-            float band2 = 0.55f * (Smoothstep(0.78f, 0.81f, r) * (1f - Smoothstep(0.81f, 0.84f, r)));
-            float band3 = 0.95f * (Smoothstep(0.72f, 0.75f, r) * (1f - Smoothstep(0.75f, 0.78f, r)));
-            return Mathf.Clamp01(band1 + band2 + band3);
+            return Mathf.Clamp01(Mathf.Pow(1f - r, HaloOuterFalloffExponent));
         }
 
-        private static float ComputeAlphaRim(float r)
+        private static float ComputeAlphaHaloInner(float r)
         {
-            return Smoothstep(0.85f, 0.885f, r) * (1f - Smoothstep(0.885f, 0.92f, r));
+            if (r <= HaloInnerCoreRadiusRatio) return 1f;
+            if (r >= HaloInnerOuterCutoff) return 0f;
+            var t = (r - HaloInnerCoreRadiusRatio) / (HaloInnerOuterCutoff - HaloInnerCoreRadiusRatio);
+            return Mathf.Clamp01(Mathf.Pow(1f - t, HaloInnerFalloffExponent));
         }
 
-        private static float ComputeAlphaInnerGlow(float nx, float ny)
+        private static float ComputeAlphaRays(float nx, float ny)
         {
-            float dx = nx - 0.35f;
-            float dy = ny - 0.65f;
-            float d = Mathf.Sqrt(dx * dx + dy * dy);
-            return Mathf.Clamp01(Mathf.Pow(1f - Mathf.Clamp01(d / 0.30f), 3.0f));
-        }
-
-        private static float ComputeAlphaSparkle(float nx, float ny)
-        {
-            const float PerpFalloff = 10f;      // controls lobe thinness (perpendicular axis)
-            const float ParallelFalloff = 1.5f; // controls lobe length (parallel axis)
-            const float PerpExponent = 1.5f;
-            const float ParallelExponent = 2.0f;
-
             float dx = nx - 0.5f;
             float dy = ny - 0.5f;
-            float lobeH = Mathf.Pow(Mathf.Max(0f, 1f - Mathf.Abs(dy) * PerpFalloff), PerpExponent)
-                        * Mathf.Pow(Mathf.Max(0f, 1f - Mathf.Abs(dx) * ParallelFalloff), ParallelExponent);
-            float lobeV = Mathf.Pow(Mathf.Max(0f, 1f - Mathf.Abs(dx) * PerpFalloff), PerpExponent)
-                        * Mathf.Pow(Mathf.Max(0f, 1f - Mathf.Abs(dy) * ParallelFalloff), ParallelExponent);
-            return Mathf.Clamp01(Mathf.Max(lobeH, lobeV));
+            float r = Mathf.Sqrt(dx * dx + dy * dy) * 2f;
+            if (r <= RaysInnerRadius - RaysFeather || r >= RaysOuterRadius + RaysFeather) return 0f;
+            float angle = Mathf.Atan2(dy, dx);
+            float angularStep = (Mathf.PI * 2f) / RaysCount;
+            float modAngle = angle - Mathf.Floor(angle / angularStep) * angularStep;
+            float distToNearest = Mathf.Min(modAngle, angularStep - modAngle);
+            float streakStrength = Mathf.Pow(Mathf.Max(0f, 1f - distToNearest / RaysAngularExtent), RaysParallelExponent);
+            float innerMask = Smoothstep(RaysInnerRadius - RaysFeather, RaysInnerRadius, r);
+            float outerMask = 1f - Smoothstep(RaysOuterRadius - RaysFeather, RaysOuterRadius + RaysFeather, r);
+            return Mathf.Clamp01(streakStrength * innerMask * outerMask);
         }
 
         private static float Smoothstep(float edge0, float edge1, float x)
