@@ -88,22 +88,38 @@ namespace RogueliteAutoBattler.Editor.Windows
             label.style.flexShrink = 0;
             container.Add(label);
 
-            var slider = new Slider(min, max);
+            var slider = new HookedSlider(min, max, initialValue);
             slider.style.width = SliderWidth;
-            slider.value = initialValue;
-
-            slider.RegisterValueChangedCallback(evt =>
+            slider.OnValueChanged = newValue =>
             {
                 if (_settings == null) return;
-
                 Undo.RegisterCompleteObjectUndo(_settings, "Edit Skill Tree Visual Settings");
-                _settings.SetFieldValue(fieldName, evt.newValue);
+                _settings.SetFieldValue(fieldName, newValue);
                 EditorUtility.SetDirty(_settings);
                 _onChanged?.Invoke();
-            });
+            };
 
             container.Add(slider);
             return container;
+        }
+
+        private sealed class HookedSlider : Slider
+        {
+            internal Action<float> OnValueChanged;
+            private bool _initialized;
+
+            public HookedSlider(float min, float max, float initialValue) : base(min, max)
+            {
+                SetValueWithoutNotify(initialValue);
+                _initialized = true;
+            }
+
+            public override void SetValueWithoutNotify(float newValue)
+            {
+                base.SetValueWithoutNotify(newValue);
+                if (_initialized)
+                    OnValueChanged?.Invoke(newValue);
+            }
         }
     }
 }
