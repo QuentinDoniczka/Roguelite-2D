@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace RogueliteAutoBattler.Editor.Builders
 {
-    internal enum OrbLayerKind { Core, Halo, HaloOuter, HaloInner, Rays }
+    internal enum OrbLayerKind { Core, Halo, Rays }
 
     internal static class SkillTreeNodeOrbSpriteGenerator
     {
@@ -19,12 +19,6 @@ namespace RogueliteAutoBattler.Editor.Builders
 
         private const float HaloCoreRadiusRatio = 0.05f;
         private const float HaloFalloffExponent = 2.6f;
-
-        private const float HaloOuterFalloffExponent = 3.5f;
-
-        private const float HaloInnerCoreRadiusRatio = 0.30f;
-        private const float HaloInnerFalloffExponent = 2.0f;
-        private const float HaloInnerOuterCutoff = 0.55f;
 
         private const int RaysCount = 12;
         private const float RaysAngularExtent = 0.10f;
@@ -55,7 +49,7 @@ namespace RogueliteAutoBattler.Editor.Builders
                 GenerateOrLoad(kind, force: true);
 
             AssetDatabase.Refresh();
-            Debug.Log("[SkillTreeOrb] Generated 5 layer PNGs.");
+            Debug.Log("[SkillTreeOrb] Generated 3 layer PNGs.");
         }
 
         internal static Texture2D EnsureExists(OrbLayerKind kind = OrbLayerKind.Core)
@@ -129,8 +123,6 @@ namespace RogueliteAutoBattler.Editor.Builders
             {
                 OrbLayerKind.Core => ComputeAlphaCore(r),
                 OrbLayerKind.Halo => ComputeAlphaHalo(r),
-                OrbLayerKind.HaloOuter => ComputeAlphaHaloOuter(r),
-                OrbLayerKind.HaloInner => ComputeAlphaHaloInner(r),
                 OrbLayerKind.Rays => ComputeAlphaRays(nx, ny),
                 _ => ComputeAlphaCore(r)
             };
@@ -153,19 +145,6 @@ namespace RogueliteAutoBattler.Editor.Builders
                 return 1f;
 
             return Mathf.Clamp01(Mathf.Pow(1f - (r - HaloCoreRadiusRatio) / (1f - HaloCoreRadiusRatio), HaloFalloffExponent));
-        }
-
-        private static float ComputeAlphaHaloOuter(float r)
-        {
-            return Mathf.Clamp01(Mathf.Pow(1f - r, HaloOuterFalloffExponent));
-        }
-
-        private static float ComputeAlphaHaloInner(float r)
-        {
-            if (r <= HaloInnerCoreRadiusRatio) return 1f;
-            if (r >= HaloInnerOuterCutoff) return 0f;
-            var t = (r - HaloInnerCoreRadiusRatio) / (HaloInnerOuterCutoff - HaloInnerCoreRadiusRatio);
-            return Mathf.Clamp01(Mathf.Pow(1f - t, HaloInnerFalloffExponent));
         }
 
         private static float ComputeAlphaRays(float nx, float ny)

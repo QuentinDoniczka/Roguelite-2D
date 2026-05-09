@@ -23,8 +23,6 @@ namespace RogueliteAutoBattler.UI.Toolkit.SkillTree
         private const string PulseOnClassName = "skill-tree-node--pulse-on";
         private const string HaloBreatheOnClassName = "skill-tree-node--halo-breathe-on";
         private const string HaloClassName = "skill-tree-node__halo";
-        private const string HaloOuterClassName = "skill-tree-node__halo-outer";
-        private const string HaloInnerClassName = "skill-tree-node__halo-inner";
         private const string RaysClassName = "skill-tree-node__rays";
         private const float NodeHalfSize = 32f;
         private const long PulseIntervalMs = 800;
@@ -35,8 +33,6 @@ namespace RogueliteAutoBattler.UI.Toolkit.SkillTree
         private Color _currentColor = Color.white;
         private float _raysRotationDegrees;
         private readonly VisualElement _halo;
-        private readonly VisualElement _haloOuter;
-        private readonly VisualElement _haloInner;
         private readonly VisualElement _rays;
 
         public int NodeIndex { get; }
@@ -63,12 +59,6 @@ namespace RogueliteAutoBattler.UI.Toolkit.SkillTree
                 style.backgroundImage = background;
                 _halo.style.backgroundImage = background;
             }
-
-            _haloOuter = CreateLayer(HaloOuterClassName, OrbLayerKind.HaloOuter);
-            Insert(0, _haloOuter);
-
-            _haloInner = CreateLayer(HaloInnerClassName, OrbLayerKind.HaloInner);
-            Add(_haloInner);
 
             _rays = CreateLayer(RaysClassName, OrbLayerKind.Rays);
             Add(_rays);
@@ -142,8 +132,6 @@ namespace RogueliteAutoBattler.UI.Toolkit.SkillTree
             style.borderBottomColor = new StyleColor(color);
             style.unityBackgroundImageTintColor = new StyleColor(color);
             _halo.style.unityBackgroundImageTintColor = new StyleColor(color);
-            _haloOuter.style.unityBackgroundImageTintColor = new StyleColor(color);
-            _haloInner.style.unityBackgroundImageTintColor = new StyleColor(color);
         }
 
         public void SetDataPosition(Vector2 dataPosition, float unitToPixelScale)

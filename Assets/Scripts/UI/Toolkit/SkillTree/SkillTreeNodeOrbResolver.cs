@@ -5,7 +5,7 @@ using UnityEngine;
 namespace RogueliteAutoBattler.UI.Toolkit.SkillTree
 {
     // Mirror of OrbLayerKind in SkillTreeNodeOrbSpriteGenerator (Editor asmdef cannot expose enums to Runtime).
-    internal enum OrbLayerKind { Core, Halo, HaloOuter, HaloInner, Rays }
+    internal enum OrbLayerKind { Core, Halo, Rays }
 
     internal static class SkillTreeNodeOrbResolver
     {

@@ -73,7 +73,7 @@ namespace RogueliteAutoBattler.Tests.EditMode
         }
 
         [Test]
-        public void Generator_GenerateAllLayers_EmitsAllFiveFiles_NonEmpty()
+        public void Generator_GenerateAllLayers_EmitsAllThreeFiles_NonEmpty()
         {
             SkillTreeNodeOrbSpriteGenerator.GenerateAllLayers();
 
@@ -85,25 +85,6 @@ namespace RogueliteAutoBattler.Tests.EditMode
                 Assert.IsNotNull(AssetDatabase.LoadAssetAtPath<Texture2D>(path),
                     $"AssetDatabase must be able to load Texture2D for kind {kind}.");
             }
-        }
-
-        [Test]
-        public void Generator_HaloOuter_HasFullCenter_TransparentEdge()
-        {
-            Texture2D tex = SkillTreeNodeOrbSpriteGenerator.GenerateOrLoad(OrbLayerKind.HaloOuter, force: true);
-
-            Assert.Greater(tex.GetPixel(64, 64).a, 0.95f, "HaloOuter center must be near-opaque.");
-            Assert.Less(tex.GetPixel(0, 0).a, 0.05f, "HaloOuter corner must be near-transparent.");
-        }
-
-        [Test]
-        public void Generator_HaloInner_HasFullCenter_TransparentBeyondCutoff()
-        {
-            Texture2D tex = SkillTreeNodeOrbSpriteGenerator.GenerateOrLoad(OrbLayerKind.HaloInner, force: true);
-
-            Assert.Greater(tex.GetPixel(64, 64).a, 0.95f, "HaloInner center must be near-opaque.");
-            int outerPixelY = 64 + 40;
-            Assert.Less(tex.GetPixel(64, outerPixelY).a, 0.05f, "HaloInner alpha at r~0.625 must be 0 (beyond cutoff 0.55).");
         }
 
         [Test]
