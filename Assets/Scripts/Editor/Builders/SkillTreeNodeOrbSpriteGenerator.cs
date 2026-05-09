@@ -166,12 +166,17 @@ namespace RogueliteAutoBattler.Editor.Builders
 
         private static float ComputeAlphaSparkle(float nx, float ny)
         {
+            const float PerpFalloff = 10f;      // controls lobe thinness (perpendicular axis)
+            const float ParallelFalloff = 1.5f; // controls lobe length (parallel axis)
+            const float PerpExponent = 1.5f;
+            const float ParallelExponent = 2.0f;
+
             float dx = nx - 0.5f;
             float dy = ny - 0.5f;
-            float lobeH = Mathf.Pow(Mathf.Max(0f, 1f - Mathf.Abs(dy) * 18f), 1.5f)
-                        * Mathf.Pow(Mathf.Max(0f, 1f - Mathf.Abs(dx) * 2.2f), 2.5f);
-            float lobeV = Mathf.Pow(Mathf.Max(0f, 1f - Mathf.Abs(dx) * 18f), 1.5f)
-                        * Mathf.Pow(Mathf.Max(0f, 1f - Mathf.Abs(dy) * 2.2f), 2.5f);
+            float lobeH = Mathf.Pow(Mathf.Max(0f, 1f - Mathf.Abs(dy) * PerpFalloff), PerpExponent)
+                        * Mathf.Pow(Mathf.Max(0f, 1f - Mathf.Abs(dx) * ParallelFalloff), ParallelExponent);
+            float lobeV = Mathf.Pow(Mathf.Max(0f, 1f - Mathf.Abs(dx) * PerpFalloff), PerpExponent)
+                        * Mathf.Pow(Mathf.Max(0f, 1f - Mathf.Abs(dy) * ParallelFalloff), ParallelExponent);
             return Mathf.Clamp01(Mathf.Max(lobeH, lobeV));
         }
 
