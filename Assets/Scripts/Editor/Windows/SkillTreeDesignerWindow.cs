@@ -34,7 +34,7 @@ namespace RogueliteAutoBattler.Editor.Windows
         private const float CrosshairLineThickness = 1f;
         private const float CrosshairHalfPixelOffset = 0.5f;
         private const float DragStartThresholdPx = 4f;
-        private const float TabBarReservedHeightPixels = 30f;
+        private const float TopAndSubTabBarReservedHeightPixels = 60f;
 
         private enum DesignerTab
         {
@@ -42,6 +42,12 @@ namespace RogueliteAutoBattler.Editor.Windows
             Preview,
             Node,
             Branch
+        }
+
+        internal enum TopLevelTab
+        {
+            Designer,
+            Visual
         }
 
         private static readonly DesignerTab[] VisibleTabsWithoutBranch =
@@ -107,6 +113,7 @@ namespace RogueliteAutoBattler.Editor.Windows
         private const float MaxAlignmentRadiusUnits = 20f;
 
         private const string SelectedAssetGuidEditorPrefKey = "SkillTreeDesigner.SelectedAssetGuid";
+        private const string TopLevelTabEditorPrefKey = "SkillTreeDesigner.TopLevelTab";
         private const string ActiveLabelPrefix = "Active: ";
         private const string NoActiveLabel = "<none>";
 
@@ -131,6 +138,7 @@ namespace RogueliteAutoBattler.Editor.Windows
 
         private static readonly string[] TabLabelsWithoutBranch = { "Skill Tree", "Preview", "Node" };
         private static readonly string[] TabLabelsWithBranch = { "Skill Tree", "Preview", "Node", "Branch" };
+        private static readonly string[] TopLevelTabLabels = { "Designer", "Visual" };
 
         private IReadOnlyList<SkillTreesEnumerator.TreeEntry> _treeEntries;
         private string[] _treeDisplayNames;
@@ -166,9 +174,11 @@ namespace RogueliteAutoBattler.Editor.Windows
         private Vector2 _pendingDragMirrorPartnerStartPositionUnits;
         private static GUIStyle _coordLabelStyle;
         private DesignerTab _activeTab = DesignerTab.SkillTree;
+        private TopLevelTab _topLevelTab = TopLevelTab.Designer;
         private bool _branchPreviewActive;
         private int _branchPreviewParentIndex = -1;
         private DesignerTab _branchPreviewPreviousTab = DesignerTab.SkillTree;
+        private TopLevelTab _branchPreviewPreviousTopLevelTab = TopLevelTab.Designer;
         private BranchPreviewSettings _branchPreviewSettings = BranchPreviewSettings.Defaults;
         private BranchPreviewSettings _lastBranchPreviewSettings = BranchPreviewSettings.Defaults;
         private int _mirrorSourceNodeIndex = BranchPlacement.NoMirrorSourceOverride;
@@ -218,6 +228,17 @@ namespace RogueliteAutoBattler.Editor.Windows
             _branchPreviewSettings = _lastBranchPreviewSettings;
             _cachedNodePalette = ActiveSkillNodePaletteResolver.GetActive();
             InitializePreviewPanel();
+            LoadTopLevelTabFromPrefs();
+        }
+
+        private void LoadTopLevelTabFromPrefs()
+        {
+            _topLevelTab = (TopLevelTab)EditorPrefs.GetInt(TopLevelTabEditorPrefKey, (int)TopLevelTab.Designer);
+        }
+
+        private void SaveTopLevelTabToPrefs()
+        {
+            EditorPrefs.SetInt(TopLevelTabEditorPrefKey, (int)_topLevelTab);
         }
 
         private void InitializePreviewPanel()
@@ -226,7 +247,7 @@ namespace RogueliteAutoBattler.Editor.Windows
             _previewRoot.style.flexGrow = 1;
             _previewRoot.style.display = DisplayStyle.None;
             _previewRoot.style.position = Position.Absolute;
-            _previewRoot.style.top = TabBarReservedHeightPixels;
+            _previewRoot.style.top = TopAndSubTabBarReservedHeightPixels;
             _previewRoot.style.left = 0f;
             _previewRoot.style.right = 0f;
             _previewRoot.style.bottom = 0f;
@@ -250,6 +271,7 @@ namespace RogueliteAutoBattler.Editor.Windows
 
         private void OnDisable()
         {
+            SaveTopLevelTabToPrefs();
             if (_previewRoot != null && _previewRoot.parent != null)
                 _previewRoot.RemoveFromHierarchy();
             _previewRoot = null;
@@ -447,11 +469,34 @@ namespace RogueliteAutoBattler.Editor.Windows
             _activeTab = visible[selectionIndex];
         }
 
+        private void DrawTopLevelTabBar()
+        {
+            int currentIndex = (int)_topLevelTab;
+            using (new EditorGUI.DisabledScope(_branchPreviewActive))
+            {
+                int newIndex = GUILayout.Toolbar(currentIndex, TopLevelTabLabels);
+                if (newIndex != currentIndex)
+                {
+                    _topLevelTab = (TopLevelTab)newIndex;
+                    EditorPrefs.SetInt(TopLevelTabEditorPrefKey, (int)_topLevelTab);
+                }
+            }
+        }
+
         private void OnGUI()
         {
             if (_data == null)
             {
                 EditorGUILayout.HelpBox("No SkillTreeData asset found.", MessageType.Warning);
+                return;
+            }
+
+            DrawTopLevelTabBar();
+
+            if (_topLevelTab == TopLevelTab.Visual)
+            {
+                if (_previewRoot != null)
+                    _previewRoot.style.display = DisplayStyle.None;
                 return;
             }
 
@@ -1262,6 +1307,8 @@ namespace RogueliteAutoBattler.Editor.Windows
         internal void BeginBranchPreview(int parentIndex)
         {
             _branchPreviewPreviousTab = _activeTab;
+            _branchPreviewPreviousTopLevelTab = _topLevelTab;
+            _topLevelTab = TopLevelTab.Designer;
             _branchPreviewActive = true;
             _branchPreviewParentIndex = parentIndex;
             _branchPreviewSettings = _lastBranchPreviewSettings;
@@ -1352,10 +1399,11 @@ namespace RogueliteAutoBattler.Editor.Windows
             _data = data;
         }
 
-        private void CancelBranchPreview()
+        internal void CancelBranchPreview()
         {
             EndBranchPreview();
             _activeTab = _branchPreviewPreviousTab;
+            _topLevelTab = _branchPreviewPreviousTopLevelTab;
             _lastMirrorWarning = null;
             Repaint();
         }
@@ -1441,5 +1489,21 @@ namespace RogueliteAutoBattler.Editor.Windows
             for (int i = 0; i < _data.Nodes.Count; i++)
                 _nodeLabels[i] = _data.Nodes[i].id.ToString();
         }
+
+        internal TopLevelTab TopLevelTabForTests
+        {
+            get => _topLevelTab;
+            set => _topLevelTab = value;
+        }
+
+        internal bool BranchPreviewActiveForTests => _branchPreviewActive;
+
+        internal void InvokeBeginBranchPreviewForTests(int parentNodeIndex) => BeginBranchPreview(parentNodeIndex);
+        internal void InvokeCancelBranchPreviewForTests() => CancelBranchPreview();
+
+        internal static IReadOnlyList<string> TopLevelTabLabelsForTests => TopLevelTabLabels;
+        internal static string TopLevelTabEditorPrefKeyForTests => TopLevelTabEditorPrefKey;
+        internal void InvokeLoadTopLevelTabFromPrefsForTests() => LoadTopLevelTabFromPrefs();
+        internal void InvokeSaveTopLevelTabToPrefsForTests() => SaveTopLevelTabToPrefs();
     }
 }
