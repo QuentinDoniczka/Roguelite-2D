@@ -39,19 +39,19 @@ namespace RogueliteAutoBattler.Editor.Windows
         private enum DesignerTab
         {
             SkillTree,
+            Preview,
             Node,
-            Branch,
-            Preview
+            Branch
         }
 
         private static readonly DesignerTab[] VisibleTabsWithoutBranch =
         {
-            DesignerTab.SkillTree, DesignerTab.Node, DesignerTab.Preview
+            DesignerTab.SkillTree, DesignerTab.Preview, DesignerTab.Node
         };
 
         private static readonly DesignerTab[] VisibleTabsWithBranch =
         {
-            DesignerTab.SkillTree, DesignerTab.Node, DesignerTab.Branch, DesignerTab.Preview
+            DesignerTab.SkillTree, DesignerTab.Preview, DesignerTab.Node, DesignerTab.Branch
         };
 
         private static readonly Color CanvasBackgroundColor = new Color(0.15f, 0.15f, 0.15f, 1f);
@@ -129,8 +129,8 @@ namespace RogueliteAutoBattler.Editor.Windows
         private const string DisabledTooltipDeleteEnabled = "Delete this skill tree.";
         private const int MinimumRetainedTreeCount = 1;
 
-        private static readonly string[] TabLabelsWithoutBranch = { "Skill Tree", "Node", "Preview" };
-        private static readonly string[] TabLabelsWithBranch = { "Skill Tree", "Node", "Branch", "Preview" };
+        private static readonly string[] TabLabelsWithoutBranch = { "Skill Tree", "Preview", "Node" };
+        private static readonly string[] TabLabelsWithBranch = { "Skill Tree", "Preview", "Node", "Branch" };
 
         private IReadOnlyList<SkillTreesEnumerator.TreeEntry> _treeEntries;
         private string[] _treeDisplayNames;

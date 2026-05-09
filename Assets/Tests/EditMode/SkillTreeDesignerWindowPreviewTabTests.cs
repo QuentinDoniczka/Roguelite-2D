@@ -34,17 +34,15 @@ namespace RogueliteAutoBattler.Tests.EditMode
         }
 
         [Test]
-        public void TabLabels_PreviewIsLast()
+        public void TabLabels_PreviewIsAtIndex1_AfterSkillTree()
         {
             var labelsWithout = GetLabels("TabLabelsWithoutBranch");
             Assert.IsNotNull(labelsWithout);
-            Assert.AreEqual("Preview", labelsWithout[labelsWithout.Length - 1],
-                "'Preview' should be the last entry in TabLabelsWithoutBranch.");
+            Assert.AreEqual("Preview", labelsWithout[1], "'Preview' should be at index 1 (after 'Skill Tree') in TabLabelsWithoutBranch.");
 
             var labelsWith = GetLabels("TabLabelsWithBranch");
             Assert.IsNotNull(labelsWith);
-            Assert.AreEqual("Preview", labelsWith[labelsWith.Length - 1],
-                "'Preview' should be the last entry in TabLabelsWithBranch.");
+            Assert.AreEqual("Preview", labelsWith[1], "'Preview' should be at index 1 (after 'Skill Tree') in TabLabelsWithBranch.");
         }
     }
 }
