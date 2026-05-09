@@ -22,11 +22,19 @@ namespace RogueliteAutoBattler.UI.Toolkit.SkillTree
         private const string SelectedClassName = "skill-tree-node--selected";
         private const string PulseOnClassName = "skill-tree-node--pulse-on";
         private const string HaloClassName = "skill-tree-node__halo";
+        private const string FrameClassName = "skill-tree-node__frame";
+        private const string RimClassName = "skill-tree-node__rim";
+        private const string InnerGlowClassName = "skill-tree-node__inner-glow";
+        private const string SparkleClassName = "skill-tree-node__sparkle";
         private const float NodeHalfSize = 32f;
         private const long PulseIntervalMs = 800;
 
         private Color _currentColor = Color.white;
         private readonly VisualElement _halo;
+        private readonly VisualElement _frame;
+        private readonly VisualElement _rim;
+        private readonly VisualElement _innerGlow;
+        private readonly VisualElement _sparkle;
 
         public int NodeIndex { get; }
         public SkillTreeNodeVisualState CurrentState { get; private set; }
@@ -52,6 +60,15 @@ namespace RogueliteAutoBattler.UI.Toolkit.SkillTree
                 style.backgroundImage = background;
                 _halo.style.backgroundImage = background;
             }
+
+            _frame = CreateLayer(FrameClassName, OrbLayerKind.Frame);
+            Add(_frame);
+            _rim = CreateLayer(RimClassName, OrbLayerKind.Rim);
+            Add(_rim);
+            _innerGlow = CreateLayer(InnerGlowClassName, OrbLayerKind.InnerGlow);
+            Add(_innerGlow);
+            _sparkle = CreateLayer(SparkleClassName, OrbLayerKind.Sparkle);
+            Add(_sparkle);
 
             SetState(SkillTreeNodeVisualState.Locked);
 
@@ -102,12 +119,29 @@ namespace RogueliteAutoBattler.UI.Toolkit.SkillTree
             style.borderBottomColor = new StyleColor(color);
             style.unityBackgroundImageTintColor = new StyleColor(color);
             _halo.style.unityBackgroundImageTintColor = new StyleColor(color);
+            _innerGlow.style.unityBackgroundImageTintColor = new StyleColor(color);
         }
 
         public void SetDataPosition(Vector2 dataPosition, float unitToPixelScale)
         {
             style.left = new StyleLength(new Length(dataPosition.x * unitToPixelScale - NodeHalfSize, LengthUnit.Pixel));
             style.top = new StyleLength(new Length(dataPosition.y * unitToPixelScale - NodeHalfSize, LengthUnit.Pixel));
+        }
+
+        private static VisualElement CreateLayer(string className, OrbLayerKind kind)
+        {
+            var layer = new VisualElement
+            {
+                name = className,
+                pickingMode = PickingMode.Ignore,
+            };
+            layer.AddToClassList(className);
+            var texture = SkillTreeNodeOrbResolver.Get(kind);
+            if (texture != null)
+            {
+                layer.style.backgroundImage = new StyleBackground(texture);
+            }
+            return layer;
         }
 
         private void TogglePulseIfAvailable()
