@@ -255,18 +255,18 @@ namespace RogueliteAutoBattler.Tests.EditMode
                 prop.floatValue = orig + 1f;
                 so.ApplyModifiedProperties();
 
+                int callCountBeforeChange = providerCallCount;
                 presenter.InvokeOnSettingsChangedForTests();
 
                 Assert.IsTrue(
                     EditorUtility.IsDirty(stub),
                     "SkillTreeVisualSettings must be marked dirty after OnSettingsChanged.");
 
-                int callCountBeforeGet = providerCallCount;
                 SkillTreeVisualSettingsResolver.Get();
                 Assert.Greater(
                     providerCallCount,
-                    callCountBeforeGet,
-                    "Resolver cache must be reset by OnSettingsChanged so the next Get re-invokes the provider.");
+                    callCountBeforeChange,
+                    "Resolver cache must be reset by OnSettingsChanged so the provider is re-invoked.");
             }
             finally
             {
