@@ -1,5 +1,6 @@
 #if UNITY_EDITOR
 using NUnit.Framework;
+using UnityEngine.UIElements;
 using RogueliteAutoBattler.Data;
 using RogueliteAutoBattler.UI.Toolkit.SkillTree;
 
