@@ -35,6 +35,10 @@ namespace RogueliteAutoBattler.Editor.Windows
         private const float CrosshairHalfPixelOffset = 0.5f;
         private const float DragStartThresholdPx = 4f;
         private const float TopAndSubTabBarReservedHeightPixels = 60f;
+        private const float VisualTabCanvasFlexGrow = 0.6f;
+        private const float VisualTabInspectorFlexGrow = 0.4f;
+        private const float VisualTabInspectorMinWidthPixels = 280f;
+        private const float VisualTabInspectorPaddingPixels = 8f;
 
         private enum DesignerTab
         {
@@ -249,18 +253,24 @@ namespace RogueliteAutoBattler.Editor.Windows
             EditorPrefs.SetInt(TopLevelTabEditorPrefKey, (int)_topLevelTab);
         }
 
+        private VisualElement CreateTopLevelOverlayRoot(FlexDirection flexDirection)
+        {
+            var overlay = new VisualElement();
+            overlay.style.position = Position.Absolute;
+            overlay.style.top = TopAndSubTabBarReservedHeightPixels;
+            overlay.style.left = 0f;
+            overlay.style.right = 0f;
+            overlay.style.bottom = 0f;
+            overlay.style.flexDirection = flexDirection;
+            overlay.style.display = DisplayStyle.None;
+            rootVisualElement.Add(overlay);
+            return overlay;
+        }
+
         private void InitializePreviewPanel()
         {
-            _previewRoot = new VisualElement();
+            _previewRoot = CreateTopLevelOverlayRoot(FlexDirection.Column);
             _previewRoot.style.flexGrow = 1;
-            _previewRoot.style.display = DisplayStyle.None;
-            _previewRoot.style.position = Position.Absolute;
-            _previewRoot.style.top = TopAndSubTabBarReservedHeightPixels;
-            _previewRoot.style.left = 0f;
-            _previewRoot.style.right = 0f;
-            _previewRoot.style.bottom = 0f;
-            _previewRoot.style.flexDirection = FlexDirection.Column;
-            rootVisualElement.Add(_previewRoot);
 
             _previewPanel = new SkillTreePreviewPanel(_data, _cachedNodePalette);
             _previewPanelHost = _previewPanel.BuildRoot();
@@ -271,28 +281,20 @@ namespace RogueliteAutoBattler.Editor.Windows
         {
             _visualSettings = SkillTreeVisualSettingsResolver.Get();
 
-            _visualTabRoot = new VisualElement();
-            _visualTabRoot.style.position = Position.Absolute;
-            _visualTabRoot.style.top = TopAndSubTabBarReservedHeightPixels;
-            _visualTabRoot.style.left = 0;
-            _visualTabRoot.style.right = 0;
-            _visualTabRoot.style.bottom = 0;
-            _visualTabRoot.style.flexDirection = FlexDirection.Row;
-            _visualTabRoot.style.display = DisplayStyle.None;
-            rootVisualElement.Add(_visualTabRoot);
+            _visualTabRoot = CreateTopLevelOverlayRoot(FlexDirection.Row);
 
             _visualTabCanvasHost = new VisualElement();
-            _visualTabCanvasHost.style.flexGrow = 0.6f;
+            _visualTabCanvasHost.style.flexGrow = VisualTabCanvasFlexGrow;
             _visualTabCanvasHost.style.minWidth = 0;
             _visualTabRoot.Add(_visualTabCanvasHost);
 
             _visualTabInspectorHost = new VisualElement();
-            _visualTabInspectorHost.style.flexGrow = 0.4f;
-            _visualTabInspectorHost.style.minWidth = 280;
-            _visualTabInspectorHost.style.paddingLeft = 8;
-            _visualTabInspectorHost.style.paddingRight = 8;
-            _visualTabInspectorHost.style.paddingTop = 8;
-            _visualTabInspectorHost.style.paddingBottom = 8;
+            _visualTabInspectorHost.style.flexGrow = VisualTabInspectorFlexGrow;
+            _visualTabInspectorHost.style.minWidth = VisualTabInspectorMinWidthPixels;
+            _visualTabInspectorHost.style.paddingLeft = VisualTabInspectorPaddingPixels;
+            _visualTabInspectorHost.style.paddingRight = VisualTabInspectorPaddingPixels;
+            _visualTabInspectorHost.style.paddingTop = VisualTabInspectorPaddingPixels;
+            _visualTabInspectorHost.style.paddingBottom = VisualTabInspectorPaddingPixels;
             _visualTabRoot.Add(_visualTabInspectorHost);
 
             if (_visualSettings == null)
@@ -587,7 +589,7 @@ namespace RogueliteAutoBattler.Editor.Windows
                 if (newIndex != currentIndex)
                 {
                     _topLevelTab = (TopLevelTab)newIndex;
-                    EditorPrefs.SetInt(TopLevelTabEditorPrefKey, (int)_topLevelTab);
+                    SaveTopLevelTabToPrefs();
                 }
             }
         }

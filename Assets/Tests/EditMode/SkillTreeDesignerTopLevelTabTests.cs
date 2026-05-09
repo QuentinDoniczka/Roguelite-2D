@@ -199,13 +199,26 @@ namespace RogueliteAutoBattler.Tests.EditMode
                 "Round-trip step 2: saved value in EditorPrefs must be Designer.");
         }
 
+        private static SkillTreeVisualSettings InstallStubVisualSettings(out System.Func<SkillTreeVisualSettings> originalProvider)
+        {
+            var stubSettings = ScriptableObject.CreateInstance<SkillTreeVisualSettings>();
+            originalProvider = SkillTreeVisualSettingsResolver.Provider;
+            SkillTreeVisualSettingsResolver.Provider = () => stubSettings;
+            SkillTreeVisualSettingsResolver.ResetCache();
+            return stubSettings;
+        }
+
+        private static void RestoreVisualSettingsProvider(SkillTreeVisualSettings stubSettings, System.Func<SkillTreeVisualSettings> originalProvider)
+        {
+            SkillTreeVisualSettingsResolver.Provider = originalProvider;
+            SkillTreeVisualSettingsResolver.ResetCache();
+            Object.DestroyImmediate(stubSettings);
+        }
+
         [Test]
         public void VisualTab_Initialize_PopulatesSerializedObject()
         {
-            var stubSettings = ScriptableObject.CreateInstance<SkillTreeVisualSettings>();
-            var originalProvider = SkillTreeVisualSettingsResolver.Provider;
-            SkillTreeVisualSettingsResolver.Provider = () => stubSettings;
-            SkillTreeVisualSettingsResolver.ResetCache();
+            var stubSettings = InstallStubVisualSettings(out var originalProvider);
 
             try
             {
@@ -221,19 +234,14 @@ namespace RogueliteAutoBattler.Tests.EditMode
             }
             finally
             {
-                SkillTreeVisualSettingsResolver.Provider = originalProvider;
-                SkillTreeVisualSettingsResolver.ResetCache();
-                Object.DestroyImmediate(stubSettings);
+                RestoreVisualSettingsProvider(stubSettings, originalProvider);
             }
         }
 
         [Test]
         public void VisualTab_Initialize_PreviewPanelInstance_NotNull()
         {
-            var stubSettings = ScriptableObject.CreateInstance<SkillTreeVisualSettings>();
-            var originalProvider = SkillTreeVisualSettingsResolver.Provider;
-            SkillTreeVisualSettingsResolver.Provider = () => stubSettings;
-            SkillTreeVisualSettingsResolver.ResetCache();
+            var stubSettings = InstallStubVisualSettings(out var originalProvider);
 
             try
             {
@@ -245,19 +253,14 @@ namespace RogueliteAutoBattler.Tests.EditMode
             }
             finally
             {
-                SkillTreeVisualSettingsResolver.Provider = originalProvider;
-                SkillTreeVisualSettingsResolver.ResetCache();
-                Object.DestroyImmediate(stubSettings);
+                RestoreVisualSettingsProvider(stubSettings, originalProvider);
             }
         }
 
         [Test]
         public void VisualTab_OnVisualSettingsChanged_MarksAssetDirty_AndResetsCache()
         {
-            var stubSettings = ScriptableObject.CreateInstance<SkillTreeVisualSettings>();
-            var originalProvider = SkillTreeVisualSettingsResolver.Provider;
-            SkillTreeVisualSettingsResolver.Provider = () => stubSettings;
-            SkillTreeVisualSettingsResolver.ResetCache();
+            var stubSettings = InstallStubVisualSettings(out var originalProvider);
 
             try
             {
@@ -282,9 +285,7 @@ namespace RogueliteAutoBattler.Tests.EditMode
             }
             finally
             {
-                SkillTreeVisualSettingsResolver.Provider = originalProvider;
-                SkillTreeVisualSettingsResolver.ResetCache();
-                Object.DestroyImmediate(stubSettings);
+                RestoreVisualSettingsProvider(stubSettings, originalProvider);
             }
         }
     }
