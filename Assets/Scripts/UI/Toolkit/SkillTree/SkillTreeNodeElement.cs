@@ -21,12 +21,10 @@ namespace RogueliteAutoBattler.UI.Toolkit.SkillTree
         private const string MaxClassName = "skill-tree-node--max";
         private const string SelectedClassName = "skill-tree-node--selected";
         private const string PulseOnClassName = "skill-tree-node--pulse-on";
-        private const string HaloBreatheOnClassName = "skill-tree-node--halo-breathe-on";
         private const string HaloClassName = "skill-tree-node__halo";
         private const string RaysClassName = "skill-tree-node__rays";
         private const float NodeHalfSize = 32f;
         private const long PulseIntervalMs = 800;
-        private const long HaloBreatheIntervalMs = 1600;
         private const long RaysRotationIntervalMs = 50;
         private const float RaysDegreesPerTick = 0.3f;
 
@@ -51,6 +49,7 @@ namespace RogueliteAutoBattler.UI.Toolkit.SkillTree
             _halo = new VisualElement { name = "node-halo", pickingMode = PickingMode.Ignore };
             _halo.AddToClassList(HaloClassName);
             Add(_halo);
+            ApplyHaloSizeFromSettings();
 
             var orb = SkillTreeNodeOrbResolver.Get();
             if (orb != null)
@@ -66,10 +65,6 @@ namespace RogueliteAutoBattler.UI.Toolkit.SkillTree
             SetState(SkillTreeNodeVisualState.Locked);
 
             schedule.Execute(TogglePulseIfAvailable).StartingIn(PulseIntervalMs).Every(PulseIntervalMs);
-
-            schedule.Execute(ToggleHaloBreatheIfActive)
-                .StartingIn(HaloBreatheIntervalMs)
-                .Every(HaloBreatheIntervalMs);
 
             _rays.RegisterCallback<AttachToPanelEvent>(OnRaysAttached);
         }
@@ -99,17 +94,13 @@ namespace RogueliteAutoBattler.UI.Toolkit.SkillTree
             if (!ClassListContains(AvailableClassName))
                 RemoveFromClassList(PulseOnClassName);
 
-            if (newState == SkillTreeNodeVisualState.Locked)
-            {
-                if (ClassListContains(HaloBreatheOnClassName))
-                    RemoveFromClassList(HaloBreatheOnClassName);
-            }
-
             if (previousState == SkillTreeNodeVisualState.Max && newState != SkillTreeNodeVisualState.Max)
             {
                 _raysRotationDegrees = 0f;
                 _rays.transform.rotation = Quaternion.identity;
             }
+
+            ApplyHaloOpacityForCurrentState();
         }
 
         public void SetSelected(bool selected)
@@ -164,17 +155,6 @@ namespace RogueliteAutoBattler.UI.Toolkit.SkillTree
                 RemoveFromClassList(PulseOnClassName);
         }
 
-        private void ToggleHaloBreatheIfActive()
-        {
-            if (CurrentState == SkillTreeNodeVisualState.Locked)
-            {
-                if (ClassListContains(HaloBreatheOnClassName))
-                    RemoveFromClassList(HaloBreatheOnClassName);
-                return;
-            }
-            ToggleInClassList(HaloBreatheOnClassName);
-        }
-
         private void OnRaysAttached(AttachToPanelEvent _)
         {
             _rays.UnregisterCallback<AttachToPanelEvent>(OnRaysAttached);
@@ -189,6 +169,21 @@ namespace RogueliteAutoBattler.UI.Toolkit.SkillTree
                 return;
             _raysRotationDegrees = (_raysRotationDegrees + RaysDegreesPerTick) % 360f;
             _rays.transform.rotation = Quaternion.Euler(0f, 0f, _raysRotationDegrees);
+        }
+
+        private void ApplyHaloSizeFromSettings()
+        {
+            float size = SkillTreeVisualSettingsResolver.GetHaloSize();
+            _halo.style.width = new StyleLength(new Length(size, LengthUnit.Pixel));
+            _halo.style.height = new StyleLength(new Length(size, LengthUnit.Pixel));
+            float offset = -(size - NodeHalfSize * 2f) * 0.5f;
+            _halo.style.top = new StyleLength(new Length(offset, LengthUnit.Pixel));
+            _halo.style.left = new StyleLength(new Length(offset, LengthUnit.Pixel));
+        }
+
+        private void ApplyHaloOpacityForCurrentState()
+        {
+            _halo.style.opacity = SkillTreeVisualSettingsResolver.GetOpacityForState(CurrentState);
         }
 
         private void OnClick(ClickEvent _) => Clicked?.Invoke(NodeIndex);

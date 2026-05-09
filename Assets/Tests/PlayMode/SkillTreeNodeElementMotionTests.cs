@@ -13,8 +13,6 @@ namespace RogueliteAutoBattler.Tests.PlayMode
     {
         private const string PanelSettingsPath = "Assets/UI/MainPanelSettings.asset";
         private const string MainStylePath = "Assets/UI/Styles/MainStyle.uss";
-        private const string HaloBreatheOnClass = "skill-tree-node--halo-breathe-on";
-        private const float OneBreathTickPlusMarginSeconds = 2.0f;
         private const float RaysObservationSeconds = 2.0f;
 
         private UIDocument CreateDocument()
@@ -35,96 +33,6 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             StyleSheet styleSheet = AssetDatabase.LoadAssetAtPath<StyleSheet>(MainStylePath);
             Assert.IsNotNull(styleSheet, $"MainStyle USS not found at {MainStylePath}");
             doc.rootVisualElement.styleSheets.Add(styleSheet);
-        }
-
-        [UnityTest]
-        public IEnumerator AvailableNode_TogglesHaloBreatheClass()
-        {
-            var doc = CreateDocument();
-            yield return null;
-            yield return null;
-
-            var node = new SkillTreeNodeElement(0);
-            node.SetState(SkillTreeNodeVisualState.Available);
-            doc.rootVisualElement.Add(node);
-
-            yield return new WaitForSeconds(OneBreathTickPlusMarginSeconds);
-
-            Assert.IsTrue(node.ClassListContains(HaloBreatheOnClass),
-                $"After ~1 breathe tick (1600 ms) an available node must have {HaloBreatheOnClass} toggled on.");
-        }
-
-        [UnityTest]
-        public IEnumerator PurchasedNode_TogglesHaloBreatheClass()
-        {
-            var doc = CreateDocument();
-            yield return null;
-            yield return null;
-
-            var node = new SkillTreeNodeElement(0);
-            node.SetState(SkillTreeNodeVisualState.Purchased);
-            doc.rootVisualElement.Add(node);
-
-            yield return new WaitForSeconds(OneBreathTickPlusMarginSeconds);
-
-            Assert.IsTrue(node.ClassListContains(HaloBreatheOnClass),
-                $"After ~1 breathe tick (1600 ms) a purchased node must have {HaloBreatheOnClass} toggled on.");
-        }
-
-        [UnityTest]
-        public IEnumerator MaxNode_TogglesHaloBreatheClass()
-        {
-            var doc = CreateDocument();
-            yield return null;
-            yield return null;
-
-            var node = new SkillTreeNodeElement(0);
-            node.SetState(SkillTreeNodeVisualState.Max);
-            doc.rootVisualElement.Add(node);
-
-            yield return new WaitForSeconds(OneBreathTickPlusMarginSeconds);
-
-            Assert.IsTrue(node.ClassListContains(HaloBreatheOnClass),
-                $"After ~1 breathe tick (1600 ms) a max node must have {HaloBreatheOnClass} toggled on.");
-        }
-
-        [UnityTest]
-        public IEnumerator LockedNode_DoesNotReceiveHaloBreatheClass()
-        {
-            var doc = CreateDocument();
-            yield return null;
-            yield return null;
-
-            var node = new SkillTreeNodeElement(0);
-            node.SetState(SkillTreeNodeVisualState.Locked);
-            doc.rootVisualElement.Add(node);
-
-            yield return new WaitForSeconds(OneBreathTickPlusMarginSeconds);
-
-            Assert.IsFalse(node.ClassListContains(HaloBreatheOnClass),
-                $"A locked node must never receive {HaloBreatheOnClass}.");
-        }
-
-        [UnityTest]
-        public IEnumerator Available_ThenLocked_HaloBreatheClassRemoved()
-        {
-            var doc = CreateDocument();
-            yield return null;
-            yield return null;
-
-            var node = new SkillTreeNodeElement(0);
-            node.SetState(SkillTreeNodeVisualState.Available);
-            doc.rootVisualElement.Add(node);
-
-            yield return new WaitForSeconds(OneBreathTickPlusMarginSeconds);
-
-            Assert.IsTrue(node.ClassListContains(HaloBreatheOnClass),
-                $"Precondition: {HaloBreatheOnClass} must be present before transitioning to Locked.");
-
-            node.SetState(SkillTreeNodeVisualState.Locked);
-
-            Assert.IsFalse(node.ClassListContains(HaloBreatheOnClass),
-                $"SetState(Locked) must immediately remove {HaloBreatheOnClass} without waiting for the next scheduler tick.");
         }
 
         [UnityTest]
