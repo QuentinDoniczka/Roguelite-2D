@@ -1,0 +1,429 @@
+fileFormatVersion: 2
+guid: f2cf7ce1e2e106443912cbfa30ee173c
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: -7846987882243975380
+    second: SkillTreeNodeOrb_Rays_0
+  - first:
+      213: -8391007171822185090
+    second: SkillTreeNodeOrb_Rays_1
+  - first:
+      213: -2310168475395293727
+    second: SkillTreeNodeOrb_Rays_2
+  - first:
+      213: 4196911918645257156
+    second: SkillTreeNodeOrb_Rays_3
+  - first:
+      213: -6401693031718268154
+    second: SkillTreeNodeOrb_Rays_4
+  - first:
+      213: 711696017874044239
+    second: SkillTreeNodeOrb_Rays_5
+  - first:
+      213: 7347212979656546701
+    second: SkillTreeNodeOrb_Rays_6
+  - first:
+      213: -1422708469403526225
+    second: SkillTreeNodeOrb_Rays_7
+  - first:
+      213: 3527048375219858327
+    second: SkillTreeNodeOrb_Rays_8
+  - first:
+      213: -5935949280435650238
+    second: SkillTreeNodeOrb_Rays_9
+  - first:
+      213: 4992827335397266345
+    second: SkillTreeNodeOrb_Rays_10
+  - first:
+      213: -4871618276817640624
+    second: SkillTreeNodeOrb_Rays_11
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 1
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 0
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 0
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: SkillTreeNodeOrb_Rays_0
+      rect:
+        serializedVersion: 2
+        x: 6
+        y: 73
+        width: 40
+        height: 28
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c279d02a816e91390800000000000000
+      internalID: -7846987882243975380
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SkillTreeNodeOrb_Rays_1
+      rect:
+        serializedVersion: 2
+        x: 27
+        y: 82
+        width: 28
+        height: 40
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e7598c74f672d8b80800000000000000
+      internalID: -8391007171822185090
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SkillTreeNodeOrb_Rays_2
+      rect:
+        serializedVersion: 2
+        x: 57
+        y: 85
+        width: 14
+        height: 43
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1edf1cce202a0ffd0800000000000000
+      internalID: -2310168475395293727
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SkillTreeNodeOrb_Rays_3
+      rect:
+        serializedVersion: 2
+        x: 73
+        y: 82
+        width: 28
+        height: 40
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4c32470672d6e3a30800000000000000
+      internalID: 4196911918645257156
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SkillTreeNodeOrb_Rays_4
+      rect:
+        serializedVersion: 2
+        x: 82
+        y: 73
+        width: 40
+        height: 28
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 603d653fa1e9827a0800000000000000
+      internalID: -6401693031718268154
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SkillTreeNodeOrb_Rays_5
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 57
+        width: 43
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f45417de1c370e900800000000000000
+      internalID: 711696017874044239
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SkillTreeNodeOrb_Rays_6
+      rect:
+        serializedVersion: 2
+        x: 85
+        y: 57
+        width: 43
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d89519d174b86f560800000000000000
+      internalID: 7347212979656546701
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SkillTreeNodeOrb_Rays_7
+      rect:
+        serializedVersion: 2
+        x: 6
+        y: 27
+        width: 40
+        height: 28
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fab53465f26814ce0800000000000000
+      internalID: -1422708469403526225
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SkillTreeNodeOrb_Rays_8
+      rect:
+        serializedVersion: 2
+        x: 27
+        y: 6
+        width: 28
+        height: 40
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 79b29966fc792f030800000000000000
+      internalID: 3527048375219858327
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SkillTreeNodeOrb_Rays_9
+      rect:
+        serializedVersion: 2
+        x: 57
+        y: 0
+        width: 14
+        height: 43
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 241c5e654954f9da0800000000000000
+      internalID: -5935949280435650238
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SkillTreeNodeOrb_Rays_10
+      rect:
+        serializedVersion: 2
+        x: 73
+        y: 6
+        width: 28
+        height: 40
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9a3d63722061a4540800000000000000
+      internalID: 4992827335397266345
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SkillTreeNodeOrb_Rays_11
+      rect:
+        serializedVersion: 2
+        x: 82
+        y: 27
+        width: 40
+        height: 28
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 053ebf8fcf8846cb0800000000000000
+      internalID: -4871618276817640624
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      SkillTreeNodeOrb_Rays_0: -7846987882243975380
+      SkillTreeNodeOrb_Rays_1: -8391007171822185090
+      SkillTreeNodeOrb_Rays_10: 4992827335397266345
+      SkillTreeNodeOrb_Rays_11: -4871618276817640624
+      SkillTreeNodeOrb_Rays_2: -2310168475395293727
+      SkillTreeNodeOrb_Rays_3: 4196911918645257156
+      SkillTreeNodeOrb_Rays_4: -6401693031718268154
+      SkillTreeNodeOrb_Rays_5: 711696017874044239
+      SkillTreeNodeOrb_Rays_6: 7347212979656546701
+      SkillTreeNodeOrb_Rays_7: -1422708469403526225
+      SkillTreeNodeOrb_Rays_8: 3527048375219858327
+      SkillTreeNodeOrb_Rays_9: -5935949280435650238
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

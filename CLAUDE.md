@@ -43,6 +43,7 @@ Assets/
     SkillTrees/
       Default.asset
       DefaultNodePalette.asset
+      NewSkillTree.asset
     DamageNumberConfig.asset
     LevelDatabase.asset
     SkillTreeProgress.asset
@@ -73,6 +74,12 @@ Assets/
     Effects/  (empty)
     UI/  (empty)
   Resources/
+    Data/
+      SkillTreeVisualSettings.asset
+    UI/
+      SkillTreeNodeOrb.png
+      SkillTreeNodeOrb_Halo.png
+      SkillTreeNodeOrb_Rays.png
     ActiveSkillNodePalette.asset
     ActiveSkillTree.asset
   Scenes/
@@ -146,6 +153,7 @@ Assets/
         NavigationHostBuilder.cs
         NewGameSceneBuilder.cs
         RoundedRectSpriteGenerator.cs
+        SkillTreeNodeOrbSpriteGenerator.cs
         SkillTreeScreenBuilder.cs
         WalletsBuilder.cs
       Tools/
@@ -170,6 +178,7 @@ Assets/
         SkillTreeAssetMigration.cs
         SkillTreeNodeFactory.cs
         SkillTreeNodeIdAllocator.cs
+        SkillTreeVisualSettingsAssetCreator.cs
         SkillTreesEnumerator.cs
         StatTypeValidator.cs
       Windows/
@@ -177,6 +186,8 @@ Assets/
         LevelDesignerTab.cs
         SettingsWindow.cs
         SkillTreeDesignerWindow.cs
+        SkillTreePreviewPanel.cs
+        SkillTreePreviewToolbar.cs
         TeamBuilderTab.cs
     Items/  (empty)
     Data/
@@ -193,6 +204,7 @@ Assets/
       SkillTreeGrid.cs
       SkillTreeProgress.cs
       SkillTreeRefundCalculator.cs
+      SkillTreeVisualSettings.cs
       TeamDatabase.cs
     ScriptableObjects/  (empty)
     Services/
@@ -211,13 +223,16 @@ Assets/
         ScreenStack.cs
         SkillPointBadgeController.cs
         StepProgressBarController.cs
+        UIStylePaths.cs
         SkillTree/
           SkillTreeDetailPanelController.cs
           SkillTreeEdgeLayer.cs
           SkillTreeNodeElement.cs
+          SkillTreeNodeOrbResolver.cs
           SkillTreePanZoomManipulator.cs
           SkillTreeScreenController.cs
           SkillTreeStateEvaluator.cs
+          SkillTreeVisualSettingsResolver.cs
     Village/  (empty)
   Settings/
     DefaultVolumeProfile.asset
@@ -267,6 +282,7 @@ Assets/
       SkillTreeNodeFactorySnapDefaultsTests.cs
       SkillTreeNodeFactoryTests.cs
       SkillTreeNodeIdAllocatorTests.cs
+      SkillTreeNodeOrbSpriteGeneratorTests.cs
       CombatStatsBreakdownAllStatsTests.cs
       CombatStatsBreakdownTests.cs
       CombatStatsDamageEventTests.cs
@@ -355,6 +371,8 @@ Assets/
       SkillTreeEdgeLayerTests.cs
       SkillTreeLayoutTests.cs
       SkillTreeNodeElementColorTagTests.cs
+      SkillTreeNodeElementOrbVisualTests.cs
+      SkillTreeNodeElementPulseTests.cs
       SkillTreeNodeElementTests.cs
       SkillTreeNodeStateStylesTests.cs
       SkillTreePanZoomManipulatorTests.cs
