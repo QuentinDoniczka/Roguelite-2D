@@ -12,6 +12,7 @@ namespace RogueliteAutoBattler.Tests.PlayMode
     public class SkillTreeNodeElementLayeredVisualsTests : PlayModeTestBase
     {
         private const string PanelSettingsPath = "Assets/UI/MainPanelSettings.asset";
+        private const string MainStylePath = "Assets/UI/Styles/MainStyle.uss";
 
         [SetUp]
         public void SetUp()
@@ -30,6 +31,13 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             doc.panelSettings = panelSettings;
             documentGo.SetActive(true);
             return doc;
+        }
+
+        private static void AttachMainStyle(UIDocument doc)
+        {
+            StyleSheet styleSheet = AssetDatabase.LoadAssetAtPath<StyleSheet>(MainStylePath);
+            Assert.IsNotNull(styleSheet, $"MainStyle USS not found at {MainStylePath}");
+            doc.rootVisualElement.styleSheets.Add(styleSheet);
         }
 
         [Test]
@@ -144,6 +152,13 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             yield return null;
             yield return null;
 
+            if (doc.rootVisualElement == null)
+            {
+                Assert.Inconclusive("rootVisualElement is null - UIDocument failed to initialize in the test environment.");
+                yield break;
+            }
+            AttachMainStyle(doc);
+
             var node = new SkillTreeNodeElement(0);
             doc.rootVisualElement.Add(node);
             node.SetState(SkillTreeNodeVisualState.Max);
@@ -162,6 +177,13 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             var doc = CreateDocument();
             yield return null;
             yield return null;
+
+            if (doc.rootVisualElement == null)
+            {
+                Assert.Inconclusive("rootVisualElement is null - UIDocument failed to initialize in the test environment.");
+                yield break;
+            }
+            AttachMainStyle(doc);
 
             var node = new SkillTreeNodeElement(0);
             doc.rootVisualElement.Add(node);
@@ -184,6 +206,13 @@ namespace RogueliteAutoBattler.Tests.PlayMode
             var doc = CreateDocument();
             yield return null;
             yield return null;
+
+            if (doc.rootVisualElement == null)
+            {
+                Assert.Inconclusive("rootVisualElement is null - UIDocument failed to initialize in the test environment.");
+                yield break;
+            }
+            AttachMainStyle(doc);
 
             var node = new SkillTreeNodeElement(0);
             doc.rootVisualElement.Add(node);
