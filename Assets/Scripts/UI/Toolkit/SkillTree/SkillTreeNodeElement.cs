@@ -21,6 +21,7 @@ namespace RogueliteAutoBattler.UI.Toolkit.SkillTree
         private const string MaxClassName = "skill-tree-node--max";
         private const string SelectedClassName = "skill-tree-node--selected";
         private const string PulseOnClassName = "skill-tree-node--pulse-on";
+        private const string HaloBreatheOnClassName = "skill-tree-node--halo-breathe-on";
         private const string HaloClassName = "skill-tree-node__halo";
         private const string FrameClassName = "skill-tree-node__frame";
         private const string RimClassName = "skill-tree-node__rim";
@@ -28,8 +29,12 @@ namespace RogueliteAutoBattler.UI.Toolkit.SkillTree
         private const string SparkleClassName = "skill-tree-node__sparkle";
         private const float NodeHalfSize = 32f;
         private const long PulseIntervalMs = 800;
+        private const long HaloBreatheIntervalMs = 1600;
+        private const long SparkleRotationIntervalMs = 50;
+        private const float SparkleDegreesPerTick = 1.5f;
 
         private Color _currentColor = Color.white;
+        private float _sparkleRotationDegrees;
         private readonly VisualElement _halo;
         private readonly VisualElement _frame;
         private readonly VisualElement _rim;
@@ -73,10 +78,20 @@ namespace RogueliteAutoBattler.UI.Toolkit.SkillTree
             SetState(SkillTreeNodeVisualState.Locked);
 
             schedule.Execute(TogglePulseIfAvailable).StartingIn(PulseIntervalMs).Every(PulseIntervalMs);
+
+            schedule.Execute(ToggleHaloBreatheIfActive)
+                .StartingIn(HaloBreatheIntervalMs)
+                .Every(HaloBreatheIntervalMs);
+
+            schedule.Execute(RotateSparkleIfMax)
+                .StartingIn(SparkleRotationIntervalMs)
+                .Every(SparkleRotationIntervalMs);
         }
 
         public void SetState(SkillTreeNodeVisualState newState)
         {
+            var previousState = CurrentState;
+
             RemoveFromClassList(LockedClassName);
             RemoveFromClassList(AvailableClassName);
             RemoveFromClassList(PurchasedClassName);
@@ -97,6 +112,18 @@ namespace RogueliteAutoBattler.UI.Toolkit.SkillTree
 
             if (!ClassListContains(AvailableClassName))
                 RemoveFromClassList(PulseOnClassName);
+
+            if (newState == SkillTreeNodeVisualState.Locked)
+            {
+                if (ClassListContains(HaloBreatheOnClassName))
+                    RemoveFromClassList(HaloBreatheOnClassName);
+            }
+
+            if (previousState == SkillTreeNodeVisualState.Max && newState != SkillTreeNodeVisualState.Max)
+            {
+                _sparkleRotationDegrees = 0f;
+                _sparkle.style.rotate = new StyleRotate(new Rotate(new Angle(0f, AngleUnit.Degree)));
+            }
         }
 
         public void SetSelected(bool selected)
@@ -150,6 +177,25 @@ namespace RogueliteAutoBattler.UI.Toolkit.SkillTree
                 ToggleInClassList(PulseOnClassName);
             else if (ClassListContains(PulseOnClassName))
                 RemoveFromClassList(PulseOnClassName);
+        }
+
+        private void ToggleHaloBreatheIfActive()
+        {
+            if (CurrentState == SkillTreeNodeVisualState.Locked)
+            {
+                if (ClassListContains(HaloBreatheOnClassName))
+                    RemoveFromClassList(HaloBreatheOnClassName);
+                return;
+            }
+            ToggleInClassList(HaloBreatheOnClassName);
+        }
+
+        private void RotateSparkleIfMax()
+        {
+            if (CurrentState != SkillTreeNodeVisualState.Max)
+                return;
+            _sparkleRotationDegrees = (_sparkleRotationDegrees + SparkleDegreesPerTick) % 360f;
+            _sparkle.style.rotate = new StyleRotate(new Rotate(new Angle(_sparkleRotationDegrees, AngleUnit.Degree)));
         }
 
         private void OnClick(ClickEvent _) => Clicked?.Invoke(NodeIndex);
