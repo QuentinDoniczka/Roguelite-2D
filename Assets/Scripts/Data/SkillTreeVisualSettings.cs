@@ -34,5 +34,18 @@ namespace RogueliteAutoBattler.Data
             haloOpacityPurchased = purchased;
             haloOpacityMax = max;
         }
+
+        internal void SetFieldValue(string fieldName, float value)
+        {
+            switch (fieldName)
+            {
+                case nameof(haloSize): haloSize = value; break;
+                case nameof(haloOpacityLocked): haloOpacityLocked = value; break;
+                case nameof(haloOpacityAvailable): haloOpacityAvailable = value; break;
+                case nameof(haloOpacityPurchased): haloOpacityPurchased = value; break;
+                case nameof(haloOpacityMax): haloOpacityMax = value; break;
+                default: throw new System.ArgumentException($"Unknown field: {fieldName}", nameof(fieldName));
+            }
+        }
     }
 }

@@ -17,14 +17,11 @@ namespace RogueliteAutoBattler.Editor.Windows
 
         private readonly SkillTreeVisualSettings _settings;
         private readonly Action _onChanged;
-        private SerializedObject _serializedSettings;
 
         internal SkillTreePreviewToolbar(SkillTreeVisualSettings settings, Action onChanged)
         {
             _settings = settings;
             _onChanged = onChanged;
-            if (settings != null)
-                _serializedSettings = new SerializedObject(settings);
         }
 
         internal VisualElement BuildToolbar()
@@ -97,16 +94,10 @@ namespace RogueliteAutoBattler.Editor.Windows
 
             slider.RegisterValueChangedCallback(evt =>
             {
-                if (_settings == null || _serializedSettings == null) return;
+                if (_settings == null) return;
 
                 Undo.RegisterCompleteObjectUndo(_settings, "Edit Skill Tree Visual Settings");
-
-                _serializedSettings.Update();
-                var prop = _serializedSettings.FindProperty(fieldName);
-                if (prop != null)
-                    prop.floatValue = evt.newValue;
-                _serializedSettings.ApplyModifiedPropertiesWithoutUndo();
-
+                _settings.SetFieldValue(fieldName, evt.newValue);
                 EditorUtility.SetDirty(_settings);
                 _onChanged?.Invoke();
             });
