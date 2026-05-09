@@ -8,12 +8,23 @@ namespace RogueliteAutoBattler.UI.Toolkit.SkillTree
     {
         internal const string ResourcesLoadPath = "UI/SkillTreeVisualSettings";
 
+        private const float DefaultHaloSize = 120f;
+        private const float DefaultOpacityLocked = 0f;
+        private const float DefaultOpacityAvailable = 0.6f;
+        private const float DefaultOpacityPurchased = 0.85f;
+        private const float DefaultOpacityMax = 1f;
+
         private static SkillTreeVisualSettings _cache;
 
         internal static Func<SkillTreeVisualSettings> Provider =
             () => Resources.Load<SkillTreeVisualSettings>(ResourcesLoadPath);
 
-        internal static SkillTreeVisualSettings Get() => _cache ??= Provider();
+        internal static SkillTreeVisualSettings Get()
+        {
+            if (_cache == null)
+                _cache = Provider();
+            return _cache;
+        }
 
         internal static float GetOpacityForState(SkillTreeNodeVisualState state)
         {
@@ -22,11 +33,11 @@ namespace RogueliteAutoBattler.UI.Toolkit.SkillTree
             {
                 return state switch
                 {
-                    SkillTreeNodeVisualState.Locked => 0f,
-                    SkillTreeNodeVisualState.Available => 0.6f,
-                    SkillTreeNodeVisualState.Purchased => 0.85f,
-                    SkillTreeNodeVisualState.Max => 1f,
-                    _ => 0f
+                    SkillTreeNodeVisualState.Locked => DefaultOpacityLocked,
+                    SkillTreeNodeVisualState.Available => DefaultOpacityAvailable,
+                    SkillTreeNodeVisualState.Purchased => DefaultOpacityPurchased,
+                    SkillTreeNodeVisualState.Max => DefaultOpacityMax,
+                    _ => DefaultOpacityLocked
                 };
             }
             return state switch
@@ -42,7 +53,7 @@ namespace RogueliteAutoBattler.UI.Toolkit.SkillTree
         internal static float GetHaloSize()
         {
             var settings = Get();
-            return settings != null ? settings.HaloSize : 120f;
+            return settings != null ? settings.HaloSize : DefaultHaloSize;
         }
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]

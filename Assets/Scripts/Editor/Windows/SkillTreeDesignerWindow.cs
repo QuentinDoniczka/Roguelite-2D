@@ -39,6 +39,7 @@ namespace RogueliteAutoBattler.Editor.Windows
         private const float CrosshairLineThickness = 1f;
         private const float CrosshairHalfPixelOffset = 0.5f;
         private const float DragStartThresholdPx = 4f;
+        private const float PreviewRootTopOffsetPixels = 30f;
 
         private static readonly Color CanvasBackgroundColor = new Color(0.15f, 0.15f, 0.15f, 1f);
         private static readonly Color CrosshairColor = new Color(0.4f, 0.4f, 0.4f, 1f);
@@ -168,6 +169,7 @@ namespace RogueliteAutoBattler.Editor.Windows
         private SkillTreePreviewPanel _previewPanel;
         private SkillTreePreviewToolbar _previewToolbar;
         private VisualElement _previewRoot;
+        private VisualElement _previewPanelHost;
 
         private static void LogError(string message)
         {
@@ -211,7 +213,7 @@ namespace RogueliteAutoBattler.Editor.Windows
             _previewRoot.style.flexGrow = 1;
             _previewRoot.style.display = DisplayStyle.None;
             _previewRoot.style.position = Position.Absolute;
-            _previewRoot.style.top = 30f;
+            _previewRoot.style.top = PreviewRootTopOffsetPixels;
             _previewRoot.style.left = 0f;
             _previewRoot.style.right = 0f;
             _previewRoot.style.bottom = 0f;
@@ -223,7 +225,8 @@ namespace RogueliteAutoBattler.Editor.Windows
             _previewRoot.Add(_previewToolbar.BuildToolbar());
 
             _previewPanel = new SkillTreePreviewPanel(_data, _cachedNodePalette);
-            _previewRoot.Add(_previewPanel.BuildRoot());
+            _previewPanelHost = _previewPanel.BuildRoot();
+            _previewRoot.Add(_previewPanelHost);
         }
 
         private void OnPreviewSettingsChanged()
@@ -238,6 +241,7 @@ namespace RogueliteAutoBattler.Editor.Windows
                 _previewRoot.RemoveFromHierarchy();
             _previewRoot = null;
             _previewPanel = null;
+            _previewPanelHost = null;
             _previewToolbar = null;
         }
 
@@ -303,14 +307,12 @@ namespace RogueliteAutoBattler.Editor.Windows
         private void RebuildPreviewPanelForCurrentTree()
         {
             if (_previewRoot == null) return;
-            if (_previewPanel != null)
-            {
-                var oldPanelRoot = _previewRoot.childCount > 1 ? _previewRoot[1] : null;
-                if (oldPanelRoot != null)
-                    _previewRoot.Remove(oldPanelRoot);
-            }
+            if (_previewPanelHost != null && _previewPanelHost.parent != null)
+                _previewPanelHost.RemoveFromHierarchy();
+
             _previewPanel = new SkillTreePreviewPanel(_data, _cachedNodePalette);
-            _previewRoot.Add(_previewPanel.BuildRoot());
+            _previewPanelHost = _previewPanel.BuildRoot();
+            _previewRoot.Add(_previewPanelHost);
         }
 
         private void RefreshActivePointerCache()

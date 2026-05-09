@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using RogueliteAutoBattler.Data;
 using RogueliteAutoBattler.UI.Toolkit.SkillTree;
 using UnityEditor;
@@ -10,13 +11,15 @@ namespace RogueliteAutoBattler.Editor.Windows
     {
         private const float ScaleFactor = 30f;
         private const float MinRowHeight = 200f;
+        private const float MinContainerWidth = 200f;
+        private const float ContainerPadding = 128f;
+        private const float ContainerOffset = 64f;
+        private const float NodeHalfSize = 32f;
+        private const float HeaderWidth = 80f;
+        private const float HeaderPaddingLeft = 8f;
+        private const float RowBorderThickness = 1f;
+        private static readonly Color RowBorderColor = new Color(0.3f, 0.3f, 0.3f, 1f);
         private const string MainStylePath = "Assets/UI/Styles/MainStyle.uss";
-
-        private readonly SkillTreeData _data;
-        private readonly SkillNodePalette _palette;
-
-        private VisualElement _root;
-        private ScrollView _scrollView;
 
         private static readonly SkillTreeNodeVisualState[] AllStates =
         {
@@ -25,6 +28,12 @@ namespace RogueliteAutoBattler.Editor.Windows
             SkillTreeNodeVisualState.Purchased,
             SkillTreeNodeVisualState.Max
         };
+
+        private readonly SkillTreeData _data;
+        private readonly SkillNodePalette _palette;
+
+        private VisualElement _root;
+        private ScrollView _scrollView;
 
         internal SkillTreePreviewPanel(SkillTreeData data, SkillNodePalette palette)
         {
@@ -38,16 +47,7 @@ namespace RogueliteAutoBattler.Editor.Windows
             _root.style.flexGrow = 1;
             _root.style.flexDirection = FlexDirection.Column;
 
-            var styleSheet = AssetDatabase.LoadAssetAtPath<StyleSheet>(MainStylePath);
-            if (styleSheet != null)
-                _root.styleSheets.Add(styleSheet);
-
-            _scrollView = new ScrollView(ScrollViewMode.Vertical);
-            _scrollView.style.flexGrow = 1;
-            _root.Add(_scrollView);
-
-            BuildRows();
-
+            BuildContent();
             return _root;
         }
 
@@ -55,10 +55,18 @@ namespace RogueliteAutoBattler.Editor.Windows
         {
             if (_root == null) return;
             _root.Clear();
+            BuildContent();
+        }
 
-            var styleSheet = AssetDatabase.LoadAssetAtPath<StyleSheet>(MainStylePath);
-            if (styleSheet != null)
-                _root.styleSheets.Add(styleSheet);
+        internal void SetVisible(bool visible)
+        {
+            if (_root == null) return;
+            _root.style.display = visible ? DisplayStyle.Flex : DisplayStyle.None;
+        }
+
+        private void BuildContent()
+        {
+            AttachMainStyleSheet();
 
             _scrollView = new ScrollView(ScrollViewMode.Vertical);
             _scrollView.style.flexGrow = 1;
@@ -67,10 +75,11 @@ namespace RogueliteAutoBattler.Editor.Windows
             BuildRows();
         }
 
-        internal void SetVisible(bool visible)
+        private void AttachMainStyleSheet()
         {
-            if (_root == null) return;
-            _root.style.display = visible ? DisplayStyle.Flex : DisplayStyle.None;
+            var styleSheet = AssetDatabase.LoadAssetAtPath<StyleSheet>(MainStylePath);
+            if (styleSheet != null)
+                _root.styleSheets.Add(styleSheet);
         }
 
         private void BuildRows()
@@ -92,8 +101,8 @@ namespace RogueliteAutoBattler.Editor.Windows
                 }
             }
 
-            float containerWidth = Mathf.Max(200f, (boundsMax.x - boundsMin.x) * ScaleFactor + 128f);
-            float containerHeight = Mathf.Max(MinRowHeight, (boundsMax.y - boundsMin.y) * ScaleFactor + 128f);
+            float containerWidth = Mathf.Max(MinContainerWidth, (boundsMax.x - boundsMin.x) * ScaleFactor + ContainerPadding);
+            float containerHeight = Mathf.Max(MinRowHeight, (boundsMax.y - boundsMin.y) * ScaleFactor + ContainerPadding);
 
             foreach (var state in AllStates)
             {
@@ -104,7 +113,7 @@ namespace RogueliteAutoBattler.Editor.Windows
 
         private VisualElement BuildRow(
             SkillTreeNodeVisualState state,
-            System.Collections.Generic.IReadOnlyList<SkillTreeData.SkillNodeEntry> nodes,
+            IReadOnlyList<SkillTreeData.SkillNodeEntry> nodes,
             Vector2 boundsMin,
             float containerWidth,
             float containerHeight)
@@ -113,13 +122,13 @@ namespace RogueliteAutoBattler.Editor.Windows
             row.style.flexDirection = FlexDirection.Row;
             row.style.alignItems = Align.Center;
             row.style.minHeight = MinRowHeight;
-            row.style.borderBottomWidth = 1f;
-            row.style.borderBottomColor = new StyleColor(new Color(0.3f, 0.3f, 0.3f, 1f));
+            row.style.borderBottomWidth = RowBorderThickness;
+            row.style.borderBottomColor = new StyleColor(RowBorderColor);
 
             var header = new Label(state.ToString());
-            header.style.width = 80f;
+            header.style.width = HeaderWidth;
             header.style.flexShrink = 0;
-            header.style.paddingLeft = 8f;
+            header.style.paddingLeft = HeaderPaddingLeft;
             header.style.unityFontStyleAndWeight = FontStyle.Bold;
             row.Add(header);
 
@@ -129,8 +138,8 @@ namespace RogueliteAutoBattler.Editor.Windows
             container.style.height = containerHeight;
             container.style.flexShrink = 0;
 
-            float offsetX = -boundsMin.x * ScaleFactor + 64f;
-            float offsetY = -boundsMin.y * ScaleFactor + 64f;
+            float offsetX = -boundsMin.x * ScaleFactor + ContainerOffset;
+            float offsetY = -boundsMin.y * ScaleFactor + ContainerOffset;
 
             for (int i = 0; i < nodes.Count; i++)
             {
@@ -143,10 +152,11 @@ namespace RogueliteAutoBattler.Editor.Windows
                     : Color.white;
                 element.SetColorTag(color);
 
-                var adjustedPosition = new Vector2(node.position.x * ScaleFactor + offsetX, node.position.y * ScaleFactor + offsetY);
+                float adjustedX = node.position.x * ScaleFactor + offsetX;
+                float adjustedY = node.position.y * ScaleFactor + offsetY;
                 element.style.position = Position.Absolute;
-                element.style.left = adjustedPosition.x - 32f;
-                element.style.top = adjustedPosition.y - 32f;
+                element.style.left = adjustedX - NodeHalfSize;
+                element.style.top = adjustedY - NodeHalfSize;
 
                 container.Add(element);
             }

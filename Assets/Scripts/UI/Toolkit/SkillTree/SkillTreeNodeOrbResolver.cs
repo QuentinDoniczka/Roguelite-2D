@@ -4,22 +4,22 @@ using UnityEngine;
 
 namespace RogueliteAutoBattler.UI.Toolkit.SkillTree
 {
-    // Mirror of OrbLayerKind in SkillTreeNodeOrbSpriteGenerator (Editor asmdef cannot expose enums to Runtime).
     internal enum OrbLayerKind { Core, Halo, Rays }
 
     internal static class SkillTreeNodeOrbResolver
     {
         internal const string ResourcesLoadPath = "UI/SkillTreeNodeOrb";
+        private const string ResourcesLoadPathFormat = "UI/SkillTreeNodeOrb_{0}";
 
-        private static readonly Dictionary<OrbLayerKind, Texture2D> _cacheByKind = new();
+        private static readonly Dictionary<OrbLayerKind, Texture2D> _cacheByKind = new Dictionary<OrbLayerKind, Texture2D>();
 
         internal static Func<OrbLayerKind, Texture2D> Provider =
             kind => Resources.Load<Texture2D>(ResourcesLoadPathFor(kind));
 
         internal static string ResourcesLoadPathFor(OrbLayerKind kind) =>
             kind == OrbLayerKind.Core
-                ? "UI/SkillTreeNodeOrb"
-                : $"UI/SkillTreeNodeOrb_{kind}";
+                ? ResourcesLoadPath
+                : string.Format(ResourcesLoadPathFormat, kind);
 
         internal static Texture2D Get(OrbLayerKind kind)
         {

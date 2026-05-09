@@ -1,6 +1,7 @@
 using System;
 using RogueliteAutoBattler.Data;
 using UnityEditor;
+using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace RogueliteAutoBattler.Editor.Windows
@@ -14,6 +15,9 @@ namespace RogueliteAutoBattler.Editor.Windows
         private const float LabelWidth = 130f;
         private const float SliderWidth = 140f;
         private const float ToolbarPadding = 6f;
+        private const float SliderContainerMarginRight = 8f;
+        private const string UndoLabel = "Edit Skill Tree Visual Settings";
+        private static readonly Color ToolbarBackgroundColor = new Color(0.2f, 0.2f, 0.2f, 1f);
 
         private readonly SkillTreeVisualSettings _settings;
         private readonly Action _onChanged;
@@ -34,7 +38,7 @@ namespace RogueliteAutoBattler.Editor.Windows
             toolbar.style.paddingBottom = ToolbarPadding;
             toolbar.style.paddingLeft = ToolbarPadding;
             toolbar.style.paddingRight = ToolbarPadding;
-            toolbar.style.backgroundColor = new UnityEngine.UIElements.StyleColor(new UnityEngine.Color(0.2f, 0.2f, 0.2f, 1f));
+            toolbar.style.backgroundColor = new StyleColor(ToolbarBackgroundColor);
 
             if (_settings == null) return toolbar;
 
@@ -81,34 +85,36 @@ namespace RogueliteAutoBattler.Editor.Windows
             var container = new VisualElement();
             container.style.flexDirection = FlexDirection.Row;
             container.style.alignItems = Align.Center;
-            container.style.marginRight = 8f;
+            container.style.marginRight = SliderContainerMarginRight;
 
             var label = new Label(labelText);
             label.style.width = LabelWidth;
             label.style.flexShrink = 0;
             container.Add(label);
 
-            var slider = new HookedSlider(min, max, initialValue);
+            var slider = new ChangeNotifyingSlider(min, max, initialValue);
             slider.style.width = SliderWidth;
-            slider.OnValueChanged = newValue =>
-            {
-                if (_settings == null) return;
-                Undo.RegisterCompleteObjectUndo(_settings, "Edit Skill Tree Visual Settings");
-                _settings.SetFieldValue(fieldName, newValue);
-                EditorUtility.SetDirty(_settings);
-                _onChanged?.Invoke();
-            };
+            slider.OnValueChanged = newValue => OnSliderChanged(fieldName, newValue);
 
             container.Add(slider);
             return container;
         }
 
-        private sealed class HookedSlider : Slider
+        private void OnSliderChanged(string fieldName, float newValue)
+        {
+            if (_settings == null) return;
+            Undo.RegisterCompleteObjectUndo(_settings, UndoLabel);
+            _settings.SetFieldValue(fieldName, newValue);
+            EditorUtility.SetDirty(_settings);
+            _onChanged?.Invoke();
+        }
+
+        private sealed class ChangeNotifyingSlider : Slider
         {
             internal Action<float> OnValueChanged;
-            private bool _initialized;
+            private readonly bool _initialized;
 
-            public HookedSlider(float min, float max, float initialValue) : base(min, max)
+            public ChangeNotifyingSlider(float min, float max, float initialValue) : base(min, max)
             {
                 SetValueWithoutNotify(initialValue);
                 _initialized = true;
