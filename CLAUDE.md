@@ -187,7 +187,6 @@ Assets/
         SettingsWindow.cs
         SkillTreeDesignerWindow.cs
         SkillTreePreviewPanel.cs
-        SkillTreeVisualTabPresenter.cs
         TeamBuilderTab.cs
     Items/  (empty)
     Data/
@@ -278,7 +277,7 @@ Assets/
       NodeSnapEngineTests.cs
       SkillTreeDataSnapNormalizationTests.cs
       SkillTreeDesignerBranchTests.cs
-      SkillTreeDesignerTopLevelTabTests.cs
+      SkillTreeDesignerVisualSubTabTests.cs
       SkillTreeGridTests.cs
       SkillTreeNodeFactorySnapDefaultsTests.cs
       SkillTreeNodeFactoryTests.cs
