@@ -20,17 +20,6 @@ namespace RogueliteAutoBattler.Editor.Windows
         private SkillTreeEdgeLayer _edgeLayer;
         private SkillTreeRenderer _renderer;
 
-        private readonly Dictionary<int, SkillTreeNodeVisualState> _nodeStates =
-            new Dictionary<int, SkillTreeNodeVisualState>();
-
-        private static readonly SkillTreeNodeVisualState[] CycleOrder =
-        {
-            SkillTreeNodeVisualState.Locked,
-            SkillTreeNodeVisualState.Available,
-            SkillTreeNodeVisualState.Purchased,
-            SkillTreeNodeVisualState.Max
-        };
-
         private int _dragNodeIndex = -1;
         private Vector2 _dragStartPointerPos;
         private Vector2 _dragStartDataPos;
@@ -41,6 +30,8 @@ namespace RogueliteAutoBattler.Editor.Windows
             _data = data;
             _palette = palette;
         }
+
+        internal SkillTreeEdgeLayer EdgeLayer => _edgeLayer;
 
         internal VisualElement BuildRoot()
         {
@@ -65,43 +56,40 @@ namespace RogueliteAutoBattler.Editor.Windows
             _root.style.display = visible ? DisplayStyle.Flex : DisplayStyle.None;
         }
 
-        internal void CycleNodeState(int nodeIndex)
+        internal void WriteNodePositionWithUndo(int nodeIndex, Vector2 newDataPosition)
         {
-            if (_data == null || nodeIndex < 0 || nodeIndex >= _data.Nodes.Count) return;
+            if (!IsValidNodeIndex(nodeIndex)) return;
 
-            if (!_nodeStates.TryGetValue(nodeIndex, out var current))
-                current = SkillTreeNodeVisualState.Locked;
+            Undo.RegisterCompleteObjectUndo(_data, "Drag Skill Tree Node");
+            ApplyNodePosition(nodeIndex, newDataPosition);
+            EditorUtility.SetDirty(_data);
+        }
 
-            int currentIndex = System.Array.IndexOf(CycleOrder, current);
-            int nextIndex = (currentIndex + 1) % CycleOrder.Length;
-            var next = CycleOrder[nextIndex];
-
-            _nodeStates[nodeIndex] = next;
-
-            if (_renderer != null)
-            {
-                foreach (var element in _renderer.NodeElements)
-                {
-                    if (element.NodeIndex == nodeIndex)
-                    {
-                        element.SetState(next);
-                        break;
-                    }
-                }
-            }
-
+        internal void HandleDragStep(int nodeIndex, Vector2 newDataPosition, bool commit)
+        {
+            if (commit)
+                WriteNodePositionWithUndo(nodeIndex, newDataPosition);
+            else
+                WriteNodePositionWithoutUndo(nodeIndex, newDataPosition);
             RefreshEdges();
         }
 
-        internal void WriteNodePositionWithUndo(int nodeIndex, Vector2 newDataPosition)
+        private void WriteNodePositionWithoutUndo(int nodeIndex, Vector2 newDataPosition)
         {
-            if (_data == null || nodeIndex < 0 || nodeIndex >= _data.Nodes.Count) return;
+            if (!IsValidNodeIndex(nodeIndex)) return;
+            ApplyNodePosition(nodeIndex, newDataPosition);
+        }
 
-            Undo.RegisterCompleteObjectUndo(_data, "Drag Skill Tree Node");
+        private bool IsValidNodeIndex(int nodeIndex)
+        {
+            return _data != null && nodeIndex >= 0 && nodeIndex < _data.Nodes.Count;
+        }
+
+        private void ApplyNodePosition(int nodeIndex, Vector2 newDataPosition)
+        {
             var entry = _data.Nodes[nodeIndex];
             entry.position = newDataPosition;
             _data.SetNode(nodeIndex, entry);
-            EditorUtility.SetDirty(_data);
         }
 
         private void BuildContent()
@@ -110,7 +98,7 @@ namespace RogueliteAutoBattler.Editor.Windows
             BuildEditableCanvas();
         }
 
-        internal void AttachMainStyleSheet()
+        private void AttachMainStyleSheet()
         {
             var styleSheet = AssetDatabase.LoadAssetAtPath<StyleSheet>(UIStylePaths.MainStyleSheet);
             if (styleSheet != null)
@@ -201,6 +189,8 @@ namespace RogueliteAutoBattler.Editor.Windows
             element.style.left = newLeft;
             element.style.top = newTop;
 
+            HandleDragStep(nodeIndex, newDataPos, commit: false);
+
             evt.StopPropagation();
         }
 
@@ -210,25 +200,22 @@ namespace RogueliteAutoBattler.Editor.Windows
 
             element.ReleasePointer(evt.pointerId);
 
-            if (!_dragThresholdExceeded)
+            if (_dragThresholdExceeded)
             {
-                CycleNodeState(nodeIndex);
-            }
-            else
-            {
-                float finalLeft = element.style.left.value.value;
-                float finalTop = element.style.top.value.value;
-
-                var newDataPos = new Vector2(
-                    (finalLeft + SkillTreeRenderer.NodeHalfSize) / SkillTreeRenderer.UnitToPixelScale,
-                    (finalTop + SkillTreeRenderer.NodeHalfSize) / SkillTreeRenderer.UnitToPixelScale);
-
-                WriteNodePositionWithUndo(nodeIndex, newDataPos);
+                var newDataPos = PixelToDataPosition(element.style.left.value.value, element.style.top.value.value);
+                HandleDragStep(nodeIndex, newDataPos, commit: true);
             }
 
             _dragNodeIndex = -1;
             _dragThresholdExceeded = false;
             evt.StopPropagation();
+        }
+
+        private static Vector2 PixelToDataPosition(float left, float top)
+        {
+            return new Vector2(
+                (left + SkillTreeRenderer.NodeHalfSize) / SkillTreeRenderer.UnitToPixelScale,
+                (top + SkillTreeRenderer.NodeHalfSize) / SkillTreeRenderer.UnitToPixelScale);
         }
 
         private void RefreshEdges()
@@ -241,11 +228,10 @@ namespace RogueliteAutoBattler.Editor.Windows
 
         private List<SkillTreeNodeVisualState> BuildStatesList()
         {
-            var states = new List<SkillTreeNodeVisualState>(_data.Nodes.Count);
-            for (var i = 0; i < _data.Nodes.Count; i++)
-            {
-                states.Add(_nodeStates.TryGetValue(i, out var s) ? s : SkillTreeNodeVisualState.Locked);
-            }
+            int nodeCount = _data.Nodes.Count;
+            var states = new List<SkillTreeNodeVisualState>(nodeCount);
+            for (int i = 0; i < nodeCount; i++)
+                states.Add(SkillTreeNodeVisualState.Locked);
             return states;
         }
 

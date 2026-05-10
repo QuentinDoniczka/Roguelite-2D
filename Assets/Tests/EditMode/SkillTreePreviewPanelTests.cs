@@ -1,4 +1,3 @@
-#if UNITY_EDITOR
 using System.Collections.Generic;
 using NUnit.Framework;
 using RogueliteAutoBattler.Data;
@@ -74,26 +73,19 @@ namespace RogueliteAutoBattler.Tests.EditMode
         }
 
         [Test]
-        public void ClickNode_CyclesState()
+        public void ClickNode_DoesNotCycleState()
         {
             var panel = new SkillTreePreviewPanel(_data, _palette);
-            panel.BuildRoot();
+            var root = panel.BuildRoot();
 
-            panel.CycleNodeState(0);
-            Assert.AreEqual(SkillTreeNodeVisualState.Available, GetFirstNodeElement(panel).CurrentState,
-                "First cycle: Locked -> Available");
+            var nodeElements = root.Query<SkillTreeNodeElement>().ToList();
+            Assert.IsTrue(nodeElements.Count >= 1, "Designer Visual sub-tab must build at least one node element.");
 
-            panel.CycleNodeState(0);
-            Assert.AreEqual(SkillTreeNodeVisualState.Purchased, GetFirstNodeElement(panel).CurrentState,
-                "Second cycle: Available -> Purchased");
-
-            panel.CycleNodeState(0);
-            Assert.AreEqual(SkillTreeNodeVisualState.Max, GetFirstNodeElement(panel).CurrentState,
-                "Third cycle: Purchased -> Max");
-
-            panel.CycleNodeState(0);
-            Assert.AreEqual(SkillTreeNodeVisualState.Locked, GetFirstNodeElement(panel).CurrentState,
-                "Fourth cycle: Max -> Locked (wrap around)");
+            foreach (var element in nodeElements)
+            {
+                Assert.AreEqual(SkillTreeNodeVisualState.Locked, element.CurrentState,
+                    "Designer Visual sub-tab keeps every node in Locked state.");
+            }
         }
 
         [Test]
@@ -109,16 +101,51 @@ namespace RogueliteAutoBattler.Tests.EditMode
             Assert.IsTrue(EditorUtility.IsDirty(_data), "SkillTreeData should be marked dirty after WriteNodePositionWithUndo.");
         }
 
-        private static SkillTreeNodeElement GetFirstNodeElement(SkillTreePreviewPanel panel)
+        [Test]
+        public void DragNode_RefreshesEdges_DuringAndAfterDrag()
         {
-            var rootField = typeof(SkillTreePreviewPanel).GetField("_root",
-                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            var root = rootField?.GetValue(panel) as VisualElement;
-            Assert.IsNotNull(root, "Could not access _root via reflection.");
-            var elements = root.Query<SkillTreeNodeElement>().ToList();
-            Assert.IsTrue(elements.Count > 0, "No SkillTreeNodeElement found in panel.");
-            return elements[0];
+            _data.InitializeForTest(new List<SkillTreeData.SkillNodeEntry>
+            {
+                new SkillTreeData.SkillNodeEntry
+                {
+                    id = 0,
+                    position = Vector2.zero,
+                    connectedNodeIds = new List<int> { 1 },
+                    colorTag = NodeColorTag.Default
+                },
+                new SkillTreeData.SkillNodeEntry
+                {
+                    id = 1,
+                    position = new Vector2(2f, 0f),
+                    connectedNodeIds = new List<int>(),
+                    colorTag = NodeColorTag.Default
+                }
+            });
+
+            var panel = new SkillTreePreviewPanel(_data, _palette);
+            panel.BuildRoot();
+
+            var edgeLayer = panel.EdgeLayer;
+            Assert.IsNotNull(edgeLayer, "EdgeLayer must be exposed for regression testing.");
+            Assert.AreEqual(1, edgeLayer.EdgeCount, "Initial edge count must be 1 for the seeded two-node graph.");
+
+            var liveDataPos = new Vector2(5f, 1f);
+            panel.HandleDragStep(1, liveDataPos, commit: false);
+
+            var expectedLive = SkillTreeGrid.Quantize(liveDataPos);
+            Assert.AreEqual(expectedLive, _data.Nodes[1].position,
+                "Live drag must update the data position so the edge layer reads the new endpoint immediately.");
+            Assert.AreEqual(1, edgeLayer.EdgeCount,
+                "Edge layer must still hold the rebuilt edge after the live drag refresh.");
+
+            var finalDataPos = new Vector2(7f, 2f);
+            panel.HandleDragStep(1, finalDataPos, commit: true);
+
+            var expectedFinal = SkillTreeGrid.Quantize(finalDataPos);
+            Assert.AreEqual(expectedFinal, _data.Nodes[1].position,
+                "Drag end must commit the final data position so edges reconcile to the released endpoint.");
+            Assert.AreEqual(1, edgeLayer.EdgeCount,
+                "Edge layer must still hold the rebuilt edge after the drag-end refresh.");
         }
     }
 }
-#endif
