@@ -64,7 +64,7 @@ namespace RogueliteAutoBattler.Editor.Tools
 
         private static void SyncOpenSceneSkillTreeScreenControllers(SkillTreeData target)
         {
-            var controllers = Object.FindObjectsByType<SkillTreeScreenController>(
+            var controllers = UnityEngine.Object.FindObjectsByType<SkillTreeScreenController>(
                 FindObjectsInactive.Include, FindObjectsSortMode.None);
             foreach (var controller in controllers)
             {
