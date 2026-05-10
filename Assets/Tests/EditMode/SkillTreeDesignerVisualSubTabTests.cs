@@ -57,22 +57,23 @@ namespace RogueliteAutoBattler.Tests.EditMode
         }
 
         [Test]
-        public void SubTabLabels_FirstIsVisual_ThenSkillTreeAndNode()
+        public void SubTabLabels_VisualIsLast_BeforeBranch()
         {
             var labels = SkillTreeDesignerWindow.TabLabelsWithoutBranchForTests;
             Assert.IsNotNull(labels, "TabLabelsWithoutBranch must not be null.");
             Assert.GreaterOrEqual(labels.Count, 3, "TabLabelsWithoutBranch must contain at least three entries.");
-            Assert.AreEqual("Visual", labels[0], "First sub-tab label must be 'Visual'.");
-            Assert.AreEqual("Skill Tree", labels[1], "Second sub-tab label must be 'Skill Tree'.");
-            Assert.AreEqual("Node", labels[2], "Third sub-tab label must be 'Node'.");
+            Assert.AreEqual("Skill Tree", labels[0], "First sub-tab label must be 'Skill Tree'.");
+            Assert.AreEqual("Node", labels[1], "Second sub-tab label must be 'Node'.");
+            Assert.AreEqual("Visual", labels[2], "Third sub-tab label must be 'Visual'.");
         }
 
         [Test]
-        public void SubTabLabels_WithBranch_VisualStillFirst_BranchLast()
+        public void SubTabLabels_WithBranch_VisualThird_BranchLast()
         {
             var labels = SkillTreeDesignerWindow.TabLabelsWithBranchForTests;
             Assert.IsNotNull(labels, "TabLabelsWithBranch must not be null.");
-            Assert.AreEqual("Visual", labels[0], "First sub-tab label with branch must be 'Visual'.");
+            Assert.GreaterOrEqual(labels.Count, 4, "TabLabelsWithBranch must contain at least four entries.");
+            Assert.AreEqual("Visual", labels[2], "Third sub-tab label with branch must be 'Visual'.");
             Assert.AreEqual("Branch", labels[labels.Count - 1], "Last sub-tab label with branch must be 'Branch'.");
         }
 
@@ -81,39 +82,34 @@ namespace RogueliteAutoBattler.Tests.EditMode
         {
             using var scope = new SkillTreeVisualSettingsProviderScope();
 
-            var presenter = _window.VisualTabPresenterForTests;
-            presenter.InvokeInitializeForTests();
+            _window.InvokeInitializeVisualSettingsInspectorForTests();
 
             Assert.IsNotNull(
-                presenter.SerializedObjectForTests,
-                "SerializedObject must be populated after Initialize.");
+                _window.VisualSettingsSerializedObjectForTests,
+                "SerializedObject must be populated after InitializeVisualSettingsInspector.");
             Assert.AreEqual(
-                presenter.SettingsForTests,
-                presenter.SerializedObjectForTests.targetObject,
+                _window.VisualSettingsForTests,
+                _window.VisualSettingsSerializedObjectForTests.targetObject,
                 "SerializedObject target must be the resolved SkillTreeVisualSettings asset.");
         }
 
         [Test]
-        public void VisualTab_Initialize_PreviewPanelInstance_NotNull()
+        public void VisualTab_Initialize_CanvasPanelInstance_NotNull()
         {
-            using var scope = new SkillTreeVisualSettingsProviderScope();
-
-            var presenter = _window.VisualTabPresenterForTests;
-            presenter.InvokeInitializeForTests();
+            _window.InvokeRebuildVisualCanvasPanelWithRootForTests();
 
             Assert.IsNotNull(
-                presenter.PreviewPanelForTests,
-                "Visual tab preview panel must be non-null after Initialize.");
+                _window.VisualCanvasPanelForTests,
+                "Visual canvas panel must be non-null when data is bound.");
         }
 
         [Test]
         public void VisualTab_OnSettingsChanged_MarksAssetDirty_AndResetsCache()
         {
             using var scope = new SkillTreeVisualSettingsProviderScope();
-            var presenter = _window.VisualTabPresenterForTests;
-            presenter.InvokeInitializeForTests();
+            _window.InvokeInitializeVisualSettingsInspectorForTests();
 
-            var so = presenter.SerializedObjectForTests;
+            var so = _window.VisualSettingsSerializedObjectForTests;
             var prop = so.FindProperty(SkillTreeVisualSettings.FieldNames.HaloSize);
             float orig = prop.floatValue;
 
@@ -132,17 +128,17 @@ namespace RogueliteAutoBattler.Tests.EditMode
                 so.ApplyModifiedProperties();
 
                 int callCountBeforeChange = providerCallCount;
-                presenter.InvokeOnSettingsChangedForTests();
+                _window.InvokeOnVisualSettingsChangedForTests();
 
                 Assert.IsTrue(
                     EditorUtility.IsDirty(stub),
-                    "SkillTreeVisualSettings must be marked dirty after OnSettingsChanged.");
+                    "SkillTreeVisualSettings must be marked dirty after OnVisualSettingsChanged.");
 
                 SkillTreeVisualSettingsResolver.Get();
                 Assert.Greater(
                     providerCallCount,
                     callCountBeforeChange,
-                    "Resolver cache must be reset by OnSettingsChanged so the provider is re-invoked.");
+                    "Resolver cache must be reset by OnVisualSettingsChanged so the provider is re-invoked.");
             }
             finally
             {
