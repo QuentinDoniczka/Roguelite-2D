@@ -167,7 +167,7 @@ namespace RogueliteAutoBattler.Editor.Windows
         private DesignerTab _activeTab = DesignerTab.SkillTree;
         private bool _branchPreviewActive;
         private int _branchPreviewParentIndex = -1;
-        private DesignerTab _branchPreviewPreviousTab = DesignerTab.Visual;
+        private DesignerTab _branchPreviewPreviousTab = DesignerTab.SkillTree;
         private BranchPreviewSettings _branchPreviewSettings = BranchPreviewSettings.Defaults;
         private BranchPreviewSettings _lastBranchPreviewSettings = BranchPreviewSettings.Defaults;
         private int _mirrorSourceNodeIndex = BranchPlacement.NoMirrorSourceOverride;
@@ -182,6 +182,7 @@ namespace RogueliteAutoBattler.Editor.Windows
         private SkillTreePreviewPanel _visualCanvasPanel;
         private SerializedObject _visualSettingsSerializedObject;
         private SkillTreeVisualSettings _visualSettings;
+        private static GUIContent[] _tunableLabels;
 
         private static void LogError(string message)
         {
@@ -229,10 +230,15 @@ namespace RogueliteAutoBattler.Editor.Windows
 
         private void InitializeVisualCanvasRoot()
         {
+            AttachVisualCanvasRoot(rootVisualElement);
+        }
+
+        private void AttachVisualCanvasRoot(VisualElement parent)
+        {
             _visualCanvasRoot = new VisualElement();
             _visualCanvasRoot.style.position = Position.Absolute;
             _visualCanvasRoot.style.display = DisplayStyle.None;
-            rootVisualElement.Add(_visualCanvasRoot);
+            parent.Add(_visualCanvasRoot);
             RebuildVisualCanvasPanel();
         }
 
@@ -322,11 +328,6 @@ namespace RogueliteAutoBattler.Editor.Windows
             CacheSerializedProperties();
             RebuildNodeLabels();
             EditorPrefs.SetString(SelectedAssetGuidEditorPrefKey, resolvedEntry.Guid);
-            RebindVisualTabForCurrentTree();
-        }
-
-        private void RebindVisualTabForCurrentTree()
-        {
             RebuildVisualCanvasPanel();
         }
 
@@ -1240,11 +1241,14 @@ namespace RogueliteAutoBattler.Editor.Windows
             _visualSettingsSerializedObject.Update();
             EditorGUI.BeginChangeCheck();
 
-            foreach (var descriptor in SkillTreeVisualSettings.Tunables)
+            EnsureTunableLabelsCached();
+            var tunables = SkillTreeVisualSettings.Tunables;
+            for (int i = 0; i < tunables.Count; i++)
             {
+                var descriptor = tunables[i];
                 var prop = _visualSettingsSerializedObject.FindProperty(descriptor.FieldName);
                 if (prop != null)
-                    EditorGUILayout.PropertyField(prop, new GUIContent(descriptor.DisplayLabel));
+                    EditorGUILayout.PropertyField(prop, _tunableLabels[i]);
             }
 
             bool changed = EditorGUI.EndChangeCheck();
@@ -1252,6 +1256,15 @@ namespace RogueliteAutoBattler.Editor.Windows
 
             if (changed)
                 OnVisualSettingsChanged();
+        }
+
+        private static void EnsureTunableLabelsCached()
+        {
+            if (_tunableLabels != null) return;
+            var tunables = SkillTreeVisualSettings.Tunables;
+            _tunableLabels = new GUIContent[tunables.Count];
+            for (int i = 0; i < tunables.Count; i++)
+                _tunableLabels[i] = new GUIContent(tunables[i].DisplayLabel);
         }
 
         private void OnVisualSettingsChanged()
@@ -1500,12 +1513,6 @@ namespace RogueliteAutoBattler.Editor.Windows
         internal SkillTreePreviewPanel VisualCanvasPanelForTests => _visualCanvasPanel;
         internal void InvokeOnVisualSettingsChangedForTests() => OnVisualSettingsChanged();
         internal void InvokeInitializeVisualSettingsInspectorForTests() => InitializeVisualSettingsInspector();
-        internal void InvokeInitializeVisualCanvasRootForTests() => InitializeVisualCanvasRoot();
-
-        internal void InvokeRebuildVisualCanvasPanelWithRootForTests()
-        {
-            _visualCanvasRoot = new VisualElement();
-            RebuildVisualCanvasPanel();
-        }
+        internal void InvokeAttachVisualCanvasRootForTests(VisualElement parent) => AttachVisualCanvasRoot(parent);
     }
 }

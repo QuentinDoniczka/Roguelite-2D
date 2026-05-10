@@ -8,6 +8,7 @@ using RogueliteAutoBattler.Tests.PlayMode;
 using RogueliteAutoBattler.UI.Toolkit.SkillTree;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 namespace RogueliteAutoBattler.Tests.EditMode
 {
@@ -96,7 +97,10 @@ namespace RogueliteAutoBattler.Tests.EditMode
         [Test]
         public void VisualTab_Initialize_CanvasPanelInstance_NotNull()
         {
-            _window.InvokeRebuildVisualCanvasPanelWithRootForTests();
+            using var scope = new SkillTreeVisualSettingsProviderScope();
+
+            var testParent = new VisualElement();
+            _window.InvokeAttachVisualCanvasRootForTests(testParent);
 
             Assert.IsNotNull(
                 _window.VisualCanvasPanelForTests,
