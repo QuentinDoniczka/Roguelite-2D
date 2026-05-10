@@ -9,6 +9,11 @@ namespace RogueliteAutoBattler.UI.Toolkit.SkillTree
     [RequireComponent(typeof(UIDocument))]
     public sealed class SkillTreeScreenController : MonoBehaviour
     {
+        internal static class FieldNames
+        {
+            internal const string Data = nameof(_data);
+        }
+
         private const string ScreenElementName = "screen-skilltree";
         private const string ViewportElementName = "skilltree-viewport";
         private const string ContentElementName = "skilltree-content";
@@ -24,7 +29,6 @@ namespace RogueliteAutoBattler.UI.Toolkit.SkillTree
         private const string DetailUpgradeButtonName = "skilltree-detail-upgrade-btn";
         private const string DetailCloseButtonName = "skilltree-detail-close-btn";
 
-        private const float UnitToPixelScale = 40f;
         private const int NoSelectedNodeIndex = -1;
 
         [SerializeField] private UIDocument _uiDocument;
@@ -38,9 +42,7 @@ namespace RogueliteAutoBattler.UI.Toolkit.SkillTree
         internal SkillTreeProgress Progress => _progress;
         internal SkillNodePalette Palette { get => _palette; set => _palette = value; }
 
-        private readonly List<SkillTreeNodeElement> _nodeElements = new();
-        private readonly List<Vector2> _positionsCache = new();
-        private readonly List<SkillTreeNodeVisualState> _statesCache = new();
+        private SkillTreeRenderer _renderer;
         private SkillTreeEdgeLayer _edgeLayer;
         private SkillTreeDetailPanelController _detailController;
         private SkillTreePanZoomManipulator _panZoomManipulator;
@@ -50,7 +52,7 @@ namespace RogueliteAutoBattler.UI.Toolkit.SkillTree
         private bool _hasCenteredContentOnViewport;
         private int _selectedNodeIndex = NoSelectedNodeIndex;
 
-        public IReadOnlyList<SkillTreeNodeElement> NodeElements => _nodeElements;
+        public IReadOnlyList<SkillTreeNodeElement> NodeElements => _renderer != null ? _renderer.NodeElements : System.Array.Empty<SkillTreeNodeElement>();
         public int SelectedNodeIndex => _selectedNodeIndex;
 
         internal Vector3 ContentTargetPosition => _content != null ? _content.transform.position : Vector3.zero;
@@ -60,6 +62,7 @@ namespace RogueliteAutoBattler.UI.Toolkit.SkillTree
         private void Awake()
         {
             if (_uiDocument == null) _uiDocument = GetComponent<UIDocument>();
+            if (_data == null) _data = ActiveSkillTreeResolver.GetActive();
             if (_data == null || _progress == null)
             {
                 Debug.LogError($"{nameof(SkillTreeScreenController)} requires SkillTreeData and SkillTreeProgress references.");
@@ -115,6 +118,7 @@ namespace RogueliteAutoBattler.UI.Toolkit.SkillTree
             }
 
             _stateEvaluator = new SkillTreeStateEvaluator(_data, _progress);
+            _renderer = new SkillTreeRenderer(_palette);
 
             SpawnNodes(nodesLayer);
             ReplaceEdgeLayerElement(content, edgeLayerElement);
@@ -147,20 +151,16 @@ namespace RogueliteAutoBattler.UI.Toolkit.SkillTree
 
         private void SpawnNodes(VisualElement nodesLayer)
         {
-            nodesLayer.Clear();
-            _nodeElements.Clear();
-            bool hasPalette = _palette != null;
+            var statesList = BuildStatesList();
+            _renderer.RenderNodes(_data, statesList, nodesLayer, HandleNodeClicked);
+        }
+
+        private List<SkillTreeNodeVisualState> BuildStatesList()
+        {
+            var states = new List<SkillTreeNodeVisualState>(_data.Nodes.Count);
             for (var i = 0; i < _data.Nodes.Count; i++)
-            {
-                var node = _data.Nodes[i];
-                var nodeElement = new SkillTreeNodeElement(i);
-                nodeElement.SetDataPosition(node.position, UnitToPixelScale);
-                var color = hasPalette ? _palette.GetColor(node.colorTag) : Color.white;
-                nodeElement.SetColorTag(color);
-                nodeElement.Clicked += HandleNodeClicked;
-                nodesLayer.Add(nodeElement);
-                _nodeElements.Add(nodeElement);
-            }
+                states.Add(_stateEvaluator.GetState(i));
+            return states;
         }
 
         private void ReplaceEdgeLayerElement(VisualElement content, VisualElement existingPlaceholder)
@@ -173,24 +173,18 @@ namespace RogueliteAutoBattler.UI.Toolkit.SkillTree
 
         private void RefreshAllNodeStates()
         {
-            for (var i = 0; i < _nodeElements.Count; i++)
+            var elements = NodeElements;
+            for (var i = 0; i < elements.Count; i++)
             {
-                _nodeElements[i].SetState(_stateEvaluator.GetState(i));
+                elements[i].SetState(_stateEvaluator.GetState(i));
             }
         }
 
         private void RefreshEdgeLayer()
         {
-            if (_edgeLayer == null) return;
-            var edges = _data.GetEdges();
-            _positionsCache.Clear();
-            _statesCache.Clear();
-            for (var i = 0; i < _data.Nodes.Count; i++)
-            {
-                _positionsCache.Add(_data.Nodes[i].position);
-                _statesCache.Add(_stateEvaluator.GetState(i));
-            }
-            _edgeLayer.SetEdges(edges, _positionsCache, _stateEvaluator.IdToIndexMap, _statesCache, UnitToPixelScale);
+            if (_edgeLayer == null || _renderer == null) return;
+            var statesList = BuildStatesList();
+            _renderer.RenderEdges(_data, _stateEvaluator.IdToIndexMap, statesList, _edgeLayer);
         }
 
         private void HandleViewportClickToDeselect(ClickEvent evt)
@@ -217,14 +211,15 @@ namespace RogueliteAutoBattler.UI.Toolkit.SkillTree
 
         private void SetSelectedNode(int nodeIndex)
         {
-            if (_selectedNodeIndex >= 0 && _selectedNodeIndex < _nodeElements.Count)
+            var elements = NodeElements;
+            if (_selectedNodeIndex >= 0 && _selectedNodeIndex < elements.Count)
             {
-                _nodeElements[_selectedNodeIndex].SetSelected(false);
+                elements[_selectedNodeIndex].SetSelected(false);
             }
             _selectedNodeIndex = nodeIndex;
-            if (_selectedNodeIndex >= 0 && _selectedNodeIndex < _nodeElements.Count)
+            if (_selectedNodeIndex >= 0 && _selectedNodeIndex < elements.Count)
             {
-                _nodeElements[_selectedNodeIndex].SetSelected(true);
+                elements[_selectedNodeIndex].SetSelected(true);
             }
         }
 
@@ -236,9 +231,10 @@ namespace RogueliteAutoBattler.UI.Toolkit.SkillTree
 
         private void OnDetailClosed()
         {
-            if (_selectedNodeIndex >= 0 && _selectedNodeIndex < _nodeElements.Count)
+            var elements = NodeElements;
+            if (_selectedNodeIndex >= 0 && _selectedNodeIndex < elements.Count)
             {
-                _nodeElements[_selectedNodeIndex].SetSelected(false);
+                elements[_selectedNodeIndex].SetSelected(false);
             }
             _selectedNodeIndex = NoSelectedNodeIndex;
         }

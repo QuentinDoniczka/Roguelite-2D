@@ -229,6 +229,7 @@ Assets/
           SkillTreeNodeElement.cs
           SkillTreeNodeOrbResolver.cs
           SkillTreePanZoomManipulator.cs
+          SkillTreeRenderer.cs
           SkillTreeScreenController.cs
           SkillTreeStateEvaluator.cs
           SkillTreeVisualSettingsResolver.cs
@@ -309,7 +310,10 @@ Assets/
       SkillTreeDataCentralNodeTests.cs
       SkillTreeDesignerColorTagTests.cs
       SkillTreeProgressTests.cs
+      SkillTreeRendererTests.cs
       SkillTreeScreenBuilderTests.cs
+      SkillTreeScreenControllerActivePointerFallbackTests.cs
+      SkillTreesEnumeratorActivePointerSyncTests.cs
       SkillTreeStateEvaluatorLockedTests.cs
       StageDataMigrationTests.cs
       StatBreakdownDataTests.cs

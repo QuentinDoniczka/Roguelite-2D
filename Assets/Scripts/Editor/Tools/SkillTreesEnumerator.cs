@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
 using RogueliteAutoBattler.Data;
+using RogueliteAutoBattler.UI.Toolkit.SkillTree;
 using UnityEditor;
+using UnityEditor.SceneManagement;
 using UnityEngine;
 
 namespace RogueliteAutoBattler.Editor.Tools
@@ -56,7 +58,23 @@ namespace RogueliteAutoBattler.Editor.Tools
             so.ApplyModifiedPropertiesWithoutUndo();
             EditorUtility.SetDirty(pointer);
             AssetDatabase.SaveAssets();
+            SyncOpenSceneSkillTreeScreenControllers(target);
             return true;
+        }
+
+        private static void SyncOpenSceneSkillTreeScreenControllers(SkillTreeData target)
+        {
+            var controllers = Object.FindObjectsByType<SkillTreeScreenController>(
+                FindObjectsInactive.Include, FindObjectsSortMode.None);
+            foreach (var controller in controllers)
+            {
+                var so = new SerializedObject(controller);
+                so.FindProperty(SkillTreeScreenController.FieldNames.Data).objectReferenceValue = target;
+                so.ApplyModifiedPropertiesWithoutUndo();
+                EditorSceneManager.MarkSceneDirty(controller.gameObject.scene);
+            }
+            if (controllers.Length > 0)
+                EditorSceneManager.SaveOpenScenes();
         }
 
         internal static bool IsPathUnderSkillTreesFolder(string fullPath, string skillTreesFolder)

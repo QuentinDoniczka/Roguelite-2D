@@ -12,4 +12,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 305f8c29ba3bc8e4fb161adf29b65327, type: 3}
   m_Name: ActiveSkillTree
   m_EditorClassIdentifier: RogueliteAutoBattler.Runtime::RogueliteAutoBattler.Data.ActiveSkillTreePointer
-  target: {fileID: 11400000, guid: 63a2645100f4ff4428d968c9feeb46f4, type: 2}
+  target: {fileID: 11400000, guid: 981c5e607a63a2647acc400c7b7f34cd, type: 2}

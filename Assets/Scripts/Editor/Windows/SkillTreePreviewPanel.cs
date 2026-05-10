@@ -10,18 +10,15 @@ namespace RogueliteAutoBattler.Editor.Windows
 {
     internal sealed class SkillTreePreviewPanel
     {
-        private const float ScaleFactor = 30f;
-        private const float MinContainerSize = 200f;
-        private const float ContainerPadding = 128f;
-        private const float ContainerOffset = 64f;
-        private const float NodeHalfSize = 32f;
         private const float DragThresholdPx = 4f;
 
         private readonly SkillTreeData _data;
         private readonly SkillNodePalette _palette;
 
         private VisualElement _root;
-        private ScrollView _scrollView;
+        private VisualElement _nodesLayer;
+        private SkillTreeEdgeLayer _edgeLayer;
+        private SkillTreeRenderer _renderer;
 
         private readonly Dictionary<int, SkillTreeNodeVisualState> _nodeStates =
             new Dictionary<int, SkillTreeNodeVisualState>();
@@ -36,9 +33,8 @@ namespace RogueliteAutoBattler.Editor.Windows
 
         private int _dragNodeIndex = -1;
         private Vector2 _dragStartPointerPos;
-        private Vector2 _dragStartNodePosPx;
+        private Vector2 _dragStartDataPos;
         private bool _dragThresholdExceeded;
-        private readonly List<SkillTreeNodeElement> _nodeElements = new List<SkillTreeNodeElement>();
 
         internal SkillTreePreviewPanel(SkillTreeData data, SkillNodePalette palette)
         {
@@ -60,7 +56,6 @@ namespace RogueliteAutoBattler.Editor.Windows
         {
             if (_root == null) return;
             _root.Clear();
-            _nodeElements.Clear();
             BuildContent();
         }
 
@@ -83,14 +78,19 @@ namespace RogueliteAutoBattler.Editor.Windows
 
             _nodeStates[nodeIndex] = next;
 
-            foreach (var element in _nodeElements)
+            if (_renderer != null)
             {
-                if (element.NodeIndex == nodeIndex)
+                foreach (var element in _renderer.NodeElements)
                 {
-                    element.SetState(next);
-                    break;
+                    if (element.NodeIndex == nodeIndex)
+                    {
+                        element.SetState(next);
+                        break;
+                    }
                 }
             }
+
+            RefreshEdges();
         }
 
         internal void WriteNodePositionWithUndo(int nodeIndex, Vector2 newDataPosition)
@@ -107,11 +107,6 @@ namespace RogueliteAutoBattler.Editor.Windows
         private void BuildContent()
         {
             AttachMainStyleSheet();
-
-            _scrollView = new ScrollView(ScrollViewMode.VerticalAndHorizontal);
-            _scrollView.style.flexGrow = 1;
-            _root.Add(_scrollView);
-
             BuildEditableCanvas();
         }
 
@@ -126,75 +121,69 @@ namespace RogueliteAutoBattler.Editor.Windows
         {
             if (_data == null) return;
 
-            var nodes = _data.Nodes;
-            var (boundsMin, boundsMax) = ComputeNodeBounds(nodes);
+            var viewport = new VisualElement();
+            viewport.style.flexGrow = 1;
+            viewport.style.overflow = Overflow.Hidden;
+            _root.Add(viewport);
 
-            float containerWidth = Mathf.Max(MinContainerSize, (boundsMax.x - boundsMin.x) * ScaleFactor + ContainerPadding);
-            float containerHeight = Mathf.Max(MinContainerSize, (boundsMax.y - boundsMin.y) * ScaleFactor + ContainerPadding);
+            var content = new VisualElement();
+            content.style.position = Position.Absolute;
+            content.style.left = 0f;
+            content.style.top = 0f;
+            viewport.Add(content);
 
-            float offsetX = -boundsMin.x * ScaleFactor + ContainerOffset;
-            float offsetY = -boundsMin.y * ScaleFactor + ContainerOffset;
+            _edgeLayer = new SkillTreeEdgeLayer();
+            content.Add(_edgeLayer);
 
-            var container = new VisualElement();
-            container.style.position = Position.Relative;
-            container.style.width = containerWidth;
-            container.style.height = containerHeight;
-            container.style.flexShrink = 0;
+            _nodesLayer = new VisualElement();
+            _nodesLayer.style.position = Position.Absolute;
+            _nodesLayer.style.left = 0f;
+            _nodesLayer.style.top = 0f;
+            content.Add(_nodesLayer);
 
-            for (int i = 0; i < nodes.Count; i++)
+            _renderer = new SkillTreeRenderer(_palette);
+
+            var statesList = BuildStatesList();
+            _renderer.RenderNodes(_data, statesList, _nodesLayer, null);
+
+            foreach (var element in _renderer.NodeElements)
             {
-                var node = nodes[i];
-
-                if (!_nodeStates.ContainsKey(i))
-                    _nodeStates[i] = SkillTreeNodeVisualState.Locked;
-
-                var element = new SkillTreeNodeElement(i);
-                element.SetState(_nodeStates[i]);
-
-                Color color = _palette != null
-                    ? _palette.GetColor(node.colorTag)
-                    : Color.white;
-                element.SetColorTag(color);
-
-                float pixelX = node.position.x * ScaleFactor + offsetX - NodeHalfSize;
-                float pixelY = node.position.y * ScaleFactor + offsetY - NodeHalfSize;
-                element.style.position = Position.Absolute;
-                element.style.left = pixelX;
-                element.style.top = pixelY;
-
-                int capturedIndex = i;
-                float capturedOffsetX = offsetX;
-                float capturedOffsetY = offsetY;
-
-                element.RegisterCallback<PointerDownEvent>(evt =>
-                    OnPointerDown(evt, element, capturedIndex, capturedOffsetX, capturedOffsetY));
-                element.RegisterCallback<PointerMoveEvent>(evt =>
-                    OnPointerMove(evt, element, capturedIndex, capturedOffsetX, capturedOffsetY, containerWidth, containerHeight));
-                element.RegisterCallback<PointerUpEvent>(evt =>
-                    OnPointerUp(evt, element, capturedIndex, capturedOffsetX, capturedOffsetY));
-
-                _nodeElements.Add(element);
-                container.Add(element);
+                RegisterNodePointerCallbacks(element, element.NodeIndex);
             }
 
-            _scrollView.Add(container);
+            var idToIndexMap = BuildIdToIndexMap();
+            _renderer.RenderEdges(_data, idToIndexMap, statesList, _edgeLayer);
+
+            viewport.RegisterCallback<GeometryChangedEvent>(evt => CenterContent(viewport, content));
         }
 
-        private void OnPointerDown(PointerDownEvent evt, SkillTreeNodeElement element, int nodeIndex,
-            float offsetX, float offsetY)
+        private void CenterContent(VisualElement viewport, VisualElement content)
+        {
+            if (viewport.layout.width > 0f && viewport.layout.height > 0f)
+            {
+                content.style.left = viewport.layout.width * 0.5f;
+                content.style.top = viewport.layout.height * 0.5f;
+            }
+        }
+
+        private void RegisterNodePointerCallbacks(SkillTreeNodeElement element, int nodeIndex)
+        {
+            element.RegisterCallback<PointerDownEvent>(evt => OnPointerDown(evt, element, nodeIndex));
+            element.RegisterCallback<PointerMoveEvent>(evt => OnPointerMove(evt, element, nodeIndex));
+            element.RegisterCallback<PointerUpEvent>(evt => OnPointerUp(evt, element, nodeIndex));
+        }
+
+        private void OnPointerDown(PointerDownEvent evt, SkillTreeNodeElement element, int nodeIndex)
         {
             _dragNodeIndex = nodeIndex;
             _dragStartPointerPos = evt.position;
-            _dragStartNodePosPx = new Vector2(
-                element.style.left.value.value,
-                element.style.top.value.value);
+            _dragStartDataPos = _data.Nodes[nodeIndex].position;
             _dragThresholdExceeded = false;
             element.CapturePointer(evt.pointerId);
             evt.StopPropagation();
         }
 
-        private void OnPointerMove(PointerMoveEvent evt, SkillTreeNodeElement element, int nodeIndex,
-            float offsetX, float offsetY, float containerWidth, float containerHeight)
+        private void OnPointerMove(PointerMoveEvent evt, SkillTreeNodeElement element, int nodeIndex)
         {
             if (_dragNodeIndex != nodeIndex) return;
 
@@ -205,8 +194,9 @@ namespace RogueliteAutoBattler.Editor.Windows
 
             if (!_dragThresholdExceeded) return;
 
-            float newLeft = Mathf.Clamp(_dragStartNodePosPx.x + delta.x, 0f, containerWidth - NodeHalfSize * 2f);
-            float newTop = Mathf.Clamp(_dragStartNodePosPx.y + delta.y, 0f, containerHeight - NodeHalfSize * 2f);
+            var newDataPos = _dragStartDataPos + delta / SkillTreeRenderer.UnitToPixelScale;
+            float newLeft = newDataPos.x * SkillTreeRenderer.UnitToPixelScale - SkillTreeRenderer.NodeHalfSize;
+            float newTop = newDataPos.y * SkillTreeRenderer.UnitToPixelScale - SkillTreeRenderer.NodeHalfSize;
 
             element.style.left = newLeft;
             element.style.top = newTop;
@@ -214,8 +204,7 @@ namespace RogueliteAutoBattler.Editor.Windows
             evt.StopPropagation();
         }
 
-        private void OnPointerUp(PointerUpEvent evt, SkillTreeNodeElement element, int nodeIndex,
-            float offsetX, float offsetY)
+        private void OnPointerUp(PointerUpEvent evt, SkillTreeNodeElement element, int nodeIndex)
         {
             if (_dragNodeIndex != nodeIndex) return;
 
@@ -230,12 +219,9 @@ namespace RogueliteAutoBattler.Editor.Windows
                 float finalLeft = element.style.left.value.value;
                 float finalTop = element.style.top.value.value;
 
-                float nodeCenterPxX = finalLeft + NodeHalfSize;
-                float nodeCenterPxY = finalTop + NodeHalfSize;
-
-                Vector2 newDataPos = new Vector2(
-                    (nodeCenterPxX - offsetX) / ScaleFactor,
-                    (nodeCenterPxY - offsetY) / ScaleFactor);
+                var newDataPos = new Vector2(
+                    (finalLeft + SkillTreeRenderer.NodeHalfSize) / SkillTreeRenderer.UnitToPixelScale,
+                    (finalTop + SkillTreeRenderer.NodeHalfSize) / SkillTreeRenderer.UnitToPixelScale);
 
                 WriteNodePositionWithUndo(nodeIndex, newDataPos);
             }
@@ -245,19 +231,30 @@ namespace RogueliteAutoBattler.Editor.Windows
             evt.StopPropagation();
         }
 
-        private static (Vector2 min, Vector2 max) ComputeNodeBounds(IReadOnlyList<SkillTreeData.SkillNodeEntry> nodes)
+        private void RefreshEdges()
         {
-            if (nodes == null || nodes.Count == 0)
-                return (Vector2.zero, Vector2.zero);
+            if (_renderer == null || _edgeLayer == null || _data == null) return;
+            var statesList = BuildStatesList();
+            var idToIndexMap = BuildIdToIndexMap();
+            _renderer.RenderEdges(_data, idToIndexMap, statesList, _edgeLayer);
+        }
 
-            Vector2 boundsMin = nodes[0].position;
-            Vector2 boundsMax = nodes[0].position;
-            for (int i = 1; i < nodes.Count; i++)
+        private List<SkillTreeNodeVisualState> BuildStatesList()
+        {
+            var states = new List<SkillTreeNodeVisualState>(_data.Nodes.Count);
+            for (var i = 0; i < _data.Nodes.Count; i++)
             {
-                boundsMin = Vector2.Min(boundsMin, nodes[i].position);
-                boundsMax = Vector2.Max(boundsMax, nodes[i].position);
+                states.Add(_nodeStates.TryGetValue(i, out var s) ? s : SkillTreeNodeVisualState.Locked);
             }
-            return (boundsMin, boundsMax);
+            return states;
+        }
+
+        private Dictionary<int, int> BuildIdToIndexMap()
+        {
+            var map = new Dictionary<int, int>(_data.Nodes.Count);
+            for (var i = 0; i < _data.Nodes.Count; i++)
+                map[_data.Nodes[i].id] = i;
+            return map;
         }
     }
 }

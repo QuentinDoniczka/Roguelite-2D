@@ -200,6 +200,63 @@ namespace RogueliteAutoBattler.Tests.EditMode
                 _window.ActiveTabForTests,
                 "CancelBranchPreview must restore the SkillTree tab when branch preview started from SkillTree.");
         }
+
+        [Test]
+        public void VisualTab_BuildContent_CreatesEdgeLayer()
+        {
+            using var scope = new SkillTreeVisualSettingsProviderScope();
+
+            var testParent = new VisualElement();
+            _window.InvokeAttachVisualCanvasRootForTests(testParent);
+
+            Assert.IsNotNull(_window.VisualCanvasPanelForTests,
+                "Visual canvas panel must be created when data is bound.");
+
+            var edgeLayers = testParent.Query<SkillTreeEdgeLayer>().ToList();
+            Assert.AreEqual(1, edgeLayers.Count,
+                "Visual sub-tab must build exactly one SkillTreeEdgeLayer (Bug #1 regression guard).");
+        }
+
+        [Test]
+        public void VisualTab_BuildContent_NodesPositionedAtUnitToPixelScale()
+        {
+            using var scope = new SkillTreeVisualSettingsProviderScope();
+
+            var testParent = new VisualElement();
+            _window.InvokeAttachVisualCanvasRootForTests(testParent);
+
+            Assert.IsNotNull(_window.VisualCanvasPanelForTests,
+                "Visual canvas panel must be created when data is bound.");
+
+            var nodeElements = testParent.Query<SkillTreeNodeElement>().ToList();
+            Assert.AreEqual(_data.Nodes.Count, nodeElements.Count,
+                "Visual sub-tab must spawn one SkillTreeNodeElement per data node.");
+
+            const float PositionTolerance = 0.001f;
+
+            for (int i = 0; i < _data.Nodes.Count; i++)
+            {
+                var dataPos = _data.Nodes[i].position;
+                var element = FindNodeElementByIndex(nodeElements, i);
+                Assert.IsNotNull(element, $"A SkillTreeNodeElement with NodeIndex={i} must exist in the visual tree.");
+
+                float expectedLeft = dataPos.x * SkillTreeRenderer.UnitToPixelScale - SkillTreeRenderer.NodeHalfSize;
+                float expectedTop = dataPos.y * SkillTreeRenderer.UnitToPixelScale - SkillTreeRenderer.NodeHalfSize;
+                Assert.AreEqual(expectedLeft, element.style.left.value.value, PositionTolerance,
+                    $"Node {i} must be positioned at dataPos.x * SkillTreeRenderer.UnitToPixelScale - 32 (catches the 30f→40f scale regression).");
+                Assert.AreEqual(expectedTop, element.style.top.value.value, PositionTolerance,
+                    $"Node {i} must be positioned at dataPos.y * SkillTreeRenderer.UnitToPixelScale - 32 (catches the 30f→40f scale regression).");
+            }
+        }
+
+        private static SkillTreeNodeElement FindNodeElementByIndex(List<SkillTreeNodeElement> elements, int nodeIndex)
+        {
+            foreach (var element in elements)
+            {
+                if (element.NodeIndex == nodeIndex) return element;
+            }
+            return null;
+        }
     }
 }
 #endif
