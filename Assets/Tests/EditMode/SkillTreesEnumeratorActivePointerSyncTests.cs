@@ -37,7 +37,7 @@ namespace RogueliteAutoBattler.Tests.EditMode
         {
             if (_tempSceneCreated && _tempScene.IsValid() && _tempScene.isLoaded)
             {
-                EditorSceneManager.CloseScene(_tempScene, removeScene: true);
+                EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
                 _tempSceneCreated = false;
             }
             CleanupAssets();
@@ -100,7 +100,7 @@ namespace RogueliteAutoBattler.Tests.EditMode
         [Test]
         public void SetActivePointer_UpdatesOpenSceneControllerData()
         {
-            _tempScene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Additive);
+            _tempScene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
             _tempSceneCreated = true;
 
             var dataA = CreateAndPersistSkillTreeData(DataAPath);
@@ -134,7 +134,7 @@ namespace RogueliteAutoBattler.Tests.EditMode
         [Test]
         public void SetActivePointer_DoesNothing_WhenNoControllersOpen()
         {
-            _tempScene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Additive);
+            _tempScene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
             _tempSceneCreated = true;
 
             var dataB = CreateAndPersistSkillTreeData(DataBPath);

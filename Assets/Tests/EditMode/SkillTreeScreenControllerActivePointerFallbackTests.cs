@@ -50,6 +50,14 @@ namespace RogueliteAutoBattler.Tests.EditMode
             field.SetValue(target, value);
         }
 
+        private static void InvokeAwakeViaReflection(SkillTreeScreenController controller)
+        {
+            MethodInfo awake = typeof(SkillTreeScreenController).GetMethod(
+                "Awake", BindingFlags.NonPublic | BindingFlags.Instance);
+            Assert.IsNotNull(awake, "SkillTreeScreenController must declare a private Awake method.");
+            awake.Invoke(controller, null);
+        }
+
         private SkillTreeData CreateMinimalSkillTreeData()
         {
             var data = ScriptableObject.CreateInstance<SkillTreeData>();
@@ -110,7 +118,7 @@ namespace RogueliteAutoBattler.Tests.EditMode
             InjectPrivateField(controller, SkillPointWalletFieldName, skillPointWallet);
             InjectPrivateField(controller, PaletteFieldName, palette);
 
-            controllerGo.SetActive(true);
+            InvokeAwakeViaReflection(controller);
             yield return null;
 
             Assert.AreSame(_stubData, controller.Data,
@@ -155,7 +163,7 @@ namespace RogueliteAutoBattler.Tests.EditMode
             InjectPrivateField(controller, SkillPointWalletFieldName, skillPointWallet);
             InjectPrivateField(controller, PaletteFieldName, palette);
 
-            controllerGo.SetActive(true);
+            InvokeAwakeViaReflection(controller);
             yield return null;
 
             Assert.AreSame(assignedData, controller.Data,
